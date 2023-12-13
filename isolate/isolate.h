@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <view/flutter_view.h>
-
 class FlutterView;
 
 class IsolateHandler {
