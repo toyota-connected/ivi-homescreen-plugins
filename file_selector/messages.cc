@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <sstream>
 
 #include "plugins/common/common.h"
 
