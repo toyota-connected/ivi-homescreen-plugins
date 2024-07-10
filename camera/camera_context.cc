@@ -16,6 +16,8 @@
 
 #include "camera_context.h"
 
+#include <sstream>
+
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_message_codec.h>
