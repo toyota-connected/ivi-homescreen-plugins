@@ -17,7 +17,10 @@
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include_directories(${PROJECT_BINARY_DIR}/config)
+include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${PROJECT_BINARY_DIR}/config
+)
 
 find_package(PkgConfig REQUIRED)
 
