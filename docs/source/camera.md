@@ -1,0 +1,1 @@
+../../plugins/camera/README.md
