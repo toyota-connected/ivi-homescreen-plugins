@@ -1,0 +1,1 @@
+../../plugins/go_router/README.md

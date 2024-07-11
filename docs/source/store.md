@@ -1,0 +1,1 @@
+../../plugins/store/README.md

@@ -1,0 +1,11 @@
+*~
+.idea*
+build*
+.vscode*
+needsbuild
+._*
+cmake-build-*
+
+docs/source/_build/*
+docs/source/_static/*
+docs/source/_templates/*

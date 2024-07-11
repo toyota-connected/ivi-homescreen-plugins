@@ -1,0 +1,1 @@
+../../plugins/firebase_auth/README.md
