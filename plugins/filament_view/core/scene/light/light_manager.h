@@ -34,7 +34,7 @@ class Light;
 
 class LightManager {
  public:
-  explicit LightManager(CustomModelViewer* modelViewer);
+  explicit LightManager();
 
   void setDefaultLight();
 
@@ -46,8 +46,6 @@ class LightManager {
   LightManager& operator=(const LightManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  ::filament::Engine* engine_;
   utils::Entity entityLight_;
 };
 }  // namespace plugin_filament_view

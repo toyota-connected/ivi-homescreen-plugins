@@ -20,15 +20,13 @@
 
 namespace plugin_filament_view {
 
-MaterialManager::MaterialManager(CustomModelViewer* modelViewer,
-                                 const std::string& flutter_assets_path)
-    : modelViewer_(modelViewer),
-      flutterAssetsPath_(flutter_assets_path),
-      materialLoader_(
-          std::make_unique<MaterialLoader>(modelViewer, flutter_assets_path)),
-      textureLoader_(
-          std::make_unique<TextureLoader>(modelViewer, flutter_assets_path)) {
+MaterialManager::MaterialManager()
+{
   SPDLOG_TRACE("++MaterialManager::MaterialManager");
+
+  materialLoader_ = std::make_unique<MaterialLoader>();
+  textureLoader_ =  std::make_unique<TextureLoader>();
+
   SPDLOG_TRACE("--MaterialManager::MaterialManager");
 }
 
@@ -36,6 +34,7 @@ Resource<::filament::Material*> MaterialManager::loadMaterial(
     Material* material) {
   // The Future object for loading Material
   if (!material->assetPath_.empty()) {
+    // THIS does NOT set default a parameter values
     return materialLoader_->loadMaterialFromAsset(material->assetPath_);
   } else if (!material->url_.empty()) {
     return materialLoader_->loadMaterialFromUrl(material->url_);
@@ -46,26 +45,17 @@ Resource<::filament::Material*> MaterialManager::loadMaterial(
 }
 
 Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
-    ::filament::Material* materialResult) {
+    ::filament::Material* materialResult, const Material* material) {
+  
   if (!materialResult)
+  {
+    SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
     return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
-
-  auto count = materialResult->getParameterCount();
-  std::vector<::filament::Material::ParameterInfo> parameters(count);
-
-  auto actual = materialResult->getParameters(parameters.data(), count);
-  assert(count == actual && actual == parameters.size());
-
+  }  
+  
   auto materialInstance = materialResult->createInstance();
 
-  for (const auto& param : parameters) {
-    if (param.name) {
-      spdlog::info("[Material] name: {}, type: {}", param.name,
-                   (int)param.type);
-      // TODO
-      //TODO materialInstance->setParameter(param.name, 0.75f);
-    }
-  }
+  material->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult, materialInstance);
 
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }
@@ -75,19 +65,21 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
 
   if (!material) {
+    SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
     Resource<::filament::MaterialInstance*>::Error("Material not found");
   }
 
+  SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
   auto materialResult = loadMaterial(material);
 
   if (materialResult.getStatus() != Status::Success) {
-    SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
+    SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
     return Resource<::filament::MaterialInstance*>::Error(
         materialResult.getMessage());
   }
 
   auto materialInstance =
-      setupMaterialInstance(materialResult.getData().value());
+      setupMaterialInstance(materialResult.getData().value(), material);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;

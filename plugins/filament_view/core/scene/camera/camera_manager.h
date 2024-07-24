@@ -45,11 +45,13 @@ class Projection;
 
 class CameraManager {
  public:
-  explicit CameraManager(CustomModelViewer* modelViewer);
+  explicit CameraManager();
 
-  std::future<void> setDefaultCamera();
+  void setDefaultCamera();
 
   void lookAtDefaultPosition();
+  void setCameraLookat(filament::math::float3 eye, filament::math::float3 center
+    , filament::math::float3 up);
 
   void destroyCamera();
 
@@ -134,9 +136,7 @@ class CameraManager {
     }  // We very rarely use this [] operator, assert overhead is fine.
   };
 
-  ::filament::Engine* engine_;
   ::filament::Camera* camera_{};
-  CustomModelViewer* modelViewer_{};
   CameraManipulator* cameraManipulator_{};
 
   float cameraFocalLength_{};

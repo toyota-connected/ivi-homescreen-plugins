@@ -87,4 +87,16 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
   return nullptr;
 }
 
+void IndirectLight::Print(const char* tag) {
+  spdlog::debug("++++++++");
+  spdlog::debug("{} (Light)", tag);
+  spdlog::debug("\tintensity: {}", intensity_);
+}
+
+void DefaultIndirectLight::Print(const char* tag) {
+  spdlog::debug("++++++++");
+  spdlog::debug("{} (DefaultIndirectLight)", tag);
+  spdlog::debug("\tintensity: {}", intensity_);
+}
+
 }  // namespace plugin_filament_view

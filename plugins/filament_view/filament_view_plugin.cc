@@ -96,7 +96,42 @@ FilamentViewPlugin::~FilamentViewPlugin() {
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
     const int32_t /* index */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
+    const std::function<void(std::optional<FlutterError> reply)> /* result */) 
+{
+}
+
+ void FilamentViewPlugin::ChangeDirectLightByIndex(
+        const int32_t index,
+        const std::string color, 
+        const int32_t intensity,
+        const std::function<void(std::optional<FlutterError> reply)> /*result*/)
+{
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->ChangeLightProperties(index, color, intensity);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ToggleShapesInScene(bool value,
+    const std::function<void(std::optional<FlutterError> reply)> result)
+{
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->vToggleAllShapesInScene(value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ToggleCameraAutoRotate(bool value,
+    const std::function<void(std::optional<FlutterError> reply)> result)
+{
+  CustomModelViewer* instance = CustomModelViewer::Instance("FilamentViewPlugin");
+  instance->vToggleAutoCameraRotate(value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::SetCameraRotation(float fValue,
+        const std::function<void(std::optional<FlutterError> reply)> result)
+{
+  CustomModelViewer* instance = CustomModelViewer::Instance("FilamentViewPlugin");
+  instance->vRotateDemoCamera(fValue);
 }
 
 void FilamentViewPlugin::ChangeAnimationByName(
