@@ -32,19 +32,14 @@
 namespace plugin_filament_view {
 
 class CustomModelViewer;
-
 class Material;
-
 class MaterialLoader;
-
 class MaterialInstance;
-
 class TextureLoader;
 
 class MaterialManager {
  public:
-  MaterialManager(CustomModelViewer* modelViewer,
-                  const std::string& flutter_assets_path);
+  MaterialManager();
 
   Resource<::filament::MaterialInstance*> getMaterialInstance(
       Material* material);
@@ -54,14 +49,11 @@ class MaterialManager {
   MaterialManager& operator=(const MaterialManager&) = delete;
 
  private:
-  plugin_filament_view::CustomModelViewer* modelViewer_;
-  const std::string& flutterAssetsPath_;
-
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
   Resource<::filament::Material*> loadMaterial(Material* material);
   static Resource<::filament::MaterialInstance*> setupMaterialInstance(
-      ::filament::Material* materialResult);
+      ::filament::Material* materialResult, const Material* material);
 };
 }  // namespace plugin_filament_view

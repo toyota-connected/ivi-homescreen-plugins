@@ -30,21 +30,15 @@
 namespace plugin_filament_view {
 
 class CustomModelViewer;
-
 class IBLProfiler;
-
 class IndirectLight;
-
 class DefaultIndirectLight;
-
 class KtxIndirectLight;
-
 class HdrIndirectLight;
 
 class IndirectLightManager {
  public:
-  IndirectLightManager(CustomModelViewer* modelViewer,
-                       IBLProfiler* ibl_profiler);
+  IndirectLightManager(IBLProfiler* ibl_profiler);
 
   void setDefaultIndirectLight();
 
@@ -77,8 +71,6 @@ class IndirectLightManager {
   IndirectLightManager& operator=(const IndirectLightManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
   IBLProfiler* ibl_prefilter_;
-  ::filament::Engine* engine_;
 };
 }  // namespace plugin_filament_view

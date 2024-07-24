@@ -98,6 +98,21 @@ class FilamentViewApi {
   FilamentViewApi& operator=(const FilamentViewApi&) = delete;
 
   virtual ~FilamentViewApi() = default;
+ 
+  virtual void ChangeDirectLightByIndex(
+      const int32_t index,
+      const std::string color, 
+      const int32_t intensity, 
+      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+ 
+  virtual void ToggleShapesInScene(bool value,
+      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
+  virtual void ToggleCameraAutoRotate(bool value,
+      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
+  virtual void SetCameraRotation(float fValue,
+      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeAnimationByIndex(
       const int32_t index,

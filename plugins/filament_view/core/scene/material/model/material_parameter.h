@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <math/vec4.h>
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
@@ -29,7 +30,9 @@ class Texture;
 
 class TextureSampler;
 
-using MaterialValue = std::variant<std::unique_ptr<Texture>>;
+using MaterialTextureValue = std::variant<std::unique_ptr<Texture>>;
+using MaterialFloatValue = float;
+using MaterialColorValue = ::filament::math::vec4<float>;
 
 class MaterialParameter {
  public:
@@ -47,7 +50,9 @@ class MaterialParameter {
     TEXTURE,
   };
 
-  MaterialParameter(std::string name, MaterialType type, MaterialValue value);
+  MaterialParameter(std::string name, MaterialType type, MaterialTextureValue value);
+  MaterialParameter(std::string name, MaterialType type, MaterialFloatValue value);
+  MaterialParameter(std::string name, MaterialType type, MaterialColorValue value);
 
   static std::unique_ptr<MaterialParameter> Deserialize(
       const std::string& flutter_assets_path,
@@ -60,6 +65,10 @@ class MaterialParameter {
   // Disallow copy and assign.
   MaterialParameter(const MaterialParameter&) = delete;
   MaterialParameter& operator=(const MaterialParameter&) = delete;
+
+  std::string szGetParameterName() const {return name_;}
+
+  friend class Material;
 
  private:
   static constexpr char kColor[] = "COLOR";
@@ -75,7 +84,12 @@ class MaterialParameter {
 
   std::string name_;
   MaterialType type_;
-  std::variant<std::unique_ptr<Texture>> value_;
+  std::optional<MaterialTextureValue> textureValue_;
+  std::optional<MaterialFloatValue> fValue_;
+  std::optional<MaterialColorValue> colorValue_;
+
+  // TODO delete this, colorOf functionality exists in base filament.
+  static MaterialColorValue HexToColorFloat4(const std::string& hex);
 
   static const char* getTextForType(MaterialType type);
 

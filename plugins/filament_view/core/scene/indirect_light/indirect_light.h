@@ -43,6 +43,10 @@ class IndirectLight {
 
   [[nodiscard]] float getIntensity() const { return intensity_; };
 
+  // still has to run through filament after you set this value.
+  void setIntensity(float fValue) {intensity_ = fValue;}
+  virtual void Print(const char* tag);
+
  protected:
   std::string assetPath_;
   std::string url_;
@@ -63,6 +67,8 @@ class DefaultIndirectLight final : public IndirectLight {
 
   friend class IndirectLightManager;
 
+  void Print(const char* tag) override ;
+  
  private:
   std::vector<::filament::math::float3> radiance_;
   std::vector<::filament::math::float3> irradiance_;

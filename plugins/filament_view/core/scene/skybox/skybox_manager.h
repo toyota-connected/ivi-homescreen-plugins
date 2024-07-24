@@ -28,9 +28,7 @@
 namespace plugin_filament_view {
 class SkyboxManager {
  public:
-  SkyboxManager(CustomModelViewer* modelViewer,
-                IBLProfiler* ibl_profiler,
-                const std::string& flutter_assets_path);
+  SkyboxManager(IBLProfiler* ibl_profiler);
 
   std::future<void> Initialize();
 
@@ -76,10 +74,7 @@ class SkyboxManager {
   SkyboxManager& operator=(const SkyboxManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  ::filament::Engine* engine_;
   IBLProfiler* ibl_profiler_;
-  const std::string& flutterAssetsPath_;
 
   void setTransparentSkybox();
 };

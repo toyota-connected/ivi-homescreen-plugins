@@ -46,7 +46,7 @@ class FilamentScene {
  private:
   std::unique_ptr<SceneController> sceneController_;
 
-  std::unique_ptr<Model> model_;
+  std::unique_ptr<std::vector<std::unique_ptr<Model>>> models_{};
   std::unique_ptr<Scene> scene_;
   std::unique_ptr<std::vector<std::unique_ptr<Shape>>> shapes_{};
 };

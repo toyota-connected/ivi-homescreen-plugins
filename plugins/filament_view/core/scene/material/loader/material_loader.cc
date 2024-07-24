@@ -5,27 +5,36 @@
 #include "plugins/common/curl_client/curl_client.h"
 
 namespace plugin_filament_view {
-MaterialLoader::MaterialLoader(CustomModelViewer* modelViewer,
-                               const std::string& assetPath)
-    : modelViewer_(modelViewer),
-      assetPath_(assetPath),
-      engine_(modelViewer->getFilamentEngine()),
-      strand_(modelViewer->getStrandContext()) {}
 
+using ::filament::math::float3;
+using ::filament::RgbType;
+
+MaterialLoader::MaterialLoader()
+{}
+
+// This function does NOT set default parameter values.
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
-  auto buffer = readBinaryFile(path, assetPath_);
+
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+
+  auto buffer = readBinaryFile(path, modelViewer->getAssetPath());
 
   if (!buffer.empty()) {
     auto material = ::filament::Material::Builder()
                         .package(buffer.data(), buffer.size())
-                        .build(*engine_);
+                        .build(*engine);
+
     return Resource<::filament::Material*>::Success(material);
   } else {
+    SPDLOG_ERROR("Could not load material from asset.");
     return Resource<::filament::Material*>::Error(
         "Could not load material from asset.");
   }
 }
+
+
 
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
     const std::string& url) {
@@ -37,14 +46,38 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
         "Failed to load material from " + url);
   }
 
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+
   if (!buffer.empty()) {
     auto material = ::filament::Material::Builder()
                         .package(buffer.data(), buffer.size())
-                        .build(*engine_);
+                        .build(*engine);
     return Resource<::filament::Material*>::Success(material);
   } else {
     return Resource<::filament::Material*>::Error(
         "Could not load material from asset.");
   }
 }
+
+void MaterialLoader::PrintMaterialInformation(const ::filament::Material* material) const{
+  SPDLOG_DEBUG("Material Informaton {}", material->getName());
+  int paramCount = material->getParameterCount();
+  SPDLOG_DEBUG("Material Informaton {}", paramCount);
+
+  filament::Material::ParameterInfo* InfoList = new filament::Material::ParameterInfo[paramCount];
+  material->getParameters(InfoList, paramCount);
+
+  for(int i = 0 ; i < paramCount; ++i)  {
+    SPDLOG_DEBUG("Param Informaton {}", InfoList[i].name);
+  }
+
+  SPDLOG_DEBUG("Material isDoubleSided {}", material->isDoubleSided());
+  SPDLOG_DEBUG("Material isDepthCullingEnabled {}", material->isDepthCullingEnabled());
+  SPDLOG_DEBUG("Material isDepthWriteEnabled {}", material->isDepthWriteEnabled());
+  SPDLOG_DEBUG("Material isColorWriteEnabled {}", material->isColorWriteEnabled());
+
+  delete InfoList;
+}
+
 }  // namespace plugin_filament_view

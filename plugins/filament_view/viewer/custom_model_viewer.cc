@@ -48,8 +48,9 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE) {
-  SPDLOG_TRACE("++CustomModelViewer::CustomModelViewer");
+      currentShapesState_(ShapeState::NONE),
+      m_bAutoRotate(false) {
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
     filament_api_thread_id_ = pthread_self();
@@ -71,11 +72,11 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
   auto f = Initialize(platformView);
   f.wait();
 
-  SPDLOG_TRACE("--CustomModelViewer::CustomModelViewer");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 CustomModelViewer::~CustomModelViewer() {
-  SPDLOG_TRACE("++CustomModelViewer::~CustomModelViewer");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   if (callback_) {
     wl_callback_destroy(callback_);
@@ -102,11 +103,22 @@ CustomModelViewer::~CustomModelViewer() {
     wl_surface_destroy(surface_);
     surface_ = nullptr;
   }
-  SPDLOG_TRACE("--CustomModelViewer::~CustomModelViewer");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+}
+
+CustomModelViewer* CustomModelViewer::m_poInstance = nullptr;
+CustomModelViewer* CustomModelViewer::Instance(std::string where)
+{
+  if(m_poInstance == nullptr)
+    SPDLOG_DEBUG("Instance is null {}", where.c_str());
+  return m_poInstance;
 }
 
 std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
-  SPDLOG_TRACE("++CustomModelViewer::Initialize");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+
+  m_poInstance = this;
+
   auto promise(std::make_shared<std::promise<bool>>());
   auto future(promise->get_future());
   asio::post(*strand_, [&, promise, platformView] {
@@ -126,11 +138,11 @@ std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
 
     setupView();
 
-    modelLoader_ = std::make_unique<ModelLoader>(this);
+    modelLoader_ = std::make_unique<ModelLoader>();
 
     promise->set_value(true);
   });
-  SPDLOG_TRACE("--CustomModelViewer::Initialize");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
   return future;
 }
 
@@ -175,8 +187,9 @@ void CustomModelViewer::destroySkybox() {
 }
 
 void CustomModelViewer::setupView() {
-  SPDLOG_TRACE("++CustomModelViewer::setupView");
-  // on mobile, better use lower quality color buffer
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+
+// on mobile, better use lower quality color buffer
   ::filament::View::RenderQuality renderQuality{};
   renderQuality.hdrColorBuffer = ::filament::View::QualityLevel::MEDIUM;
   fview_->setRenderQuality(renderQuality);
@@ -187,20 +200,34 @@ void CustomModelViewer::setupView() {
 
   // MSAA is needed with dynamic resolution MEDIUM
   fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
+  //fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
   fview_->setAntiAliasing(::filament::View::AntiAliasing::FXAA);
+  //fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
   fview_->setAmbientOcclusionOptions({.enabled = true});
+  //fview_->setAmbientOcclusion(filament::View::AmbientOcclusion::NONE);
 
   // bloom is pretty expensive but adds a fair amount of realism
+  // fview_->setBloomOptions({
+  //     .enabled = false,
+  // });
+
   fview_->setBloomOptions({
       .enabled = true,
   });
 
-  SPDLOG_TRACE("--CustomModelViewer::setupView");
+  // fview_->setShadowingEnabled(false);
+  // fview_->setScreenSpaceRefractionEnabled(false);
+  // fview_->setStencilBufferEnabled(false);
+  // fview_->setDynamicLightingOptions(0.01, 1000.0f);
+
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
+
+static uint32_t G_LastTime = 0;
 
 /**
  * Renders the model and updates the Filament camera.
@@ -210,15 +237,36 @@ void CustomModelViewer::setupView() {
  */
 void CustomModelViewer::DrawFrame(uint32_t time) {
   asio::post(*strand_, [&, time]() {
-    modelLoader_->updateScene();
+    static bool bonce = true;
+    if(bonce)
+    {
+      bonce = false;
+      modelLoader_->updateScene();
 
-    cameraManager_->lookAtDefaultPosition();
+      vRotateDemoCamera(0);
+    }
+
+    if(G_LastTime == 0)
+    {
+      G_LastTime = time;
+    }
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
+
+      // Note you might want render time and gameplay time to be different
+      // but for smooth animation you don't. (physics would be simulated w/o render)
+      //
+      // Future tasking for making a more featured timing / frame info class.
+      uint32_t deltaTime = time - G_LastTime;
+      doDemoGameplayLoop((float)deltaTime / 1000);
+
       frenderer_->render(fview_);
       frenderer_->endFrame();
     }
+
+    G_LastTime = time;
+
   });
 }
 
@@ -240,10 +288,59 @@ void CustomModelViewer::OnFrame(void* data,
                            data);
 
   // Z-Order
-  wl_subsurface_place_above(obj->subsurface_, obj->parent_surface_);
+  // These do not need <seem> to need to be called every frame.
+  wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);
+}
+
+static float G_fAngle = 0.0f;
+
+filament::math::mat4f getRotationMatrix(float angle) {
+  // TODO Should be changed to specify axis. (Y etc) 
+  //filament::math::quatf rotation = filament::math::quatf::fromAxisAngle(filament::math::float3{0.0f, 1.0f, 0.0f}, angle);
+  return filament::math::mat4f::rotation(angle, filament::math::float3{0.0f, 1.0f, 0.0f});
+}
+
+/////////////////////////////////////////////////////////////////////////
+void CustomModelViewer::doCameraRotation(const float fDeltaTime) {
+  // rotate around an object over time.
+  const float speed = 0.5f; // Rotation speed
+
+  // just mimicing a constant frame time.
+  G_fAngle += 0.016f * speed;
+
+  vRotateDemoCamera(G_fAngle);
+}
+
+/////////////////////////////////////////////////////////////////////////
+// Gameplay loop for a demo scene.
+void CustomModelViewer::doDemoGameplayLoop(const float fDeltaTime) {
+  if(m_bAutoRotate)
+  {
+    doCameraRotation(fDeltaTime);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////
+void CustomModelViewer::vRotateDemoCamera(float fValue) {
+  const float radius = 8.0f; // Distance from the camera to the object
+
+  G_fAngle = fValue;
+
+  filament::math::float3 eye;
+  eye.x = radius * std::cos(G_fAngle);
+  eye.y = 3.0f; // You can adjust this for the desired height
+  eye.z = radius * std::sin(G_fAngle);
+
+  // Center of the rotation (object position)
+  filament::math::float3 center(0.0f, 0.0f, 0.0f);
+
+  // Up vector
+  filament::math::float3 up(0.0f, 1.0f, 0.0f);
+
+  cameraManager_->setCameraLookat(eye, center, up);
 }
 
 const wl_callback_listener CustomModelViewer::frame_listener = {.done =
@@ -259,10 +356,6 @@ void CustomModelViewer::resize(double width, double height) {
                        static_cast<uint32_t>(height)});
   cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
                                        static_cast<uint32_t>(height));
-}
-
-std::optional<filament::mat4f> CustomModelViewer::getModelTransform() {
-  return modelLoader_->getModelTransform();
 }
 
 }  // namespace plugin_filament_view

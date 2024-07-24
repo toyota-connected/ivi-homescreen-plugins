@@ -13,7 +13,7 @@ class CustomModelViewer;
 
 class MaterialLoader {
  public:
-  MaterialLoader(CustomModelViewer* modelViewer, const std::string& assetPath);
+  MaterialLoader();
   ~MaterialLoader() = default;
 
   Resource<::filament::Material*> loadMaterialFromAsset(
@@ -25,10 +25,8 @@ class MaterialLoader {
   MaterialLoader(const MaterialLoader&) = delete;
   MaterialLoader& operator=(const MaterialLoader&) = delete;
 
+  void PrintMaterialInformation(const ::filament::Material* material) const;
+
  private:
-  CustomModelViewer* modelViewer_;
-  const std::string& assetPath_;
-  ::filament::Engine* engine_;
-  const asio::io_context::strand& strand_;
 };
 }  // namespace plugin_filament_view

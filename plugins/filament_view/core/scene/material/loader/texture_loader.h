@@ -20,7 +20,7 @@ class Texture;
 
 class TextureLoader {
  public:
-  TextureLoader(CustomModelViewer* modelViewer, const std::string& assetPath);
+  TextureLoader();
   ~TextureLoader() = default;
 
   ::filament::Texture* loadTexture(Texture* texture);
@@ -30,10 +30,6 @@ class TextureLoader {
   TextureLoader& operator=(const TextureLoader&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  const std::string& assetPath_;
-  ::filament::Engine* engine_;
-  const asio::io_context::strand& strand_;
 
   ::filament::Texture* createTextureFromImage(
       Texture::TextureType type,
