@@ -82,11 +82,6 @@ class CustomModelViewer {
 
   void destroySkybox();
 
-  // Demo functionality for auto rotating a camera
-  // around 0,0,0
-  void vToggleAutoCameraRotate(bool value){m_bAutoRotate=value;}
-  void vRotateDemoCamera(float fValue);
-
   // Disallow copy and assign.
   //CustomModelViewer(const CustomModelViewer&) = delete;
   //CustomModelViewer& operator=(const CustomModelViewer&) = delete;
@@ -197,7 +192,6 @@ class CustomModelViewer {
   ::filament::gltfio::Animator* fanimator_;
 
   CameraManager* cameraManager_;
-  bool m_bAutoRotate;
 
   ModelState currentModelState_;
   [[maybe_unused]] SceneState currentSkyboxState_;
@@ -215,10 +209,9 @@ class CustomModelViewer {
 
   void setupView();
 
-  // elapsed time needs to be moved to its own global namespace like class
+  // elapsed time / deltatime needs to be moved to its own global namespace like class
   // similar to unitys, elapsedtime/total time etc.
-  void doDemoGameplayLoop(const float fDeltaTime);
-  void doCameraRotation(const float fDeltaTime);
+  void doCameraFeatures(const float fDeltaTime);
 };
 
 }  // namespace plugin_filament_view

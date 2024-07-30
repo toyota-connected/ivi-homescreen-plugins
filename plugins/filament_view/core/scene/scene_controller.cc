@@ -92,6 +92,7 @@ void SceneController::setUpCamera() {
     return;
   }
   cameraManager_->updateCamera(scene_->camera_.get());
+  cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
 }
 
 std::future<void> SceneController::setUpIblProfiler() {

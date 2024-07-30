@@ -48,8 +48,7 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE),
-      m_bAutoRotate(false) {
+      currentShapesState_(ShapeState::NONE){
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
@@ -243,7 +242,8 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       bonce = false;
       modelLoader_->updateScene();
 
-      vRotateDemoCamera(0);
+      // will set the first frame of a cameras features.
+      doCameraFeatures(0);
     }
 
     if(G_LastTime == 0)
@@ -259,7 +259,7 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       //
       // Future tasking for making a more featured timing / frame info class.
       uint32_t deltaTime = time - G_LastTime;
-      doDemoGameplayLoop((float)deltaTime / 1000);
+      doCameraFeatures((float)deltaTime / 1000.0f);
 
       frenderer_->render(fview_);
       frenderer_->endFrame();
@@ -295,52 +295,9 @@ void CustomModelViewer::OnFrame(void* data,
   wl_surface_commit(obj->surface_);
 }
 
-static float G_fAngle = 0.0f;
-
-filament::math::mat4f getRotationMatrix(float angle) {
-  // TODO Should be changed to specify axis. (Y etc) 
-  //filament::math::quatf rotation = filament::math::quatf::fromAxisAngle(filament::math::float3{0.0f, 1.0f, 0.0f}, angle);
-  return filament::math::mat4f::rotation(angle, filament::math::float3{0.0f, 1.0f, 0.0f});
-}
-
 /////////////////////////////////////////////////////////////////////////
-void CustomModelViewer::doCameraRotation(const float fDeltaTime) {
-  // rotate around an object over time.
-  const float speed = 0.5f; // Rotation speed
-
-  // just mimicing a constant frame time.
-  G_fAngle += 0.016f * speed;
-
-  vRotateDemoCamera(G_fAngle);
-}
-
-/////////////////////////////////////////////////////////////////////////
-// Gameplay loop for a demo scene.
-void CustomModelViewer::doDemoGameplayLoop(const float fDeltaTime) {
-  if(m_bAutoRotate)
-  {
-    doCameraRotation(fDeltaTime);
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////
-void CustomModelViewer::vRotateDemoCamera(float fValue) {
-  const float radius = 8.0f; // Distance from the camera to the object
-
-  G_fAngle = fValue;
-
-  filament::math::float3 eye;
-  eye.x = radius * std::cos(G_fAngle);
-  eye.y = 3.0f; // You can adjust this for the desired height
-  eye.z = radius * std::sin(G_fAngle);
-
-  // Center of the rotation (object position)
-  filament::math::float3 center(0.0f, 0.0f, 0.0f);
-
-  // Up vector
-  filament::math::float3 up(0.0f, 1.0f, 0.0f);
-
-  cameraManager_->setCameraLookat(eye, center, up);
+void CustomModelViewer::doCameraFeatures(const float fDeltaTime) {
+  cameraManager_->updateCamerasFeatures( fDeltaTime);
 }
 
 const wl_callback_listener CustomModelViewer::frame_listener = {.done =

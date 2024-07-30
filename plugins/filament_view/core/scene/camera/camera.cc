@@ -25,6 +25,9 @@ namespace plugin_filament_view {
 
 Camera::Camera(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Camera::Camera");
+  customMode_ = false;
+  fCurrentOrbitAngle_ = 0;
+
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);
 
@@ -147,7 +150,12 @@ Camera::Camera(const flutter::EncodableMap& params) {
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
-        mode_ = getModeForText(std::get<std::string>(it.second));
+        std::string modeType = std::get<std::string>(it.second);
+        if(modeType == kModeAutoOrbit) {
+          customMode_ = true;
+        } else {
+          mode_ = getModeForText(modeType);
+        }
       } else if (std::holds_alternative<std::monostate>(it.second)) {
         mode_ = ::filament::camutils::Mode::ORBIT;
       }
