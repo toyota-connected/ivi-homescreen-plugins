@@ -112,26 +112,28 @@ void FilamentViewPlugin::ChangeAnimationByIndex(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleShapesInScene(bool value,
-    const std::function<void(std::optional<FlutterError> reply)> result)
-{
+    const std::function<void(std::optional<FlutterError> reply)> result) {
   auto sceneController = filamentScene_->getSceneController();
   sceneController->vToggleAllShapesInScene(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleCameraAutoRotate(bool value,
-    const std::function<void(std::optional<FlutterError> reply)> result)
-{
+    const std::function<void(std::optional<FlutterError> reply)> result) {
   CustomModelViewer* instance = CustomModelViewer::Instance("FilamentViewPlugin");
-  instance->vToggleAutoCameraRotate(value);
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->getCameraManager()->togglePrimaryCameraFeatureMode(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::SetCameraRotation(float fValue,
-        const std::function<void(std::optional<FlutterError> reply)> result)
-{
-  CustomModelViewer* instance = CustomModelViewer::Instance("FilamentViewPlugin");
-  instance->vRotateDemoCamera(fValue);
+        const std::function<void(std::optional<FlutterError> reply)> result) {
+  auto sceneController = filamentScene_->getSceneController();
+  Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
+  if(poCamera != nullptr) {
+    SPDLOG_DEBUG("{}", fValue);
+    poCamera->vSetCurrentCameraOrbitAngle(fValue);
+  }
 }
 
 void FilamentViewPlugin::ChangeAnimationByName(

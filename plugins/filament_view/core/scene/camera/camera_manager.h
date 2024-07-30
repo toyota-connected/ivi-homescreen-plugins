@@ -65,6 +65,11 @@ class CameraManager {
 
   void updateCameraManipulator(Camera* cameraInfo);
 
+  // for cameras flagged for auto-orbit, will auto orbit
+  // with their properties. Auto-screenshot, render-to-texture
+  // would also use this in the future.
+  void updateCamerasFeatures(float fElapsedTime);
+
   void updateCameraOnResize(uint32_t width, uint32_t height);
 
   std::future<Resource<std::string_view>> updateCamera(Camera* cameraInfo);
@@ -80,6 +85,11 @@ class CameraManager {
   std::string updateCameraShift(std::vector<double>* shift);
 
   std::string updateCameraScaling(std::vector<double>* scaling);
+
+  void setPrimaryCamera(std::unique_ptr<Camera> camera);
+  void togglePrimaryCameraFeatureMode(bool bValue);
+  // Passes weak ptr, dont keep a copy of this.
+  Camera* poGetPrimaryCamera() {return primaryCamera_.get();}
 
   // Disallow copy and assign.
   CameraManager(const CameraManager&) = delete;
@@ -157,6 +167,8 @@ class CameraManager {
   std::vector<TouchPair> tentativePanEvents_;
   std::vector<TouchPair> tentativeOrbitEvents_;
   std::vector<TouchPair> tentativeZoomEvents_;
+
+  std::shared_ptr<Camera> primaryCamera_;
 
   void endGesture();
   bool isOrbitGesture();
