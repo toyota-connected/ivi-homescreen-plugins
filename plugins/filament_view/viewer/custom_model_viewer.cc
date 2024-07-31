@@ -105,15 +105,51 @@ CustomModelViewer* CustomModelViewer::Instance(std::string where)
 }
 
 void CustomModelViewer::setupWaylandSubsurface() {
-  auto flutter_view = state_->view_controller->view;
-  display_ = flutter_view->GetDisplay()->GetDisplay();
-  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
-  surface_ =
-      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
-  subsurface_ = wl_subcompositor_get_subsurface(
-      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
-      parent_surface_);
+  // Ensure state_ is properly initialized
+  if (!state_ || !state_->view_controller) {
+    // Handle error: state_ or view_controller is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
 
+  auto flutter_view = state_->view_controller->view;
+  if (!flutter_view) {
+    // Handle error: flutter_view is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  display_ = flutter_view->GetDisplay()->GetDisplay();
+  if (!display_) {
+    // Handle error: display is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
+  if (!parent_surface_) {
+    // Handle error: parent_surface is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  surface_ = wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
+  if (!surface_) {
+    // Handle error: failed to create surface
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  subsurface_ = wl_subcompositor_get_subsurface(
+      flutter_view->GetDisplay()->GetSubCompositor(), surface_, parent_surface_);
+  if (!subsurface_) {
+    // Handle error: failed to create subsurface
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    wl_surface_destroy(surface_);  // Clean up the surface
+    return;
+  }
+
+  wl_subsurface_place_below(subsurface_, parent_surface_);
   wl_subsurface_set_desync(subsurface_);
 }
 
@@ -294,7 +330,7 @@ void CustomModelViewer::OnFrame(void* data,
 
   // Z-Order
   // These do not need <seem> to need to be called every frame.
-  wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
+  // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);
