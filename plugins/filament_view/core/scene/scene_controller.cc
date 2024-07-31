@@ -91,7 +91,10 @@ void SceneController::setUpCamera() {
     SPDLOG_ERROR("Camera failed to create {}", __FILE__, __FUNCTION__ );
     return;
   }
-  cameraManager_->updateCamera(scene_->camera_.get());
+
+  auto t = cameraManager_->updateCamera(scene_->camera_.get());
+  t.wait();
+
   cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
 }
 
