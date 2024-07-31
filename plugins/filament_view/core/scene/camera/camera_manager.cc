@@ -326,7 +326,7 @@ std::future<Resource<std::string_view>> CameraManager::updateCamera(
 }
 
 void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
-  primaryCamera_ = std::shared_ptr<Camera>(camera.get());
+  primaryCamera_ = std::shared_ptr<Camera>(std::move(camera));
 }
 
 void CameraManager::lookAtDefaultPosition() {
@@ -358,14 +358,14 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 
   filament::math::float3 eye;
   eye.x = radius * std::cos(primaryCamera_.get()->fCurrentOrbitAngle_);
-  eye.y = (*primaryCamera_.get()->orbitHomePosition_.get())[1]; // You can adjust this for the desired height
+  eye.y = primaryCamera_.get()->orbitHomePosition_->y; 
   eye.z = radius * std::sin(primaryCamera_.get()->fCurrentOrbitAngle_);
 
   // Center of the rotation (object position)
-  filament::math::float3 center(*primaryCamera_.get()->targetPosition_.get());
+  filament::math::float3 center = *primaryCamera_.get()->targetPosition_.get();
 
   // Up vector
-  filament::math::float3 up(*primaryCamera_.get()->upVector_.get());
+  filament::math::float3 up = *primaryCamera_.get()->upVector_.get();
 
   setCameraLookat(eye, center, up);
 }
