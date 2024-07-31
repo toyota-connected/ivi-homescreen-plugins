@@ -57,16 +57,7 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
   });
 
   /* Setup Wayland subsurface */
-  auto flutter_view = state->view_controller->view;
-  display_ = flutter_view->GetDisplay()->GetDisplay();
-  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
-  surface_ =
-      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
-  subsurface_ = wl_subcompositor_get_subsurface(
-      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
-      parent_surface_);
-
-  wl_subsurface_set_desync(subsurface_);
+  setupWaylandSubsurface();
 
   auto f = Initialize(platformView);
   f.wait();
@@ -113,6 +104,19 @@ CustomModelViewer* CustomModelViewer::Instance(std::string where)
   return m_poInstance;
 }
 
+void CustomModelViewer::setupWaylandSubsurface() {
+  auto flutter_view = state_->view_controller->view;
+  display_ = flutter_view->GetDisplay()->GetDisplay();
+  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
+  surface_ =
+      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
+  subsurface_ = wl_subcompositor_get_subsurface(
+      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
+      parent_surface_);
+
+  wl_subsurface_set_desync(subsurface_);
+}
+
 std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
@@ -120,6 +124,7 @@ std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
 
   auto promise(std::make_shared<std::promise<bool>>());
   auto future(promise->get_future());
+
   asio::post(*strand_, [&, promise, platformView] {
     auto platform_view_size = platformView->GetSize();
     native_window_ = {

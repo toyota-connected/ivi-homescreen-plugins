@@ -68,8 +68,6 @@ class CustomModelViewer {
 
   ~CustomModelViewer();
 
-  std::future<bool> Initialize(PlatformView* platformView);
-
   void setModelState(ModelState modelState);
 
   void setGroundState(SceneState sceneState);
@@ -81,6 +79,8 @@ class CustomModelViewer {
   void destroyIndirectLight();
 
   void destroySkybox();
+
+
 
   // Disallow copy and assign.
   //CustomModelViewer(const CustomModelViewer&) = delete;
@@ -151,6 +151,9 @@ class CustomModelViewer {
   static constexpr bool actualSize = false;
   static constexpr bool originIsFarAway = false;
   static constexpr float originDistance = 1.0f;
+
+  void setupWaylandSubsurface();
+  std::future<bool> Initialize(PlatformView* platformView);
 
   [[maybe_unused]] FlutterDesktopEngineState* state_;
   const std::string flutterAssetsPath_;
