@@ -74,23 +74,26 @@ class FilamentViewPlugin : public flutter::Plugin,
   ~FilamentViewPlugin() override;
 
   void ChangeDirectLightByIndex(
-        const int32_t index,
-        const std::string color, 
-        const int32_t intensity,
-        const std::function<void(std::optional<FlutterError> reply)> result)
-        override;
+      const int32_t index,
+      const std::string color,
+      const int32_t intensity,
+      const std::function<void(std::optional<FlutterError> reply)> result)
+      override;
 
-  void ToggleShapesInScene(bool value,
-        const std::function<void(std::optional<FlutterError> reply)> result)
-        override;
+  void ToggleShapesInScene(
+      bool value,
+      const std::function<void(std::optional<FlutterError> reply)> result)
+      override;
 
-  void ToggleCameraAutoRotate(bool value,
-        const std::function<void(std::optional<FlutterError> reply)> result)
-        override;
+  void ToggleCameraAutoRotate(
+      bool value,
+      const std::function<void(std::optional<FlutterError> reply)> result)
+      override;
 
-  void SetCameraRotation(float fValue,
-        const std::function<void(std::optional<FlutterError> reply)> result)
-        override;
+  void SetCameraRotation(
+      float fValue,
+      const std::function<void(std::optional<FlutterError> reply)> result)
+      override;
 
   void ChangeAnimationByIndex(
       const int32_t index,

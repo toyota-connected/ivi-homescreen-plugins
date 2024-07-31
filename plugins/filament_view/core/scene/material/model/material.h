@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <memory>
-#include <map>
 #include <filament/MaterialInstance.h>
+#include <map>
+#include <memory>
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
@@ -40,8 +40,9 @@ class Material {
 
   friend class MaterialManager;
 
-  void vSetMaterialInstancePropertiesFromMyPropertyMap(const ::filament::Material* materialResult
-    , filament::MaterialInstance* materialInstance) const;
+  void vSetMaterialInstancePropertiesFromMyPropertyMap(
+      const ::filament::Material* materialResult,
+      filament::MaterialInstance* materialInstance) const;
 
  private:
   const std::string& flutterAssetsPath_;

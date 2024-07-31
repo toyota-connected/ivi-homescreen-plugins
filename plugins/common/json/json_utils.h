@@ -34,9 +34,8 @@ namespace plugin_common::JsonUtils {
  * @relation
  * google_sign_in
  */
-rapidjson::Document GetJsonDocumentFromFile(
-    std::string& path,
-    bool missing_is_error = false);
+rapidjson::Document GetJsonDocumentFromFile(std::string& path,
+                                            bool missing_is_error = false);
 
 /**
  * @brief Function to write JSON Document to File
@@ -47,8 +46,7 @@ rapidjson::Document GetJsonDocumentFromFile(
  * @relation
  * google_sign_in
  */
-bool WriteJsonDocumentToFile(std::string& path,
-                                    const rapidjson::Document& doc);
+bool WriteJsonDocumentToFile(std::string& path, const rapidjson::Document& doc);
 
 /**
  * @brief Function to add empty key to file

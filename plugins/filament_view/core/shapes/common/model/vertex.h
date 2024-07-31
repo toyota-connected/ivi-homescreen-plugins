@@ -49,7 +49,7 @@ class Vertex {
 
                   fun FloatArray.
 
-                  toPosition() = this.let{(x, y, z) -> Position(x, y, z)}
+                  toPosition() = this.let{(x, y, z)->Position(x, y, z)}
 
                                  fun FloatArray.
 

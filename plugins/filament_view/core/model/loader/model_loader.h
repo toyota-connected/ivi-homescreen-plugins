@@ -42,15 +42,20 @@ class ModelLoader {
                          std::string uri)>& callback,
                      bool transform = false);
 
-  std::vector<filament::gltfio::FilamentAsset*> getAssets() const { return assets_; };
+  std::vector<filament::gltfio::FilamentAsset*> getAssets() const {
+    return assets_;
+  };
 
   filament::gltfio::FilamentAsset* poFindAssetByName(const std::string& szName);
 
-  std::optional<::filament::math::mat4f> getModelTransform(filament::gltfio::FilamentAsset* asset);
+  std::optional<::filament::math::mat4f> getModelTransform(
+      filament::gltfio::FilamentAsset* asset);
 
   void clearRootTransform(filament::gltfio::FilamentAsset* asset);
 
-  void transformToUnitCube(filament::gltfio::FilamentAsset* asset, const ::filament::float3* centerPoint, float scale);
+  void transformToUnitCube(filament::gltfio::FilamentAsset* asset,
+                           const ::filament::float3* centerPoint,
+                           float scale);
 
   void updateScene();
 
@@ -110,7 +115,8 @@ class ModelLoader {
       const ::filament::Aabb& bounds,
       ::filament::math::float3 offset);
 
-  void updateRootTransform(filament::gltfio::FilamentAsset* asset, bool autoScaleEnabled);
+  void updateRootTransform(filament::gltfio::FilamentAsset* asset,
+                           bool autoScaleEnabled);
 
   void populateScene(::filament::gltfio::FilamentAsset* asset);
 
@@ -120,7 +126,8 @@ class ModelLoader {
 
   ::filament::mat4f getTransform(filament::gltfio::FilamentAsset* asset);
 
-  void setTransform(filament::gltfio::FilamentAsset* asset, ::filament::mat4f mat);
+  void setTransform(filament::gltfio::FilamentAsset* asset,
+                    ::filament::mat4f mat);
 
   std::vector<char> buffer_;
   void handleFile(

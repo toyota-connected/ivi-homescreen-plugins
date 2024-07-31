@@ -54,6 +54,7 @@ class MaterialManager {
 
   Resource<::filament::Material*> loadMaterial(Material* material);
   static Resource<::filament::MaterialInstance*> setupMaterialInstance(
-      ::filament::Material* materialResult, const Material* material);
+      ::filament::Material* materialResult,
+      const Material* material);
 };
 }  // namespace plugin_filament_view

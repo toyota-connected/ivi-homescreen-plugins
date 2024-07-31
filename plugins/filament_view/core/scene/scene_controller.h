@@ -90,8 +90,8 @@ class SceneController {
   plugin_filament_view::MaterialManager* poGetMaterialManager();
 
   void ChangeLightProperties(int nWhichLightIndex,
-    std::string colorValue,
-    int32_t intensity);
+                             std::string colorValue,
+                             int32_t intensity);
 
   void ChangeIndirectLightProperties(int32_t intensity);
 

@@ -63,4 +63,4 @@ class ErrorOr {
   std::variant<T, FlutterError> v_;
 };
 
-}  // namespace navi_render_api
+}  // namespace nav_render_view_plugin
