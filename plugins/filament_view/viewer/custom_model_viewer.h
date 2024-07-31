@@ -80,11 +80,9 @@ class CustomModelViewer {
 
   void destroySkybox();
 
-
-
   // Disallow copy and assign.
-  //CustomModelViewer(const CustomModelViewer&) = delete;
-  //CustomModelViewer& operator=(const CustomModelViewer&) = delete;
+  // CustomModelViewer(const CustomModelViewer&) = delete;
+  // CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
   [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
     return fengine_;
@@ -145,7 +143,6 @@ class CustomModelViewer {
   static CustomModelViewer* Instance(std::string where);
 
  private:
-
   static CustomModelViewer* m_poInstance;
 
   static constexpr bool actualSize = false;
@@ -212,8 +209,8 @@ class CustomModelViewer {
 
   void setupView();
 
-  // elapsed time / deltatime needs to be moved to its own global namespace like class
-  // similar to unitys, elapsedtime/total time etc.
+  // elapsed time / deltatime needs to be moved to its own global namespace like
+  // class similar to unitys, elapsedtime/total time etc.
   void doCameraFeatures(const float fDeltaTime);
 };
 

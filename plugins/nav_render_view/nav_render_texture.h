@@ -33,12 +33,12 @@ class NavRenderTexture : public flutter::Plugin {
   // Disallow copy and assign.
   NavRenderTexture(const NavRenderTexture&) = delete;
   NavRenderTexture& operator=(const NavRenderTexture&) = delete;
+
  private:
   std::unique_ptr<flutter::MethodChannel<>> channel_;
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-
 };
 }  // namespace nav_render_view_plugin

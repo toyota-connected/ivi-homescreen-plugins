@@ -53,7 +53,6 @@ class GroundManager {
   GroundManager& operator=(const GroundManager&) = delete;
 
  private:
-
   Ground* ground_;
   void* plane_geometry_;
   // TODO PlaneGeometry* plane_geometry_;

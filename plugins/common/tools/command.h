@@ -31,7 +31,7 @@ namespace plugin_common::Command {
  * internal
  */
 MAYBE_UNUSED
-bool Execute(const char *cmd, std::string &result);
+bool Execute(const char* cmd, std::string& result);
 
 }  // namespace plugin_common::Command
 

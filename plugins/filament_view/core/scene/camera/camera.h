@@ -53,7 +53,9 @@ class Camera {
 
   friend class CameraManager;
 
-  void vSetCurrentCameraOrbitAngle(float fValue) {fCurrentOrbitAngle_ = fValue;}
+  void vSetCurrentCameraOrbitAngle(float fValue) {
+    fCurrentOrbitAngle_ = fValue;
+  }
 
  private:
   static constexpr char kModeOrbit[] = "ORBIT";

@@ -30,7 +30,6 @@ class TextureLoader {
   TextureLoader& operator=(const TextureLoader&) = delete;
 
  private:
-
   ::filament::Texture* createTextureFromImage(
       Texture::TextureType type,
       std::unique_ptr<image::LinearImage> image);

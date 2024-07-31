@@ -45,11 +45,11 @@ class Shape {
 
   Shape& operator=(const Shape&) = delete;
 
-  Material* getMaterial() const {return m_poMaterial->get();}
+  Material* getMaterial() const { return m_poMaterial->get(); }
 
-  bool bInitAndCreateShape(::filament::Engine* engine_
-    , std::shared_ptr<Entity> entityObject
-    , MaterialManager* material_manager);
+  bool bInitAndCreateShape(::filament::Engine* engine_,
+                           std::shared_ptr<Entity> entityObject,
+                           MaterialManager* material_manager);
 
   filament::math::float3 f3GetCenterPosition() const;
 
@@ -57,9 +57,8 @@ class Shape {
   void vAddEntityToScene();
 
  private:
-
-  void createDoubleSidedCube(::filament::Engine* engine_
-      , MaterialManager* material_manager);
+  void createDoubleSidedCube(::filament::Engine* engine_,
+                             MaterialManager* material_manager);
 
   // TODO - might need these to cleanup.
   // VertexBuffer* m_poVertexBuffer;
@@ -82,7 +81,7 @@ class Shape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
-  filament::math::float3 m_f3Extents; 
+  filament::math::float3 m_f3Extents;
 };
 
 }  // namespace plugin_filament_view

@@ -50,8 +50,9 @@ class CameraManager {
   void setDefaultCamera();
 
   void lookAtDefaultPosition();
-  void setCameraLookat(filament::math::float3 eye, filament::math::float3 center
-    , filament::math::float3 up);
+  void setCameraLookat(filament::math::float3 eye,
+                       filament::math::float3 center,
+                       filament::math::float3 up);
 
   void destroyCamera();
 
@@ -89,7 +90,7 @@ class CameraManager {
   void setPrimaryCamera(std::unique_ptr<Camera> camera);
   void togglePrimaryCameraFeatureMode(bool bValue);
   // Passes weak ptr, dont keep a copy of this.
-  Camera* poGetPrimaryCamera() {return primaryCamera_.get();}
+  Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
   // Disallow copy and assign.
   CameraManager(const CameraManager&) = delete;
