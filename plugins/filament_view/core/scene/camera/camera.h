@@ -55,6 +55,7 @@ class Camera {
 
   void vSetCurrentCameraOrbitAngle(float fValue) {
     fCurrentOrbitAngle_ = fValue;
+    forceSingleFrameUpdate_ = true;
   }
 
  private:
@@ -99,6 +100,7 @@ class Camera {
   ::filament::camutils::Mode mode_;
   /// if we have a mode specified not in filament - auto orbit, to texture, PiP
   bool customMode_;
+  bool forceSingleFrameUpdate_;
 
   /// The world-space position of interest, which defaults to (x:0,y:0,z:-4).
   std::unique_ptr<::filament::math::float3> targetPosition_;

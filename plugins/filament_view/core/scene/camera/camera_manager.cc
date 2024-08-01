@@ -341,9 +341,12 @@ void CameraManager::togglePrimaryCameraFeatureMode(bool bValue) {
 }
 
 void CameraManager::updateCamerasFeatures(float fElapsedTime) {
-  if (!primaryCamera_ || !primaryCamera_->customMode_) {
+  if (!primaryCamera_ || (!primaryCamera_->customMode_ &&
+                          !primaryCamera_->forceSingleFrameUpdate_)) {
     return;
   }
+
+  primaryCamera_->forceSingleFrameUpdate_ = false;
 
   // TODO this should be moved to a property on camera
   const float speed = 0.5f;  // Rotation speed
