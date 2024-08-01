@@ -16,7 +16,6 @@
 
 #include "main_loop.h"
 
-
 namespace plugin_common_glib {
 
 MainLoop::MainLoop()

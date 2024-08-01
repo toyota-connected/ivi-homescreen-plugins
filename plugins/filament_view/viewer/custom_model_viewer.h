@@ -122,7 +122,7 @@ class CustomModelViewer {
 
   filament::gltfio::FilamentAsset* getAsset() { return asset_; }
 
-  bool getActualSize() { return actualSize; }
+  static bool getActualSize() { return actualSize; }
 
   void setInitialized() {
     initialized_ = true;
@@ -211,7 +211,7 @@ class CustomModelViewer {
 
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.
-  void doCameraFeatures(const float fDeltaTime);
+  void doCameraFeatures(float fDeltaTime);
 };
 
 }  // namespace plugin_filament_view

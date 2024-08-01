@@ -80,7 +80,7 @@ class SceneController {
 
   void onTouch(int32_t action,
                int32_t point_count,
-               const size_t point_data_size,
+               size_t point_data_size,
                const double* point_data);
 
   [[nodiscard]] CameraManager* getCameraManager() const {

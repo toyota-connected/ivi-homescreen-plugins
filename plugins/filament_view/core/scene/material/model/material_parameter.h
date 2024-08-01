@@ -72,7 +72,7 @@ class MaterialParameter {
   MaterialParameter(const MaterialParameter&) = delete;
   MaterialParameter& operator=(const MaterialParameter&) = delete;
 
-  std::string szGetParameterName() const { return name_; }
+  [[nodiscard]] std::string szGetParameterName() const { return name_; }
 
   friend class Material;
 

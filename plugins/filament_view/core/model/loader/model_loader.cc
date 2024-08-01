@@ -39,8 +39,7 @@ using ::filament::gltfio::AssetLoader;
 using ::filament::gltfio::ResourceConfiguration;
 using ::filament::gltfio::ResourceLoader;
 
-ModelLoader::ModelLoader()
-{
+ModelLoader::ModelLoader() {
   SPDLOG_TRACE("++ModelLoader::ModelLoader");
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
@@ -93,12 +92,12 @@ void ModelLoader::destroyModel(filament::gltfio::FilamentAsset* asset) {
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                   asset->getEntityCount());
+                                                  asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
 
-filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(const std::string& szName) 
-{
+filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
+    const std::string& szName) {
   // To be implemented with m_mapszpoAssets
   return assets_[0];
 }
@@ -109,9 +108,9 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
                                std::string assetName,
                                bool /*autoScaleEnabled*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  
+
   auto* asset = assetLoader_->createAsset(buffer.data(),
-                                     static_cast<uint32_t>(buffer.size()));
+                                          static_cast<uint32_t>(buffer.size()));
   if (!asset) {
     // TODO THROW ERROR
     return;
@@ -121,12 +120,11 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
   resourceLoader_->asyncBeginLoad(asset);
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
 
-  // TODO Append names or types / change list, something 
+  // TODO Append names or types / change list, something
   // for loading the same model IN.
   // m_mapszpoAssets
 
   asset->releaseSourceData();
-
 
   // TODO is this needed?
   // if (autoScaleEnabled) {
@@ -143,8 +141,9 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
   auto& tm = engine->getTransformManager();
   auto ei = tm.getInstance(asset->getRoot());
 
-  tm.setTransform(ei, ::filament::math::mat4f{ ::filament::math::mat3f(scale), *centerPosition } *
-            tm.getWorldTransform(ei));
+  tm.setTransform(ei, ::filament::math::mat4f{::filament::math::mat3f(scale),
+                                              *centerPosition} *
+                          tm.getWorldTransform(ei));
 }
 
 void ModelLoader::loadModelGltf(
@@ -157,7 +156,7 @@ void ModelLoader::loadModelGltf(
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
-                                     static_cast<uint32_t>(buffer.size()));
+                                          static_cast<uint32_t>(buffer.size()));
   if (!asset) {
     // TODO THROW ERROR
     return;
@@ -166,8 +165,8 @@ void ModelLoader::loadModelGltf(
   assets_.push_back(asset);
 
   auto uri_data = asset->getResourceUris();
-  auto uris = std::vector<const char*>(
-      uri_data, uri_data + asset->getResourceUriCount());
+  auto uris = std::vector<const char*>(uri_data,
+                                       uri_data + asset->getResourceUriCount());
   for (const auto uri : uris) {
     SPDLOG_DEBUG("resource uri: {}", uri);
 #if 0   // TODO
@@ -229,7 +228,7 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
     modelViewer->getFilamentScene()->addEntities(asset->getLightEntities(),
-                                                  sizeof(*lightEntities));
+                                                 sizeof(*lightEntities));
   }
 }
 
@@ -248,11 +247,12 @@ void ModelLoader::removeAsset(filament::gltfio::FilamentAsset* asset) {
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                   asset->getEntityCount());
+                                                  asset->getEntityCount());
   asset = nullptr;
 }
 
-std::optional<::filament::math::mat4f> ModelLoader::getModelTransform(filament::gltfio::FilamentAsset* asset) {
+std::optional<::filament::math::mat4f> ModelLoader::getModelTransform(
+    filament::gltfio::FilamentAsset* asset) {
   if (asset) {
     auto root = asset->getRoot();
     auto& tm = asset->getEngine()->getTransformManager();
@@ -284,35 +284,27 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
 
-  try
-  {
+  try {
     const asio::io_context::strand& strand_(modelViewer->getStrandContext());
     const std::string assetPath = modelViewer->getAssetPath();
 
-    asio::post(strand_, [&, promise, path, scale, centerPosition, isFallback, assetPath] {
-      try
-      {
+    asio::post(strand_, [&, promise, path, scale, centerPosition, isFallback,
+                         assetPath] {
+      try {
         auto buffer = readBinaryFile(path, assetPath);
         handleFile(buffer, path, scale, centerPosition, isFallback, promise);
-      }
-      catch(const std::exception& e)
-      {
+      } catch (const std::exception& e) {
         std::cerr << "Lambda Exception " << e.what() << '\n';
         promise->set_exception(std::make_exception_ptr(e));
-      }
-      catch(...)
-      {
+      } catch (...) {
         std::cerr << "Unknown Exception in lambda" << '\n';
       }
     });
-  }
-  catch(const std::exception& e)
-  {
+  } catch (const std::exception& e) {
     std::cerr << "Total Exception: " << e.what() << '\n';
     promise->set_exception(std::make_exception_ptr(e));
   }
   return promise_future;
-
 }
 
 std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
@@ -325,17 +317,18 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
   auto promise_future(promise->get_future());
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
-  asio::post(modelViewer->getStrandContext(), [&, promise, url = std::move(url), scale, centerPosition,
-                       isFallback] {
-    plugin_common_curl::CurlClient client;
-    auto buffer = client.RetrieveContentAsVector();
-    if (client.GetCode() != CURLE_OK) {
-      modelViewer->setModelState(ModelState::ERROR);
-      promise->set_value(
-          Resource<std::string_view>::Error("Couldn't load Glb from " + url));
-    }
-    handleFile(buffer, url, scale, centerPosition, isFallback, promise);
-  });
+  asio::post(
+      modelViewer->getStrandContext(),
+      [&, promise, url = std::move(url), scale, centerPosition, isFallback] {
+        plugin_common_curl::CurlClient client;
+        auto buffer = client.RetrieveContentAsVector();
+        if (client.GetCode() != CURLE_OK) {
+          modelViewer->setModelState(ModelState::ERROR);
+          promise->set_value(Resource<std::string_view>::Error(
+              "Couldn't load Glb from " + url));
+        }
+        handleFile(buffer, url, scale, centerPosition, isFallback, promise);
+      });
   return promise_future;
 }
 
@@ -346,12 +339,11 @@ void ModelLoader::handleFile(
     const ::filament::math::float3* centerPosition,
     bool isFallback,
     const std::shared_ptr<std::promise<Resource<std::string_view>>>& promise) {
-
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
-    loadModelGlb(buffer, centerPosition, scale,fileSource,  true);
+    loadModelGlb(buffer, centerPosition, scale, fileSource, true);
     modelViewer->setModelState(isFallback ? ModelState::FALLBACK_LOADED
-                                           : ModelState::LOADED);
+                                          : ModelState::LOADED);
     promise->set_value(Resource<std::string_view>::Success(
         "Loaded glb model successfully from " + fileSource));
   } else {

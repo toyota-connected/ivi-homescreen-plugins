@@ -36,7 +36,7 @@ class CustomModelViewer;
 
 class GroundManager {
  public:
-  GroundManager(Ground* ground);
+  explicit GroundManager(Ground* ground);
 
   [[nodiscard]] bool createGround(MaterialManager* poManager) const;
 

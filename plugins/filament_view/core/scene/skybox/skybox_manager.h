@@ -28,7 +28,7 @@
 namespace plugin_filament_view {
 class SkyboxManager {
  public:
-  SkyboxManager(IBLProfiler* ibl_profiler);
+  explicit SkyboxManager(IBLProfiler* ibl_profiler);
 
   std::future<void> Initialize();
 

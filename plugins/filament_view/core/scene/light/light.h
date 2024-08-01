@@ -46,7 +46,7 @@ class Light {
 
   friend class LightManager;
 
-  void ChangeColor(std::string color) { color_ = color; }
+  void ChangeColor(const std::string& color) { color_ = color; }
 
   void ChangeIntensity(float fIntensity) { intensity_ = fIntensity; }
 

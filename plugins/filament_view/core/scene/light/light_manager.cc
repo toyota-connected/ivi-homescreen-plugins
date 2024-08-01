@@ -29,8 +29,7 @@ using ::filament::math::float3;
 using ::filament::math::mat3f;
 using ::filament::math::mat4f;
 
-LightManager::LightManager()
-{
+LightManager::LightManager() {
   SPDLOG_TRACE("++LightManager::LightManager");
   SPDLOG_TRACE("--LightManager::LightManager");
 }
@@ -50,9 +49,9 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
-  if(entityLight_.isNull())
-  {
-    entityLight_ = modelViewer->getFilamentEngine()->getEntityManager().create();
+  if (entityLight_.isNull()) {
+    entityLight_ =
+        modelViewer->getFilamentEngine()->getEntityManager().create();
   }
 
   const auto promise(
@@ -74,7 +73,6 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
     light->Print("Light Manager Instantiation");
 
     if (light->color_.has_value()) {
-
       auto colorValue = colorOf(light->color_.value());
       builder.color({colorValue[0], colorValue[1], colorValue[2]});
     } else if (light->colorTemperature_.has_value()) {
@@ -91,13 +89,13 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       builder.position(*light->position_);
     }
     if (light->direction_) {
-
       // Note if Direction is 0,0,0 and you're on a spotlight
       // nothing will show.
-      if(*light->direction_ == filament::math::float3(0,0,0)
-      && light->type_ == ::filament::LightManager::Type::SPOT)
-      {
-        SPDLOG_WARN("You've created a spot light without a direction, nothing will show. Undefined behavior.");
+      if (*light->direction_ == filament::math::float3(0, 0, 0) &&
+          light->type_ == ::filament::LightManager::Type::SPOT) {
+        SPDLOG_WARN(
+            "You've created a spot light without a direction, nothing will "
+            "show. Undefined behavior.");
       }
 
       builder.direction(*light->direction_);

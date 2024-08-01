@@ -26,9 +26,9 @@ Scene::Scene(const std::string& flutter_assets_path,
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : std::get<flutter::EncodableMap>(params)) {
     auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull())
-    {
-      SPDLOG_WARN("Scene Param ITER is null key:{} file:{} function:{}", key, __FILE__ , __FUNCTION__);
+    if (it.second.IsNull()) {
+      SPDLOG_WARN("Scene Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
       continue;
     }
 

@@ -25,12 +25,11 @@ namespace plugin_filament_view {
 
 Camera::Camera(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Camera::Camera");
-  
+
   // Currently variables not coming over from dart, Backlogged.
   customMode_ = true;
   fCurrentOrbitAngle_ = 0;
-  orbitHomePosition_ =
-            std::make_unique<::filament::math::float3>(0, 3, 0);
+  orbitHomePosition_ = std::make_unique<::filament::math::float3>(0, 3, 0);
 
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);
@@ -155,7 +154,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
         std::string modeType = std::get<std::string>(it.second);
-        if(modeType == kModeAutoOrbit) {
+        if (modeType == kModeAutoOrbit) {
           customMode_ = true;
         } else {
           mode_ = getModeForText(modeType);
@@ -167,7 +166,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
         orbitHomePosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      }// else if (std::holds_alternative<std::monostate>(it.second)) {
+      }  // else if (std::holds_alternative<std::monostate>(it.second)) {
       //   orbitHomePosition_ =
       //       std::make_unique<::filament::math::float3>(0, 0, 0);
       // }

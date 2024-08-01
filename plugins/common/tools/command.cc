@@ -20,7 +20,7 @@
 
 namespace plugin_common::Command {
 
-bool Execute(const char *cmd, std::string &result) {
+bool Execute(const char* cmd, std::string& result) {
   const auto fp = popen(cmd, "r");
   if (!fp) {
     spdlog::error("[ExecuteCommand] Failed to Execute Command: ({}) {}", errno,

@@ -48,7 +48,7 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE){
+      currentShapesState_(ShapeState::NONE) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
@@ -97,9 +97,8 @@ CustomModelViewer::~CustomModelViewer() {
 }
 
 CustomModelViewer* CustomModelViewer::m_poInstance = nullptr;
-CustomModelViewer* CustomModelViewer::Instance(std::string where)
-{
-  if(m_poInstance == nullptr)
+CustomModelViewer* CustomModelViewer::Instance(std::string where) {
+  if (m_poInstance == nullptr)
     SPDLOG_DEBUG("Instance is null {}", where.c_str());
   return m_poInstance;
 }
@@ -133,7 +132,8 @@ void CustomModelViewer::setupWaylandSubsurface() {
     return;
   }
 
-  surface_ = wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
+  surface_ =
+      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
   if (!surface_) {
     // Handle error: failed to create surface
     spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
@@ -141,7 +141,8 @@ void CustomModelViewer::setupWaylandSubsurface() {
   }
 
   subsurface_ = wl_subcompositor_get_subsurface(
-      flutter_view->GetDisplay()->GetSubCompositor(), surface_, parent_surface_);
+      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
+      parent_surface_);
   if (!subsurface_) {
     // Handle error: failed to create subsurface
     spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
@@ -229,7 +230,7 @@ void CustomModelViewer::destroySkybox() {
 void CustomModelViewer::setupView() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-// on mobile, better use lower quality color buffer
+  // on mobile, better use lower quality color buffer
   ::filament::View::RenderQuality renderQuality{};
   renderQuality.hdrColorBuffer = ::filament::View::QualityLevel::MEDIUM;
   fview_->setRenderQuality(renderQuality);
@@ -240,15 +241,15 @@ void CustomModelViewer::setupView() {
 
   // MSAA is needed with dynamic resolution MEDIUM
   fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
-  //fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
+  // fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
   fview_->setAntiAliasing(::filament::View::AntiAliasing::FXAA);
-  //fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
+  // fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
   fview_->setAmbientOcclusionOptions({.enabled = true});
-  //fview_->setAmbientOcclusion(filament::View::AmbientOcclusion::NONE);
+  // fview_->setAmbientOcclusion(filament::View::AmbientOcclusion::NONE);
 
   // bloom is pretty expensive but adds a fair amount of realism
   // fview_->setBloomOptions({
@@ -278,8 +279,7 @@ static uint32_t G_LastTime = 0;
 void CustomModelViewer::DrawFrame(uint32_t time) {
   asio::post(*strand_, [&, time]() {
     static bool bonce = true;
-    if(bonce)
-    {
+    if (bonce) {
       bonce = false;
       modelLoader_->updateScene();
 
@@ -287,16 +287,15 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       doCameraFeatures(0);
     }
 
-    if(G_LastTime == 0)
-    {
+    if (G_LastTime == 0) {
       G_LastTime = time;
     }
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
-
       // Note you might want render time and gameplay time to be different
-      // but for smooth animation you don't. (physics would be simulated w/o render)
+      // but for smooth animation you don't. (physics would be simulated w/o
+      // render)
       //
       // Future tasking for making a more featured timing / frame info class.
       uint32_t deltaTime = time - G_LastTime;
@@ -307,7 +306,6 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
     }
 
     G_LastTime = time;
-
   });
 }
 
@@ -337,8 +335,8 @@ void CustomModelViewer::OnFrame(void* data,
 }
 
 /////////////////////////////////////////////////////////////////////////
-void CustomModelViewer::doCameraFeatures(const float fDeltaTime) {
-  cameraManager_->updateCamerasFeatures( fDeltaTime);
+void CustomModelViewer::doCameraFeatures(float fDeltaTime) {
+  cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
 const wl_callback_listener CustomModelViewer::frame_listener = {.done =

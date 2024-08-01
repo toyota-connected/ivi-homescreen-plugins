@@ -6,16 +6,14 @@
 
 namespace plugin_filament_view {
 
-using ::filament::math::float3;
 using ::filament::RgbType;
+using ::filament::math::float3;
 
-MaterialLoader::MaterialLoader()
-{}
+MaterialLoader::MaterialLoader() {}
 
 // This function does NOT set default parameter values.
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
-
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
@@ -33,8 +31,6 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
         "Could not load material from asset.");
   }
 }
-
-
 
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
     const std::string& url) {
@@ -60,22 +56,27 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
   }
 }
 
-void MaterialLoader::PrintMaterialInformation(const ::filament::Material* material) const{
+void MaterialLoader::PrintMaterialInformation(
+    const ::filament::Material* material) const {
   SPDLOG_DEBUG("Material Informaton {}", material->getName());
   int paramCount = material->getParameterCount();
   SPDLOG_DEBUG("Material Informaton {}", paramCount);
 
-  filament::Material::ParameterInfo* InfoList = new filament::Material::ParameterInfo[paramCount];
+  filament::Material::ParameterInfo* InfoList =
+      new filament::Material::ParameterInfo[paramCount];
   material->getParameters(InfoList, paramCount);
 
-  for(int i = 0 ; i < paramCount; ++i)  {
+  for (int i = 0; i < paramCount; ++i) {
     SPDLOG_DEBUG("Param Informaton {}", InfoList[i].name);
   }
 
   SPDLOG_DEBUG("Material isDoubleSided {}", material->isDoubleSided());
-  SPDLOG_DEBUG("Material isDepthCullingEnabled {}", material->isDepthCullingEnabled());
-  SPDLOG_DEBUG("Material isDepthWriteEnabled {}", material->isDepthWriteEnabled());
-  SPDLOG_DEBUG("Material isColorWriteEnabled {}", material->isColorWriteEnabled());
+  SPDLOG_DEBUG("Material isDepthCullingEnabled {}",
+               material->isDepthCullingEnabled());
+  SPDLOG_DEBUG("Material isDepthWriteEnabled {}",
+               material->isDepthWriteEnabled());
+  SPDLOG_DEBUG("Material isColorWriteEnabled {}",
+               material->isColorWriteEnabled());
 
   delete InfoList;
 }

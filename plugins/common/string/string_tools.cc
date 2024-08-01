@@ -18,8 +18,8 @@
 
 namespace plugin_common::StringTools {
 
-[[maybe_unused]]
-std::vector<std::string> split(std::string str, const std::string& token) {
+[[maybe_unused]] std::vector<std::string> split(std::string str,
+                                                const std::string& token) {
   std::vector<std::string> result;
   while (!str.empty()) {
     const auto index = str.find(token);

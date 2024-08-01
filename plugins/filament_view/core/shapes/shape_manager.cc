@@ -46,15 +46,17 @@ ShapeManager::ShapeManager(MaterialManager* material_manager)
   SPDLOG_TRACE("--ShapeManager::ShapeManager");
 }
 
-// TODO, shape vector should be owned by shapemanager instead of scene. backlogged.
-void ShapeManager::vToggleAllShapesInScene(bool bValue, const std::vector<std::unique_ptr<Shape>>& shapes) {
-  if(bValue) {
-    for(int i = 0 ; i < shapes.size(); ++i) {
+// TODO, shape vector should be owned by shapemanager instead of scene.
+// backlogged.
+void ShapeManager::vToggleAllShapesInScene(
+    bool bValue,
+    const std::vector<std::unique_ptr<Shape>>& shapes) {
+  if (bValue) {
+    for (int i = 0; i < shapes.size(); ++i) {
       shapes[i]->vAddEntityToScene();
     }
-  }
-  else {
-    for(int i = 0 ; i < shapes.size(); ++i) {
+  } else {
+    for (int i = 0; i < shapes.size(); ++i) {
       shapes[i]->vRemoveEntityFromScene();
     }
   }
@@ -64,30 +66,34 @@ void ShapeManager::createShapes(
     const std::vector<std::unique_ptr<Shape>>& shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
-  filament::Engine* poFilamentEngine = CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
-  filament::Scene* poFilamentScene = CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
+  filament::Engine* poFilamentEngine =
+      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+  filament::Scene* poFilamentScene =
+      CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // oEntitymanager.create(shapes.size(), lstEntities);
 
-  for(int i = 0 ; i < shapes.size(); ++i) {
+  for (int i = 0; i < shapes.size(); ++i) {
     auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-    shapes[i]->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
+    shapes[i]->bInitAndCreateShape(poFilamentEngine, oEntity,
+                                   material_manager_);
 
     poFilamentScene->addEntity(*oEntity.get());
 
-    filament::math::float3 f3GetCenterPosition = shapes[i]->f3GetCenterPosition();
+    filament::math::float3 f3GetCenterPosition =
+        shapes[i]->f3GetCenterPosition();
 
     auto& tcm = poFilamentEngine->getTransformManager();
-        tcm.setTransform(tcm.getInstance(*oEntity.get()),
-                         mat4f::translation(f3GetCenterPosition));
+    tcm.setTransform(tcm.getInstance(*oEntity.get()),
+                     mat4f::translation(f3GetCenterPosition));
 
-      // To investigate a better system for implementing layer mask
-      // across dart to here.
-      //auto& rcm = poFilamentEngine->getRenderableManager();
-          //auto instance = rcm.getInstance(*oEntity.get());
-          // To investigate
-          // rcm.setLayerMask(instance, 0xff, 0x00);
+    // To investigate a better system for implementing layer mask
+    // across dart to here.
+    // auto& rcm = poFilamentEngine->getRenderableManager();
+    // auto instance = rcm.getInstance(*oEntity.get());
+    // To investigate
+    // rcm.setLayerMask(instance, 0xff, 0x00);
   }
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }

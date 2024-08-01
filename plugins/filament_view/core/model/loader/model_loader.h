@@ -42,7 +42,8 @@ class ModelLoader {
                          std::string uri)>& callback,
                      bool transform = false);
 
-  std::vector<filament::gltfio::FilamentAsset*> getAssets() const {
+  [[nodiscard]] std::vector<filament::gltfio::FilamentAsset*> getAssets()
+      const {
     return assets_;
   };
 
@@ -107,9 +108,9 @@ class ModelLoader {
   ::filament::viewer::Settings settings_;
   std::vector<float> morphWeights_;
 
-  void fetchResources(
-      ::filament::gltfio::FilamentAsset* asset,
-      const std::function<uint8_t*(std::string asset)> callback);
+  //   void fetchResources(
+  //       ::filament::gltfio::FilamentAsset* asset,
+  //       std::function<uint8_t*(std::string asset)> callback);
 
   ::filament::math::mat4f inline fitIntoUnitCube(
       const ::filament::Aabb& bounds,
@@ -120,11 +121,12 @@ class ModelLoader {
 
   void populateScene(::filament::gltfio::FilamentAsset* asset);
 
-  bool isRemoteMode() const { return assets_.empty(); }
+  [[nodiscard]] bool isRemoteMode() const { return assets_.empty(); }
 
   void removeAsset(filament::gltfio::FilamentAsset* asset);
 
-  ::filament::mat4f getTransform(filament::gltfio::FilamentAsset* asset);
+  [[nodiscard]] ::filament::mat4f getTransform(
+      filament::gltfio::FilamentAsset* asset);
 
   void setTransform(filament::gltfio::FilamentAsset* asset,
                     ::filament::mat4f mat);

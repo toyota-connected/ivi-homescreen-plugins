@@ -28,8 +28,7 @@
 
 namespace plugin_filament_view {
 IndirectLightManager::IndirectLightManager(IBLProfiler* ibl_profiler)
-    : ibl_prefilter_(ibl_profiler)
-{
+    : ibl_prefilter_(ibl_profiler) {
   SPDLOG_TRACE("++IndirectLightManager::IndirectLightManager");
   setDefaultIndirectLight();
   SPDLOG_TRACE("--IndirectLightManager::IndirectLightManager");
@@ -91,11 +90,9 @@ IndirectLightManager::setIndirectLightFromKtxAsset(std::string path,
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
-  asio::post(strand_,
-             [&, promise, path = std::move(path), intensity] {
-               promise->set_value(
-                   Resource<std::string_view>::Error("Not implemented"));
-             });
+  asio::post(strand_, [&, promise, path = std::move(path), intensity] {
+    promise->set_value(Resource<std::string_view>::Error("Not implemented"));
+  });
   return future;
 }
 
@@ -109,25 +106,23 @@ IndirectLightManager::setIndirectLightFromKtxUrl(std::string url,
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
-  asio::post(strand_,
-             [&, promise, url = std::move(url), intensity] {
-               promise->set_value(
-                   Resource<std::string_view>::Error("Not implemented"));
-             });
+  asio::post(strand_, [&, promise, url = std::move(url), intensity] {
+    promise->set_value(Resource<std::string_view>::Error("Not implemented"));
+  });
   return future;
 }
 
 Resource<std::string_view> IndirectLightManager::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
     double intensity) {
-
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  
+
   modelViewer->setLightState(SceneState::LOADING);
 
   ::filament::Texture* texture;
   try {
-    texture = HDRLoader::createTexture(modelViewer->getFilamentEngine(), asset_path);
+    texture =
+        HDRLoader::createTexture(modelViewer->getFilamentEngine(), asset_path);
   } catch (...) {
     modelViewer->setLightState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR file");
@@ -163,26 +158,26 @@ IndirectLightManager::setIndirectLightFromHdrAsset(std::string path,
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
   const std::string assetPath = modelViewer->getAssetPath();
   modelViewer->setLightState(SceneState::LOADING);
-  asio::post(strand_,
-             [&, promise, path = std::move(path), intensity, assetPath] {
-               std::filesystem::path asset_path(assetPath);
-               asset_path /= path;
-               CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  asio::post(strand_, [&, promise, path = std::move(path), intensity,
+                       assetPath] {
+    std::filesystem::path asset_path(assetPath);
+    asset_path /= path;
+    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
-               if (path.empty() || !std::filesystem::exists(asset_path)) {
-                 modelViewer->setModelState(ModelState::ERROR);
-                 promise->set_value(
-                     Resource<std::string_view>::Error("Asset path not valid"));
-               }
-               try {
-                 promise->set_value(loadIndirectLightHdrFromFile(
-                     asset_path.c_str(), intensity));
-               } catch (...) {
-                 modelViewer->setLightState(SceneState::ERROR);
-                 promise->set_value(Resource<std::string_view>::Error(
-                     "Couldn't changed Light from asset"));
-               }
-             });
+    if (path.empty() || !std::filesystem::exists(asset_path)) {
+      modelViewer->setModelState(ModelState::ERROR);
+      promise->set_value(
+          Resource<std::string_view>::Error("Asset path not valid"));
+    }
+    try {
+      promise->set_value(
+          loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
+    } catch (...) {
+      modelViewer->setLightState(SceneState::ERROR);
+      promise->set_value(Resource<std::string_view>::Error(
+          "Couldn't changed Light from asset"));
+    }
+  });
   return future;
 }
 
@@ -196,11 +191,9 @@ IndirectLightManager::setIndirectLightFromHdrUrl(std::string url,
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
   auto future(promise->get_future());
-  asio::post(strand_,
-             [&, promise, url = std::move(url), intensity] {
-               promise->set_value(
-                   Resource<std::string_view>::Error("Not implemented"));
-             });
+  asio::post(strand_, [&, promise, url = std::move(url), intensity] {
+    promise->set_value(Resource<std::string_view>::Error("Not implemented"));
+  });
   return future;
 }
 

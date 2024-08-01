@@ -197,7 +197,6 @@ void NavRenderSurface::Resize(int32_t width, int32_t height) {
 }
 
 void NavRenderSurface::Dispose() {
-
   LibNavRender->SurfaceDeInitialize(context_);
   context_ = nullptr;
 
@@ -280,7 +279,7 @@ void NavRenderSurface::on_touch(int32_t action,
   if (!data) {
     return;
   }
-  //auto plugin = static_cast<NavRenderSurface*>(data);
+  // auto plugin = static_cast<NavRenderSurface*>(data);
 }
 
 void NavRenderSurface::on_dispose(bool /* hybrid */, void* data) {
