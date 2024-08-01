@@ -64,10 +64,9 @@ GltfModel::GltfModel(std::string assetPath,
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
-std::unique_ptr<Model> Model::Deserialize(
-    const std::string& flutterAssetsPath,
-    const flutter::EncodableValue& params,
-    int depth) {
+std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
+                                          const flutter::EncodableValue& params,
+                                          int depth) {
   SPDLOG_TRACE("++Model::Model");
   std::unique_ptr<Animation> animation;
   std::unique_ptr<Model> fallback;
@@ -80,8 +79,7 @@ std::unique_ptr<Model> Model::Deserialize(
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  if(depth > 1)
-  {
+  if (depth > 1) {
     spdlog::error("Failed to deserialize model and fallbackmodel");
     return nullptr;
   }
@@ -107,7 +105,7 @@ std::unique_ptr<Model> Model::Deserialize(
       fallback = Deserialize(
           flutterAssetsPath,
           flutter::EncodableValue(std::get<flutter::EncodableMap>(it.second)),
-           ++depth );
+          ++depth);
     } else if (key == "isGlb" && std::holds_alternative<bool>(it.second)) {
       is_glb = std::get<bool>(it.second);
     } else if (key == "scale" && std::holds_alternative<double>(it.second)) {

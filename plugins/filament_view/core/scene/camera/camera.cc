@@ -30,6 +30,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
   customMode_ = true;
   fCurrentOrbitAngle_ = 0;
   orbitHomePosition_ = std::make_unique<::filament::math::float3>(0, 3, 0);
+  forceSingleFrameUpdate_ = false;
 
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);

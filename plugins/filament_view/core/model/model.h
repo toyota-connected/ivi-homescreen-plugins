@@ -40,7 +40,8 @@ class Model {
 
   static std::unique_ptr<Model> Deserialize(
       const std::string& flutterAssetsPath,
-      const flutter::EncodableValue& params, int depth = 0);
+      const flutter::EncodableValue& params,
+      int depth = 0);
 
   [[nodiscard]] float GetScale() const { return scale_; }
 
