@@ -22,8 +22,7 @@
 #include "touch_pair.h"
 
 namespace plugin_filament_view {
-CameraManager::CameraManager()
-{
+CameraManager::CameraManager() {
   SPDLOG_TRACE("++CameraManager::CameraManager");
   setDefaultCamera();
   SPDLOG_TRACE("--CameraManager::CameraManager: {}");
@@ -34,50 +33,48 @@ void CameraManager::setDefaultCamera() {
 
   // const auto promise(std::make_shared<std::promise<void>>());
   // auto future(promise->get_future());
-  //asio::post(modelViewer->getStrandContext(), [&, promise] {
+  // asio::post(modelViewer->getStrandContext(), [&, promise] {
 
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-    ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
-    auto fview = modelViewer->getFilamentView();
-    assert(fview);
+  auto fview = modelViewer->getFilamentView();
+  assert(fview);
 
-    cameraEntity_ = engine->getEntityManager().create();
-    camera_ = engine->createCamera(cameraEntity_);
+  cameraEntity_ = engine->getEntityManager().create();
+  camera_ = engine->createCamera(cameraEntity_);
 
-    /// With the default parameters, the scene must contain at least one Light
-    /// of intensity similar to the sun (e.g.: a 100,000 lux directional light).
-    camera_->setExposure(kAperture, kShutterSpeed, kSensitivity);
+  /// With the default parameters, the scene must contain at least one Light
+  /// of intensity similar to the sun (e.g.: a 100,000 lux directional light).
+  camera_->setExposure(kAperture, kShutterSpeed, kSensitivity);
 
-    auto viewport = fview->getViewport();
-    cameraManipulator_ = CameraManipulator::Builder()
-                             .viewport(static_cast<int>(viewport.width),
-                                       static_cast<int>(viewport.height))
-                             .build(::filament::camutils::Mode::FREE_FLIGHT);
-    filament::math::float3 eye, center, up;
-    cameraManipulator_->getLookAt(&eye, &center, &up);
-    setCameraLookat(eye, center, up);
-    fview->setCamera(camera_);
-    SPDLOG_TRACE("--CameraManager::setDefaultCamera");
-    //promise->set_value();
-  
+  auto viewport = fview->getViewport();
+  cameraManipulator_ = CameraManipulator::Builder()
+                           .viewport(static_cast<int>(viewport.width),
+                                     static_cast<int>(viewport.height))
+                           .build(::filament::camutils::Mode::FREE_FLIGHT);
+  filament::math::float3 eye, center, up;
+  cameraManipulator_->getLookAt(&eye, &center, &up);
+  setCameraLookat(eye, center, up);
+  fview->setCamera(camera_);
+  SPDLOG_TRACE("--CameraManager::setDefaultCamera");
+  // promise->set_value();
+
   //});
-  //return future;
+  // return future;
 }
 
-
-void CameraManager::setCameraLookat(filament::math::float3 eye, filament::math::float3 center
-, filament::math::float3 up)
-{
-  if(camera_ == NULL)
-  {
-    SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {} {}", __FILE__, __FUNCTION__, __LINE__);
+void CameraManager::setCameraLookat(filament::math::float3 eye,
+                                    filament::math::float3 center,
+                                    filament::math::float3 up) {
+  if (camera_ == NULL) {
+    SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {} {}",
+                 __FILE__, __FUNCTION__, __LINE__);
     return;
   }
 
   camera_->lookAt(eye, center, up);
 }
-
 
 std::string CameraManager::updateExposure(Exposure* exposure) {
   if (!exposure) {
@@ -331,8 +328,8 @@ void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
 
 void CameraManager::lookAtDefaultPosition() {
   // SPDLOG_TRACE("++CameraManager::lookAtDefaultPosition");
-  
-  //SPDLOG_DEBUG("++CameraManager::lookAtDefaultPosition");
+
+  // SPDLOG_DEBUG("++CameraManager::lookAtDefaultPosition");
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
@@ -349,16 +346,16 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
   }
 
   // TODO this should be moved to a property on camera
-  const float speed = 0.5f; // Rotation speed
+  const float speed = 0.5f;  // Rotation speed
   // TODO this should be moved to a property on camera
-  const float radius = 8.0f; // Distance from the camera to the object
+  const float radius = 8.0f;  // Distance from the camera to the object
 
   // camera needs angle
   primaryCamera_.get()->fCurrentOrbitAngle_ += fElapsedTime * speed;
 
   filament::math::float3 eye;
   eye.x = radius * std::cos(primaryCamera_.get()->fCurrentOrbitAngle_);
-  eye.y = primaryCamera_.get()->orbitHomePosition_->y; 
+  eye.y = primaryCamera_.get()->orbitHomePosition_->y;
   eye.z = radius * std::sin(primaryCamera_.get()->fCurrentOrbitAngle_);
 
   // Center of the rotation (object position)
@@ -413,9 +410,8 @@ void CameraManager::onAction(int32_t action,
                              int32_t point_count,
                              const size_t point_data_size,
                              const double* point_data) {
-
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-        
+
   auto viewport = modelViewer->getFilamentView()->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);

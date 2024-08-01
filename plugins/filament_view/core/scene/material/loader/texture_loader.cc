@@ -5,11 +5,9 @@
 #include "core/include/file_utils.h"
 #include "plugins/common/curl_client/curl_client.h"
 
-
 namespace plugin_filament_view {
 
-TextureLoader::TextureLoader()
-{}
+TextureLoader::TextureLoader() {}
 
 inline ::filament::backend::TextureFormat internalFormat(
     Texture::TextureType type) {
@@ -32,7 +30,7 @@ inline ::filament::backend::TextureFormat internalFormat(
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
-  
+
   ::filament::Texture* texture =
       ::filament::Texture::Builder()
           .width(image->getWidth())
@@ -76,7 +74,8 @@ inline ::filament::backend::TextureFormat internalFormat(
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
   if (!texture->assetPath_.empty()) {
-    auto file_path = getAbsolutePath(texture->assetPath_, modelViewer->getAssetPath());
+    auto file_path =
+        getAbsolutePath(texture->assetPath_, modelViewer->getAssetPath());
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
       return nullptr;
@@ -103,7 +102,7 @@ inline ::filament::backend::TextureFormat internalFormat(
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
     std::string url,
     Texture::TextureType type) {
-    return nullptr;
+  return nullptr;
 }
 
 }  // namespace plugin_filament_view

@@ -35,10 +35,10 @@ inline Color colorOf(float rgb = 0.0f, float a = 1.0f) {
 }
 
 inline Color colorOf(unsigned long color) {
-  int a = (color >> 24) & 0xff;  // or color >>> 24
-  int r = (color >> 16) & 0xff;
-  int g = (color >> 8) & 0xff;
-  int b = (color) & 0xff;
+  unsigned long a = (color >> 24) & 0xff;  // or color >>> 24
+  unsigned long r = (color >> 16) & 0xff;
+  unsigned long g = (color >> 8) & 0xff;
+  unsigned long b = (color) & 0xff;
 
   return {static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f,
           static_cast<float>(b) / 255.0f, static_cast<float>(a) / 255.0f};
@@ -91,7 +91,7 @@ inline Color alpha(const Color& inputColor) {
   return outputColor;
 }
 
-inline Color toColor(::filament::float4 inputColor) {
+inline Color toColor(::filament::math::float4 inputColor) {
   Color outputColor{};
   outputColor.r = inputColor[0];
   outputColor.g = inputColor[1];

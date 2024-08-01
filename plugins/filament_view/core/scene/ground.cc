@@ -28,9 +28,9 @@ Ground::Ground(const std::string& flutter_assets_path,
   bool done[5]{};
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull())
-    {
-      SPDLOG_WARN("Ground Param ITER is null key:{} file:{} function:{}", key, __FILE__ , __FUNCTION__);
+    if (it.second.IsNull()) {
+      SPDLOG_WARN("Ground Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
       continue;
     }
 
@@ -58,7 +58,7 @@ Ground::Ground(const std::string& flutter_assets_path,
       done[4] = true;
       material_ = std::make_unique<Material>(
           flutterAssetsPath_, std::get<flutter::EncodableMap>(it.second));
-        // material_->Print("Ground Creation");
+      // material_->Print("Ground Creation");
     } else if (!it.second.IsNull()) {
       spdlog::debug("[Ground] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),

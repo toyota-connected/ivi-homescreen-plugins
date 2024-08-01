@@ -30,7 +30,7 @@ class Shape;
 
 class ShapeManager {
  public:
-  ShapeManager(MaterialManager* material_manager);
+  explicit ShapeManager(MaterialManager* material_manager);
 
   void createShapes(const std::vector<std::unique_ptr<Shape>>& shapes);
 

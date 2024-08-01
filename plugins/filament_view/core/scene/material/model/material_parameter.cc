@@ -16,16 +16,14 @@
 
 #include "material_parameter.h"
 
-#include <optional>
-#include <utility>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <utility>
 
 #include "plugins/common/common.h"
-
-
 
 namespace plugin_filament_view {
 
@@ -34,22 +32,21 @@ MaterialParameter::MaterialParameter(std::string name,
                                      MaterialTextureValue value)
     : name_(std::move(name)), type_(type), textureValue_(std::move(value)) {}
 
-  MaterialParameter::MaterialParameter(std::string name,
-                                    MaterialType type,
-                                    MaterialFloatValue value)
-  : name_(std::move(name)), type_(type), fValue_(std::move(value)) {}
+MaterialParameter::MaterialParameter(std::string name,
+                                     MaterialType type,
+                                     MaterialFloatValue value)
+    : name_(std::move(name)), type_(type), fValue_(std::move(value)) {}
 
-    MaterialParameter::MaterialParameter(std::string name,
-                                    MaterialType type,
-                                    MaterialColorValue value)
-  : name_(std::move(name)), type_(type), colorValue_(std::move(value)) {}
-
+MaterialParameter::MaterialParameter(std::string name,
+                                     MaterialType type,
+                                     MaterialColorValue value)
+    : name_(std::move(name)), type_(type), colorValue_(std::move(value)) {}
 
 std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     const std::string& /* flutter_assets_path */,
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
-  
+
   std::optional<std::string> name;
   std::optional<MaterialType> type;
   std::optional<MaterialFloatValue> fValue;
@@ -58,9 +55,9 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
 
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull())
-    {
-      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {} {}", key, __FILE__, __FUNCTION__);
+    if (it.second.IsNull()) {
+      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {} {}",
+                   key, __FILE__, __FUNCTION__);
       continue;
     }
 
@@ -71,12 +68,10 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
       type = getTypeForText(std::get<std::string>(it.second));
     } else if (key == "value" && type == MaterialType::FLOAT) {
       fValue = std::get<double>(it.second);
-    }
-    else if (key == "value" && type == MaterialType::COLOR) {
+    } else if (key == "value" && type == MaterialType::COLOR) {
       // color comes across a a radix string #FFFFFFFF
       colorValue = HexToColorFloat4(std::get<std::string>(it.second));
-    }
-    else if (key == "value" && type == MaterialType::TEXTURE) {
+    } else if (key == "value" && type == MaterialType::TEXTURE) {
       encodMapValue = std::get<flutter::EncodableMap>(it.second);
     } else if (!it.second.IsNull()) {
       spdlog::debug("[MaterialParameter] Unhandled Parameter {} ", key.c_str());
@@ -85,30 +80,31 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     }
   }
 
-  if (!type.has_value()) 
-  {
-      spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter - no type in arg list" );
-      return {};
+  if (!type.has_value()) {
+    spdlog::error(
+        "[MaterialParameter::Deserialize] Unhandled Parameter - no type in arg "
+        "list");
+    return {};
   }
 
-  switch(type.value())
-  {
+  switch (type.value()) {
     case MaterialType::TEXTURE:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "", type.value(),
-        Texture::Deserialize(encodMapValue.value()));
+          name.has_value() ? name.value() : "", type.value(),
+          Texture::Deserialize(encodMapValue.value()));
 
     case MaterialType::FLOAT:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "", type.value(), fValue.value());
+          name.has_value() ? name.value() : "", type.value(), fValue.value());
 
     case MaterialType::COLOR:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "", type.value(), colorValue.value());
-
+          name.has_value() ? name.value() : "", type.value(),
+          colorValue.value());
 
     default:
-      spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter {}", getTextForType(type.value()) );
+      spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter {}",
+                    getTextForType(type.value()));
       return {};
   }
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
@@ -123,7 +119,8 @@ void MaterialParameter::Print(const char* tag) {
   spdlog::debug("\ttype: {}", getTextForType(type_));
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
-      auto texture = std::get<std::unique_ptr<Texture>>(textureValue_.value()).get();
+      auto texture =
+          std::get<std::unique_ptr<Texture>>(textureValue_.value()).get();
       if (texture) {
         texture->Print("\ttexture");
       } else {
@@ -169,36 +166,36 @@ MaterialParameter::MaterialType MaterialParameter::getTypeForText(
 }
 
 MaterialColorValue MaterialParameter::HexToColorFloat4(const std::string& hex) {
-    // Ensure the string starts with '#' and is the correct length
-    if (hex[0] != '#' || hex.length() != 9) {
-        throw std::invalid_argument("Invalid hex color format");
-    }
+  // Ensure the string starts with '#' and is the correct length
+  if (hex[0] != '#' || hex.length() != 9) {
+    throw std::invalid_argument("Invalid hex color format");
+  }
 
-    // Comes across from our dart as ARGB
+  // Comes across from our dart as ARGB
 
-    // Extract the hex values for each channel
-    unsigned int r, g, b, a;
-    std::stringstream ss;
-    ss << std::hex << hex.substr(1, 2);
-    ss >> a;
-    ss.clear();
-    ss << std::hex << hex.substr(3, 2);
-    ss >> r;
-    ss.clear();
-    ss << std::hex << hex.substr(5, 2);
-    ss >> g;
-    ss.clear();
-    ss << std::hex << hex.substr(7, 2);
-    ss >> b;
+  // Extract the hex values for each channel
+  unsigned int r, g, b, a;
+  std::stringstream ss;
+  ss << std::hex << hex.substr(1, 2);
+  ss >> a;
+  ss.clear();
+  ss << std::hex << hex.substr(3, 2);
+  ss >> r;
+  ss.clear();
+  ss << std::hex << hex.substr(5, 2);
+  ss >> g;
+  ss.clear();
+  ss << std::hex << hex.substr(7, 2);
+  ss >> b;
 
-    // Convert to float in the range [0, 1]
-    MaterialColorValue color;
-    color.r = r / 255.0f;
-    color.g = g / 255.0f;
-    color.b = b / 255.0f;
-    color.a = a / 255.0f;
+  // Convert to float in the range [0, 1]
+  MaterialColorValue color;
+  color.r = r / 255.0f;
+  color.g = g / 255.0f;
+  color.b = b / 255.0f;
+  color.a = a / 255.0f;
 
-    return color;
+  return color;
 }
 
 }  // namespace plugin_filament_view

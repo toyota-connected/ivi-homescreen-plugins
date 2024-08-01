@@ -34,12 +34,11 @@ FilamentScene::FilamentScene(PlatformView* platformView,
   const auto& creationParams =
       std::get_if<flutter::EncodableMap>(decoded.get());
 
-  for (const auto& it : *creationParams) 
-  {
+  for (const auto& it : *creationParams) {
     auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull())
-    {
-      SPDLOG_DEBUG("CreationParamName ITER is null {} {} {}", key.c_str(), __FILE__ , __FUNCTION__);
+    if (it.second.IsNull()) {
+      SPDLOG_DEBUG("CreationParamName ITER is null {} {} {}", key.c_str(),
+                   __FILE__, __FUNCTION__);
       continue;
     }
 
@@ -47,17 +46,16 @@ FilamentScene::FilamentScene(PlatformView* platformView,
       SPDLOG_WARN("Loading Single Model - Deprecated Functionality {}", key);
       models_ = std::make_unique<std::vector<std::unique_ptr<Model>>>();
       models_->emplace_back(Model::Deserialize(flutterAssetsPath, it.second));
-    } else if (key == "models" && std::holds_alternative<flutter::EncodableList>(it.second)) {
+    } else if (key == "models" &&
+               std::holds_alternative<flutter::EncodableList>(it.second)) {
       // load models here.
       SPDLOG_TRACE("Loading Multiple Models {}", key);
 
       models_ = std::make_unique<std::vector<std::unique_ptr<Model>>>();
       auto list = std::get<flutter::EncodableList>(it.second);
 
-      for (const auto& iter : list) 
-      {
-        if (iter.IsNull())
-        {
+      for (const auto& iter : list) {
+        if (iter.IsNull()) {
           SPDLOG_WARN("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
@@ -73,15 +71,14 @@ FilamentScene::FilamentScene(PlatformView* platformView,
 
       auto list = std::get<flutter::EncodableList>(it.second);
 
-      for (const auto& iter : list) 
-      {
-        if (iter.IsNull())
-        {
+      for (const auto& iter : list) {
+        if (iter.IsNull()) {
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
 
-        auto shape = std::make_unique<Shape>(flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
+        auto shape = std::make_unique<Shape>(
+            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
         shapes_->emplace_back(shape.release());
       }
     } else {

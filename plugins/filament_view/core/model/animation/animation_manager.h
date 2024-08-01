@@ -29,14 +29,11 @@ class AnimationManager {
  public:
   AnimationManager();
 
-  std::vector<std::string> getAnimationNames() { return animationNames_; }
-
-  int32_t getAnimationCount() { return animationCount_; }
-
-  int32_t getAnimationIndexByName(const std::string& /* name */) {
-    // TODO
-    return 0;
+  [[nodiscard]] std::vector<std::string> getAnimationNames() const {
+    return animationNames_;
   }
+
+  [[nodiscard]] int32_t getAnimationCount() const { return animationCount_; }
 
   // Disallow copy and assign.
   AnimationManager(const AnimationManager&) = delete;

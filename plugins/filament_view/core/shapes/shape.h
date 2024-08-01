@@ -45,13 +45,13 @@ class Shape {
 
   Shape& operator=(const Shape&) = delete;
 
-  Material* getMaterial() const { return m_poMaterial->get(); }
+  [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,
                            MaterialManager* material_manager);
 
-  filament::math::float3 f3GetCenterPosition() const;
+  [[nodiscard]] filament::math::float3 f3GetCenterPosition() const;
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();

@@ -41,8 +41,7 @@ using ::filament::math::short4;
 using ::utils::Entity;
 
 GroundManager::GroundManager(Ground* ground)
-    : ground_(ground),
-      plane_geometry_(nullptr) {
+    : ground_(ground), plane_geometry_(nullptr) {
   SPDLOG_TRACE("++GroundManager::GroundManager");
   SPDLOG_TRACE("--GroundManager::GroundManager");
 }
@@ -222,9 +221,9 @@ bool GroundManager::createGround(MaterialManager* poManager) const {
     modelViewer->setGroundState(SceneState::ERROR);
     return false;
   }
-  #else
+#else
   return false;
-  #endif
+#endif
 }
 
 std::future<Resource<std::string_view>> GroundManager::updateGround(

@@ -38,7 +38,7 @@ class HdrIndirectLight;
 
 class IndirectLightManager {
  public:
-  IndirectLightManager(IBLProfiler* ibl_profiler);
+  explicit IndirectLightManager(IBLProfiler* ibl_profiler);
 
   void setDefaultIndirectLight();
 

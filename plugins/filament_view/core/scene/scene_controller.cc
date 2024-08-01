@@ -57,8 +57,8 @@ SceneController::~SceneController() {
 
 void SceneController::setUpViewer(PlatformView* platformView,
                                   FlutterDesktopEngineState* state) {
-  
-  modelViewer_ = std::make_unique<CustomModelViewer>(platformView, state, flutterAssetsPath_);
+  modelViewer_ = std::make_unique<CustomModelViewer>(platformView, state,
+                                                     flutterAssetsPath_);
   materialManager_ = std::make_unique<MaterialManager>();
 
   // TODO surfaceView.setOnTouchListener(modelViewer)
@@ -80,7 +80,7 @@ void SceneController::setUpViewer(PlatformView* platformView,
 void SceneController::setUpGround() {
   groundManager_ = std::make_unique<GroundManager>(scene_->ground_.get());
   groundManager_->createGround(materialManager_.get());
-  // auto f = groundManager_->createGround(); 
+  // auto f = groundManager_->createGround();
   // f.wait();
 }
 
@@ -88,7 +88,7 @@ void SceneController::setUpCamera() {
   cameraManager_ = std::make_unique<CameraManager>();
   modelViewer_->setCameraManager(cameraManager_.get());
   if (!scene_->camera_) {
-    SPDLOG_ERROR("Camera failed to create {}", __FILE__, __FUNCTION__ );
+    SPDLOG_ERROR("Camera failed to create {}", __FILE__, __FUNCTION__);
     return;
   }
 
@@ -111,8 +111,8 @@ std::future<void> SceneController::setUpIblProfiler() {
 void SceneController::setUpSkybox() {
   auto f = setUpIblProfiler();
   f.wait();
-  skyboxManager_ = std::make_unique<plugin_filament_view::SkyboxManager>(
-      iblProfiler_.get());
+  skyboxManager_ =
+      std::make_unique<plugin_filament_view::SkyboxManager>(iblProfiler_.get());
 
   if (!scene_->skybox_) {
     skyboxManager_->setDefaultSkybox();
@@ -167,12 +167,10 @@ void SceneController::setUpLight() {
 }
 
 void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
-  std::string colorValue,
-  int32_t intensity)
-{
-   if (scene_) {
+                                            std::string colorValue,
+                                            int32_t intensity) {
+  if (scene_) {
     if (scene_->light_) {
-
       SPDLOG_WARN("Changing light values. {} {}", __FILE__, __FUNCTION__);
 
       scene_->light_->ChangeColor(colorValue);
@@ -181,28 +179,27 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
       lightManager_->changeLight(scene_->light_.get());
       return;
     }
-   }
+  }
 
-   SPDLOG_WARN("Not implemented {} {}", __FILE__, __FUNCTION__);
+  SPDLOG_WARN("Not implemented {} {}", __FILE__, __FUNCTION__);
 }
 
-void SceneController::ChangeIndirectLightProperties(int32_t intensity)
-{
+void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
   auto indirectLight = scene_->indirect_light_.get();
   indirectLight->setIntensity(intensity);
 
   indirectLight->Print("SceneController ChangeIndirectLightProperties");
 
   if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-   SPDLOG_WARN("setIndirectLight  {} {}", __FILE__, __FUNCTION__);
-      indirectLightManager_->setIndirectLight(
-          dynamic_cast<DefaultIndirectLight*>(indirectLight));
+    SPDLOG_WARN("setIndirectLight  {} {}", __FILE__, __FUNCTION__);
+    indirectLightManager_->setIndirectLight(
+        dynamic_cast<DefaultIndirectLight*>(indirectLight));
   }
 }
 
 void SceneController::setUpIndirectLight() {
-  indirectLightManager_ = std::make_unique<IndirectLightManager>(
-      iblProfiler_.get());
+  indirectLightManager_ =
+      std::make_unique<IndirectLightManager>(iblProfiler_.get());
   if (!scene_->indirect_light_) {
     indirectLightManager_->setDefaultIndirectLight();
   } else {
@@ -252,7 +249,9 @@ void SceneController::setUpAnimation(std::optional<Animation*> animation) {
         currentAnimationIndex_ = a->GetIndex();
       } else if (!a->GetName().empty()) {
         currentAnimationIndex_ =
-            animationManager_->getAnimationIndexByName(a->GetName());
+            0;  //
+                // Todo / to be implemented always returned 0.
+                // animationManager_->getAnimationIndexByName(a->GetName());
       }
     }
   } else {
@@ -264,8 +263,7 @@ void SceneController::setUpLoadingModels() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   animationManager_ = std::make_unique<AnimationManager>();
 
-  for (const auto& iter : *models_)
-  {
+  for (const auto& iter : *models_) {
     plugin_filament_view::Model* poCurrModel = iter.get();
     auto result = loadModel(poCurrModel);
     if (result.getStatus() != Status::Success && poCurrModel->GetFallback()) {
@@ -280,8 +278,8 @@ void SceneController::setUpLoadingModels() {
     } else {
       setUpAnimation(poCurrModel->GetAnimation());
     }
-  } 
-  
+  }
+
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
@@ -298,7 +296,7 @@ void SceneController::setUpShapes() {
 }
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
-  if(shapeManager_.get() == nullptr) {
+  if (shapeManager_.get() == nullptr) {
     SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
     return;
   }
@@ -370,7 +368,7 @@ void SceneController::makeSurfaceViewNotTransparent() {
 
 void SceneController::onTouch(int32_t action,
                               int32_t point_count,
-                              const size_t point_data_size,
+                              size_t point_data_size,
                               const double* point_data) {
   if (cameraManager_) {
     cameraManager_->onAction(action, point_count, point_data_size, point_data);

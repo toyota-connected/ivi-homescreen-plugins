@@ -20,12 +20,11 @@
 
 namespace plugin_filament_view {
 
-MaterialManager::MaterialManager()
-{
+MaterialManager::MaterialManager() {
   SPDLOG_TRACE("++MaterialManager::MaterialManager");
 
   materialLoader_ = std::make_unique<MaterialLoader>();
-  textureLoader_ =  std::make_unique<TextureLoader>();
+  textureLoader_ = std::make_unique<TextureLoader>();
 
   SPDLOG_TRACE("--MaterialManager::MaterialManager");
 }
@@ -45,17 +44,17 @@ Resource<::filament::Material*> MaterialManager::loadMaterial(
 }
 
 Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
-    ::filament::Material* materialResult, const Material* material) {
-  
-  if (!materialResult)
-  {
+    ::filament::Material* materialResult,
+    const Material* material) {
+  if (!materialResult) {
     SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
     return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
-  }  
-  
+  }
+
   auto materialInstance = materialResult->createInstance();
 
-  material->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult, materialInstance);
+  material->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult,
+                                                            materialInstance);
 
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }

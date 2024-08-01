@@ -25,13 +25,11 @@
 
 #include <optional>
 
-class CameraManager;
-
-class LightManager;
-
-class Light;
-
 namespace plugin_filament_view {
+
+class CameraManager;
+class LightManager;
+class Light;
 
 class Position {
  public:

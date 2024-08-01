@@ -37,7 +37,8 @@ Light::Light(const flutter::EncodableMap& params) {
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
     if (it.second.IsNull()) {
-      SPDLOG_WARN("Light Param ITER is null key:{} file:{} function:{}", key, __FILE__ , __FUNCTION__);
+      SPDLOG_WARN("Light Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
       continue;
     }
 
@@ -111,10 +112,12 @@ void Light::Print(const char* tag) {
   }
 #if 1
   if (position_) {
-    SPDLOG_DEBUG("\tposition {} {} {}", position_.get()->x, position_.get()->y, position_.get()->z);
+    SPDLOG_DEBUG("\tposition {} {} {}", position_.get()->x, position_.get()->y,
+                 position_.get()->z);
   }
   if (direction_) {
-    SPDLOG_DEBUG("\tdirection_ {} {} {}", direction_.get()->x, direction_.get()->y, direction_.get()->z);
+    SPDLOG_DEBUG("\tdirection_ {} {} {}", direction_.get()->x,
+                 direction_.get()->y, direction_.get()->z);
   }
 #endif
   if (castLight_.has_value()) {

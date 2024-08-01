@@ -29,12 +29,12 @@
 
 #include "plugins/common/common.h"
 
+using flutter::EncodableList;
+using flutter::EncodableMap;
 using flutter::EncodableValue;
 using flutter::MessageReply;
 using flutter::MethodCall;
 using flutter::MethodResult;
-using flutter::EncodableList;
-using flutter::EncodableMap;
 
 namespace plugin_filament_view {
 
@@ -57,70 +57,82 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success();
             }
             // TODO Make a literals for these values:
-            // const String _changeLightColorByIndex = "CHANGE_LIGHT_COLOR_BY_INDEX";
-            // const String _changeLightColorByIndexKey = "CHANGE_LIGHT_COLOR_BY_INDEX_KEY";
-            // const String _changeLightColorByIndexColor = "CHANGE_LIGHT_COLOR_BY_INDEX_COLOR";
-            // const String _changeLightColorByIndexIntensity = "CHANGE_LIGHT_COLOR_BY_INDEX_INTENSITY";
-            else if (methodCall.method_name() == "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX") {
-              
-              const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
+            // const String _changeLightColorByIndex =
+            // "CHANGE_LIGHT_COLOR_BY_INDEX"; const String
+            // _changeLightColorByIndexKey = "CHANGE_LIGHT_COLOR_BY_INDEX_KEY";
+            // const String _changeLightColorByIndexColor =
+            // "CHANGE_LIGHT_COLOR_BY_INDEX_COLOR"; const String
+            // _changeLightColorByIndexIntensity =
+            // "CHANGE_LIGHT_COLOR_BY_INDEX_INTENSITY";
+            else if (methodCall.method_name() ==
+                     "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX") {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
               int32_t index;
               std::string colorString;
               int32_t intensity = 0;
               for (auto& it : *args) {
-                if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR" == std::get<std::string>(it.first) &&
+                if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR" ==
+                        std::get<std::string>(it.first) &&
                     std::holds_alternative<std::string>(it.second)) {
                   colorString = std::get<std::string>(it.second);
-                } else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY" == std::get<std::string>(it.first) &&
+                } else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY" ==
+                               std::get<std::string>(it.first) &&
                            std::holds_alternative<int32_t>(it.second)) {
                   index = std::get<int32_t>(it.second);
-                }
-                else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY" == std::get<std::string>(it.first) &&
+                } else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY" ==
+                               std::get<std::string>(it.first) &&
                            std::holds_alternative<int32_t>(it.second)) {
                   intensity = std::get<int32_t>(it.second);
                 }
               }
-              api->ChangeDirectLightByIndex(index, colorString, intensity, nullptr);
+              api->ChangeDirectLightByIndex(index, colorString, intensity,
+                                            nullptr);
 
               result->Success();
-            } 
-            //const String _toggleShapesInScene = "TOGGLE_SHAPES_IN_SCENE";
-            //const String _toggleShapesInSceneValue = "TOGGLE_SHAPES_IN_SCENE_VALUE";
+            }
+            // const String _toggleShapesInScene = "TOGGLE_SHAPES_IN_SCENE";
+            // const String _toggleShapesInSceneValue =
+            // "TOGGLE_SHAPES_IN_SCENE_VALUE";
             else if (methodCall.method_name() == "TOGGLE_SHAPES_IN_SCENE") {
-              const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if ("TOGGLE_SHAPES_IN_SCENE_VALUE" == std::get<std::string>(it.first)) {
+                if ("TOGGLE_SHAPES_IN_SCENE_VALUE" ==
+                    std::get<std::string>(it.first)) {
                   bool bValue = std::get<bool>(it.second);
                   api->ToggleShapesInScene(bValue, nullptr);
-                } 
+                }
               }
               result->Success();
             }
-            // const String _toggleCameraAutoRotate = "TOGGLE_CAMERA_AUTO_ROTATE";
-            // const String _toggleCameraAutoRotateValue = "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
+            // const String _toggleCameraAutoRotate =
+            // "TOGGLE_CAMERA_AUTO_ROTATE"; const String
+            // _toggleCameraAutoRotateValue = "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
             // const String _changeCameraRotation = "ROTATE_CAMERA";
             // const String _changeCameraRotationValue = "ROTATE_CAMERA_VALUE";
             else if (methodCall.method_name() == "TOGGLE_CAMERA_AUTO_ROTATE") {
-              const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if ("TOGGLE_CAMERA_AUTO_ROTATE_VALUE" == std::get<std::string>(it.first)) {
+                if ("TOGGLE_CAMERA_AUTO_ROTATE_VALUE" ==
+                    std::get<std::string>(it.first)) {
                   bool bValue = std::get<bool>(it.second);
                   api->ToggleCameraAutoRotate(bValue, nullptr);
-                } 
+                }
               }
               result->Success();
-            }
-            else if (methodCall.method_name() == "ROTATE_CAMERA") {
-              const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
+            } else if (methodCall.method_name() == "ROTATE_CAMERA") {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
                 if ("ROTATE_CAMERA_VALUE" == std::get<std::string>(it.first)) {
                   double fValue = std::get<double>(it.second);
                   api->SetCameraRotation(fValue, nullptr);
-                } 
+                }
               }
               result->Success();
-            }
-            else {
+            } else {
               result->NotImplemented();
             }
 #if 0
