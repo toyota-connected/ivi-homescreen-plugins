@@ -67,7 +67,7 @@ void CameraManager::setDefaultCamera() {
 void CameraManager::setCameraLookat(filament::math::float3 eye,
                                     filament::math::float3 center,
                                     filament::math::float3 up) {
-  if (camera_ == NULL) {
+  if (camera_ == nullptr) {
     SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {} {}",
                  __FILE__, __FUNCTION__, __LINE__);
     return;
@@ -337,11 +337,11 @@ void CameraManager::lookAtDefaultPosition() {
 }
 
 void CameraManager::togglePrimaryCameraFeatureMode(bool bValue) {
-  primaryCamera_.get()->customMode_ = bValue;
+  primaryCamera_->customMode_ = bValue;
 }
 
 void CameraManager::updateCamerasFeatures(float fElapsedTime) {
-  if (!primaryCamera_ || !primaryCamera_.get()->customMode_) {
+  if (!primaryCamera_ || !primaryCamera_->customMode_) {
     return;
   }
 
@@ -351,18 +351,18 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
   const float radius = 8.0f;  // Distance from the camera to the object
 
   // camera needs angle
-  primaryCamera_.get()->fCurrentOrbitAngle_ += fElapsedTime * speed;
+  primaryCamera_->fCurrentOrbitAngle_ += fElapsedTime * speed;
 
   filament::math::float3 eye;
-  eye.x = radius * std::cos(primaryCamera_.get()->fCurrentOrbitAngle_);
-  eye.y = primaryCamera_.get()->orbitHomePosition_->y;
-  eye.z = radius * std::sin(primaryCamera_.get()->fCurrentOrbitAngle_);
+  eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
+  eye.y = primaryCamera_->orbitHomePosition_->y;
+  eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
 
   // Center of the rotation (object position)
-  filament::math::float3 center = *primaryCamera_.get()->targetPosition_.get();
+  filament::math::float3 center = *primaryCamera_->targetPosition_;
 
   // Up vector
-  filament::math::float3 up = *primaryCamera_.get()->upVector_.get();
+  filament::math::float3 up = *primaryCamera_->upVector_;
 
   setCameraLookat(eye, center, up);
 }

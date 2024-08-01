@@ -16,16 +16,17 @@ class MaterialLoader {
   MaterialLoader();
   ~MaterialLoader() = default;
 
-  Resource<::filament::Material*> loadMaterialFromAsset(
+  static Resource<::filament::Material*> loadMaterialFromAsset(
       const std::string& path);
 
-  Resource<::filament::Material*> loadMaterialFromUrl(const std::string& url);
+  static Resource<::filament::Material*> loadMaterialFromUrl(
+      const std::string& url);
 
   // Disallow copy and assign.
   MaterialLoader(const MaterialLoader&) = delete;
   MaterialLoader& operator=(const MaterialLoader&) = delete;
 
-  void PrintMaterialInformation(const ::filament::Material* material) const;
+  static void PrintMaterialInformation(const ::filament::Material* material);
 
  private:
 };

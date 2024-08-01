@@ -40,14 +40,22 @@ using ::utils::Entity;
 Shape::Shape(int32_t id,
              ::filament::math::float3 centerPosition,
              ::filament::math::float3 normal,
-             Material material) {
+             Material material)
+    : m_f3CenterPosition(centerPosition),
+      m_f3Normal(normal),
+      m_f3ExtentsSize(0, 0, 0),
+      m_f3Extents(0, 0, 0) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
   SPDLOG_ERROR("SHAPE Not Implemented");
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
 Shape::Shape(const std::string& flutter_assets_path,
-             const flutter::EncodableMap& params) {
+             const flutter::EncodableMap& params)
+    : m_f3CenterPosition(0, 0, 0),
+      m_f3Normal(0, 0, 0),
+      m_f3ExtentsSize(0, 0, 0),
+      m_f3Extents(0, 0, 0) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
@@ -109,7 +117,7 @@ Shape::Shape(const std::string& flutter_assets_path,
 //}
 
 void Shape::vRemoveEntityFromScene() {
-  if (m_poEntity.get() == nullptr) {
+  if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
                 __FILE__, __FUNCTION__);
     return;
@@ -119,20 +127,20 @@ void Shape::vRemoveEntityFromScene() {
 }
 
 void Shape::vAddEntityToScene() {
-  if (m_poEntity.get() == nullptr) {
+  if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
                 __FUNCTION__);
     return;
   }
 
   CustomModelViewer::Instance("Shape")->getFilamentScene()->addEntity(
-      *m_poEntity.get());
+      *m_poEntity);
 }
 
 bool Shape::bInitAndCreateShape(::filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject,
                                 MaterialManager* material_manager) {
-  m_poEntity = entityObject;
+  m_poEntity = std::move(entityObject);
   // Future tasking planned for all the types to be defined here, and create
   // based off settings sent in, for now only cube is represented.
   createDoubleSidedCube(engine_, material_manager);
@@ -240,7 +248,7 @@ void Shape::createDoubleSidedCube(::filament::Engine* engine_,
       .culling(m_bCullingOfObjectEnabled)
       .receiveShadows(m_bReceiveShadows)
       .castShadows(m_bCastShadows)
-      .build(*engine_, *m_poEntity.get());
+      .build(*engine_, *m_poEntity);
 }
 #else
 void Shape::createCube(::filament::Engine* engine_,

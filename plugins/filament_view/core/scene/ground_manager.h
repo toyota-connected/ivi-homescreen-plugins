@@ -38,7 +38,7 @@ class GroundManager {
  public:
   explicit GroundManager(Ground* ground);
 
-  [[nodiscard]] bool createGround(MaterialManager* poManager) const;
+  [[nodiscard]] static bool createGround(MaterialManager* poManager);
 
   static std::future<Resource<std::string_view>> updateGround(
       Ground* newGround);

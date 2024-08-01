@@ -62,7 +62,7 @@ class CameraManager {
                 size_t point_data_size,
                 const double* point_data);
 
-  float calculateAspectRatio();
+  static float calculateAspectRatio();
 
   void updateCameraManipulator(Camera* cameraInfo);
 

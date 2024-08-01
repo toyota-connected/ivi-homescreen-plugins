@@ -48,7 +48,8 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE) {
+      currentShapesState_(ShapeState::NONE),
+      cameraManager_(nullptr) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
@@ -97,7 +98,7 @@ CustomModelViewer::~CustomModelViewer() {
 }
 
 CustomModelViewer* CustomModelViewer::m_poInstance = nullptr;
-CustomModelViewer* CustomModelViewer::Instance(std::string where) {
+CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
   if (m_poInstance == nullptr)
     SPDLOG_DEBUG("Instance is null {}", where.c_str());
   return m_poInstance;

@@ -60,7 +60,7 @@ mat4f inline fitIntoUnitCube(const Aabb& bounds, float zoffset) {
   return mat4f::scaling(float3(scaleFactor)) * mat4f::translation(-center);
 }
 
-bool GroundManager::createGround(MaterialManager* poManager) const {
+bool GroundManager::createGround(MaterialManager* poManager) {
 #if 0
   SPDLOG_TRACE("++GroundManager::createGround");
 

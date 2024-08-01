@@ -9,7 +9,7 @@ namespace plugin_filament_view {
 using ::filament::RgbType;
 using ::filament::math::float3;
 
-MaterialLoader::MaterialLoader() {}
+MaterialLoader::MaterialLoader() = default;
 
 // This function does NOT set default parameter values.
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
@@ -57,16 +57,15 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
 }
 
 void MaterialLoader::PrintMaterialInformation(
-    const ::filament::Material* material) const {
+    const ::filament::Material* material) {
   SPDLOG_DEBUG("Material Informaton {}", material->getName());
-  int paramCount = material->getParameterCount();
+  size_t paramCount = material->getParameterCount();
   SPDLOG_DEBUG("Material Informaton {}", paramCount);
 
-  filament::Material::ParameterInfo* InfoList =
-      new filament::Material::ParameterInfo[paramCount];
+  auto InfoList = new filament::Material::ParameterInfo[paramCount];
   material->getParameters(InfoList, paramCount);
 
-  for (int i = 0; i < paramCount; ++i) {
+  for (size_t i = 0; i < paramCount; ++i) {
     SPDLOG_DEBUG("Param Informaton {}", InfoList[i].name);
   }
 

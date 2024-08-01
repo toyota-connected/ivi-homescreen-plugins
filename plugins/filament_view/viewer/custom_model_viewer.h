@@ -140,7 +140,7 @@ class CustomModelViewer {
 
   void resize(double width, double height);
 
-  static CustomModelViewer* Instance(std::string where);
+  static CustomModelViewer* Instance(const std::string& where);
 
  private:
   static CustomModelViewer* m_poInstance;

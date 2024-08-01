@@ -88,7 +88,7 @@ void Material::Print(const char* tag) {
   spdlog::debug("\tParamCount: [{}]", parameters_.size());
 
   for (const auto& param : parameters_) {
-    if (param.second != NULL)
+    if (param.second != nullptr)
       param.second->Print("\tparameter");
   }
   spdlog::debug("++++++++");
@@ -110,7 +110,7 @@ void Material::vSetMaterialInstancePropertiesFromMyPropertyMap(
                    (int)param.type);
 
       const auto& iter = parameters_.find(param.name);
-      if (iter != parameters_.end() && iter->second.get() != nullptr) {
+      if (iter != parameters_.end() && iter->second != nullptr) {
         SPDLOG_TRACE("Setting material param {}", param.name);
 
         // Should probably check to make sure the two types match as well
