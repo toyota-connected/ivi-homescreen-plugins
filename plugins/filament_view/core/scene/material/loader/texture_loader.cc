@@ -7,7 +7,7 @@
 
 namespace plugin_filament_view {
 
-TextureLoader::TextureLoader() {}
+TextureLoader::TextureLoader() = default;
 
 inline ::filament::backend::TextureFormat internalFormat(
     Texture::TextureType type) {
@@ -23,8 +23,10 @@ inline ::filament::backend::TextureFormat internalFormat(
 ::filament::Texture* TextureLoader::createTextureFromImage(
     Texture::TextureType type,
     std::unique_ptr<image::LinearImage> image) {
-  if (image->getChannels() != 3) {
-    SPDLOG_ERROR("Channels != 3 {} {}", __FILE__, __FUNCTION__);
+  static const int NUM_CHANNELS_FOR_IMAGE = 3;
+  if (image->getChannels() != NUM_CHANNELS_FOR_IMAGE) {
+    SPDLOG_ERROR("Channels != {} {} {}", NUM_CHANNELS_FOR_IMAGE, __FILE__,
+                 __FUNCTION__);
     return nullptr;
   }
 
@@ -100,8 +102,8 @@ inline ::filament::backend::TextureFormat internalFormat(
 }
 
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
-    std::string url,
-    Texture::TextureType type) {
+    const std::string& /*url*/,
+    Texture::TextureType /*type*/) {
   return nullptr;
 }
 

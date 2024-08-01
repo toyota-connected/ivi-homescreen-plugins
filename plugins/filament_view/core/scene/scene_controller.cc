@@ -167,7 +167,7 @@ void SceneController::setUpLight() {
 }
 
 void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
-                                            std::string colorValue,
+                                            const std::string& colorValue,
                                             int32_t intensity) {
   if (scene_) {
     if (scene_->light_) {
@@ -186,7 +186,7 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
 
 void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
   auto indirectLight = scene_->indirect_light_.get();
-  indirectLight->setIntensity(intensity);
+  indirectLight->setIntensity(static_cast<float>(intensity));
 
   indirectLight->Print("SceneController ChangeIndirectLightProperties");
 
@@ -296,7 +296,7 @@ void SceneController::setUpShapes() {
 }
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
-  if (shapeManager_.get() == nullptr) {
+  if (shapeManager_ == nullptr) {
     SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
     return;
   }

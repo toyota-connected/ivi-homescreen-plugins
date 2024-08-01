@@ -69,7 +69,8 @@ std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
     if (indirectLight->rotation_.has_value()) {
       builder.rotation(indirectLight->rotation_.value());
     }
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("setIndirectLight::Lambda");
 
     builder.build(*modelViewer->getFilamentEngine());
 
@@ -158,26 +159,27 @@ IndirectLightManager::setIndirectLightFromHdrAsset(std::string path,
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
   const std::string assetPath = modelViewer->getAssetPath();
   modelViewer->setLightState(SceneState::LOADING);
-  asio::post(strand_, [&, promise, path = std::move(path), intensity,
-                       assetPath] {
-    std::filesystem::path asset_path(assetPath);
-    asset_path /= path;
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  asio::post(
+      strand_, [&, promise, path = std::move(path), intensity, assetPath] {
+        std::filesystem::path asset_path(assetPath);
+        asset_path /= path;
+        CustomModelViewer* modelViewer =
+            CustomModelViewer::Instance("setIndirectLightFromHdrAsset::Lambda");
 
-    if (path.empty() || !std::filesystem::exists(asset_path)) {
-      modelViewer->setModelState(ModelState::ERROR);
-      promise->set_value(
-          Resource<std::string_view>::Error("Asset path not valid"));
-    }
-    try {
-      promise->set_value(
-          loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
-    } catch (...) {
-      modelViewer->setLightState(SceneState::ERROR);
-      promise->set_value(Resource<std::string_view>::Error(
-          "Couldn't changed Light from asset"));
-    }
-  });
+        if (path.empty() || !std::filesystem::exists(asset_path)) {
+          modelViewer->setModelState(ModelState::ERROR);
+          promise->set_value(
+              Resource<std::string_view>::Error("Asset path not valid"));
+        }
+        try {
+          promise->set_value(
+              loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
+        } catch (...) {
+          modelViewer->setLightState(SceneState::ERROR);
+          promise->set_value(Resource<std::string_view>::Error(
+              "Couldn't changed Light from asset"));
+        }
+      });
   return future;
 }
 

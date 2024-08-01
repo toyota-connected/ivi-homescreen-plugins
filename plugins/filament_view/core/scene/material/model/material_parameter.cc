@@ -35,12 +35,12 @@ MaterialParameter::MaterialParameter(std::string name,
 MaterialParameter::MaterialParameter(std::string name,
                                      MaterialType type,
                                      MaterialFloatValue value)
-    : name_(std::move(name)), type_(type), fValue_(std::move(value)) {}
+    : name_(std::move(name)), type_(type), fValue_(value) {}
 
 MaterialParameter::MaterialParameter(std::string name,
                                      MaterialType type,
                                      MaterialColorValue value)
-    : name_(std::move(name)), type_(type), colorValue_(std::move(value)) {}
+    : name_(std::move(name)), type_(type), colorValue_(value) {}
 
 std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     const std::string& /* flutter_assets_path */,
@@ -190,10 +190,10 @@ MaterialColorValue MaterialParameter::HexToColorFloat4(const std::string& hex) {
 
   // Convert to float in the range [0, 1]
   MaterialColorValue color;
-  color.r = r / 255.0f;
-  color.g = g / 255.0f;
-  color.b = b / 255.0f;
-  color.a = a / 255.0f;
+  color.r = static_cast<float>(r) / 255.0f;
+  color.g = static_cast<float>(g) / 255.0f;
+  color.b = static_cast<float>(b) / 255.0f;
+  color.a = static_cast<float>(a) / 255.0f;
 
   return color;
 }

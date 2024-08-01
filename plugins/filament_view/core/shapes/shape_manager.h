@@ -40,7 +40,7 @@ class ShapeManager {
   ShapeManager& operator=(const ShapeManager&) = delete;
 
   // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(
+  static void vToggleAllShapesInScene(
       bool bValue,
       const std::vector<std::unique_ptr<Shape>>& shapes);
 

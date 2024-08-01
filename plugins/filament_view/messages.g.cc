@@ -52,7 +52,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
       channel->SetMethodCallHandler(
           [api](const MethodCall<EncodableValue>& methodCall,
                 std::unique_ptr<MethodResult<EncodableValue>> result) {
-            SPDLOG_TRACE("[{}]", methodCall.method_name());
+            spdlog::trace("[{}]", methodCall.method_name());
             if (methodCall.method_name() == "CHANGE_ANIMATION_BY_INDEX") {
               result->Success();
             }
@@ -127,7 +127,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
                 if ("ROTATE_CAMERA_VALUE" == std::get<std::string>(it.first)) {
-                  double fValue = std::get<double>(it.second);
+                  auto fValue = static_cast<float>(std::get<double>(it.second));
                   api->SetCameraRotation(fValue, nullptr);
                 }
               }

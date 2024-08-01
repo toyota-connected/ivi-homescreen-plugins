@@ -93,7 +93,7 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       // nothing will show.
       if (*light->direction_ == filament::math::float3(0, 0, 0) &&
           light->type_ == ::filament::LightManager::Type::SPOT) {
-        SPDLOG_WARN(
+        spdlog::warn(
             "You've created a spot light without a direction, nothing will "
             "show. Undefined behavior.");
       }
@@ -124,7 +124,8 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       builder.sunHaloSize(light->sunHaloFalloff_.value());
     }
 
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("changeLight::Lambda");
     builder.build(*modelViewer->getFilamentEngine(), entityLight_);
     auto scene = modelViewer->getFilamentScene();
 

@@ -105,7 +105,7 @@ filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
 void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
                                const ::filament::float3* centerPosition,
                                float scale,
-                               std::string assetName,
+                               const std::string& assetName,
                                bool /*autoScaleEnabled*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 

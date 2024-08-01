@@ -52,12 +52,12 @@ void ShapeManager::vToggleAllShapesInScene(
     bool bValue,
     const std::vector<std::unique_ptr<Shape>>& shapes) {
   if (bValue) {
-    for (int i = 0; i < shapes.size(); ++i) {
-      shapes[i]->vAddEntityToScene();
+    for (const auto& shape : shapes) {
+      shape->vAddEntityToScene();
     }
   } else {
-    for (int i = 0; i < shapes.size(); ++i) {
-      shapes[i]->vRemoveEntityFromScene();
+    for (const auto& shape : shapes) {
+      shape->vRemoveEntityFromScene();
     }
   }
 }
@@ -73,19 +73,17 @@ void ShapeManager::createShapes(
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // oEntitymanager.create(shapes.size(), lstEntities);
 
-  for (int i = 0; i < shapes.size(); ++i) {
+  for (const auto& shape : shapes) {
     auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-    shapes[i]->bInitAndCreateShape(poFilamentEngine, oEntity,
-                                   material_manager_);
+    shape->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
 
-    poFilamentScene->addEntity(*oEntity.get());
+    poFilamentScene->addEntity(*oEntity);
 
-    filament::math::float3 f3GetCenterPosition =
-        shapes[i]->f3GetCenterPosition();
+    filament::math::float3 f3GetCenterPosition = shape->f3GetCenterPosition();
 
     auto& tcm = poFilamentEngine->getTransformManager();
-    tcm.setTransform(tcm.getInstance(*oEntity.get()),
+    tcm.setTransform(tcm.getInstance(*oEntity),
                      mat4f::translation(f3GetCenterPosition));
 
     // To investigate a better system for implementing layer mask

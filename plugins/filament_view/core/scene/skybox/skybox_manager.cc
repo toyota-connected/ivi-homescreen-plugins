@@ -44,7 +44,8 @@ std::future<void> SkyboxManager::Initialize() {
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
   asio::post(strand_, [&, promise] {
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("SKyboxManager::Init::Lambda");
 
     auto whiteSkybox = ::filament::Skybox::Builder()
                            .color({1.0f, 1.0f, 1.0f, 1.0f})
@@ -125,7 +126,8 @@ std::future<Resource<std::string_view>> SkyboxManager::setSkyboxFromHdrUrl(
 
   SPDLOG_DEBUG("Skybox downloading HDR Asset: {}", url.c_str());
   asio::post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("setSkyboxFromHdrUrl::Lambda");
     plugin_common_curl::CurlClient client;
     // todo client.Init(url, {}, {});
     auto buffer = client.RetrieveContentAsVector();
@@ -209,7 +211,8 @@ std::future<Resource<std::string_view>> SkyboxManager::setSkyboxFromKTXUrl(
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
   asio::post(strand_, [&, promise, url] {
     plugin_common_curl::CurlClient client;
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("setSkyboxFromKTXUrl::Lambda");
 
     // TODO client.Init(url, {}, {});
     auto buffer = client.RetrieveContentAsVector();
@@ -258,7 +261,8 @@ std::future<Resource<std::string_view>> SkyboxManager::setSkyboxFromColor(
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
   asio::post(strand_, [&, promise, color] {
-    CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("setSkyboxFromColor::Lambda");
     modelViewer->setSkyboxState(SceneState::LOADING);
     auto colorArray = colorOf(color);
     auto skybox = ::filament::Skybox::Builder()
