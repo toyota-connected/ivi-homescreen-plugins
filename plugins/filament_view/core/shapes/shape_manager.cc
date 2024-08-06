@@ -46,24 +46,30 @@ ShapeManager::ShapeManager(MaterialManager* material_manager)
   SPDLOG_TRACE("--ShapeManager::ShapeManager");
 }
 
-// TODO, shape vector should be owned by shapemanager instead of scene.
-// backlogged.
-void ShapeManager::vToggleAllShapesInScene(
-    bool bValue,
-    const std::vector<std::unique_ptr<Shape>>& shapes) {
+ShapeManager::~ShapeManager() {
+  // remove all filament entities.
+  vRemoveAllShapesInScene();
+}
+
+void ShapeManager::vToggleAllShapesInScene(bool bValue) {
   if (bValue) {
-    for (const auto& shape : shapes) {
+    for (const auto& shape : shapes_) {
       shape->vAddEntityToScene();
     }
   } else {
-    for (const auto& shape : shapes) {
+    for (const auto& shape : shapes_) {
       shape->vRemoveEntityFromScene();
     }
   }
 }
 
-void ShapeManager::createShapes(
-    const std::vector<std::unique_ptr<Shape>>& shapes) {
+void ShapeManager::vRemoveAllShapesInScene() {
+  vToggleAllShapesInScene(false);
+  shapes_.clear();
+}
+
+void ShapeManager::addShapesToScene(
+    std::vector<std::unique_ptr<Shape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   filament::Engine* poFilamentEngine =
@@ -73,7 +79,7 @@ void ShapeManager::createShapes(
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // oEntitymanager.create(shapes.size(), lstEntities);
 
-  for (const auto& shape : shapes) {
+  for (auto& shape : *shapes) {
     auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
@@ -92,7 +98,10 @@ void ShapeManager::createShapes(
     // auto instance = rcm.getInstance(*oEntity.get());
     // To investigate
     // rcm.setLayerMask(instance, 0xff, 0x00);
+
+    shapes_.emplace_back(shape.release());
   }
+
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 

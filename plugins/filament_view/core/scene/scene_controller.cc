@@ -33,8 +33,7 @@ SceneController::SceneController(PlatformView* platformView,
     : id_(id),
       flutterAssetsPath_(std::move(flutterAssetsPath)),
       scene_(scene),
-      models_(models),
-      shapes_(shapes) {
+      models_(models) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   setUpViewer(platformView, state);
@@ -44,7 +43,7 @@ SceneController::SceneController(PlatformView* platformView,
   setUpSkybox();
   setUpLight();
   setUpIndirectLight();
-  setUpShapes();
+  setUpShapes(shapes);
 
   modelViewer_->setInitialized();
 
@@ -287,12 +286,10 @@ plugin_filament_view::MaterialManager* SceneController::poGetMaterialManager() {
   return materialManager_.get();
 }
 
-void SceneController::setUpShapes() {
+void SceneController::setUpShapes(std::vector<std::unique_ptr<Shape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
-  if (shapes_) {
-    shapeManager_->createShapes(*shapes_);
-  }
+  shapeManager_->addShapesToScene(shapes);
 }
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
@@ -301,7 +298,7 @@ void SceneController::vToggleAllShapesInScene(bool bValue) {
     return;
   }
 
-  shapeManager_->vToggleAllShapesInScene(bValue, *shapes_);
+  shapeManager_->vToggleAllShapesInScene(bValue);
 }
 
 std::string SceneController::setDefaultCamera() {
