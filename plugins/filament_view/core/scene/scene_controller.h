@@ -103,7 +103,6 @@ class SceneController {
 
   std::vector<std::unique_ptr<Model>>* models_;
   Scene* scene_;
-  std::vector<std::unique_ptr<Shape>>* shapes_;
 
   std::unique_ptr<CustomModelViewer> modelViewer_;
 
@@ -144,7 +143,7 @@ class SceneController {
 
   void setUpIndirectLight();
 
-  void setUpShapes();
+  void setUpShapes(std::vector<std::unique_ptr<Shape>>* shapes);
 
   std::string setDefaultCamera();
 

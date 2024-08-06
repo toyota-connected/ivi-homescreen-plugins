@@ -18,6 +18,8 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <list>
+
 #include "core/scene/material/material_manager.h"
 #include "shape.h"
 #include "viewer/custom_model_viewer.h"
@@ -31,8 +33,9 @@ class Shape;
 class ShapeManager {
  public:
   explicit ShapeManager(MaterialManager* material_manager);
+  ~ShapeManager();
 
-  void createShapes(const std::vector<std::unique_ptr<Shape>>& shapes);
+  void addShapesToScene(std::vector<std::unique_ptr<Shape>>* shapes);
 
   // Disallow copy and assign.
   ShapeManager(const ShapeManager&) = delete;
@@ -40,11 +43,13 @@ class ShapeManager {
   ShapeManager& operator=(const ShapeManager&) = delete;
 
   // will add/remove already made entities to/from the scene
-  static void vToggleAllShapesInScene(
-      bool bValue,
-      const std::vector<std::unique_ptr<Shape>>& shapes);
+  void vToggleAllShapesInScene(bool bValue);
+
+  void vRemoveAllShapesInScene();
 
  private:
   MaterialManager* material_manager_;
+
+  std::list<std::unique_ptr<Shape>> shapes_;
 };
 }  // namespace plugin_filament_view
