@@ -81,7 +81,6 @@ class Shape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
-  filament::math::float3 m_f3Extents;
 };
 
 }  // namespace plugin_filament_view
