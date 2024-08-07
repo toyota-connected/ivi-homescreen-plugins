@@ -25,6 +25,7 @@
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
+namespace shapes {
 
 using ::filament::Aabb;
 using ::filament::IndexBuffer;
@@ -37,7 +38,7 @@ using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
 
-Shape::Shape(int32_t id,
+BaseShape::BaseShape(int32_t id,
              ::filament::math::float3 centerPosition,
              ::filament::math::float3 normal,
              Material material)
@@ -49,7 +50,7 @@ Shape::Shape(int32_t id,
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
-Shape::Shape(const std::string& flutter_assets_path,
+BaseShape::BaseShape(const std::string& flutter_assets_path,
              const flutter::EncodableMap& params)
     : m_f3CenterPosition(0, 0, 0),
       m_f3Normal(0, 0, 0),
@@ -62,8 +63,6 @@ Shape::Shape(const std::string& flutter_assets_path,
                   __FUNCTION__);
       continue;
     }
-
-    spdlog::trace("Shape: {}", key);
 
     if (key == "id" && std::holds_alternative<int>(it.second)) {
       id = std::get<int>(it.second);
@@ -114,7 +113,7 @@ Shape::Shape(const std::string& flutter_assets_path,
 //   }
 //}
 
-void Shape::vRemoveEntityFromScene() {
+void BaseShape::vRemoveEntityFromScene() {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
                 __FILE__, __FUNCTION__);
@@ -124,7 +123,7 @@ void Shape::vRemoveEntityFromScene() {
       m_poEntity.get(), 1);
 }
 
-void Shape::vAddEntityToScene() {
+void BaseShape::vAddEntityToScene() {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
                 __FUNCTION__);
@@ -135,7 +134,7 @@ void Shape::vAddEntityToScene() {
       *m_poEntity);
 }
 
-bool Shape::bInitAndCreateShape(::filament::Engine* engine_,
+bool BaseShape::bInitAndCreateShape(::filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject,
                                 MaterialManager* material_manager) {
   m_poEntity = std::move(entityObject);
@@ -148,7 +147,7 @@ bool Shape::bInitAndCreateShape(::filament::Engine* engine_,
 #if 1 // All this code is to be refactored to more of an OOP pattern around
       // shapes, keeping for now.
 
-void Shape::createDoubleSidedCube(::filament::Engine* engine_,
+void BaseShape::createDoubleSidedCube(::filament::Engine* engine_,
                                   MaterialManager* material_manager) {
   // Vertices for a cube (8 vertices)
 
@@ -320,11 +319,11 @@ void Shape::createCube(::filament::Engine* engine_,
 
 #endif
 
-filament::math::float3 Shape::f3GetCenterPosition() const {
+filament::math::float3 BaseShape::f3GetCenterPosition() const {
   return m_f3CenterPosition;
 }
 
-void Shape::Print(const char* tag) const {
+void BaseShape::Print(const char* tag) const {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Shape)", tag);
 #if 0
@@ -341,4 +340,5 @@ void Shape::Print(const char* tag) const {
   spdlog::debug("++++++++");
 }
 
+}  // namespace shape
 }  // namespace plugin_filament_view

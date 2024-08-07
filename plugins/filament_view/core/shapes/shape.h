@@ -24,26 +24,27 @@
 
 namespace plugin_filament_view {
 
+class MaterialManager;
 using ::utils::Entity;
 
-class MaterialManager;
+namespace shapes {
 
-class Shape {
+class BaseShape {
  public:
-  Shape(int32_t id,
+  BaseShape(int32_t id,
         ::filament::math::float3 centerPosition,
         ::filament::math::float3 normal,
         Material material);
 
-  Shape(const std::string& flutter_assets_path,
+  BaseShape(const std::string& flutter_assets_path,
         const flutter::EncodableMap& params);
 
   void Print(const char* tag) const;
 
   // Disallow copy and assign.
-  Shape(const Shape&) = delete;
+  BaseShape(const BaseShape&) = delete;
 
-  Shape& operator=(const Shape&) = delete;
+  BaseShape& operator=(const BaseShape&) = delete;
 
   [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
 
@@ -55,6 +56,8 @@ class Shape {
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
+
+   
 
  private:
   void createDoubleSidedCube(::filament::Engine* engine_,
@@ -83,4 +86,5 @@ class Shape {
   bool m_bCastShadows = false;
 };
 
+}  // namespace shapes
 }  // namespace plugin_filament_view

@@ -39,6 +39,7 @@ using ::filament::math::mat4f;
 using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
+using shapes::BaseShape;
 
 ShapeManager::ShapeManager(MaterialManager* material_manager)
     : material_manager_(material_manager) {
@@ -69,7 +70,7 @@ void ShapeManager::vRemoveAllShapesInScene() {
 }
 
 void ShapeManager::addShapesToScene(
-    std::vector<std::unique_ptr<Shape>>* shapes) {
+    std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   filament::Engine* poFilamentEngine =
