@@ -43,8 +43,7 @@ Shape::Shape(int32_t id,
              Material material)
     : m_f3CenterPosition(centerPosition),
       m_f3Normal(normal),
-      m_f3ExtentsSize(0, 0, 0),
-      m_f3Extents(0, 0, 0) {
+      m_f3ExtentsSize(0, 0, 0) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
   SPDLOG_ERROR("SHAPE Not Implemented");
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
@@ -54,8 +53,7 @@ Shape::Shape(const std::string& flutter_assets_path,
              const flutter::EncodableMap& params)
     : m_f3CenterPosition(0, 0, 0),
       m_f3Normal(0, 0, 0),
-      m_f3ExtentsSize(0, 0, 0),
-      m_f3Extents(0, 0, 0) {
+      m_f3ExtentsSize(0, 0, 0) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
