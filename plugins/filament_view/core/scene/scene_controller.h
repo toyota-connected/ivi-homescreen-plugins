@@ -69,7 +69,7 @@ class SceneController {
                   std::string flutterAssetsPath,
                   std::vector<std::unique_ptr<Model>>* models,
                   Scene* scene,
-                  std::vector<std::unique_ptr<Shape>>* shapes,
+                  std::vector<std::unique_ptr<shapes::BaseShape>>* shapes,
                   int32_t id);
 
   ~SceneController();
@@ -143,7 +143,7 @@ class SceneController {
 
   void setUpIndirectLight();
 
-  void setUpShapes(std::vector<std::unique_ptr<Shape>>* shapes);
+  void setUpShapes(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   std::string setDefaultCamera();
 

@@ -28,7 +28,7 @@ SceneController::SceneController(PlatformView* platformView,
                                  std::string flutterAssetsPath,
                                  std::vector<std::unique_ptr<Model>>* models,
                                  Scene* scene,
-                                 std::vector<std::unique_ptr<Shape>>* shapes,
+                                 std::vector<std::unique_ptr<shapes::BaseShape>>* shapes,
                                  int32_t id)
     : id_(id),
       flutterAssetsPath_(std::move(flutterAssetsPath)),
@@ -286,7 +286,7 @@ plugin_filament_view::MaterialManager* SceneController::poGetMaterialManager() {
   return materialManager_.get();
 }
 
-void SceneController::setUpShapes(std::vector<std::unique_ptr<Shape>>* shapes) {
+void SceneController::setUpShapes(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
   shapeManager_->addShapesToScene(shapes);

@@ -28,14 +28,16 @@ namespace plugin_filament_view {
 
 class MaterialManager;
 
-class Shape;
+namespace shapes {
+  class BaseShape;
+}
 
 class ShapeManager {
  public:
   explicit ShapeManager(MaterialManager* material_manager);
   ~ShapeManager();
 
-  void addShapesToScene(std::vector<std::unique_ptr<Shape>>* shapes);
+  void addShapesToScene(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   // Disallow copy and assign.
   ShapeManager(const ShapeManager&) = delete;
@@ -50,6 +52,6 @@ class ShapeManager {
  private:
   MaterialManager* material_manager_;
 
-  std::list<std::unique_ptr<Shape>> shapes_;
+  std::list<std::unique_ptr<shapes::BaseShape>> shapes_;
 };
 }  // namespace plugin_filament_view
