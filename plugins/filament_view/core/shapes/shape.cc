@@ -39,9 +39,9 @@ using ::filament::math::short4;
 using ::utils::Entity;
 
 BaseShape::BaseShape(int32_t id,
-             ::filament::math::float3 centerPosition,
-             ::filament::math::float3 normal,
-             Material material)
+                     ::filament::math::float3 centerPosition,
+                     ::filament::math::float3 normal,
+                     Material material)
     : m_f3CenterPosition(centerPosition),
       m_f3Normal(normal),
       m_f3ExtentsSize(0, 0, 0) {
@@ -51,7 +51,7 @@ BaseShape::BaseShape(int32_t id,
 }
 
 BaseShape::BaseShape(const std::string& flutter_assets_path,
-             const flutter::EncodableMap& params)
+                     const flutter::EncodableMap& params)
     : m_f3CenterPosition(0, 0, 0),
       m_f3Normal(0, 0, 0),
       m_f3ExtentsSize(0, 0, 0) {
@@ -135,8 +135,8 @@ void BaseShape::vAddEntityToScene() {
 }
 
 bool BaseShape::bInitAndCreateShape(::filament::Engine* engine_,
-                                std::shared_ptr<Entity> entityObject,
-                                MaterialManager* material_manager) {
+                                    std::shared_ptr<Entity> entityObject,
+                                    MaterialManager* material_manager) {
   m_poEntity = std::move(entityObject);
   // Future tasking planned for all the types to be defined here, and create
   // based off settings sent in, for now only cube is represented.
@@ -147,7 +147,7 @@ bool BaseShape::bInitAndCreateShape(::filament::Engine* engine_,
 #if 1
 
 void BaseShape::createDoubleSidedCube(::filament::Engine* engine_,
-                                  MaterialManager* material_manager) {
+                                      MaterialManager* material_manager) {
   // Vertices for a cube (8 vertices)
 
   static const float vertices[] = {
@@ -338,5 +338,5 @@ void BaseShape::Print(const char* tag) const {
   spdlog::debug("++++++++");
 }
 
-}  // namespace shape
+}  // namespace shapes
 }  // namespace plugin_filament_view

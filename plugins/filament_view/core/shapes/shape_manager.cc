@@ -38,8 +38,8 @@ using ::filament::math::mat3f;
 using ::filament::math::mat4f;
 using ::filament::math::packSnorm16;
 using ::filament::math::short4;
-using ::utils::Entity;
 using shapes::BaseShape;
+using ::utils::Entity;
 
 ShapeManager::ShapeManager(MaterialManager* material_manager)
     : material_manager_(material_manager) {
