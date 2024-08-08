@@ -70,7 +70,8 @@ FilamentScene::FilamentScene(PlatformView* platformView,
       scene_ = std::make_unique<Scene>(flutterAssetsPath, it.second);
     } else if (key == "shapes" &&
                std::holds_alternative<flutter::EncodableList>(it.second)) {
-      shapes_ = std::make_unique<std::vector<std::unique_ptr<shapes::BaseShape>>>();
+      shapes_ =
+          std::make_unique<std::vector<std::unique_ptr<shapes::BaseShape>>>();
 
       auto list = std::get<flutter::EncodableList>(it.second);
 
@@ -93,7 +94,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
   sceneController_ = std::make_unique<SceneController>(
       platformView, state, flutterAssetsPath, models_.get(), scene_.get(),
       shapes_.get(), id);
-      
+
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 

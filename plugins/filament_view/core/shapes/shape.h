@@ -32,12 +32,12 @@ namespace shapes {
 class BaseShape {
  public:
   BaseShape(int32_t id,
-        ::filament::math::float3 centerPosition,
-        ::filament::math::float3 normal,
-        Material material);
+            ::filament::math::float3 centerPosition,
+            ::filament::math::float3 normal,
+            Material material);
 
   BaseShape(const std::string& flutter_assets_path,
-        const flutter::EncodableMap& params);
+            const flutter::EncodableMap& params);
 
   void Print(const char* tag) const;
 
@@ -56,8 +56,6 @@ class BaseShape {
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
-
-   
 
  private:
   void createDoubleSidedCube(::filament::Engine* engine_,
