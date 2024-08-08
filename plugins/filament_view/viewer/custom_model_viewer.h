@@ -205,6 +205,11 @@ class CustomModelViewer {
 
   std::unique_ptr<ModelLoader> modelLoader_;
 
+  void SendFrameViewCallback(
+      const std::string& methodName,
+      std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
+          args);
+
   static void OnFrame(void* data, wl_callback* callback, uint32_t time);
 
   static const wl_callback_listener frame_listener;

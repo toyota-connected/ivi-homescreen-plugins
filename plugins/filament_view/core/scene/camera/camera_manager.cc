@@ -349,7 +349,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
   primaryCamera_->forceSingleFrameUpdate_ = false;
 
   // TODO this should be moved to a property on camera
-  const float speed = 0.5f;  // Rotation speed
+  const float speed = 0.05f;  // Rotation speed
   // TODO this should be moved to a property on camera
   const float radius = 8.0f;  // Distance from the camera to the object
 
