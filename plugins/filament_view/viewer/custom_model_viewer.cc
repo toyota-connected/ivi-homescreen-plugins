@@ -24,6 +24,19 @@
 #include "view/flutter_view.h"
 #include "wayland/display.h"
 
+#include <flutter/basic_message_channel.h>
+#include <flutter/binary_messenger.h>
+#include <flutter/encodable_value.h>
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
+using flutter::EncodableList;
+using flutter::EncodableMap;
+using flutter::EncodableValue;
+using flutter::MessageReply;
+using flutter::MethodCall;
+using flutter::MethodResult;
+
 class Display;
 
 class FlutterView;
@@ -102,6 +115,16 @@ CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
   if (m_poInstance == nullptr)
     SPDLOG_DEBUG("Instance is null {}", where.c_str());
   return m_poInstance;
+}
+
+void CustomModelViewer::setupMessageChannels(
+    flutter::PluginRegistrar* plugin_registrar) {
+  const std::string channel_name =
+      std::string("plugin.filament_view.frame_view");
+
+  frameViewCallback_ = std::make_unique<flutter::MethodChannel<>>(
+      plugin_registrar->messenger(), channel_name,
+      &flutter::StandardMethodCodec::GetInstance());
 }
 
 void CustomModelViewer::setupWaylandSubsurface() {
@@ -292,6 +315,14 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       G_LastTime = time;
     }
 
+    if (frameViewCallback_ != nullptr) {
+      frameViewCallback_->InvokeMethod(
+          "updateFrame", std::make_unique<flutter::EncodableValue>(
+                             flutter::EncodableValue(flutter::EncodableMap(
+                                 {{flutter::EncodableValue("elapsedFrameTime"),
+                                   flutter::EncodableValue(G_LastTime)}}))));
+    }
+
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
       // Note you might want render time and gameplay time to be different
@@ -300,10 +331,39 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       //
       // Future tasking for making a more featured timing / frame info class.
       uint32_t deltaTime = time - G_LastTime;
-      doCameraFeatures((float)deltaTime / 1000.0f);
+      float fTimeSinceLastRenderedMS = (float)deltaTime / 1000.0f;
+
+      if (frameViewCallback_ != nullptr) {
+        frameViewCallback_->InvokeMethod(
+            "preRenderFrame",
+            std::make_unique<flutter::EncodableValue>(
+                flutter::EncodableValue(flutter::EncodableMap(
+                    {{flutter::EncodableValue("fTimeSinceLastRenderedMS"),
+                      flutter::EncodableValue(fTimeSinceLastRenderedMS)}}))));
+      }
+
+      doCameraFeatures(fTimeSinceLastRenderedMS);
+
+      if (frameViewCallback_ != nullptr) {
+        frameViewCallback_->InvokeMethod(
+            "renderFrame",
+            std::make_unique<flutter::EncodableValue>(
+                flutter::EncodableValue(flutter::EncodableMap(
+                    {{flutter::EncodableValue("fTimeSinceLastRenderedMS"),
+                      flutter::EncodableValue(fTimeSinceLastRenderedMS)}}))));
+      }
 
       frenderer_->render(fview_);
       frenderer_->endFrame();
+
+      if (frameViewCallback_ != nullptr) {
+        frameViewCallback_->InvokeMethod(
+            "postRenderFrame",
+            std::make_unique<flutter::EncodableValue>(
+                flutter::EncodableValue(flutter::EncodableMap(
+                    {{flutter::EncodableValue("fTimeSinceLastRenderedMS"),
+                      flutter::EncodableValue(fTimeSinceLastRenderedMS)}}))));
+      }
     }
 
     G_LastTime = time;
@@ -329,7 +389,7 @@ void CustomModelViewer::OnFrame(void* data,
 
   // Z-Order
   // These do not need <seem> to need to be called every frame.
-  // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
+  wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);

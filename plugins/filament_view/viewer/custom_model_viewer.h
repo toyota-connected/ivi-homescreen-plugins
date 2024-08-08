@@ -118,6 +118,8 @@ class CustomModelViewer {
     return *strand_;
   }
 
+  void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+
   filament::viewer::Settings& getSettings() { return settings_; }
 
   filament::gltfio::FilamentAsset* getAsset() { return asset_; }
@@ -160,6 +162,8 @@ class CustomModelViewer {
   int32_t top_;
 
   bool initialized_{};
+
+  std::unique_ptr<flutter::MethodChannel<>> frameViewCallback_;
 
   std::thread filament_api_thread_;
   pthread_t filament_api_thread_id_{};

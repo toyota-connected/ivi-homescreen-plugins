@@ -55,6 +55,9 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
   RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
 
+  CustomModelViewer::Instance("RegisterWithRegistrar")
+      ->setupMessageChannels(registrar);
+
   registrar->AddPlugin(std::move(plugin));
 }
 
