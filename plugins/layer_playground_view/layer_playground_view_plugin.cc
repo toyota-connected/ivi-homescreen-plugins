@@ -156,7 +156,7 @@ void LayerPlaygroundViewPlugin::on_touch(int32_t /* action */,
                                          const size_t /* point_data_size */,
                                          const double* /* point_data */,
                                          void* /* data */) {
-  // auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
+  //auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
 }
 
 void LayerPlaygroundViewPlugin::on_dispose(bool /* hybrid */, void* data) {
