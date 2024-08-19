@@ -112,7 +112,7 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
-    // TODO THROW ERROR
+    spdlog::error("Failed to loadModelGlb->createasset from buffered data.");
     return;
   }
 
@@ -158,7 +158,7 @@ void ModelLoader::loadModelGltf(
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
-    // TODO THROW ERROR
+    spdlog::error("Failed to loadModelGltf->createasset from buffered data.");
     return;
   }
 
