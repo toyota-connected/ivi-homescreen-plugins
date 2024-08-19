@@ -52,20 +52,18 @@ struct LibNavRenderExports {
 
   uint32_t (*TextureGetInterfaceVersion)() = nullptr;
   nav_render_Context* (*TextureInitialize)(const char* accessToken,
-                                           int width,
-                                           int height,
-                                           const char* assetsPath,
-                                           const char* cachePath,
-                                           const char* miscPath) = nullptr;
+                                    int width,
+                                    int height,
+                                    const char* assetsPath,
+                                    const char* cachePath,
+                                    const char* miscPath) = nullptr;
   nav_render_Context* (*TextureInitialize2)(NavRenderConfig* config) = nullptr;
   void (*TextureDeInitialize)(nav_render_Context* ctx) = nullptr;
   void (*TextureRunTask)(nav_render_Context* ctx) = nullptr;
-  void (*TextureRender)(nav_render_Context* ctx,
-                        uint32_t framebufferId) = nullptr;
+  void (*TextureRender)(nav_render_Context* ctx, uint32_t framebufferId) = nullptr;
   void (*TextureRender2)(nav_render_Context* ctx) = nullptr;
-  void (*TextureResize)(nav_render_Context* ctx,
-                        int width,
-                        int height) = nullptr;
+  void (*TextureResize)(nav_render_Context* ctx, int width, int height) = nullptr;
+
 
   uint32_t (*SurfaceGetInterfaceVersion)() = nullptr;
   nav_render_Context* (*SurfaceInitialize)(const char* accessToken,
@@ -78,9 +76,7 @@ struct LibNavRenderExports {
   void (*SurfaceDeInitialize)(nav_render_Context* ctx) = nullptr;
   void (*SurfaceRunTask)(nav_render_Context* ctx) = nullptr;
   void (*SurfaceDrawFrame)(nav_render_Context* ctx) = nullptr;
-  void (*SurfaceResize)(nav_render_Context* ctx,
-                        int width,
-                        int height) = nullptr;
+  void (*SurfaceResize)(nav_render_Context* ctx, int width, int height) = nullptr;
 };
 
 class LibNavRender {
