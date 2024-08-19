@@ -53,34 +53,41 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           [api](const MethodCall<EncodableValue>& methodCall,
                 std::unique_ptr<MethodResult<EncodableValue>> result) {
             spdlog::trace("[{}]", methodCall.method_name());
-            if (methodCall.method_name() == "CHANGE_ANIMATION_BY_INDEX") {
+
+            static constexpr char kChangeAnimationByIndex[] = "CHANGE_ANIMATION_BY_INDEX";
+
+            static constexpr char kChangeLightColorByIndex[] = "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX";
+            static constexpr char kChangeLightColorByIndexKey[] = "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY";
+            static constexpr char kChangeLightColorByIndexColor[] = "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR";
+            static constexpr char kChangeLightColorByIndexIntensity[] = "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY";
+
+            static constexpr char kToggleShapesInScene[] = "TOGGLE_SHAPES_IN_SCENE";
+            static constexpr char kToggleShapesInSceneValue[] = "TOGGLE_SHAPES_IN_SCENE_VALUE";
+
+            static constexpr char kToggleCameraAutoRotate[] = "TOGGLE_CAMERA_AUTO_ROTATE";
+            static constexpr char kToggleCameraAutoRotateValue[] = "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
+            static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
+            static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
+
+            if (methodCall.method_name() == kChangeAnimationByIndex) {
               result->Success();
-            }
-            // TODO Make a literals for these values:
-            // const String _changeLightColorByIndex =
-            // "CHANGE_LIGHT_COLOR_BY_INDEX"; const String
-            // _changeLightColorByIndexKey = "CHANGE_LIGHT_COLOR_BY_INDEX_KEY";
-            // const String _changeLightColorByIndexColor =
-            // "CHANGE_LIGHT_COLOR_BY_INDEX_COLOR"; const String
-            // _changeLightColorByIndexIntensity =
-            // "CHANGE_LIGHT_COLOR_BY_INDEX_INTENSITY";
-            else if (methodCall.method_name() ==
-                     "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX") {
+            } else if (methodCall.method_name() ==
+                     kChangeLightColorByIndex) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               int32_t index;
               std::string colorString;
               int32_t intensity = 0;
               for (auto& it : *args) {
-                if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR" ==
+                if (kChangeLightColorByIndexColor ==
                         std::get<std::string>(it.first) &&
                     std::holds_alternative<std::string>(it.second)) {
                   colorString = std::get<std::string>(it.second);
-                } else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY" ==
+                } else if (kChangeLightColorByIndexKey ==
                                std::get<std::string>(it.first) &&
                            std::holds_alternative<int32_t>(it.second)) {
                   index = std::get<int32_t>(it.second);
-                } else if ("CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY" ==
+                } else if (kChangeLightColorByIndexIntensity ==
                                std::get<std::string>(it.first) &&
                            std::holds_alternative<int32_t>(it.second)) {
                   intensity = std::get<int32_t>(it.second);
@@ -91,14 +98,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 
               result->Success();
             }
-            // const String _toggleShapesInScene = "TOGGLE_SHAPES_IN_SCENE";
-            // const String _toggleShapesInSceneValue =
-            // "TOGGLE_SHAPES_IN_SCENE_VALUE";
-            else if (methodCall.method_name() == "TOGGLE_SHAPES_IN_SCENE") {
+            else if (methodCall.method_name() == kToggleShapesInScene) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if ("TOGGLE_SHAPES_IN_SCENE_VALUE" ==
+                if (kToggleShapesInSceneValue ==
                     std::get<std::string>(it.first)) {
                   bool bValue = std::get<bool>(it.second);
                   api->ToggleShapesInScene(bValue, nullptr);
@@ -106,27 +110,22 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               result->Success();
             }
-            // const String _toggleCameraAutoRotate =
-            // "TOGGLE_CAMERA_AUTO_ROTATE"; const String
-            // _toggleCameraAutoRotateValue = "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
-            // const String _changeCameraRotation = "ROTATE_CAMERA";
-            // const String _changeCameraRotationValue = "ROTATE_CAMERA_VALUE";
-            else if (methodCall.method_name() == "TOGGLE_CAMERA_AUTO_ROTATE") {
+            else if (methodCall.method_name() == kToggleCameraAutoRotate) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if ("TOGGLE_CAMERA_AUTO_ROTATE_VALUE" ==
+                if (kToggleCameraAutoRotateValue ==
                     std::get<std::string>(it.first)) {
                   bool bValue = std::get<bool>(it.second);
                   api->ToggleCameraAutoRotate(bValue, nullptr);
                 }
               }
               result->Success();
-            } else if (methodCall.method_name() == "ROTATE_CAMERA") {
+            } else if (methodCall.method_name() == kChangeCameraRotation) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if ("ROTATE_CAMERA_VALUE" == std::get<std::string>(it.first)) {
+                if (kChangeCameraRotationValue == std::get<std::string>(it.first)) {
                   auto fValue = static_cast<float>(std::get<double>(it.second));
                   api->SetCameraRotation(fValue, nullptr);
                 }
