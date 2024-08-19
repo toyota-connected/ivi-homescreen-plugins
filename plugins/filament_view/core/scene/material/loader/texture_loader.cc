@@ -23,9 +23,9 @@ inline ::filament::backend::TextureFormat internalFormat(
 ::filament::Texture* TextureLoader::createTextureFromImage(
     Texture::TextureType type,
     std::unique_ptr<image::LinearImage> image) {
-  static const int NUM_CHANNELS_FOR_IMAGE = 3;
-  if (image->getChannels() != NUM_CHANNELS_FOR_IMAGE) {
-    SPDLOG_ERROR("Channels != {} {} {}", NUM_CHANNELS_FOR_IMAGE, __FILE__,
+  static constexpr int kNumChannelsForImage = 3;
+  if (image->getChannels() != kNumChannelsForImage) {
+    SPDLOG_ERROR("Channels != {} {} {}", kNumChannelsForImage, __FILE__,
                  __FUNCTION__);
     return nullptr;
   }
@@ -73,7 +73,6 @@ inline ::filament::backend::TextureFormat internalFormat(
   }
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
   if (!texture->assetPath_.empty()) {
     auto file_path =
