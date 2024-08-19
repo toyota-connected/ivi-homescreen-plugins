@@ -294,8 +294,7 @@ void AudioPlayersGlobalApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     if (api != nullptr) {
       channel->SetMethodCallHandler(
           [](const flutter::MethodCall<EncodableValue>& call,
-             std::unique_ptr<
-                 flutter::MethodResult<EncodableValue>> /* result */) {
+                std::unique_ptr<flutter::MethodResult<EncodableValue>> /* result */) {
             plugin_common::Encodable::PrintFlutterEncodableValue(
                 "global", *call.arguments());
           });
