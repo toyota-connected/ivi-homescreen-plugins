@@ -64,6 +64,9 @@ class Camera {
   static constexpr char kModeFreeFlight[] = "FREE_FLIGHT";
   static constexpr char kFovVertical[] = "VERTICAL";
   static constexpr char kFovHorizontal[] = "HORIZONTAL";
+  /// Auto orbit is a 'camera feature', where it will auto orbit around
+  /// a targetPosition_ Camera features are updated from camera_manager.cc:
+  /// updateCamerasFeatures() currently.
   static constexpr char kModeAutoOrbit[] = "AUTOORBIT";
 
   /// An object that control camera Exposure.
