@@ -78,10 +78,10 @@ void SceneController::setUpViewer(PlatformView* platformView,
 }
 
 void SceneController::setUpGround() {
+  // Note, setUpGround to be deprecated in future version, for moving
+  // groundplane as a shape for general use case of planes.
   groundManager_ = std::make_unique<GroundManager>(scene_->ground_.get());
   groundManager_->createGround(materialManager_.get());
-  // auto f = groundManager_->createGround();
-  // f.wait();
 }
 
 void SceneController::setUpCamera() {
