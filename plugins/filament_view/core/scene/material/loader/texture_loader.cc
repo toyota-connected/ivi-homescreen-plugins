@@ -101,9 +101,17 @@ inline ::filament::backend::TextureFormat internalFormat(
 }
 
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
-    const std::string& /*url*/,
-    Texture::TextureType /*type*/) {
-  return nullptr;
+    const std::string& url,
+    Texture::TextureType type) {
+  plugin_common_curl::CurlClient client;
+  client.Init(url, {}, {});
+  std::vector<uint8_t> buffer = client.RetrieveContentAsVector();
+  if (client.GetCode() != CURLE_OK) {
+    spdlog::error("Failed to load texture from {}", url);
+    return nullptr;
+  }
+  std::string str(buffer.begin(), buffer.end());
+  return loadTextureFromStream(new std::istringstream(str), type, url);
 }
 
 }  // namespace plugin_filament_view
