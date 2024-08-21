@@ -130,22 +130,22 @@ target_link_libraries(plugin_filament_view PUBLIC
 #
 # Filament MVP Example
 #
-pkg_check_modules(SDL2 IMPORTED_TARGET sdl2)
-if (SDL2_FOUND)
-    add_executable(filament-mvp test/mvp.cc)
-    target_link_libraries(filament-mvp PUBLIC
-            PkgConfig::SDL2
-            filament
-            ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-tools/source/opt/libSPIRV-Tools-opt.a
-            ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-cross/tnt/libspirv-cross-msl.a
-    )
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(filament-mvp PRIVATE ${CONTEXT_COMPILE_OPTIONS})
-        target_link_options(filament-mvp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fuse-ld=lld -l:libc++.a -l:libc++abi.a -static-libgcc -lc -lm -v>)
-    endif ()
-    add_sanitizers(filament-mvp)
+# pkg_check_modules(SDL2 IMPORTED_TARGET sdl2)
+# if (SDL2_FOUND)
+#     add_executable(filament-mvp test/mvp.cc)
+#     target_link_libraries(filament-mvp PUBLIC
+#             PkgConfig::SDL2
+#             filament
+#             ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-tools/source/opt/libSPIRV-Tools-opt.a
+#             ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-cross/tnt/libspirv-cross-msl.a
+#     )
+#     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#         target_compile_options(filament-mvp PRIVATE ${CONTEXT_COMPILE_OPTIONS})
+#         target_link_options(filament-mvp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fuse-ld=lld -l:libc++.a -l:libc++abi.a -static-libgcc -lc -lm -v>)
+#     endif ()
+#     add_sanitizers(filament-mvp)
 
-    if (IPO_SUPPORT_RESULT)
-        set_property(TARGET filament-mvp PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-    endif ()
-endif ()
+#     if (IPO_SUPPORT_RESULT)
+#         set_property(TARGET filament-mvp PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+#     endif ()
+# endif ()

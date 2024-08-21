@@ -24,6 +24,7 @@
 #include "plugins/common/common.h"
 #include "plugins/common/curl_client/curl_client.h"
 
+
 namespace google_sign_in_plugin {
 
 static constexpr const char* kPeopleUrl =

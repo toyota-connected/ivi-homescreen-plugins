@@ -144,7 +144,8 @@ bool BaseShape::bInitAndCreateShape(::filament::Engine* engine_,
   return true;
 }
 
-#if 1
+#if 1 // All this code is to be refactored to more of an OOP pattern around
+      // shapes, keeping for now.
 
 void BaseShape::createDoubleSidedCube(::filament::Engine* engine_,
                                       MaterialManager* material_manager) {
@@ -247,7 +248,8 @@ void BaseShape::createDoubleSidedCube(::filament::Engine* engine_,
       .castShadows(m_bCastShadows)
       .build(*engine_, *m_poEntity);
 }
-#else
+#else // All this code is to be refactored to more of an OOP pattern around
+      // shapes, keeping for now.
 void Shape::createCube(::filament::Engine* engine_,
                        Entity* entityObject,
                        MaterialManager* material_manager) {

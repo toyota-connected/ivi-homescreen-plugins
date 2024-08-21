@@ -108,10 +108,6 @@ class ModelLoader {
   ::filament::viewer::Settings settings_;
   std::vector<float> morphWeights_;
 
-  //   void fetchResources(
-  //       ::filament::gltfio::FilamentAsset* asset,
-  //       std::function<uint8_t*(std::string asset)> callback);
-
   ::filament::math::mat4f inline fitIntoUnitCube(
       const ::filament::Aabb& bounds,
       ::filament::math::float3 offset);

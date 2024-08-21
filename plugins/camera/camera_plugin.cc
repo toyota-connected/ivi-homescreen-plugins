@@ -181,8 +181,7 @@ void CameraPlugin::create(
   g_cameras.emplace_back(std::move(camera));
 
   auto map = flutter::EncodableMap();
-  map[flutter::EncodableValue("cameraId")] =
-      static_cast<int64_t>(g_cameras.size());
+  map[flutter::EncodableValue("cameraId")] = static_cast<int64_t>(g_cameras.size());
   result(ErrorOr(map));
 }
 

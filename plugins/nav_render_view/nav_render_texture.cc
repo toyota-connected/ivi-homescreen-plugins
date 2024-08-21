@@ -13,8 +13,7 @@ void NavRenderTexture::RegisterWithRegistrar(
   if (!LibNavRender::IsPresent()) {
     spdlog::error("[NavRenderViewPlugin] libnav_render.so missing");
   }
-  if (LibNavRender::kExpectedTextureApiVersion !=
-      LibNavRender->TextureGetInterfaceVersion()) {
+  if (LibNavRender::kExpectedTextureApiVersion != LibNavRender->TextureGetInterfaceVersion()) {
     spdlog::error("[NavRenderViewPlugin] unexpected interface version: {}",
                   LibNavRender->TextureGetInterfaceVersion());
   }
@@ -25,8 +24,7 @@ void NavRenderTexture::RegisterWithRegistrar(
 
 NavRenderTexture::NavRenderTexture(flutter::PluginRegistrar* registrar) {
   channel_ = std::make_unique<flutter::MethodChannel<>>(
-      registrar->messenger(), "nav_render_view",
-      &flutter::StandardMethodCodec::GetInstance());
+      registrar->messenger(), "nav_render_view", &flutter::StandardMethodCodec::GetInstance());
   channel_->SetMethodCallHandler(
       [this](const flutter::MethodCall<flutter::EncodableValue>& call,
              std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
@@ -83,7 +81,8 @@ void NavRenderTexture::HandleMethodCall(
     } else {
       result->Success(flutter::EncodableValue(res.value()));
     }
-  } else {
+  }
+  else {
     result->NotImplemented();
   }
 }
