@@ -39,7 +39,6 @@ SceneController::SceneController(
 
   setUpViewer(platformView, state);
   setUpLoadingModels();
-  setUpGround();
   setUpCamera();
   setUpSkybox();
   setUpLight();
@@ -75,13 +74,6 @@ void SceneController::setUpViewer(PlatformView* platformView,
 
   // TODO this may need to be turned off for target
   view->setPostProcessingEnabled(true);
-}
-
-void SceneController::setUpGround() {
-  // Note, setUpGround to be deprecated in future version, for moving
-  // groundplane as a shape for general use case of planes.
-  groundManager_ = std::make_unique<GroundManager>(scene_->ground_.get());
-  groundManager_->createGround(materialManager_.get());
 }
 
 void SceneController::setUpCamera() {

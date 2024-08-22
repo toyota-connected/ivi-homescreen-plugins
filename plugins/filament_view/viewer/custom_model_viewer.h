@@ -42,7 +42,7 @@
 #include "core/model/state/shape_state.h"
 #include "core/scene/camera/camera_manager.h"
 #include "core/scene/scene.h"
-#include "core/shapes/shape.h"
+#include "core/shapes/baseshape.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
 #include "settings.h"

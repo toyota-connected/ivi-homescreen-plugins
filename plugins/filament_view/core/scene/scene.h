@@ -19,7 +19,6 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include "core/scene/camera/camera.h"
-#include "core/scene/ground.h"
 #include "core/scene/indirect_light/indirect_light.h"
 #include "core/scene/light/light.h"
 #include "core/scene/scene_controller.h"
@@ -30,8 +29,6 @@ namespace plugin_filament_view {
 class Camera;
 
 class CustomModelViewer;
-
-class Ground;
 
 class IndirectLight;
 
@@ -64,8 +61,9 @@ class Scene {
 
   std::unique_ptr<plugin_filament_view::Skybox> skybox_;
   std::unique_ptr<plugin_filament_view::IndirectLight> indirect_light_;
+  // This will change to be a list of lights. TOOD
   std::unique_ptr<plugin_filament_view::Light> light_;
+  // Should be a list of Cameras TODO
   std::unique_ptr<plugin_filament_view::Camera> camera_;
-  std::unique_ptr<plugin_filament_view::Ground> ground_;
 };
 }  // namespace plugin_filament_view

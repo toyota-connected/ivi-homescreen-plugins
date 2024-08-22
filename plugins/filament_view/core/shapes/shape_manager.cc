@@ -25,6 +25,10 @@
 #include "asio/post.hpp"
 
 #include "plugins/common/common.h"
+#include "plane.h"
+#include "sphere.h"
+#include "cube.h"
+#include "baseshape.h"
 
 namespace plugin_filament_view {
 
@@ -69,6 +73,44 @@ void ShapeManager::vRemoveAllShapesInScene() {
   shapes_.clear();
 }
 
+std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(const std::string& flutter_assets_path,
+  const flutter::EncodableMap& mapData)
+{
+    shapes::BaseShape::ShapeType type;
+    
+    // Find the "shapeType" key in the mapData
+    auto it = mapData.find(flutter::EncodableValue("shapeType"));
+    if (it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
+        int32_t typeValue = std::get<int32_t>(it->second);
+
+        // Check if the value is within the valid range of the ShapeType enum
+        if (typeValue > static_cast<int32_t>(shapes::BaseShape::ShapeType::Unset) &&
+            typeValue < static_cast<int32_t>(shapes::BaseShape::ShapeType::Max)) {
+            type = static_cast<shapes::BaseShape::ShapeType>(typeValue);
+        } else {
+            spdlog::error("Invalid shape type value: {}", typeValue);
+            return nullptr;
+        }
+    } else {
+        spdlog::error("shapeType not found or is of incorrect type");
+        return nullptr;
+    }
+
+    // Based on the type_, create the corresponding shape
+    switch (type) {
+        case shapes::BaseShape::ShapeType::Plane: 
+            return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
+        case shapes::BaseShape::ShapeType::Cube: 
+            return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
+        case shapes::BaseShape::ShapeType::Sphere: 
+            return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
+        default:
+            // Handle unknown shape type
+            spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
+            return nullptr;
+    }
+}
+
 void ShapeManager::addShapesToScene(
     std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
@@ -87,11 +129,11 @@ void ShapeManager::addShapesToScene(
 
     poFilamentScene->addEntity(*oEntity);
 
-    filament::math::float3 f3GetCenterPosition = shape->f3GetCenterPosition();
+    //filament::math::float3 f3GetCenterPosition = shape->f3GetCenterPosition();
 
-    auto& tcm = poFilamentEngine->getTransformManager();
-    tcm.setTransform(tcm.getInstance(*oEntity),
-                     mat4f::translation(f3GetCenterPosition));
+    // auto& tcm = poFilamentEngine->getTransformManager();
+    // tcm.setTransform(tcm.getInstance(*oEntity),
+    //                  mat4f::translation(f3GetCenterPosition));
 
     // To investigate a better system for implementing layer mask
     // across dart to here.
