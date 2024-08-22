@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,42 +31,49 @@ namespace shapes {
 
 class BaseShape {
  public:
-  BaseShape(int32_t id,
-            ::filament::math::float3 centerPosition,
-            ::filament::math::float3 normal,
-            Material material);
-
   BaseShape(const std::string& flutter_assets_path,
             const flutter::EncodableMap& params);
 
-  void Print(const char* tag) const;
+  virtual ~BaseShape();
+
+  virtual void Print(const char* tag) const;
 
   // Disallow copy and assign.
   BaseShape(const BaseShape&) = delete;
-
   BaseShape& operator=(const BaseShape&) = delete;
 
   [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
 
-  bool bInitAndCreateShape(::filament::Engine* engine_,
+  virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,
-                           MaterialManager* material_manager);
+                           MaterialManager* material_manager) = 0;
 
   [[nodiscard]] filament::math::float3 f3GetCenterPosition() const;
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
 
- private:
-  void createDoubleSidedCube(::filament::Engine* engine_,
-                             MaterialManager* material_manager);
+  enum class ShapeType {
+    Unset = 0,
+    Plane = 1,
+    Cube = 2,
+    Sphere = 3,
+    Max   
+  };
 
-  // TODO - might need these to cleanup.
-  // VertexBuffer* m_poVertexBuffer;
-  // IndexBuffer* m_poIndexBuffer;
+  void vApplyScalingAndSetTransform(::filament::Engine* engine_, filament::math::float3 scale);
+
+ protected:
+  ::filament::VertexBuffer* m_poVertexBuffer;
+  ::filament::IndexBuffer* m_poIndexBuffer;
+
+  // uses Vertex and Index buffer to create the material and geometry
+  // using all the internal variables.
+  void vBuildRenderable(int indexCount, ::filament::Engine* engine_,
+                                  MaterialManager* material_manager);
 
   int id{};
-  int32_t type_{};
+  ShapeType type_{};
   /// center position of the shape in the world space.
   filament::math::float3 m_f3CenterPosition;
   filament::math::float3 m_f3ExtentsSize;
@@ -82,6 +89,8 @@ class BaseShape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
+private:
+  void vDestroyBuffers();
 };
 
 }  // namespace shapes

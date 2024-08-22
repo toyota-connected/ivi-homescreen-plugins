@@ -30,7 +30,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
                              const std::string& flutterAssetsPath) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
-  std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes_{};
+  std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes{};
 
   auto& codec = flutter::StandardMessageCodec::GetInstance();
   const auto decoded = codec.DecodeMessage(params.data(), params.size());
@@ -70,7 +70,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
       scene_ = std::make_unique<Scene>(flutterAssetsPath, it.second);
     } else if (key == "shapes" &&
                std::holds_alternative<flutter::EncodableList>(it.second)) {
-      shapes_ =
+      shapes =
           std::make_unique<std::vector<std::unique_ptr<shapes::BaseShape>>>();
 
       auto list = std::get<flutter::EncodableList>(it.second);
@@ -80,10 +80,10 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
+        auto shape = ShapeManager::poDeserializeShapeFromData(flutterAssetsPath
+                , std::get<flutter::EncodableMap>(iter));
 
-        auto shape = std::make_unique<shapes::BaseShape>(
-            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
-        shapes_->emplace_back(shape.release());
+        shapes->emplace_back(shape.release());
       }
     } else {
       spdlog::warn("[FilamentView] Unhandled Parameter {}", key.c_str());
@@ -93,7 +93,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
   }
   sceneController_ = std::make_unique<SceneController>(
       platformView, state, flutterAssetsPath, models_.get(), scene_.get(),
-      shapes_.get(), id);
+      shapes.get(), id);
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
