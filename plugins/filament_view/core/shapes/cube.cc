@@ -62,7 +62,6 @@ bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
 void Cube::createDoubleSidedCube(::filament::Engine* engine_,
                                   MaterialManager* material_manager) {
   // Vertices for a cube (8 vertices)
-
   static const float vertices[] = {
       -0.5f, -0.5f, 0.5f,   // Vertex 0
       0.5f,  -0.5f, 0.5f,   // Vertex 1
@@ -73,34 +72,6 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
       0.5f,  0.5f,  -0.5f,  // Vertex 6
       -0.5f, 0.5f,  -0.5f   // Vertex 7
   };
-
-  // There's a bug with this, where they *MIGHT* show up, but even then
-  // totally incorrectly. Keeping for next iteration.
-
-  // float unitVertices[] = {
-  //     -0.5f, -0.5f, 0.5f,   // Vertex 0
-  //      0.5f, -0.5f, 0.5f,   // Vertex 1
-  //      0.5f,  0.5f, 0.5f,   // Vertex 2
-  //     -0.5f,  0.5f, 0.5f,   // Vertex 3
-  //     -0.5f, -0.5f, -0.5f,  // Vertex 4
-  //      0.5f, -0.5f, -0.5f,  // Vertex 5
-  //      0.5f,  0.5f, -0.5f,  // Vertex 6
-  //     -0.5f,  0.5f, -0.5f   // Vertex 7
-  // };
-
-  // float vertices[24];
-  // for (int i = 0; i < 8; ++i) {
-  //     vertices[i * 3 + 0] = unitVertices[i * 3 + 0] * m_f3ExtentsSize.x;
-  //     vertices[i * 3 + 1] = unitVertices[i * 3 + 1] * m_f3ExtentsSize.y;
-  //     vertices[i * 3 + 2] = unitVertices[i * 3 + 2] * m_f3ExtentsSize.z;
-  // }
-
-  // for (int i = 0; i < 8; ++i) {
-  //     std::cout << "Vertex " << i << ": ("
-  //               << vertices[i * 3 + 0] << ", "
-  //               << vertices[i * 3 + 1] << ", "
-  //               << vertices[i * 3 + 2] << ")\n";
-  // }
 
   // Indices for 12 triangles (6 faces)
   static const uint16_t indices[] = {

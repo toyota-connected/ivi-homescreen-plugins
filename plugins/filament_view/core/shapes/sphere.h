@@ -52,6 +52,11 @@ void createSingleSidedSphere(::filament::Engine* engine_,
 
   int stacks_;
   int slices_;
+
+    std::vector<::filament::math::float3> vertices;
+    std::vector<::filament::math::float3> normals;
+    std::vector<::filament::math::short4> packedNormals; 
+    std::vector<unsigned short> indices;
 };
 
 } // namespace shapes
