@@ -155,11 +155,12 @@ void BaseShape::vBuildRenderable(int indexCount, ::filament::Engine* engine_,
   auto materialInstanceResult =
       material_manager->getMaterialInstance(m_poMaterial->get());
 
+  // TODO Extents size and scale SHOULD be different.
   RenderableManager::Builder(1)
       .boundingBox({{}, m_f3ExtentsSize})
-      .material(0, materialInstanceResult.getData().value())
+      //.material(0, materialInstanceResult.getData().value())
       .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, m_poVertexBuffer,
-                m_poIndexBuffer, 0, indexCount)
+                m_poIndexBuffer)
       .culling(m_bCullingOfObjectEnabled)
       .receiveShadows(m_bReceiveShadows)
       .castShadows(m_bCastShadows)
