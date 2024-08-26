@@ -1,0 +1,42 @@
+name: clang-format
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+
+jobs:
+  format:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install packages
+        run: |
+          sudo apt-get -o DPkg::Lock::Timeout=1200 -y update
+          sudo apt-get -o DPkg::Lock::Timeout=1200 -y install clang-format libtinfo5
+          mkdir clang18 && cd clang18
+          curl -L -O https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+          tar -xJf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz --strip-components=1
+          bin/clang-format --version
+
+      - name: Run Clang-format
+        working-directory: ${{github.workspace}}
+        run: |
+          find plugins -name '*.cc' -o -name '*.hpp' -o -name '*.h' > clang-format-files
+          clang18/bin/clang-format -n --Werror --files=clang-format-files 2> clang-format-results.txt
+
+      - name: Show results
+        if: always()
+        run: |
+          cat clang-format-results.txt
+
+      - name: Publish Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+            name: clang-format-results
+            path: clang-format-*
