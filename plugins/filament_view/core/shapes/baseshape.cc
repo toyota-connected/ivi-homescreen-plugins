@@ -165,6 +165,8 @@ void BaseShape::Print(const char* tag) const {
     spdlog::debug("Type: {}", static_cast<int>(type_));
 
     spdlog::debug("Center Position: x={}, y={}, z={}", m_f3CenterPosition.x, m_f3CenterPosition.y, m_f3CenterPosition.z);
+    spdlog::debug("Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y, m_f3Scale.z);
+    spdlog::debug("Rotation: x={}, y={}, z={} w={}", m_quatRotation.x, m_quatRotation.y, m_quatRotation.z);
     spdlog::debug("Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x, m_f3ExtentsSize.y, m_f3ExtentsSize.z);
     spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y, m_f3Normal.z);
 
