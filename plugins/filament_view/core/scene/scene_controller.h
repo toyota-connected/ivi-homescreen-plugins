@@ -59,6 +59,10 @@ class MaterialManager;
 
 class ShapeManager;
 
+namespace shapes {
+class BaseShape;
+}
+
 class IBLProfiler;
 
 class SceneController {
