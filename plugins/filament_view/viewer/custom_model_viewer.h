@@ -81,8 +81,8 @@ class CustomModelViewer {
   void destroySkybox();
 
   // Disallow copy and assign.
-  // CustomModelViewer(const CustomModelViewer&) = delete;
-  // CustomModelViewer& operator=(const CustomModelViewer&) = delete;
+  CustomModelViewer(const CustomModelViewer&) = delete;
+  CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
   [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
     return fengine_;
