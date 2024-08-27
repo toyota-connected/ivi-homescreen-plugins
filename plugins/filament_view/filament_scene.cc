@@ -80,8 +80,8 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeManager::poDeserializeShapeFromData(flutterAssetsPath
-                , std::get<flutter::EncodableMap>(iter));
+        auto shape = ShapeManager::poDeserializeShapeFromData(
+            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
 
         shapes->emplace_back(shape.release());
       }

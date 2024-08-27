@@ -167,7 +167,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
         orbitHomePosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      } 
+      }
     } else if (key == "orbitSpeed") {
       if (std::holds_alternative<flutter::EncodableList>(it.second)) {
         auto list = std::get<flutter::EncodableList>(it.second);

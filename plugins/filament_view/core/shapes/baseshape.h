@@ -47,21 +47,15 @@ class BaseShape {
   [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject,
-                           MaterialManager* material_manager) = 0;
+                                   std::shared_ptr<Entity> entityObject,
+                                   MaterialManager* material_manager) = 0;
 
   [[nodiscard]] filament::math::float3 f3GetCenterPosition() const;
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
 
-  enum class ShapeType {
-    Unset = 0,
-    Plane = 1,
-    Cube = 2,
-    Sphere = 3,
-    Max   
-  };
+  enum class ShapeType { Unset = 0, Plane = 1, Cube = 2, Sphere = 3, Max };
 
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer;
@@ -70,7 +64,7 @@ class BaseShape {
   // uses Vertex and Index buffer to create the material and geometry
   // using all the internal variables.
   void vBuildRenderable(::filament::Engine* engine_,
-                      MaterialManager* material_manager);
+                        MaterialManager* material_manager);
 
   int id{};
   ShapeType type_{};
@@ -92,7 +86,8 @@ class BaseShape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
-private:
+
+ private:
   void vDestroyBuffers();
 };
 

@@ -16,8 +16,8 @@
 
 #include "cube.h"
 
-#include <filament/RenderableManager.h>
 #include <filament/IndexBuffer.h>
+#include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
 #include <math/mat3.h>
 #include <math/norm.h>
@@ -41,18 +41,17 @@ using ::filament::math::short4;
 using ::utils::Entity;
 
 Cube::Cube(const std::string& flutter_assets_path,
-                     const flutter::EncodableMap& params) : 
-                     BaseShape(flutter_assets_path, params)
-    {
+           const flutter::EncodableMap& params)
+    : BaseShape(flutter_assets_path, params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 }
 
 bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
-                              std::shared_ptr<Entity> entityObject,
-                              MaterialManager* material_manager) {
+                               std::shared_ptr<Entity> entityObject,
+                               MaterialManager* material_manager) {
   m_poEntity = std::move(entityObject);
 
-  if(m_bDoubleSided)
+  if (m_bDoubleSided)
     createDoubleSidedCube(engine_, material_manager);
   else
     createSingleSidedCube(engine_, material_manager);
@@ -60,7 +59,7 @@ bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
 }
 
 void Cube::createDoubleSidedCube(::filament::Engine* engine_,
-                                  MaterialManager* material_manager) {
+                                 MaterialManager* material_manager) {
   // Vertices for a cube (8 vertices)
   static const float vertices[] = {
       -0.5f, -0.5f, 0.5f,   // Vertex 0
@@ -91,16 +90,15 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
 
   const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
 
-  m_poVertexBuffer =
-      VertexBuffer::Builder()
-          .vertexCount(8)
-          .bufferCount(2)
-          .attribute(VertexAttribute::POSITION, 0,
-                     VertexBuffer::AttributeType::FLOAT3)
-          .attribute(VertexAttribute::TANGENTS, 1,
-                     VertexBuffer::AttributeType::SHORT4)
-          .normalized(VertexAttribute::TANGENTS)
-          .build(*engine_);
+  m_poVertexBuffer = VertexBuffer::Builder()
+                         .vertexCount(8)
+                         .bufferCount(2)
+                         .attribute(VertexAttribute::POSITION, 0,
+                                    VertexBuffer::AttributeType::FLOAT3)
+                         .attribute(VertexAttribute::TANGENTS, 1,
+                                    VertexBuffer::AttributeType::SHORT4)
+                         .normalized(VertexAttribute::TANGENTS)
+                         .build(*engine_);
 
   m_poVertexBuffer->setBufferAt(
       *engine_, 0, VertexBuffer::BufferDescriptor(vertices, sizeof(vertices)));
@@ -110,18 +108,18 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
 
   constexpr int indexCount = 36;
   m_poIndexBuffer = IndexBuffer::Builder()
-                                 .indexCount(indexCount)
-                                 .bufferType(IndexBuffer::IndexType::USHORT)
-                                 .build(*engine_);
+                        .indexCount(indexCount)
+                        .bufferType(IndexBuffer::IndexType::USHORT)
+                        .build(*engine_);
 
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-vBuildRenderable(engine_, material_manager);  
+  vBuildRenderable(engine_, material_manager);
 }
 
 void Cube::createSingleSidedCube(::filament::Engine* engine_,
-                       MaterialManager* material_manager) {
+                                 MaterialManager* material_manager) {
   static const float vertices[] = {
       -0.5f, -0.5f, 0.5f,  // Vertex 0
       0.5f,  -0.5f, 0.5f,  // Vertex 1
@@ -142,16 +140,15 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
 
   const static short4 normals[]{tbn, tbn, tbn, tbn};
 
-  m_poVertexBuffer =
-      VertexBuffer::Builder()
-          .vertexCount(4)
-          .bufferCount(2)
-          .attribute(VertexAttribute::POSITION, 0,
-                     VertexBuffer::AttributeType::FLOAT3)
-          .attribute(VertexAttribute::TANGENTS, 1,
-                     VertexBuffer::AttributeType::SHORT4)
-          .normalized(VertexAttribute::TANGENTS)
-          .build(*engine_);
+  m_poVertexBuffer = VertexBuffer::Builder()
+                         .vertexCount(4)
+                         .bufferCount(2)
+                         .attribute(VertexAttribute::POSITION, 0,
+                                    VertexBuffer::AttributeType::FLOAT3)
+                         .attribute(VertexAttribute::TANGENTS, 1,
+                                    VertexBuffer::AttributeType::SHORT4)
+                         .normalized(VertexAttribute::TANGENTS)
+                         .build(*engine_);
 
   m_poVertexBuffer->setBufferAt(
       *engine_, 0, VertexBuffer::BufferDescriptor(vertices, sizeof(vertices)));
@@ -162,19 +159,18 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
   // Create IndexBuffer
   constexpr int indexCount = 6;
   m_poIndexBuffer = IndexBuffer::Builder()
-                                 .indexCount(indexCount)
-                                 .bufferType(IndexBuffer::IndexType::USHORT)
-                                 .build(*engine_);
+                        .indexCount(indexCount)
+                        .bufferType(IndexBuffer::IndexType::USHORT)
+                        .build(*engine_);
 
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
- 
-vBuildRenderable(engine_, material_manager);  
+  vBuildRenderable(engine_, material_manager);
 }
 
 void Cube::Print(const char* tag) const {
-    BaseShape::Print(tag);
+  BaseShape::Print(tag);
 }
 
 }  // namespace shapes

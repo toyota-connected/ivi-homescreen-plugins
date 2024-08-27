@@ -26,7 +26,7 @@ namespace plugin_filament_view {
 
 class Direction {
  public:
-  Direction(float x, float y, float z) : x_(x), y_(y), z_(z){};
+  Direction(float x, float y, float z) : x_(x), y_(y), z_(z) {};
 
   explicit Direction(const flutter::EncodableMap& params);
 

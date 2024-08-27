@@ -29,8 +29,8 @@ namespace shapes {
 
 class Cube : public BaseShape {
  public:
-   Cube(const std::string& flutter_assets_path,
-            const flutter::EncodableMap& params);
+  Cube(const std::string& flutter_assets_path,
+       const flutter::EncodableMap& params);
   ~Cube() override = default;
 
   // Disallow copy and assign.
@@ -44,12 +44,12 @@ class Cube : public BaseShape {
                            MaterialManager* material_manager) override;
 
  private:
-void createDoubleSidedCube(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createDoubleSidedCube(::filament::Engine* engine_,
+                             MaterialManager* material_manager);
 
-void createSingleSidedCube(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createSingleSidedCube(::filament::Engine* engine_,
+                             MaterialManager* material_manager);
 };
 
-} // namespace shapes
-} // namespace plugin_filament_view
+}  // namespace shapes
+}  // namespace plugin_filament_view

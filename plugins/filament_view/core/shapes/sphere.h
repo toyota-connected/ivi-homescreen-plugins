@@ -29,8 +29,8 @@ namespace shapes {
 
 class Sphere : public BaseShape {
  public:
-   Sphere(const std::string& flutter_assets_path,
-            const flutter::EncodableMap& params);
+  Sphere(const std::string& flutter_assets_path,
+         const flutter::EncodableMap& params);
   ~Sphere() override = default;
 
   // Disallow copy and assign.
@@ -44,19 +44,19 @@ class Sphere : public BaseShape {
                            MaterialManager* material_manager) override;
 
  private:
-void createDoubleSidedSphere(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createDoubleSidedSphere(::filament::Engine* engine_,
+                               MaterialManager* material_manager);
 
-void createSingleSidedSphere(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createSingleSidedSphere(::filament::Engine* engine_,
+                               MaterialManager* material_manager);
 
   int stacks_;
   int slices_;
 
-    std::vector<::filament::math::float3> vertices;
-    std::vector<::filament::math::float3> normals;
-    std::vector<unsigned short> indices;
+  std::vector<::filament::math::float3> vertices;
+  std::vector<::filament::math::float3> normals;
+  std::vector<unsigned short> indices;
 };
 
-} // namespace shapes
-} // namespace plugin_filament_view
+}  // namespace shapes
+}  // namespace plugin_filament_view

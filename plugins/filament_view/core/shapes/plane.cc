@@ -16,8 +16,8 @@
 
 #include "plane.h"
 
-#include <filament/RenderableManager.h>
 #include <filament/IndexBuffer.h>
+#include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
 #include <math/mat3.h>
 #include <math/norm.h>
@@ -41,7 +41,7 @@ using ::filament::math::short4;
 using ::utils::Entity;
 
 Plane::Plane(const std::string& flutter_assets_path,
-             const flutter::EncodableMap& params) 
+             const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 }
@@ -79,8 +79,11 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
       4, 6, 5, 4, 7, 6   // Back face
   };
 
-  short4 const tbn = packSnorm16(mat3f::packTangentFrame(mat3f{
-      float3{1.0f, 0.0f, 0.0f}, float3{0.0f, 1.0f, 0.0f}, float3{0.0f, 0.0f, 1.0f}}).xyzw);
+  short4 const tbn =
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw);
 
   const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
 
@@ -128,8 +131,11 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
       0, 2, 3   // Triangle 2
   };
 
-  short4 const tbn = packSnorm16(mat3f::packTangentFrame(mat3f{
-      float3{1.0f, 0.0f, 0.0f}, float3{0.0f, 1.0f, 0.0f}, float3{0.0f, 0.0f, 1.0f}}).xyzw);
+  short4 const tbn =
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw);
 
   const static short4 normals[] = {tbn, tbn, tbn, tbn};
 

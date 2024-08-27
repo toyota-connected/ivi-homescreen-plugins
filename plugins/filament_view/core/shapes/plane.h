@@ -29,8 +29,8 @@ namespace shapes {
 
 class Plane : public BaseShape {
  public:
-   Plane(const std::string& flutter_assets_path,
-            const flutter::EncodableMap& params);
+  Plane(const std::string& flutter_assets_path,
+        const flutter::EncodableMap& params);
   ~Plane() override = default;
 
   // Disallow copy and assign.
@@ -44,12 +44,12 @@ class Plane : public BaseShape {
                            MaterialManager* material_manager) override;
 
  private:
-void createDoubleSidedPlane(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createDoubleSidedPlane(::filament::Engine* engine_,
+                              MaterialManager* material_manager);
 
-void createSingleSidedPlane(::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void createSingleSidedPlane(::filament::Engine* engine_,
+                              MaterialManager* material_manager);
 };
 
-} // namespace shapes
-} // namespace plugin_filament_view
+}  // namespace shapes
+}  // namespace plugin_filament_view

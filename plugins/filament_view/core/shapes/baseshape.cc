@@ -48,10 +48,10 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       type_(ShapeType::Unset),
       m_f3CenterPosition(0, 0, 0),
       m_f3ExtentsSize(0, 0, 0),
-      m_f3Normal(0, 0, 0), 
-      m_f3Scale(1,1,1),
-      m_quatRotation(0,0,0,1),
-      m_bDoubleSided(false), 
+      m_f3Normal(0, 0, 0),
+      m_f3Scale(1, 1, 1),
+      m_quatRotation(0, 0, 0, 1),
+      m_bDoubleSided(false),
       m_bCullingOfObjectEnabled(true),
       m_bReceiveShadows(false),
       m_bCastShadows(false) {
@@ -71,44 +71,54 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   static constexpr char kCastShadows[] = "castShadows";
 
   Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
-  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params, ShapeType::Unset);
-  Deserialize::DecodeParameterWithDefault(kSize, &m_f3ExtentsSize, params, filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3CenterPosition, params, filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kScale, &m_f3Scale, params, filament::math::float3(1, 1, 1));
-  Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params, filament::math::quatf(0, 0, 0, 1));
-  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterial, params, flutter_assets_path);
-  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params, false);
-  Deserialize::DecodeParameterWithDefault(kCullingEnabled, &m_bCullingOfObjectEnabled, params, true);
-  Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows, params, false);
-  Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params, false);
+  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
+                                              ShapeType::Unset);
+  Deserialize::DecodeParameterWithDefault(kSize, &m_f3ExtentsSize, params,
+                                          filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3CenterPosition,
+                                          params,
+                                          filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
+                                          filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kScale, &m_f3Scale, params,
+                                          filament::math::float3(1, 1, 1));
+  Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params,
+                                          filament::math::quatf(0, 0, 0, 1));
+  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterial, params,
+                                          flutter_assets_path);
+  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
+                                          false);
+  Deserialize::DecodeParameterWithDefault(
+      kCullingEnabled, &m_bCullingOfObjectEnabled, params, true);
+  Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows,
+                                          params, false);
+  Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params,
+                                          false);
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
-BaseShape::~BaseShape()
-{
+BaseShape::~BaseShape() {
   vRemoveEntityFromScene();
   vDestroyBuffers();
 }
 
-void BaseShape::vDestroyBuffers()
-{
-  auto filamentEngine = CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+void BaseShape::vDestroyBuffers() {
+  auto filamentEngine =
+      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
 
   if (m_poVertexBuffer) {
-      filamentEngine->destroy(m_poVertexBuffer);
-      m_poVertexBuffer = nullptr;
+    filamentEngine->destroy(m_poVertexBuffer);
+    m_poVertexBuffer = nullptr;
   }
   if (m_poIndexBuffer) {
-      filamentEngine->destroy(m_poIndexBuffer);
-      m_poIndexBuffer = nullptr;
+    filamentEngine->destroy(m_poIndexBuffer);
+    m_poIndexBuffer = nullptr;
   }
 }
 
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
-                                  MaterialManager* material_manager) {
-  
+                                 MaterialManager* material_manager) {
   // this will also set all the default values of the material instance from the
   // material param list
   auto materialInstanceResult =
@@ -117,19 +127,19 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
   RenderableManager::Builder(1)
       .boundingBox({{}, m_f3ExtentsSize})
       .material(0, materialInstanceResult.getData().value())
-      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES
-              , m_poVertexBuffer,
-                m_poIndexBuffer)
+      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
+                m_poVertexBuffer, m_poIndexBuffer)
       .culling(m_bCullingOfObjectEnabled)
       .receiveShadows(m_bReceiveShadows)
       .castShadows(m_bCastShadows)
       .build(*engine_, *m_poEntity);
 
-  EntityTransforms::vApplyTransform(m_poEntity, m_quatRotation, m_f3Scale, m_f3CenterPosition );
+  EntityTransforms::vApplyTransform(m_poEntity, m_quatRotation, m_f3Scale,
+                                    m_f3CenterPosition);
 
   // TODO , need 'its done building callback to delete internal arrays data'
-  // - note the calls are async built, but doesn't seem to be a method internal to filament for 
-  // when the building is complete. Further R&D is needed.
+  // - note the calls are async built, but doesn't seem to be a method internal
+  // to filament for when the building is complete. Further R&D is needed.
 }
 
 void BaseShape::vRemoveEntityFromScene() {
@@ -158,28 +168,33 @@ filament::math::float3 BaseShape::f3GetCenterPosition() const {
 }
 
 void BaseShape::Print(const char* tag) const {
-    spdlog::debug("++++++++");
-    spdlog::debug("{} (Shape)", tag);
+  spdlog::debug("++++++++");
+  spdlog::debug("{} (Shape)", tag);
 
-    spdlog::debug("ID: {}", id);
-    spdlog::debug("Type: {}", static_cast<int>(type_));
+  spdlog::debug("ID: {}", id);
+  spdlog::debug("Type: {}", static_cast<int>(type_));
 
-    spdlog::debug("Center Position: x={}, y={}, z={}", m_f3CenterPosition.x, m_f3CenterPosition.y, m_f3CenterPosition.z);
-    spdlog::debug("Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y, m_f3Scale.z);
-    spdlog::debug("Rotation: x={}, y={}, z={} w={}", m_quatRotation.x, m_quatRotation.y, m_quatRotation.z);
-    spdlog::debug("Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x, m_f3ExtentsSize.y, m_f3ExtentsSize.z);
-    spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y, m_f3Normal.z);
+  spdlog::debug("Center Position: x={}, y={}, z={}", m_f3CenterPosition.x,
+                m_f3CenterPosition.y, m_f3CenterPosition.z);
+  spdlog::debug("Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y,
+                m_f3Scale.z);
+  spdlog::debug("Rotation: x={}, y={}, z={} w={}", m_quatRotation.x,
+                m_quatRotation.y, m_quatRotation.z);
+  spdlog::debug("Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
+                m_f3ExtentsSize.y, m_f3ExtentsSize.z);
+  spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
+                m_f3Normal.z);
 
-    if (m_poMaterial.has_value()) {
-        m_poMaterial.value()->Print("\tMaterial");
-    }
+  if (m_poMaterial.has_value()) {
+    m_poMaterial.value()->Print("\tMaterial");
+  }
 
-    spdlog::debug("Double Sided: {}", m_bDoubleSided);
-    spdlog::debug("Culling Enabled: {}", m_bCullingOfObjectEnabled);
-    spdlog::debug("Receive Shadows: {}", m_bReceiveShadows);
-    spdlog::debug("Cast Shadows: {}", m_bCastShadows);
+  spdlog::debug("Double Sided: {}", m_bDoubleSided);
+  spdlog::debug("Culling Enabled: {}", m_bCullingOfObjectEnabled);
+  spdlog::debug("Receive Shadows: {}", m_bReceiveShadows);
+  spdlog::debug("Cast Shadows: {}", m_bCastShadows);
 
-    spdlog::debug("++++++++");
+  spdlog::debug("++++++++");
 }
 
 }  // namespace shapes

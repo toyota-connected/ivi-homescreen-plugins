@@ -58,34 +58,53 @@ namespace plugin_filament_view {
       w = std::get<double>(it.second);
     }
   }
-  return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w)};
+  return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z),
+          static_cast<float>(w)};
 }
 
-void Deserialize::DecodeParameterWithDefault(const char* key, std::optional<std::unique_ptr<Material>>& out_value, const flutter::EncodableMap& params, const std::string& flutter_assets_path) {
-    auto it = params.find(flutter::EncodableValue(key));
-    if (it != params.end() && std::holds_alternative<flutter::EncodableMap>(it->second)) {
-        out_value = std::make_unique<Material>(flutter_assets_path, std::get<flutter::EncodableMap>(it->second));
-    } else {
-        out_value.reset();  // or set it to std::nullopt if desired
-    }
+void Deserialize::DecodeParameterWithDefault(
+    const char* key,
+    std::optional<std::unique_ptr<Material>>& out_value,
+    const flutter::EncodableMap& params,
+    const std::string& flutter_assets_path) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() &&
+      std::holds_alternative<flutter::EncodableMap>(it->second)) {
+    out_value = std::make_unique<Material>(
+        flutter_assets_path, std::get<flutter::EncodableMap>(it->second));
+  } else {
+    out_value.reset();  // or set it to std::nullopt if desired
+  }
 }
 
-void Deserialize::DecodeParameterWithDefault(const char* key, filament::math::float3* out_value, const flutter::EncodableMap& params, const filament::math::float3& default_value) {
-    auto it = params.find(flutter::EncodableValue(key));
-    if (it != params.end() && std::holds_alternative<flutter::EncodableMap>(it->second)) {
-        *out_value = Deserialize::Format3(std::get<flutter::EncodableMap>(it->second));
-    } else {
-        *out_value = default_value;
-    }
+void Deserialize::DecodeParameterWithDefault(
+    const char* key,
+    filament::math::float3* out_value,
+    const flutter::EncodableMap& params,
+    const filament::math::float3& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() &&
+      std::holds_alternative<flutter::EncodableMap>(it->second)) {
+    *out_value =
+        Deserialize::Format3(std::get<flutter::EncodableMap>(it->second));
+  } else {
+    *out_value = default_value;
+  }
 }
 
-void Deserialize::DecodeParameterWithDefault(const char* key, filament::math::quatf* out_value, const flutter::EncodableMap& params, const filament::math::quatf& default_value) {
-    auto it = params.find(flutter::EncodableValue(key));
-    if (it != params.end() && std::holds_alternative<flutter::EncodableMap>(it->second)) {
-        *out_value = Deserialize::Format4(std::get<flutter::EncodableMap>(it->second));
-    } else {
-        *out_value = default_value;
-    }
+void Deserialize::DecodeParameterWithDefault(
+    const char* key,
+    filament::math::quatf* out_value,
+    const flutter::EncodableMap& params,
+    const filament::math::quatf& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() &&
+      std::holds_alternative<flutter::EncodableMap>(it->second)) {
+    *out_value =
+        Deserialize::Format4(std::get<flutter::EncodableMap>(it->second));
+  } else {
+    *out_value = default_value;
+  }
 }
 
 }  // namespace plugin_filament_view

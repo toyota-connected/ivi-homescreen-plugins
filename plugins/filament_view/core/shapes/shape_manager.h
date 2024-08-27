@@ -20,8 +20,8 @@
 
 #include <list>
 
-#include "core/scene/material/material_manager.h"
 #include "baseshape.h"
+#include "core/scene/material/material_manager.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
@@ -50,11 +50,12 @@ class ShapeManager {
 
   void vRemoveAllShapesInScene();
 
-// Creates the derived class of BaseShape based on the map data sent in, does not add it to any list
-// only returns the shape for you, Also does not build the data out, only stores it for building when 
-// ready.
-  static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(const std::string& flutter_assets_path,
-    const flutter::EncodableMap& mapData);
+  // Creates the derived class of BaseShape based on the map data sent in, does
+  // not add it to any list only returns the shape for you, Also does not build
+  // the data out, only stores it for building when ready.
+  static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
+      const std::string& flutter_assets_path,
+      const flutter::EncodableMap& mapData);
 
  private:
   MaterialManager* material_manager_;
