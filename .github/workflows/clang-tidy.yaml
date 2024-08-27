@@ -1,0 +1,150 @@
+name: clang-tidy
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+
+jobs:
+  tidy:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: plugins
+          submodules: 'true'
+          persist-credentials: false
+
+      - name: Fetch ivi-homescreen
+        working-directory: ${{github.workspace}}
+        run: |
+          git clone https://github.com/toyota-connected/ivi-homescreen.git
+          cd ivi-homescreen
+          git submodule update --init --recursive
+
+      - name: Install packages
+        run: |
+          sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
+            \
+            ninja-build \
+            \
+            libwayland-dev wayland-protocols libxkbcommon-dev \
+            \
+            mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev \
+            mesa-utils \
+            \
+            libcurl4-openssl-dev \
+            libevent-dev \
+            libglfw3-dev \
+            libicu-dev \
+            libsecret-1-dev \
+            libsdl2-dev \
+            libuv1-dev \
+            \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libgstreamer-plugins-bad1.0-dev \
+            libavformat-dev libavutil-dev \
+            \
+            libunwind-dev \
+            \
+            libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
+            libpng-dev libwebp-dev
+
+          sudo apt-get -o DPkg::Lock::Timeout=1200 -y install rpm clang-tidy libtinfo5
+
+          mkdir clang18 && cd clang18
+          curl -L -O https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+          tar -xJf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz --strip-components=1
+          bin/clang-format --version
+
+      - name: Cache libcamera
+        id: cache-libcamera
+        uses: actions/cache@v4
+        with:
+          save-always: true
+          path: |
+            ${{github.workspace}}/libcamera/buildDir/staging/release
+          key: ${{ runner.os }}-libcamera
+
+      - name: Cache filament
+        id: cache-filament
+        uses: actions/cache@v4
+        with:
+          save-always: true
+          path: |
+            ${{github.workspace}}/filament/cmake-build-release/staging/release
+          key: ${{ runner.os }}-filament
+
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        run: |
+          mkdir -p ${{github.workspace}}/build/debug
+          PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
+          CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \
+            ${{github.workspace}}/ivi-homescreen \
+            -B ${{github.workspace}}/build/debug \
+            -D CMAKE_BUILD_TYPE=Debug \
+            -D CMAKE_STAGING_PREFIX=${{github.workspace}}/build/staging/usr/local \
+            -D BUILD_NUMBER=${GITHUB_RUN_ID} \
+            -D CMAKE_VERBOSE_MAKEFILE=ON \
+            -D ENABLE_DLT=OFF \
+            -D BUILD_CRASH_HANDLER=OFF \
+            -D ENABLE_LTO=ON \
+            \
+            -D PLUGINS_DIR=${{github.workspace}}/plugins \
+            \
+            -D DEBUG_PLATFORM_MESSAGES=OFF \
+            \
+            -D BUILD_PLUGIN_AUDIOPLAYERS_LINUX=OFF \
+            -D BUILD_PLUGIN_CAMERA=ON \
+            -D BUILD_PLUGIN_CLOUD_FIRESTORE=OFF \
+            -D BUILD_PLUGIN_COMP_REGION=OFF \
+            -D BUILD_PLUGIN_COMP_SURF=OFF \
+            -D BUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON \
+            -D BUILD_PLUGIN_FILAMENT_VIEW=ON \
+            -D FILAMENT_INCLUDE_DIR=${{github.workspace}}/filament/cmake-build-release/staging/release/include \
+            -D FILAMENT_LINK_LIBRARIES_DIR=${{github.workspace}}/filament/cmake-build-release/staging/release/lib/x86_64 \
+            -D BUILD_PLUGIN_FILE_SELECTOR=ON \
+            -D BUILD_PLUGIN_FIREBASE_AUTH=OFF \
+            -D BUILD_PLUGIN_FIREBASE_CORE=OFF \
+            -D BUILD_PLUGIN_FIREBASE_STORAGE=OFF \
+            -D BUILD_PLUGIN_GO_ROUTER=ON \
+            -D BUILD_PLUGIN_GOOGLE_SIGN_IN=OFF \
+            -D BUILD_PLUGIN_INTEGRATION_TEST=OFF \
+            -D BUILD_PLUGIN_LAYER_PLAYGROUND_VIEW=ON \
+            -D BUILD_PLUGIN_NAV_RENDER_VIEW=ON \
+            -D BUILD_PLUGIN_PDF=OFF \
+            -D BUILD_PLUGIN_SECURE_STORAGE=ON \
+            -D BUILD_PLUGIN_URL_LAUNCHER=ON \
+            -D BUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF \
+            -D BUILD_PLUGIN_WEBVIEW_FLUTTER_VIEW=ON \
+            \
+            -D ENABLE_CLANG_STATIC_LINK=OFF \
+            -D BUILD_WATCHDOG=OFF \
+            -D BUILD_SYSTEMD_WATCHDOG=OFF \
+            \
+            -D CMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+          ln -s ${{github.workspace}}/build/debug/compile_commands.json ..
+
+      - name: clang-tidy
+        working-directory: ${{github.workspace}}
+        run: |
+          export FILE_LIST=$(find plugins -name '*.cc' -o -name '*.hpp' -o -name '*.h')
+          echo $FILE_LIST
+          clang18/bin/clang-tidy --warnings-as-errors='*,-bugprone-macro-parentheses' --quiet --export-fixes=tidy-results-suggested-fixes.txt $FILE_LIST 2> tidy-results-log.txt
+
+      - name: Show results
+        if: always()
+        run: |
+          cat tidy-results-log.txt
+          cat tidy-results-suggested-fixes.txt
+
+      - name: Publish Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+            name: clang-tidy-results
+            path: tidy-results-*
