@@ -63,8 +63,6 @@ class BaseShape {
     Max   
   };
 
-  void vApplyScalingAndSetTransform(::filament::Engine* engine_, filament::math::float3 scale);
-
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer;
   ::filament::IndexBuffer* m_poIndexBuffer;

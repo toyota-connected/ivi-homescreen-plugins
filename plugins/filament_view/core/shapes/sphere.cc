@@ -159,6 +159,13 @@ void Sphere::createDoubleSidedSphere(::filament::Engine* engine_,
 
 void Sphere::Print(const char* tag) const {
   BaseShape::Print(tag);
+
+  spdlog::debug("++++++++");
+  spdlog::debug("{} (Sphere)", tag);
+  spdlog::debug("{} (Stacks)", stacks_);
+  spdlog::debug("{} (Slices)", slices_);
+  spdlog::debug("++++++++");
+
 }
 
 }  // namespace shapes

@@ -106,27 +106,6 @@ void BaseShape::vDestroyBuffers()
   }
 }
 
-void PrintMat4(const mat4f& matrix) {
-    SPDLOG_WARN("Matrix 4x4:");
-    for (int i = 0; i < 4; ++i) {
-        SPDLOG_WARN("[{}, {}, {}, {}]", 
-                    matrix[i][0], matrix[i][1], matrix[i][2], matrix[i][3]);
-    }
-}
-
-void BaseShape::vApplyScalingAndSetTransform(::filament::Engine* engine_, filament::math::float3 scale) {
-    auto& transformManager = engine_->getTransformManager();
-    auto instance = transformManager.getInstance(*m_poEntity);
-    if (instance) {
-      #if 0 // TODO This needs to add in a rotation matrix param. Backlogged for future implementation.
-        // filament::math::quatf rotation = filament::math::quatf::fromAxisAngle(filament::math::float3{0, 1, 0}, filament::math::radians(90.0f));
-        // auto combinedTransform = mat4f::translation(f3GetCenterPosition()) * mat4f::rotation(rotation) * mat4f::scaling(scale);
-      #endif
-        auto combinedTransform = mat4f::translation(f3GetCenterPosition()) * mat4f::scaling(scale);
-        transformManager.setTransform(instance, combinedTransform);
-    }
-}
-
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
                                   MaterialManager* material_manager) {
   
