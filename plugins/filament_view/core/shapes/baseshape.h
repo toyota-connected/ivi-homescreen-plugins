@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <filament/math/quat.h>
+
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include "core/scene/geometry/direction.h"
@@ -69,14 +71,17 @@ class BaseShape {
 
   // uses Vertex and Index buffer to create the material and geometry
   // using all the internal variables.
-  void vBuildRenderable(int indexCount, ::filament::Engine* engine_,
-                                  MaterialManager* material_manager);
+  void vBuildRenderable(::filament::Engine* engine_,
+                      MaterialManager* material_manager);
 
   int id{};
   ShapeType type_{};
   /// center position of the shape in the world space.
   filament::math::float3 m_f3CenterPosition;
   filament::math::float3 m_f3ExtentsSize;
+  filament::math::float3 m_f3Scale;
+  filament::math::quatf m_quatRotation;
+
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;
   /// material to be used for the shape.
