@@ -53,7 +53,7 @@ static int OnResize(void* data, SDL_Event* event) {
       event->window.event == SDL_WINDOWEVENT_RESIZED) {
     SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
     if (win == (SDL_Window*)data) {
-      SDL_GetWindowSizeInPixels(win, (int*)&gWidth, (int*)&gHeight);
+      SDL_GetWindowSize(win, (int*)&gWidth, (int*)&gHeight);
     }
   }
   return 0;
@@ -81,7 +81,7 @@ void* getNativeWindow(SDL_Window* sdlWindow) {
   } else if (wmi.subsystem == SDL_SYSWM_WAYLAND) {
     // The default Wayland swap chain extent is {0,0}
     // hence having to set the size
-    SDL_GetWindowSizeInPixels(sdlWindow, (int*)&gWidth, (int*)&gHeight);
+    SDL_GetWindowSize(sdlWindow, (int*)&gWidth, (int*)&gHeight);
     native_window = {wmi.info.wl.display, wmi.info.wl.surface, gWidth, gHeight};
     return (void*)&native_window;
   } else {
@@ -353,10 +353,6 @@ int main() {
           break;
         case SDL_MOUSEBUTTONUP:
           gContext.cameraManipulator->grabEnd();
-          break;
-        case SDL_MOUSEWHEEL:
-          gContext.cameraManipulator->scroll(e.wheel.mouseX, e.wheel.mouseY,
-                                             e.wheel.preciseY * 20.0f);
           break;
       }
 
