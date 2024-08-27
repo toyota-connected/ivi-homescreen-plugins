@@ -53,6 +53,7 @@ Scene::Scene(const std::string& flutter_assets_path,
       spdlog::warn(
           "Specifying a ground is no longer supporting, a ground is now a "
           "plane in shapes.");
+
     } else if (!it.second.IsNull()) {
       spdlog::debug("[Scene] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),

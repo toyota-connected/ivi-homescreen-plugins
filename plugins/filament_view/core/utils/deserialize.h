@@ -17,6 +17,7 @@
 
 #include <filament/math/quat.h>
 #include <filament/math/vec3.h>
+#include <filament/math/quat.h>
 #include <flutter/encodable_value.h>
 
 #include "core/scene/material/model/material.h"

@@ -129,13 +129,6 @@ void ShapeManager::addShapesToScene(
 
     poFilamentScene->addEntity(*oEntity);
 
-    // filament::math::float3 f3GetCenterPosition =
-    // shape->f3GetCenterPosition();
-
-    // auto& tcm = poFilamentEngine->getTransformManager();
-    // tcm.setTransform(tcm.getInstance(*oEntity),
-    //                  mat4f::translation(f3GetCenterPosition));
-
     // To investigate a better system for implementing layer mask
     // across dart to here.
     // auto& rcm = poFilamentEngine->getRenderableManager();
