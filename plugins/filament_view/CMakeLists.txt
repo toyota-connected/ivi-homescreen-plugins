@@ -91,6 +91,7 @@ add_library(plugin_filament_view STATIC
         core/scene/geometry/size.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
+        core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
         core/scene/light/light_manager.cc

@@ -52,7 +52,7 @@ bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
                               MaterialManager* material_manager) {
   m_poEntity = std::move(entityObject);
 
-  if(true)
+  if(m_bDoubleSided)
     createDoubleSidedCube(engine_, material_manager);
   else
     createSingleSidedCube(engine_, material_manager);
@@ -108,7 +108,7 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
   m_poVertexBuffer->setBufferAt(
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
-  int indexCount = 36;
+  constexpr int indexCount = 36;
   m_poIndexBuffer = IndexBuffer::Builder()
                                  .indexCount(indexCount)
                                  .bufferType(IndexBuffer::IndexType::USHORT)
@@ -117,7 +117,7 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-vBuildRenderable(indexCount, engine_, material_manager);  
+vBuildRenderable(engine_, material_manager);  
 }
 
 void Cube::createSingleSidedCube(::filament::Engine* engine_,
@@ -160,7 +160,7 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
   // Create IndexBuffer
-  int indexCount = 6;
+  constexpr int indexCount = 6;
   m_poIndexBuffer = IndexBuffer::Builder()
                                  .indexCount(indexCount)
                                  .bufferType(IndexBuffer::IndexType::USHORT)
@@ -170,7 +170,7 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
  
-vBuildRenderable(indexCount, engine_, material_manager);  
+vBuildRenderable(engine_, material_manager);  
 }
 
 void Cube::Print(const char* tag) const {

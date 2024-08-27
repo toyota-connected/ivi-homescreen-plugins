@@ -25,6 +25,8 @@
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
+#include "core/utils/entitytransforms.h"
+
 namespace plugin_filament_view {
 namespace shapes {
 
@@ -47,6 +49,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       m_f3CenterPosition(0, 0, 0),
       m_f3ExtentsSize(0, 0, 0),
       m_f3Normal(0, 0, 0), 
+      m_f3Scale(1,1,1),
+      m_quatRotation(0,0,0,1),
       m_bDoubleSided(false), 
       m_bCullingOfObjectEnabled(true),
       m_bReceiveShadows(false),
@@ -83,6 +87,14 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
                std::holds_alternative<flutter::EncodableMap>(it.second)) {
       m_f3Normal =
           Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
+    } else if (key == "scale" &&
+               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      m_f3Scale =
+          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
+    } else if (key == "rotation" &&
+               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      m_quatRotation =
+          Deserialize::Format4(std::get<flutter::EncodableMap>(it.second));
     } else if (key == "material" &&
                std::holds_alternative<flutter::EncodableMap>(it.second)) {
       m_poMaterial = std::make_unique<Material>(
@@ -147,7 +159,7 @@ void BaseShape::vApplyScalingAndSetTransform(::filament::Engine* engine_, filame
     }
 }
 
-void BaseShape::vBuildRenderable(int indexCount, ::filament::Engine* engine_,
+void BaseShape::vBuildRenderable(::filament::Engine* engine_,
                                   MaterialManager* material_manager) {
   
   // this will also set all the default values of the material instance from the
@@ -155,20 +167,20 @@ void BaseShape::vBuildRenderable(int indexCount, ::filament::Engine* engine_,
   auto materialInstanceResult =
       material_manager->getMaterialInstance(m_poMaterial->get());
 
-  // TODO Extents size and scale SHOULD be different.
   RenderableManager::Builder(1)
       .boundingBox({{}, m_f3ExtentsSize})
-      //.material(0, materialInstanceResult.getData().value())
-      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, m_poVertexBuffer,
+      .material(0, materialInstanceResult.getData().value())
+      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES
+              , m_poVertexBuffer,
                 m_poIndexBuffer)
       .culling(m_bCullingOfObjectEnabled)
       .receiveShadows(m_bReceiveShadows)
       .castShadows(m_bCastShadows)
       .build(*engine_, *m_poEntity);
 
-  vApplyScalingAndSetTransform(engine_, m_f3ExtentsSize);
+  EntityTransforms::vApplyTransform(m_poEntity, m_quatRotation, m_f3Scale, m_f3CenterPosition );
 
-  //vDestroyBuffers();
+  // TODO , need 'its done building callback to delete internal arrays data'
 }
 
 void BaseShape::vRemoveEntityFromScene() {
@@ -191,16 +203,6 @@ void BaseShape::vAddEntityToScene() {
   CustomModelViewer::Instance("Shape")->getFilamentScene()->addEntity(
       *m_poEntity);
 }
-
-// bool BaseShape::bInitAndCreateShape(::filament::Engine* engine_,
-//                                     std::shared_ptr<Entity> entityObject,
-//                                     MaterialManager* material_manager) {
-//   m_poEntity = std::move(entityObject);
-//   // Future tasking planned for all the types to be defined here, and create
-//   // based off settings sent in, for now only cube is represented.
-//   createDoubleSidedCube(engine_, material_manager);
-//   return true;
-// }
 
 filament::math::float3 BaseShape::f3GetCenterPosition() const {
   return m_f3CenterPosition;

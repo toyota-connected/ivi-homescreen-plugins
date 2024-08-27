@@ -100,7 +100,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   m_poVertexBuffer->setBufferAt(
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
-  int indexCount = 12;
+  constexpr int indexCount = 12;
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -109,7 +109,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(indexCount, engine_, material_manager);
+  vBuildRenderable(engine_, material_manager);
 }
 
 void Plane::createSingleSidedPlane(::filament::Engine* engine_,
@@ -150,7 +150,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
   // Create IndexBuffer
-  int indexCount = 6;
+  constexpr int indexCount = 6;
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -159,7 +159,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(indexCount, engine_, material_manager);
+  vBuildRenderable(engine_, material_manager);
 }
 
 void Plane::Print(const char* tag) const {
