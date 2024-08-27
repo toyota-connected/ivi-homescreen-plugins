@@ -56,65 +56,33 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       m_bReceiveShadows(false),
       m_bCastShadows(false) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull()) {
-      SPDLOG_WARN("Shape Param ITER is null {} {} {}", key.c_str(), __FILE__,
-                  __FUNCTION__);
-      continue;
-    }
 
-    if (key == "id" && std::holds_alternative<int>(it.second)) {
-      id = std::get<int>(it.second);
-    } else if (key == "shapeType" &&
-               std::holds_alternative<int32_t>(it.second)) {
-      int32_t typeValue = std::get<int32_t>(it.second);
-      if (typeValue > static_cast<int32_t>(shapes::BaseShape::ShapeType::Unset) &&
-            typeValue < static_cast<int32_t>(shapes::BaseShape::ShapeType::Max)) {
-            type_ = static_cast<ShapeType>(typeValue);
-        } else {
-            spdlog::error("Invalid shape type value: {}", typeValue);
-        }
-    } else if (key == "size" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_f3ExtentsSize =
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "centerPosition" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_f3CenterPosition =
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "normal" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_f3Normal =
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "scale" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_f3Scale =
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "rotation" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_quatRotation =
-          Deserialize::Format4(std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "material" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      m_poMaterial = std::make_unique<Material>(
-          flutter_assets_path, std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "doubleSided" && std::holds_alternative<bool>(it.second)) {
-      m_bDoubleSided = std::get<bool>(it.second);
-    } else if (key == "cullingEnabled" && std::holds_alternative<bool>(it.second)) {
-      m_bCullingOfObjectEnabled = std::get<bool>(it.second);
-    } else if (key == "receiveShadows" && std::holds_alternative<bool>(it.second)) {
-      m_bReceiveShadows = std::get<bool>(it.second);
-    } else if (key == "castShadows" && std::holds_alternative<bool>(it.second)) {
-      m_bCastShadows = std::get<bool>(it.second);
-    } else if (!it.second.IsNull()) {
-      // Note this might be ok to not read certain params if our derived
-      // classes handle it.
-      spdlog::info("[BaseShape] Unhandled Parameter {}", key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
-    }
-  }
+  static constexpr char kId[] = "id";
+  static constexpr char kShapeType[] = "shapeType";
+  static constexpr char kSize[] = "size";
+  static constexpr char kCenterPosition[] = "centerPosition";
+  static constexpr char kNormal[] = "normal";
+  static constexpr char kScale[] = "scale";
+  static constexpr char kRotation[] = "rotation";
+  static constexpr char kMaterial[] = "material";
+  static constexpr char kDoubleSided[] = "doubleSided";
+  static constexpr char kCullingEnabled[] = "cullingEnabled";
+  static constexpr char kReceiveShadows[] = "receiveShadows";
+  static constexpr char kCastShadows[] = "castShadows";
+
+  Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
+  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params, ShapeType::Unset);
+  Deserialize::DecodeParameterWithDefault(kSize, &m_f3ExtentsSize, params, filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3CenterPosition, params, filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kScale, &m_f3Scale, params, filament::math::float3(1, 1, 1));
+  Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params, filament::math::quatf(0, 0, 0, 1));
+  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterial, params, flutter_assets_path);
+  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params, false);
+  Deserialize::DecodeParameterWithDefault(kCullingEnabled, &m_bCullingOfObjectEnabled, params, true);
+  Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows, params, false);
+  Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params, false);
+
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
@@ -181,6 +149,8 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
   EntityTransforms::vApplyTransform(m_poEntity, m_quatRotation, m_f3Scale, m_f3CenterPosition );
 
   // TODO , need 'its done building callback to delete internal arrays data'
+  // - note the calls are async built, but doesn't seem to be a method internal to filament for 
+  // when the building is complete. Further R&D is needed.
 }
 
 void BaseShape::vRemoveEntityFromScene() {

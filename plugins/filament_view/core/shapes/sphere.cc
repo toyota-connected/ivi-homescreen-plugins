@@ -43,16 +43,14 @@ Sphere::Sphere(const std::string& flutter_assets_path,
     : BaseShape(flutter_assets_path, params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 
-    for (auto& it : params) {
-        auto key = std::get<std::string>(it.first);
-        
-    if (key == "stacks" && std::holds_alternative<int>(it.second)) {
-        stacks_ = std::get<int>(it.second);
-        } else if (key == "slices" &&
-                std::holds_alternative<int32_t>(it.second)) {
-        slices_ = std::get<int>(it.second);
-        }
-    }
+  static constexpr char kStacks[] = "stacks";
+  static constexpr char kSlices[] = "slices";
+
+  constexpr int defaultStacks = 20;
+  constexpr int defaultSlices = 20;
+
+  Deserialize::DecodeParameterWithDefault(kStacks, &stacks_, params, defaultStacks);
+  Deserialize::DecodeParameterWithDefault(kSlices, &slices_, params, defaultSlices);
 }
 
 bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
