@@ -30,8 +30,7 @@ class Shape;
 
 class ShapeManager {
  public:
-  ShapeManager(CustomModelViewer* modelViewer,
-               MaterialManager* material_manager);
+  explicit ShapeManager(MaterialManager* material_manager);
 
   void createShapes(const std::vector<std::unique_ptr<Shape>>& shapes);
 
@@ -40,8 +39,12 @@ class ShapeManager {
 
   ShapeManager& operator=(const ShapeManager&) = delete;
 
+  // will add/remove already made entities to/from the scene
+  static void vToggleAllShapesInScene(
+      bool bValue,
+      const std::vector<std::unique_ptr<Shape>>& shapes);
+
  private:
-  CustomModelViewer* modelViewer_;
   MaterialManager* material_manager_;
 };
 }  // namespace plugin_filament_view

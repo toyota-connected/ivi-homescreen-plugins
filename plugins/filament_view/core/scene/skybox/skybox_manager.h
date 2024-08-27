@@ -28,13 +28,11 @@
 namespace plugin_filament_view {
 class SkyboxManager {
  public:
-  SkyboxManager(CustomModelViewer* modelViewer,
-                IBLProfiler* ibl_profiler,
-                const std::string& flutter_assets_path);
+  explicit SkyboxManager(IBLProfiler* ibl_profiler);
 
-  std::future<void> Initialize();
+  static std::future<void> Initialize();
 
-  void setDefaultSkybox();
+  static void setDefaultSkybox();
 
   std::future<Resource<std::string_view>> setSkyboxFromHdrAsset(
       const std::string& path,
@@ -48,13 +46,13 @@ class SkyboxManager {
       bool shouldUpdateLight,
       float intensity);
 
-  std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
+  static std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
       const std::string& path);
 
-  std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
+  static std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
       const std::string& url);
 
-  std::future<Resource<std::string_view>> setSkyboxFromColor(
+  static std::future<Resource<std::string_view>> setSkyboxFromColor(
       const std::string& color);
 
   Resource<std::string_view> loadSkyboxFromHdrBuffer(
@@ -76,11 +74,8 @@ class SkyboxManager {
   SkyboxManager& operator=(const SkyboxManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  ::filament::Engine* engine_;
   IBLProfiler* ibl_profiler_;
-  const std::string& flutterAssetsPath_;
 
-  void setTransparentSkybox();
+  static void setTransparentSkybox();
 };
 }  // namespace plugin_filament_view

@@ -48,8 +48,9 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE) {
-  SPDLOG_TRACE("++CustomModelViewer::CustomModelViewer");
+      currentShapesState_(ShapeState::NONE),
+      cameraManager_(nullptr) {
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
     filament_api_thread_id_ = pthread_self();
@@ -57,25 +58,16 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
   });
 
   /* Setup Wayland subsurface */
-  auto flutter_view = state->view_controller->view;
-  display_ = flutter_view->GetDisplay()->GetDisplay();
-  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
-  surface_ =
-      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
-  subsurface_ = wl_subcompositor_get_subsurface(
-      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
-      parent_surface_);
-
-  wl_subsurface_set_desync(subsurface_);
+  setupWaylandSubsurface();
 
   auto f = Initialize(platformView);
   f.wait();
 
-  SPDLOG_TRACE("--CustomModelViewer::CustomModelViewer");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 CustomModelViewer::~CustomModelViewer() {
-  SPDLOG_TRACE("++CustomModelViewer::~CustomModelViewer");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   if (callback_) {
     wl_callback_destroy(callback_);
@@ -102,13 +94,75 @@ CustomModelViewer::~CustomModelViewer() {
     wl_surface_destroy(surface_);
     surface_ = nullptr;
   }
-  SPDLOG_TRACE("--CustomModelViewer::~CustomModelViewer");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+}
+
+CustomModelViewer* CustomModelViewer::m_poInstance = nullptr;
+CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
+  if (m_poInstance == nullptr)
+    SPDLOG_DEBUG("Instance is null {}", where.c_str());
+  return m_poInstance;
+}
+
+void CustomModelViewer::setupWaylandSubsurface() {
+  // Ensure state_ is properly initialized
+  if (!state_ || !state_->view_controller) {
+    // Handle error: state_ or view_controller is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  auto flutter_view = state_->view_controller->view;
+  if (!flutter_view) {
+    // Handle error: flutter_view is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  display_ = flutter_view->GetDisplay()->GetDisplay();
+  if (!display_) {
+    // Handle error: display is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
+  if (!parent_surface_) {
+    // Handle error: parent_surface is not initialized
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  surface_ =
+      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
+  if (!surface_) {
+    // Handle error: failed to create surface
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    return;
+  }
+
+  subsurface_ = wl_subcompositor_get_subsurface(
+      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
+      parent_surface_);
+  if (!subsurface_) {
+    // Handle error: failed to create subsurface
+    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    wl_surface_destroy(surface_);  // Clean up the surface
+    return;
+  }
+
+  wl_subsurface_place_below(subsurface_, parent_surface_);
+  wl_subsurface_set_desync(subsurface_);
 }
 
 std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
-  SPDLOG_TRACE("++CustomModelViewer::Initialize");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+
+  m_poInstance = this;
+
   auto promise(std::make_shared<std::promise<bool>>());
   auto future(promise->get_future());
+
   asio::post(*strand_, [&, promise, platformView] {
     auto platform_view_size = platformView->GetSize();
     native_window_ = {
@@ -126,11 +180,11 @@ std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
 
     setupView();
 
-    modelLoader_ = std::make_unique<ModelLoader>(this);
+    modelLoader_ = std::make_unique<ModelLoader>();
 
     promise->set_value(true);
   });
-  SPDLOG_TRACE("--CustomModelViewer::Initialize");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
   return future;
 }
 
@@ -175,7 +229,8 @@ void CustomModelViewer::destroySkybox() {
 }
 
 void CustomModelViewer::setupView() {
-  SPDLOG_TRACE("++CustomModelViewer::setupView");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+
   // on mobile, better use lower quality color buffer
   ::filament::View::RenderQuality renderQuality{};
   renderQuality.hdrColorBuffer = ::filament::View::QualityLevel::MEDIUM;
@@ -187,20 +242,34 @@ void CustomModelViewer::setupView() {
 
   // MSAA is needed with dynamic resolution MEDIUM
   fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
+  // fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
   fview_->setAntiAliasing(::filament::View::AntiAliasing::FXAA);
+  // fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
   fview_->setAmbientOcclusionOptions({.enabled = true});
+  // fview_->setAmbientOcclusion(filament::View::AmbientOcclusion::NONE);
 
   // bloom is pretty expensive but adds a fair amount of realism
+  // fview_->setBloomOptions({
+  //     .enabled = false,
+  // });
+
   fview_->setBloomOptions({
       .enabled = true,
   });
 
-  SPDLOG_TRACE("--CustomModelViewer::setupView");
+  // fview_->setShadowingEnabled(false);
+  // fview_->setScreenSpaceRefractionEnabled(false);
+  // fview_->setStencilBufferEnabled(false);
+  // fview_->setDynamicLightingOptions(0.01, 1000.0f);
+
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
+
+static uint32_t G_LastTime = 0;
 
 /**
  * Renders the model and updates the Filament camera.
@@ -210,15 +279,34 @@ void CustomModelViewer::setupView() {
  */
 void CustomModelViewer::DrawFrame(uint32_t time) {
   asio::post(*strand_, [&, time]() {
-    modelLoader_->updateScene();
+    static bool bonce = true;
+    if (bonce) {
+      bonce = false;
+      modelLoader_->updateScene();
 
-    cameraManager_->lookAtDefaultPosition();
+      // will set the first frame of a cameras features.
+      doCameraFeatures(0);
+    }
+
+    if (G_LastTime == 0) {
+      G_LastTime = time;
+    }
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
+      // Note you might want render time and gameplay time to be different
+      // but for smooth animation you don't. (physics would be simulated w/o
+      // render)
+      //
+      // Future tasking for making a more featured timing / frame info class.
+      uint32_t deltaTime = time - G_LastTime;
+      doCameraFeatures((float)deltaTime / 1000.0f);
+
       frenderer_->render(fview_);
       frenderer_->endFrame();
     }
+
+    G_LastTime = time;
   });
 }
 
@@ -240,10 +328,16 @@ void CustomModelViewer::OnFrame(void* data,
                            data);
 
   // Z-Order
-  wl_subsurface_place_above(obj->subsurface_, obj->parent_surface_);
+  // These do not need <seem> to need to be called every frame.
+  // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);
+}
+
+/////////////////////////////////////////////////////////////////////////
+void CustomModelViewer::doCameraFeatures(float fDeltaTime) {
+  cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
 const wl_callback_listener CustomModelViewer::frame_listener = {.done =
@@ -259,10 +353,6 @@ void CustomModelViewer::resize(double width, double height) {
                        static_cast<uint32_t>(height)});
   cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
                                        static_cast<uint32_t>(height));
-}
-
-std::optional<filament::mat4f> CustomModelViewer::getModelTransform() {
-  return modelLoader_->getModelTransform();
 }
 
 }  // namespace plugin_filament_view

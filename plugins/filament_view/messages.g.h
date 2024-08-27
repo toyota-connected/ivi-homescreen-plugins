@@ -44,11 +44,13 @@ class FlutterError {
         message_(std::move(message)),
         details_(std::move(details)) {}
 
-  const std::string& code() const { return code_; }
+  [[nodiscard]] const std::string& code() const { return code_; }
 
-  const std::string& message() const { return message_; }
+  [[nodiscard]] const std::string& message() const { return message_; }
 
-  const flutter::EncodableValue& details() const { return details_; }
+  [[nodiscard]] const flutter::EncodableValue& details() const {
+    return details_;
+  }
 
  private:
   std::string code_;
@@ -59,19 +61,23 @@ class FlutterError {
 template <class T>
 class ErrorOr {
  public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
+  explicit ErrorOr(const T& rhs) : v_(rhs) {}
 
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
 
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
+  explicit ErrorOr(const FlutterError& rhs) : v_(rhs) {}
 
-  ErrorOr(const FlutterError&& rhs) : v_(rhs) {}
+  explicit ErrorOr(const FlutterError&& rhs) : v_(rhs) {}
 
-  bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
+  [[nodiscard]] bool has_error() const {
+    return std::holds_alternative<FlutterError>(v_);
+  }
 
   const T& value() const { return std::get<T>(v_); };
 
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
+  [[nodiscard]] const FlutterError& error() const {
+    return std::get<FlutterError>(v_);
+  };
 
  private:
   friend class FilamentViewApi;
@@ -99,69 +105,87 @@ class FilamentViewApi {
 
   virtual ~FilamentViewApi() = default;
 
+  virtual void ChangeDirectLightByIndex(
+      int32_t index,
+      std::string color,
+      int32_t intensity,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
+  virtual void ToggleShapesInScene(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
+  virtual void ToggleCameraAutoRotate(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
+  virtual void SetCameraRotation(
+      float fValue,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
   virtual void ChangeAnimationByIndex(
-      const int32_t index,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      int32_t index,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeAnimationByName(
       std::string name,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void GetAnimationNames(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void GetAnimationCount(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void GetCurrentAnimationIndex(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void GetAnimationNameByIndex(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeSkyboxByAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeSkyboxByUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeSkyboxByHdrAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeSkyboxByHdrUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeSkyboxColor(
       std::string color,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeToTransparentSkybox(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeLightByKtxAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeLightByKtxUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeLightByIndirectLight(
       std::string path,
       double intensity,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeLightByHdrUrl(
       std::string path,
       double intensity,
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeToDefaultIndirectLight(
-      const std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
 #if 0
         kMethodChangeLight

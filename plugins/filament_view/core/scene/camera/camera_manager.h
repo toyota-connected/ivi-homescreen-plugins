@@ -45,11 +45,14 @@ class Projection;
 
 class CameraManager {
  public:
-  explicit CameraManager(CustomModelViewer* modelViewer);
+  explicit CameraManager();
 
-  std::future<void> setDefaultCamera();
+  void setDefaultCamera();
 
   void lookAtDefaultPosition();
+  void setCameraLookat(filament::math::float3 eye,
+                       filament::math::float3 center,
+                       filament::math::float3 up);
 
   void destroyCamera();
 
@@ -59,9 +62,14 @@ class CameraManager {
                 size_t point_data_size,
                 const double* point_data);
 
-  float calculateAspectRatio();
+  static float calculateAspectRatio();
 
   void updateCameraManipulator(Camera* cameraInfo);
+
+  // for cameras flagged for auto-orbit, will auto orbit
+  // with their properties. Auto-screenshot, render-to-texture
+  // would also use this in the future.
+  void updateCamerasFeatures(float fElapsedTime);
 
   void updateCameraOnResize(uint32_t width, uint32_t height);
 
@@ -78,6 +86,11 @@ class CameraManager {
   std::string updateCameraShift(std::vector<double>* shift);
 
   std::string updateCameraScaling(std::vector<double>* scaling);
+
+  void setPrimaryCamera(std::unique_ptr<Camera> camera);
+  void togglePrimaryCameraFeatureMode(bool bValue);
+  // Passes weak ptr, dont keep a copy of this.
+  Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
   // Disallow copy and assign.
   CameraManager(const CameraManager&) = delete;
@@ -134,9 +147,7 @@ class CameraManager {
     }  // We very rarely use this [] operator, assert overhead is fine.
   };
 
-  ::filament::Engine* engine_;
   ::filament::Camera* camera_{};
-  CustomModelViewer* modelViewer_{};
   CameraManipulator* cameraManipulator_{};
 
   float cameraFocalLength_{};
@@ -157,6 +168,8 @@ class CameraManager {
   std::vector<TouchPair> tentativePanEvents_;
   std::vector<TouchPair> tentativeOrbitEvents_;
   std::vector<TouchPair> tentativeZoomEvents_;
+
+  std::shared_ptr<Camera> primaryCamera_;
 
   void endGesture();
   bool isOrbitGesture();

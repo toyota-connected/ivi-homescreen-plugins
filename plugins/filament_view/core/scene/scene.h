@@ -44,7 +44,7 @@ class SkyBox;
 class Scene {
  public:
   Scene(const std::string& flutter_assets_path,
-        const flutter::EncodableValue& val);
+        const flutter::EncodableValue& params);
 
   ~Scene();
 

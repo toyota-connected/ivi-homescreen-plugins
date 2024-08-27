@@ -83,20 +83,21 @@ inline std::vector<uint8_t> readBinaryFile(const std::string& dependent_path,
     return returnErrorMessageAndBuffer(filePath, "Failed to open");
   }
 
-  SPDLOG_DEBUG("Reading: {}/{}", main_path, dependent_path);
+  SPDLOG_INFO("Reading: {}/{}", main_path, dependent_path);
 
   std::ifstream& file = optionalFile.value();
   const auto end = file.tellg();
   file.seekg(0, std::ios::beg);
   const auto size = static_cast<std::size_t>(end - file.tellg());
 
-  SPDLOG_DEBUG("Read: {} bytes", size);
   if (size == 0) {
+    SPDLOG_ERROR("Size was 0 reading {}", filePath.c_str());
     return returnErrorMessageAndBuffer(filePath, "Empty file");
   }
 
   std::vector<uint8_t> buffer = createBuffer(file, size);
   if (buffer.empty()) {
+    SPDLOG_ERROR("buffer was empty reading {}", filePath.c_str());
     return returnErrorMessageAndBuffer(filePath, "Failed to read");
   }
 

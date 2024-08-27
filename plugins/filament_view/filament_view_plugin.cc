@@ -95,85 +95,107 @@ FilamentViewPlugin::~FilamentViewPlugin() {
 };
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
-    const int32_t /* index */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
+    int32_t /* index */,
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
+
+void FilamentViewPlugin::ChangeDirectLightByIndex(
+    int32_t index,
+    std::string color,
+    int32_t intensity,
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->ChangeLightProperties(index, color, intensity);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ToggleShapesInScene(
+    bool value,
+    std::function<void(std::optional<FlutterError> reply)> result) {
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->vToggleAllShapesInScene(value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ToggleCameraAutoRotate(
+    bool value,
+    std::function<void(std::optional<FlutterError> reply)> result) {
+  CustomModelViewer* instance =
+      CustomModelViewer::Instance("FilamentViewPlugin");
+  auto sceneController = filamentScene_->getSceneController();
+  sceneController->getCameraManager()->togglePrimaryCameraFeatureMode(value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::SetCameraRotation(
+    float fValue,
+    std::function<void(std::optional<FlutterError> reply)> result) {
+  auto sceneController = filamentScene_->getSceneController();
+  Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
+  if (poCamera != nullptr) {
+    SPDLOG_DEBUG("{}", fValue);
+    poCamera->vSetCurrentCameraOrbitAngle(fValue);
+  }
 }
 
 void FilamentViewPlugin::ChangeAnimationByName(
     std::string /* name */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::GetAnimationNames(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::GetAnimationCount(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::GetCurrentAnimationIndex(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::GetAnimationNameByIndex(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeSkyboxByAsset(
     std::string /* path */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeSkyboxByUrl(
     std::string /* url */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeSkyboxByHdrAsset(
     std::string /* path */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeSkyboxByHdrUrl(
     std::string /* url */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeSkyboxColor(
     std::string /* color */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeToTransparentSkybox(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeLightByKtxAsset(
     std::string /* path */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeLightByKtxUrl(
     std::string /* url */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeLightByIndirectLight(
     std::string /* path */,
     double /* intensity */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeLightByHdrUrl(
     std::string /* path */,
     double /* intensity */,
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::ChangeToDefaultIndirectLight(
-    const std::function<void(std::optional<FlutterError> reply)> /* result */) {
-}
+    std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
@@ -203,7 +225,7 @@ void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
 
 void FilamentViewPlugin::on_touch(int32_t action,
                                   int32_t point_count,
-                                  const size_t point_data_size,
+                                  size_t point_data_size,
                                   const double* point_data,
                                   void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);

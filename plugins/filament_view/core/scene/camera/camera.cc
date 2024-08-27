@@ -25,6 +25,13 @@ namespace plugin_filament_view {
 
 Camera::Camera(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Camera::Camera");
+
+  // Currently variables not coming over from dart, Backlogged.
+  customMode_ = true;
+  fCurrentOrbitAngle_ = 0;
+  orbitHomePosition_ = std::make_unique<::filament::math::float3>(0, 3, 0);
+  forceSingleFrameUpdate_ = false;
+
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);
 
@@ -147,7 +154,12 @@ Camera::Camera(const flutter::EncodableMap& params) {
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
-        mode_ = getModeForText(std::get<std::string>(it.second));
+        std::string modeType = std::get<std::string>(it.second);
+        if (modeType == kModeAutoOrbit) {
+          customMode_ = true;
+        } else {
+          mode_ = getModeForText(modeType);
+        }
       } else if (std::holds_alternative<std::monostate>(it.second)) {
         mode_ = ::filament::camutils::Mode::ORBIT;
       }
@@ -155,10 +167,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
         orbitHomePosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
-        orbitHomePosition_ =
-            std::make_unique<::filament::math::float3>(0, 0, 1);
-      }
+      } 
     } else if (key == "orbitSpeed") {
       if (std::holds_alternative<flutter::EncodableList>(it.second)) {
         auto list = std::get<flutter::EncodableList>(it.second);
@@ -190,7 +199,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
         targetPosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
       } else if (std::holds_alternative<std::monostate>(it.second)) {
-        targetPosition_ = std::make_unique<::filament::math::float3>(0, 0, -4);
+        targetPosition_ = std::make_unique<::filament::math::float3>(0, 0, 0);
       }
     } else if (key == "upVector") {
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {

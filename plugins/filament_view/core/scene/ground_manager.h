@@ -36,11 +36,9 @@ class CustomModelViewer;
 
 class GroundManager {
  public:
-  GroundManager(CustomModelViewer* modelViewer,
-                MaterialManager* material_manager,
-                Ground* ground);
+  explicit GroundManager(Ground* ground);
 
-  [[nodiscard]] std::future<Resource<std::string_view>> createGround() const;
+  [[nodiscard]] static bool createGround(MaterialManager* poManager);
 
   static std::future<Resource<std::string_view>> updateGround(
       Ground* newGround);
@@ -55,10 +53,6 @@ class GroundManager {
   GroundManager& operator=(const GroundManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  MaterialManager* materialManager_;
-
-  ::filament::Engine* engine_;
   Ground* ground_;
   void* plane_geometry_;
   // TODO PlaneGeometry* plane_geometry_;

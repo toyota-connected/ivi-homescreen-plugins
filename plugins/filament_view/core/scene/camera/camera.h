@@ -53,12 +53,21 @@ class Camera {
 
   friend class CameraManager;
 
+  void vSetCurrentCameraOrbitAngle(float fValue) {
+    fCurrentOrbitAngle_ = fValue;
+    forceSingleFrameUpdate_ = true;
+  }
+
  private:
   static constexpr char kModeOrbit[] = "ORBIT";
   static constexpr char kModeMap[] = "MAP";
   static constexpr char kModeFreeFlight[] = "FREE_FLIGHT";
   static constexpr char kFovVertical[] = "VERTICAL";
   static constexpr char kFovHorizontal[] = "HORIZONTAL";
+  /// Auto orbit is a 'camera feature', where it will auto orbit around
+  /// a targetPosition_ Camera features are updated from camera_manager.cc:
+  /// updateCamerasFeatures() currently.
+  static constexpr char kModeAutoOrbit[] = "AUTOORBIT";
 
   /// An object that control camera Exposure.
   std::unique_ptr<Exposure> exposure_;
@@ -92,6 +101,9 @@ class Camera {
 
   /// Mode of the camera that operates on.
   ::filament::camutils::Mode mode_;
+  /// if we have a mode specified not in filament - auto orbit, to texture, PiP
+  bool customMode_;
+  bool forceSingleFrameUpdate_;
 
   /// The world-space position of interest, which defaults to (x:0,y:0,z:-4).
   std::unique_ptr<::filament::math::float3> targetPosition_;
@@ -103,9 +115,11 @@ class Camera {
   std::optional<float> zoomSpeed_;
 
   // orbit
-  /// The initial eye position in world space for ORBIT mode.
+  /// The initial eye position in world space for ORBIT mode & autoorbit mode
   /// This defaults to (x:0,y:0,z:1).
   std::unique_ptr<::filament::math::float3> orbitHomePosition_;
+  // used with autoorbit mode for determining where to go next
+  float fCurrentOrbitAngle_;
 
   /// Sets the multiplier with viewport delta for ORBIT mode.This defaults to
   /// 0.01 List of 2 double :[x,y]

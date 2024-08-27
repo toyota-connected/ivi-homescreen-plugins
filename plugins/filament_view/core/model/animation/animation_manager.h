@@ -27,16 +27,13 @@ class AnimationManager;
 
 class AnimationManager {
  public:
-  AnimationManager(CustomModelViewer* model_viewer);
+  AnimationManager();
 
-  std::vector<std::string> getAnimationNames() { return animationNames_; }
-
-  int32_t getAnimationCount() { return animationCount_; }
-
-  int32_t getAnimationIndexByName(const std::string& /* name */) {
-    // TODO
-    return 0;
+  [[nodiscard]] std::vector<std::string> getAnimationNames() const {
+    return animationNames_;
   }
+
+  [[nodiscard]] int32_t getAnimationCount() const { return animationCount_; }
 
   // Disallow copy and assign.
   AnimationManager(const AnimationManager&) = delete;
@@ -46,7 +43,6 @@ class AnimationManager {
   friend class SceneController;
 
  private:
-  CustomModelViewer* modelViewer_;
   int32_t animationCount_ = 0;
   std::vector<std::string> animationNames_;
 };

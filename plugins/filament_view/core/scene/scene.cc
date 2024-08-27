@@ -23,12 +23,15 @@ namespace plugin_filament_view {
 Scene::Scene(const std::string& flutter_assets_path,
              const flutter::EncodableValue& params)
     : flutterAssetsPath_(flutter_assets_path) {
-  SPDLOG_TRACE("++Scene::Scene");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : std::get<flutter::EncodableMap>(params)) {
-    if (it.second.IsNull())
-      continue;
-
     auto key = std::get<std::string>(it.first);
+    if (it.second.IsNull()) {
+      SPDLOG_WARN("Scene Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
+      continue;
+    }
+
     if (key == "skybox" &&
         std::holds_alternative<flutter::EncodableMap>(it.second)) {
       skybox_ = plugin_filament_view::Skybox::Deserialize(
@@ -50,12 +53,12 @@ Scene::Scene(const std::string& flutter_assets_path,
       ground_ = std::make_unique<Ground>(
           flutterAssetsPath_, std::get<flutter::EncodableMap>(it.second));
     } else if (!it.second.IsNull()) {
-      spdlog::debug("[Scene] Unhandled Parameter");
+      spdlog::debug("[Scene] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
     }
   }
-  SPDLOG_TRACE("--Scene::Scene");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 Scene::~Scene() {

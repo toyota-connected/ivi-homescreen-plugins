@@ -23,6 +23,11 @@
 #include "core/scene/material/model/material.h"
 
 namespace plugin_filament_view {
+
+using ::utils::Entity;
+
+class MaterialManager;
+
 class Shape {
  public:
   Shape(int32_t id,
@@ -40,14 +45,42 @@ class Shape {
 
   Shape& operator=(const Shape&) = delete;
 
+  [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
+
+  bool bInitAndCreateShape(::filament::Engine* engine_,
+                           std::shared_ptr<Entity> entityObject,
+                           MaterialManager* material_manager);
+
+  [[nodiscard]] filament::math::float3 f3GetCenterPosition() const;
+
+  void vRemoveEntityFromScene();
+  void vAddEntityToScene();
+
  private:
+  void createDoubleSidedCube(::filament::Engine* engine_,
+                             MaterialManager* material_manager);
+
+  // TODO - might need these to cleanup.
+  // VertexBuffer* m_poVertexBuffer;
+  // IndexBuffer* m_poIndexBuffer;
+
   int id{};
   int32_t type_{};
   /// center position of the shape in the world space.
-  std::optional<std::unique_ptr<::filament::math::float3>> centerPosition_;
+  filament::math::float3 m_f3CenterPosition;
+  filament::math::float3 m_f3ExtentsSize;
   /// direction of the shape rotation in the world space
-  std::optional<std::unique_ptr<::filament::math::float3>> normal_;
+  filament::math::float3 m_f3Normal;
   /// material to be used for the shape.
-  std::optional<std::unique_ptr<Material>> material_;
+  std::optional<std::unique_ptr<Material>> m_poMaterial;
+
+  std::shared_ptr<utils::Entity> m_poEntity;
+
+  // tasking for future implementation
+  bool m_bDoubleSided = false;
+  bool m_bCullingOfObjectEnabled = false;
+  bool m_bReceiveShadows = false;
+  bool m_bCastShadows = false;
 };
+
 }  // namespace plugin_filament_view

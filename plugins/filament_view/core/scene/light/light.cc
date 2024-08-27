@@ -33,12 +33,15 @@ Light::Light(float colorTemperature,
 }
 
 Light::Light(const flutter::EncodableMap& params) {
-  SPDLOG_TRACE("++Light::Light");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
-    if (it.second.IsNull())
-      continue;
-
     auto key = std::get<std::string>(it.first);
+    if (it.second.IsNull()) {
+      SPDLOG_WARN("Light Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
+      continue;
+    }
+
     if (key == "type" && std::holds_alternative<std::string>(it.second)) {
       type_ = textToLightType(std::get<std::string>(it.second));
     } else if (key == "color" &&
@@ -83,12 +86,14 @@ Light::Light(const flutter::EncodableMap& params) {
                std::holds_alternative<double>(it.second)) {
       sunHaloFalloff_ = std::get<double>(it.second);
     } else if (!it.second.IsNull()) {
-      spdlog::debug("[Light] Unhandled Parameter");
+      spdlog::debug("[Light] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
     }
   }
-  SPDLOG_TRACE("--Light::Light");
+
+  // Print("Setup Light");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 void Light::Print(const char* tag) {
@@ -105,12 +110,14 @@ void Light::Print(const char* tag) {
   if (intensity_.has_value()) {
     spdlog::debug("\tintensity: {}", intensity_.value());
   }
-#if 0
+#if 1
   if (position_) {
-    position_->Print("\tposition");
+    SPDLOG_DEBUG("\tposition {} {} {}", position_.get()->x, position_.get()->y,
+                 position_.get()->z);
   }
   if (direction_) {
-    direction_->Print("\tposition");
+    SPDLOG_DEBUG("\tdirection_ {} {} {}", direction_.get()->x,
+                 direction_.get()->y, direction_.get()->z);
   }
 #endif
   if (castLight_.has_value()) {

@@ -46,6 +46,10 @@ class Light {
 
   friend class LightManager;
 
+  void ChangeColor(const std::string& color) { color_ = color; }
+
+  void ChangeIntensity(float fIntensity) { intensity_ = fIntensity; }
+
  private:
   ::filament::LightManager::Type type_;
   std::optional<std::string> color_;

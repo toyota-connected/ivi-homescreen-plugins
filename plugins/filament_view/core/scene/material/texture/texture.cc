@@ -82,7 +82,7 @@ std::unique_ptr<Texture> Texture::Deserialize(
 }
 
 void Texture::Print(const char* tag) {
-  spdlog::debug("++++++++");
+  SPDLOG_DEBUG("++{} {} ", __FILE__, __FUNCTION__);
   spdlog::debug("{} (Texture)", tag);
   if (!assetPath_.empty()) {
     spdlog::debug("\tassetPath: [{}]", assetPath_);
@@ -92,9 +92,10 @@ void Texture::Print(const char* tag) {
   }
   spdlog::debug("\ttype: {}", getTextForType(type_));
   if (sampler_) {
-    sampler_->Print("\tsampler");
+    // TODO CRASH
+    // sampler_->Print("\t\tsampler");
   }
-  spdlog::debug("++++++++");
+  SPDLOG_DEBUG("--{} {} ", __FILE__, __FUNCTION__);
 }
 
 Texture::TextureType Texture::getType(const std::string& type) {

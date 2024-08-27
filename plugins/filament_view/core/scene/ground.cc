@@ -24,13 +24,16 @@ namespace plugin_filament_view {
 Ground::Ground(const std::string& flutter_assets_path,
                const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
-  SPDLOG_TRACE("++Ground::Ground");
+  SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
   bool done[5]{};
   for (auto& it : params) {
-    if (it.second.IsNull())
-      continue;
-
     auto key = std::get<std::string>(it.first);
+    if (it.second.IsNull()) {
+      SPDLOG_WARN("Ground Param ITER is null key:{} file:{} function:{}", key,
+                  __FILE__, __FUNCTION__);
+      continue;
+    }
+
     if (!done[0] && key == "centerPosition" &&
         std::holds_alternative<flutter::EncodableMap>(it.second)) {
       done[0] = true;
@@ -55,13 +58,14 @@ Ground::Ground(const std::string& flutter_assets_path,
       done[4] = true;
       material_ = std::make_unique<Material>(
           flutterAssetsPath_, std::get<flutter::EncodableMap>(it.second));
+      // material_->Print("Ground Creation");
     } else if (!it.second.IsNull()) {
       spdlog::debug("[Ground] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
     }
   }
-  SPDLOG_TRACE("--Ground::Ground");
+  SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
 void Ground::Print(const char* tag) {

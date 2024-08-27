@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <filament/MaterialInstance.h>
+#include <map>
 #include <memory>
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
@@ -38,11 +40,15 @@ class Material {
 
   friend class MaterialManager;
 
+  void vSetMaterialInstancePropertiesFromMyPropertyMap(
+      const ::filament::Material* materialResult,
+      filament::MaterialInstance* materialInstance) const;
+
  private:
   const std::string& flutterAssetsPath_;
 
   std::string assetPath_;
   std::string url_;
-  std::vector<std::unique_ptr<MaterialParameter>> parameters_;
+  std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;
 };
 }  // namespace plugin_filament_view

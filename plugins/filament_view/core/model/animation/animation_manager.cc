@@ -2,7 +2,6 @@
 #include "animation_manager.h"
 
 namespace plugin_filament_view {
-AnimationManager::AnimationManager(CustomModelViewer* modelViewer)
-    : modelViewer_(modelViewer) {}
+AnimationManager::AnimationManager() = default;
 
 }  // namespace plugin_filament_view

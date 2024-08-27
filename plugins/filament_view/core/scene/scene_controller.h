@@ -67,7 +67,7 @@ class SceneController {
   SceneController(PlatformView* platformView,
                   FlutterDesktopEngineState* state,
                   std::string flutterAssetsPath,
-                  Model* model,
+                  std::vector<std::unique_ptr<Model>>* models,
                   Scene* scene,
                   std::vector<std::unique_ptr<Shape>>* shapes,
                   int32_t id);
@@ -80,18 +80,28 @@ class SceneController {
 
   void onTouch(int32_t action,
                int32_t point_count,
-               const size_t point_data_size,
+               size_t point_data_size,
                const double* point_data);
 
   [[nodiscard]] CameraManager* getCameraManager() const {
     return cameraManager_.get();
   }
 
+  plugin_filament_view::MaterialManager* poGetMaterialManager();
+
+  void ChangeLightProperties(int nWhichLightIndex,
+                             const std::string& colorValue,
+                             int32_t intensity);
+
+  void ChangeIndirectLightProperties(int32_t intensity);
+
+  void vToggleAllShapesInScene(bool bValue);
+
  private:
   int32_t id_;
   std::string flutterAssetsPath_;
 
-  Model* model_;
+  std::vector<std::unique_ptr<Model>>* models_;
   Scene* scene_;
   std::vector<std::unique_ptr<Shape>>* shapes_;
 
@@ -113,13 +123,14 @@ class SceneController {
   std::unique_ptr<plugin_filament_view::AnimationManager> animationManager_;
   std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
   std::unique_ptr<plugin_filament_view::GroundManager> groundManager_;
+  // this should probably be promoted to outside this class TODO
   std::unique_ptr<plugin_filament_view::MaterialManager> materialManager_;
   std::unique_ptr<plugin_filament_view::ShapeManager> shapeManager_;
 
   void setUpViewer(PlatformView* platformView,
                    FlutterDesktopEngineState* state);
 
-  void setUpLoadingModel();
+  void setUpLoadingModels();
 
   void setUpCamera();
 

@@ -5,15 +5,9 @@
 #include "core/include/file_utils.h"
 #include "plugins/common/curl_client/curl_client.h"
 
-
 namespace plugin_filament_view {
 
-TextureLoader::TextureLoader(CustomModelViewer* modelViewer,
-                             const std::string& assetPath)
-    : modelViewer_(modelViewer),
-      assetPath_(assetPath),
-      engine_(modelViewer->getFilamentEngine()),
-      strand_(modelViewer->getStrandContext()) {}
+TextureLoader::TextureLoader() = default;
 
 inline ::filament::backend::TextureFormat internalFormat(
     Texture::TextureType type) {
@@ -29,9 +23,15 @@ inline ::filament::backend::TextureFormat internalFormat(
 ::filament::Texture* TextureLoader::createTextureFromImage(
     Texture::TextureType type,
     std::unique_ptr<image::LinearImage> image) {
-  if (image->getChannels() != 3) {
+  static constexpr int kNumChannelsForImage = 3;
+  if (image->getChannels() != kNumChannelsForImage) {
+    SPDLOG_ERROR("Channels != {} {} {}", kNumChannelsForImage, __FILE__,
+                 __FUNCTION__);
     return nullptr;
   }
+
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
   ::filament::Texture* texture =
       ::filament::Texture::Builder()
@@ -40,7 +40,7 @@ inline ::filament::backend::TextureFormat internalFormat(
           .levels(0xff)
           .format(internalFormat(type))
           .sampler(::filament::Texture::Sampler::SAMPLER_2D)
-          .build(*engine_);
+          .build(*engine);
 
   if (!texture) {
     spdlog::error("Unable to create Filament Texture from image.");
@@ -61,8 +61,8 @@ inline ::filament::backend::TextureFormat internalFormat(
 
   (void)image.release();  // Release the ownership since filament engine has the
                           // responsibility to free the memory
-  texture->setImage(*engine_, 0, std::move(pbd));
-  texture->generateMipmaps(*engine_);
+  texture->setImage(*engine, 0, std::move(pbd));
+  texture->generateMipmaps(*engine);
   return texture;
 }
 
@@ -71,8 +71,12 @@ inline ::filament::backend::TextureFormat internalFormat(
     spdlog::error("Texture not found");
     return nullptr;
   }
+
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+
   if (!texture->assetPath_.empty()) {
-    auto file_path = getAbsolutePath(texture->assetPath_, assetPath_);
+    auto file_path =
+        getAbsolutePath(texture->assetPath_, modelViewer->getAssetPath());
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
       return nullptr;
@@ -97,7 +101,7 @@ inline ::filament::backend::TextureFormat internalFormat(
 }
 
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
-    std::string url,
+    const std::string& url,
     Texture::TextureType type) {
   plugin_common_curl::CurlClient client;
   client.Init(url, {}, {});

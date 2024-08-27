@@ -20,30 +20,25 @@ class Texture;
 
 class TextureLoader {
  public:
-  TextureLoader(CustomModelViewer* modelViewer, const std::string& assetPath);
+  TextureLoader();
   ~TextureLoader() = default;
 
-  ::filament::Texture* loadTexture(Texture* texture);
+  static ::filament::Texture* loadTexture(Texture* texture);
 
   // Disallow copy and assign.
   TextureLoader(const TextureLoader&) = delete;
   TextureLoader& operator=(const TextureLoader&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
-  const std::string& assetPath_;
-  ::filament::Engine* engine_;
-  const asio::io_context::strand& strand_;
-
-  ::filament::Texture* createTextureFromImage(
+  static ::filament::Texture* createTextureFromImage(
       Texture::TextureType type,
       std::unique_ptr<image::LinearImage> image);
 
-  ::filament::Texture* loadTextureFromStream(std::istream* ins,
-                                             Texture::TextureType type,
-                                             const std::string& name);
+  static ::filament::Texture* loadTextureFromStream(std::istream* ins,
+                                                    Texture::TextureType type,
+                                                    const std::string& name);
 
-  ::filament::Texture* loadTextureFromUrl(std::string url,
-                                          Texture::TextureType type);
+  static ::filament::Texture* loadTextureFromUrl(const std::string& url,
+                                                 Texture::TextureType type);
 };
 }  // namespace plugin_filament_view

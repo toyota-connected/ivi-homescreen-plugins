@@ -68,8 +68,6 @@ class CustomModelViewer {
 
   ~CustomModelViewer();
 
-  std::future<bool> Initialize(PlatformView* platformView);
-
   void setModelState(ModelState modelState);
 
   void setGroundState(SceneState sceneState);
@@ -116,8 +114,6 @@ class CustomModelViewer {
     fanimator_ = animator;
   }
 
-  std::optional<filament::mat4f> getModelTransform();
-
   [[nodiscard]] const asio::io_context::strand& getStrandContext() const {
     return *strand_;
   }
@@ -126,7 +122,7 @@ class CustomModelViewer {
 
   filament::gltfio::FilamentAsset* getAsset() { return asset_; }
 
-  bool getActualSize() { return actualSize; }
+  static bool getActualSize() { return actualSize; }
 
   void setInitialized() {
     initialized_ = true;
@@ -144,10 +140,17 @@ class CustomModelViewer {
 
   void resize(double width, double height);
 
+  static CustomModelViewer* Instance(const std::string& where);
+
  private:
+  static CustomModelViewer* m_poInstance;
+
   static constexpr bool actualSize = false;
   static constexpr bool originIsFarAway = false;
   static constexpr float originDistance = 1.0f;
+
+  void setupWaylandSubsurface();
+  std::future<bool> Initialize(PlatformView* platformView);
 
   [[maybe_unused]] FlutterDesktopEngineState* state_;
   const std::string flutterAssetsPath_;
@@ -205,6 +208,10 @@ class CustomModelViewer {
   void DrawFrame(uint32_t time);
 
   void setupView();
+
+  // elapsed time / deltatime needs to be moved to its own global namespace like
+  // class similar to unitys, elapsedtime/total time etc.
+  void doCameraFeatures(float fDeltaTime);
 };
 
 }  // namespace plugin_filament_view

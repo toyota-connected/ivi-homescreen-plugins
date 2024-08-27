@@ -25,10 +25,12 @@
 
 namespace plugin_filament_view {
 
-LightManager::LightManager(CustomModelViewer* modelViewer)
-    : modelViewer_(modelViewer), engine_(modelViewer->getFilamentEngine()) {
+using ::filament::math::float3;
+using ::filament::math::mat3f;
+using ::filament::math::mat4f;
+
+LightManager::LightManager() {
   SPDLOG_TRACE("++LightManager::LightManager");
-  entityLight_ = engine_->getEntityManager().create();
   SPDLOG_TRACE("--LightManager::LightManager");
 }
 
@@ -43,7 +45,15 @@ void LightManager::setDefaultLight() {
 
 std::future<Resource<std::string_view>> LightManager::changeLight(
     Light* light) {
-  SPDLOG_TRACE("++LightManager::changeLight");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+
+  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+
+  if (entityLight_.isNull()) {
+    entityLight_ =
+        modelViewer->getFilamentEngine()->getEntityManager().create();
+  }
+
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -55,8 +65,12 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
     return future;
   }
 
-  asio::post(modelViewer_->getStrandContext(), [&, promise, light] {
+  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+
+  asio::post(strand_, [&, promise, light] {
     auto builder = ::filament::LightManager::Builder(light->type_);
+
+    light->Print("Light Manager Instantiation");
 
     if (light->color_.has_value()) {
       auto colorValue = colorOf(light->color_.value());
@@ -75,6 +89,15 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       builder.position(*light->position_);
     }
     if (light->direction_) {
+      // Note if Direction is 0,0,0 and you're on a spotlight
+      // nothing will show.
+      if (*light->direction_ == filament::math::float3(0, 0, 0) &&
+          light->type_ == ::filament::LightManager::Type::SPOT) {
+        spdlog::warn(
+            "You've created a spot light without a direction, nothing will "
+            "show. Undefined behavior.");
+      }
+
       builder.direction(*light->direction_);
     }
     if (light->castLight_.has_value()) {
@@ -101,14 +124,19 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       builder.sunHaloSize(light->sunHaloFalloff_.value());
     }
 
-    builder.build(*engine_, entityLight_);
-    auto scene = modelViewer_->getFilamentScene();
+    CustomModelViewer* modelViewer =
+        CustomModelViewer::Instance("changeLight::Lambda");
+    builder.build(*modelViewer->getFilamentEngine(), entityLight_);
+    auto scene = modelViewer->getFilamentScene();
+
+    // this remove looks sus; seems like it should be the first thing
+    // in the function, todo investigate.
     scene->removeEntities(&entityLight_, 1);
     scene->addEntity(entityLight_);
     promise->set_value(
         Resource<std::string_view>::Success("Light created Successfully"));
   });
-  SPDLOG_TRACE("--LightManager::changeLight");
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
   return future;
 }
 

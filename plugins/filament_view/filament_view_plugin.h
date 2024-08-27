@@ -73,86 +73,87 @@ class FilamentViewPlugin : public flutter::Plugin,
 
   ~FilamentViewPlugin() override;
 
+  void ChangeDirectLightByIndex(
+      int32_t index,
+      std::string color,
+      int32_t intensity,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
+  void ToggleShapesInScene(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
+  void ToggleCameraAutoRotate(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
+  void SetCameraRotation(
+      float fValue,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
   void ChangeAnimationByIndex(
-      const int32_t index,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      int32_t index,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeAnimationByName(
       std::string name,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void GetAnimationNames(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void GetAnimationCount(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void GetCurrentAnimationIndex(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void GetAnimationNameByIndex(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeSkyboxByAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeSkyboxByUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeSkyboxByHdrAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeSkyboxByHdrUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeSkyboxColor(
       std::string color,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeToTransparentSkybox(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeLightByKtxAsset(
       std::string path,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeLightByKtxUrl(
       std::string url,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeLightByIndirectLight(
       std::string path,
       double intensity,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeLightByHdrUrl(
       std::string path,
       double intensity,
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeToDefaultIndirectLight(
-      const std::function<void(std::optional<FlutterError> reply)> result)
-      override;
+      std::function<void(std::optional<FlutterError> reply)> result) override;
 
   // Disallow copy and assign.
   FilamentViewPlugin(const FilamentViewPlugin&) = delete;
@@ -172,7 +173,7 @@ class FilamentViewPlugin : public flutter::Plugin,
   static void on_set_offset(double left, double top, void* data);
   static void on_touch(int32_t action,
                        int32_t point_count,
-                       const size_t point_data_size,
+                       size_t point_data_size,
                        const double* point_data,
                        void* data);
   static void on_dispose(bool hybrid, void* data);

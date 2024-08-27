@@ -30,29 +30,23 @@
 namespace plugin_filament_view {
 
 class CustomModelViewer;
-
 class IBLProfiler;
-
 class IndirectLight;
-
 class DefaultIndirectLight;
-
 class KtxIndirectLight;
-
 class HdrIndirectLight;
 
 class IndirectLightManager {
  public:
-  IndirectLightManager(CustomModelViewer* modelViewer,
-                       IBLProfiler* ibl_profiler);
+  explicit IndirectLightManager(IBLProfiler* ibl_profiler);
 
   void setDefaultIndirectLight();
 
-  std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
+  static std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
       std::string path,
       double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromKtxUrl(
+  static std::future<Resource<std::string_view>> setIndirectLightFromKtxUrl(
       std::string url,
       double intensity);
 
@@ -60,7 +54,7 @@ class IndirectLightManager {
       std::string path,
       double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromHdrUrl(
+  static std::future<Resource<std::string_view>> setIndirectLightFromHdrUrl(
       std::string url,
       double intensity);
 
@@ -68,7 +62,7 @@ class IndirectLightManager {
       const std::string& asset_path,
       double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLight(
+  static std::future<Resource<std::string_view>> setIndirectLight(
       DefaultIndirectLight* indirectLight);
 
   // Disallow copy and assign.
@@ -77,8 +71,6 @@ class IndirectLightManager {
   IndirectLightManager& operator=(const IndirectLightManager&) = delete;
 
  private:
-  CustomModelViewer* modelViewer_;
   IBLProfiler* ibl_prefilter_;
-  ::filament::Engine* engine_;
 };
 }  // namespace plugin_filament_view
