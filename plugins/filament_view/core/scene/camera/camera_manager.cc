@@ -496,13 +496,12 @@ std::string CameraManager::updateLensProjection(
   auto aspect = lensProjection->getAspect().has_value()
                     ? lensProjection->getAspect().value()
                     : calculateAspectRatio();
-  camera_->setLensProjection(lensProjectionFocalLength, aspect,
-                              lensProjection->getNear().has_value()
-                                  ? lensProjection->getNear().value()
-                                  : kNearPlane,
-                              lensProjection->getFar().has_value()
-                                  ? lensProjection->getFar().value()
-                                  : kFarPlane);
+  camera_->setLensProjection(
+      lensProjectionFocalLength, aspect,
+      lensProjection->getNear().has_value() ? lensProjection->getNear().value()
+                                            : kNearPlane,
+      lensProjection->getFar().has_value() ? lensProjection->getFar().value()
+                                           : kFarPlane);
   return "Lens projection updated successfully";
 }
 

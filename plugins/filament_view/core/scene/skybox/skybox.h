@@ -59,9 +59,7 @@ class HdrSkybox final : public Skybox {
 
   ~HdrSkybox() override = default;
 
-  [[nodiscard]] bool getShowSun() const {
-    return showSun_;
-  };
+  [[nodiscard]] bool getShowSun() const { return showSun_; };
 
   friend class SceneController;
 
