@@ -123,7 +123,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   // Create the vertex buffer
   m_poVertexBuffer = VertexBuffer::Builder()
                          .vertexCount(vertices.size())
-                         .bufferCount(1)
+                         .bufferCount(2)
                          .attribute(VertexAttribute::POSITION, 0,
                                     VertexBuffer::AttributeType::FLOAT3)
                          .attribute(VertexAttribute::TANGENTS, 1,

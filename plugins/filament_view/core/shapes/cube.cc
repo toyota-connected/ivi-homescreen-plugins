@@ -72,6 +72,83 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
       -0.5f, 0.5f,  -0.5f   // Vertex 7
   };
 
+  // Indices for 24 triangles (12 faces)
+  static const uint16_t indices[] = {
+      // Front face
+      0, 1, 2, 0, 2, 3,  // Front face (outside)
+      3, 2, 1, 3, 1, 0,  // Front face (inside)
+
+      // Right face
+      1, 5, 6, 1, 6, 2,  // Right face (outside)
+      2, 6, 5, 2, 5, 1,  // Right face (inside)
+
+      // Back face
+      5, 4, 7, 5, 7, 6,  // Back face (outside)
+      6, 7, 4, 6, 4, 5,  // Back face (inside)
+
+      // Left face
+      4, 0, 3, 4, 3, 7,  // Left face (outside)
+      7, 3, 0, 7, 0, 4,  // Left face (inside)
+
+      // Top face
+      3, 2, 6, 3, 6, 7,  // Top face (outside)
+      7, 6, 2, 7, 2, 3,  // Top face (inside)
+
+      // Bottom face
+      4, 5, 1, 4, 1, 0,  // Bottom face (outside)
+      0, 1, 5, 0, 5, 4   // Bottom face (inside)
+  };
+
+  short4 const tbn =
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw);
+
+  const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
+
+  m_poVertexBuffer = VertexBuffer::Builder()
+                         .vertexCount(8)
+                         .bufferCount(2)
+                         .attribute(VertexAttribute::POSITION, 0,
+                                    VertexBuffer::AttributeType::FLOAT3)
+                         .attribute(VertexAttribute::TANGENTS, 1,
+                                    VertexBuffer::AttributeType::SHORT4)
+                         .normalized(VertexAttribute::TANGENTS)
+                         .build(*engine_);
+
+  m_poVertexBuffer->setBufferAt(
+      *engine_, 0, VertexBuffer::BufferDescriptor(vertices, sizeof(vertices)));
+
+  m_poVertexBuffer->setBufferAt(
+      *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
+
+  constexpr int indexCount = 72;  // 24 triangles * 3 vertices
+  m_poIndexBuffer = IndexBuffer::Builder()
+                        .indexCount(indexCount)
+                        .bufferType(IndexBuffer::IndexType::USHORT)
+                        .build(*engine_);
+
+  m_poIndexBuffer->setBuffer(
+      *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
+
+  vBuildRenderable(engine_, material_manager);
+}
+
+void Cube::createSingleSidedCube(::filament::Engine* engine_,
+                                 MaterialManager* material_manager) {
+  // Vertices for a cube (8 vertices)
+  static const float vertices[] = {
+      -0.5f, -0.5f, 0.5f,   // Vertex 0
+      0.5f,  -0.5f, 0.5f,   // Vertex 1
+      0.5f,  0.5f,  0.5f,   // Vertex 2
+      -0.5f, 0.5f,  0.5f,   // Vertex 3
+      -0.5f, -0.5f, -0.5f,  // Vertex 4
+      0.5f,  -0.5f, -0.5f,  // Vertex 5
+      0.5f,  0.5f,  -0.5f,  // Vertex 6
+      -0.5f, 0.5f,  -0.5f   // Vertex 7
+  };
+
   // Indices for 12 triangles (6 faces)
   static const uint16_t indices[] = {
       0, 1, 2, 0, 2, 3,  // Front face
@@ -107,57 +184,6 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
   constexpr int indexCount = 36;
-  m_poIndexBuffer = IndexBuffer::Builder()
-                        .indexCount(indexCount)
-                        .bufferType(IndexBuffer::IndexType::USHORT)
-                        .build(*engine_);
-
-  m_poIndexBuffer->setBuffer(
-      *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
-
-  vBuildRenderable(engine_, material_manager);
-}
-
-void Cube::createSingleSidedCube(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
-  static const float vertices[] = {
-      -0.5f, -0.5f, 0.5f,  // Vertex 0
-      0.5f,  -0.5f, 0.5f,  // Vertex 1
-      0.5f,  0.5f,  0.5f,  // Vertex 2
-      -0.5f, 0.5f,  0.5f   // Vertex 3
-  };
-
-  static const uint16_t indices[] = {
-      0, 1, 2,  // Triangle 1
-      0, 2, 3   // Triangle 2
-  };
-
-  short4 const tbn =
-      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
-                                                float3{0.0f, 1.0f, 0.0f},
-                                                float3{0.0f, 0.0f, 1.0f}})
-                      .xyzw);
-
-  const static short4 normals[]{tbn, tbn, tbn, tbn};
-
-  m_poVertexBuffer = VertexBuffer::Builder()
-                         .vertexCount(4)
-                         .bufferCount(2)
-                         .attribute(VertexAttribute::POSITION, 0,
-                                    VertexBuffer::AttributeType::FLOAT3)
-                         .attribute(VertexAttribute::TANGENTS, 1,
-                                    VertexBuffer::AttributeType::SHORT4)
-                         .normalized(VertexAttribute::TANGENTS)
-                         .build(*engine_);
-
-  m_poVertexBuffer->setBufferAt(
-      *engine_, 0, VertexBuffer::BufferDescriptor(vertices, sizeof(vertices)));
-
-  m_poVertexBuffer->setBufferAt(
-      *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
-
-  // Create IndexBuffer
-  constexpr int indexCount = 6;
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
