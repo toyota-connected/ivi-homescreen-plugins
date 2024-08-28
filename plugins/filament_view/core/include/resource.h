@@ -1,4 +1,18 @@
-
+/*
+ * Copyright 2020-2023 Toyota Connected North America
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 
 #include <optional>
@@ -10,15 +24,15 @@ enum class Status { Success, Error, Loading };
 template <typename T>
 class Resource {
  private:
-  Status status;
-  std::string_view message;
-  std::optional<T> data;
+  Status status_;
+  std::string_view message_ = {};
+  std::optional<T> data_ = {};
 
  public:
   Resource(Status status,
            std::string_view message,
            std::optional<T> data = std::nullopt)
-      : status(status), message(message), data(data) {}
+      : status_(status), message_(message), data_(std::move(data)) {}
 
   static Resource Success(T data) {
     return Resource(Status::Success, "", data);
@@ -28,9 +42,9 @@ class Resource {
     return Resource(Status::Error, message, std::nullopt);
   }
 
-  [[nodiscard]] Status getStatus() const { return status; }
+  [[nodiscard]] Status getStatus() const { return status_; }
 
-  [[nodiscard]] std::string_view getMessage() const { return message; }
+  [[nodiscard]] std::string_view getMessage() const { return message_; }
 
-  [[nodiscard]] std::optional<T> getData() const { return data; }
+  [[nodiscard]] std::optional<T> getData() const { return data_; }
 };

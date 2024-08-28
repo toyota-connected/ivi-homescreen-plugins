@@ -70,9 +70,9 @@ class DefaultIndirectLight final : public IndirectLight {
   void Print(const char* tag) override;
 
  private:
-  std::vector<::filament::math::float3> radiance_;
-  std::vector<::filament::math::float3> irradiance_;
-  std::optional<::filament::math::mat3f> rotation_;
+  std::vector<::filament::math::float3> radiance_ = {};
+  std::vector<::filament::math::float3> irradiance_ = {};
+  std::optional<::filament::math::mat3f> rotation_ = {};
 };
 
 class HdrIndirectLight final : public IndirectLight {

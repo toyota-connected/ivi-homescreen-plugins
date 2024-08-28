@@ -332,13 +332,12 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
   return promise_future;
 }
 
-void ModelLoader::handleFile(
-    const std::vector<uint8_t>& buffer,
-    const std::string& fileSource,
-    float scale,
-    const ::filament::math::float3* centerPosition,
-    bool isFallback,
-    const std::shared_ptr<std::promise<Resource<std::string_view>>>& promise) {
+void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
+                             const std::string& fileSource,
+                             float scale,
+                             const ::filament::math::float3* centerPosition,
+                             bool isFallback,
+                             PromisePtr promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(buffer, centerPosition, scale, fileSource, true);
