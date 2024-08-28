@@ -25,7 +25,7 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
+          sudo apt-get -y install \
             \
             ninja-build \
             \
@@ -52,7 +52,22 @@ jobs:
             libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
             libpng-dev libwebp-dev
 
-          sudo apt-get -o DPkg::Lock::Timeout=1200 -y install rpm clang-tidy libtinfo5
+          sudo apt-get -y install \
+            clang \
+            llvm \
+            lldb \
+            lld \
+            libc++-dev \
+            libc++abi-dev \
+            libc++1 \
+            libc++abi1 \
+            \
+            rpm clang-tidy libtinfo5
+
+          pip3 install absl-py jinja2 ply meson --user
+
+          cmake --version
+          gcc --version
 
           mkdir clang18 && cd clang18
           curl -L -O https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -63,10 +78,22 @@ jobs:
         id: cache-libcamera
         uses: actions/cache@v4
         with:
+          key: ${{ runner.os }}-libcamera
           save-always: true
           path: |
-            ${{github.workspace}}/libcamera/buildDir/staging/release
-          key: ${{ runner.os }}-libcamera
+            ${{github.workspace}}/libcamera/buildDir/staging/release/*
+
+      - name: Build libcamera
+        if: steps.cache-libcamera.outputs.cache-hit != 'true'
+        working-directory: ${{github.workspace}}
+        run: |
+          git clone https://git.libcamera.org/libcamera/libcamera.git
+          cd libcamera && git checkout v0.3.1
+          LIBCAMERA_STAGING=$PWD/buildDir/staging/release
+          CC=/usr/bin/clang CXX=/usr/bin/clang++ \
+          meson setup buildDir -Dqcam="disabled" -Dlc-compliance="disabled" -Dcam="disabled" -Dgstreamer="disabled" --prefix $LIBCAMERA_STAGING
+          ninja -C buildDir install
+          ls -laR $LIBCAMERA_STAGING
 
       - name: Cache filament
         id: cache-filament
@@ -74,12 +101,46 @@ jobs:
         with:
           save-always: true
           path: |
-            ${{github.workspace}}/filament/cmake-build-release/staging/release
+            ${{github.workspace}}/filament/cmake-build-release/staging/release/*
           key: ${{ runner.os }}-filament
 
-      - name: Configure CMake
+      - name: Build Filament
+        if: steps.cache-filament.outputs.cache-hit != 'true'
         working-directory: ${{github.workspace}}
         run: |
+          git clone https://github.com/google/filament.git
+          cd filament
+          git checkout v1.52.3
+          PATCHES=$(find ${{github.workspace}} -iname patches)
+          git apply $PATCHES/filament/0001-error-ignoring-return-value-of-function-declared-wit.patch
+          git apply $PATCHES/filament/0002-disable-backend-tests.patch
+          git apply $PATCHES/filament/0003-install-required-files.patch
+          git apply $PATCHES/filament/0004-move-include-contents-to-include-filament.patch
+          git apply $PATCHES/filament/0005-move-libraries-so-they-install.patch
+          git apply $PATCHES/filament/0006-return-shader-type-mobile-for-linux-vulkan.patch
+
+          FILAMENT_BUILD_DIR=$PWD/cmake-build-release
+          FILAMENT_STAGING_DIR=${FILAMENT_BUILD_DIR}/staging/release
+          mkdir -p $FILAMENT_BUILD_DIR
+          cd $FILAMENT_BUILD_DIR
+          CC=/usr/bin/clang CXX=/usr/bin/clang++ \
+          cmake .. -GNinja \
+            -DFILAMENT_SUPPORTS_VULKAN=ON \
+            -DFILAMENT_ENABLE_LTO=ON \
+            -DFILAMENT_SUPPORTS_OPENGL=OFF \
+            -DFILAMENT_USE_EXTERNAL_GLES3=OFF \
+            -DFILAMENT_SUPPORTS_WAYLAND=ON \
+            -DFILAMENT_SUPPORTS_X11=OFF \
+            -DFILAMENT_SUPPORTS_XCB=OFF \
+            -DFILAMENT_SUPPORTS_EGL_ON_LINUX=OFF \
+            -DFILAMENT_SKIP_SDL2=ON \
+            -DFILAMENT_SKIP_SAMPLES=ON \
+            -DFILAMENT_USE_SWIFTSHADER=OFF \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_STAGING_PREFIX=${FILAMENT_STAGING_DIR} \
+            -DCMAKE_BUILD_TYPE=Release
+          ninja -C . install
+
           mkdir -p ${{github.workspace}}/build/debug
           PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
           CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \

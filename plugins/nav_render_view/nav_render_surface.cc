@@ -74,28 +74,26 @@ NavRenderSurface::NavRenderSurface(int32_t id,
   std::string cache_folder;
   std::string misc_folder;
 
-  for (const auto& it : *creationParams) {
-    auto key = std::get<std::string>(it.first);
-
-    if (key == "access_token") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        access_token = std::get<std::string>(it.second);
+  for (const auto& [fst, snd] : *creationParams) {
+    if (auto key = std::get<std::string>(fst); key == "access_token") {
+      if (std::holds_alternative<std::string>(snd)) {
+        access_token = std::get<std::string>(snd);
       }
     } else if (key == "map_flutter_assets") {
-      if (std::holds_alternative<bool>(it.second)) {
-        map_flutter_assets = std::get<bool>(it.second);
+      if (std::holds_alternative<bool>(snd)) {
+        map_flutter_assets = std::get<bool>(snd);
       }
     } else if (key == "asset_path") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        asset_path = std::get<std::string>(it.second);
+      if (std::holds_alternative<std::string>(snd)) {
+        asset_path = std::get<std::string>(snd);
       }
     } else if (key == "cache_folder") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        cache_folder = std::get<std::string>(it.second);
+      if (std::holds_alternative<std::string>(snd)) {
+        cache_folder = std::get<std::string>(snd);
       }
     } else if (key == "misc_folder") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        misc_folder = std::get<std::string>(it.second);
+      if (std::holds_alternative<std::string>(snd)) {
+        misc_folder = std::get<std::string>(snd);
       }
     }
   }
@@ -197,7 +195,6 @@ void NavRenderSurface::Resize(int32_t width, int32_t height) {
 }
 
 void NavRenderSurface::Dispose() {
-
   LibNavRender->SurfaceDeInitialize(context_);
   context_ = nullptr;
 
@@ -246,7 +243,7 @@ void NavRenderSurface::SetOffset(int32_t left, int32_t top) {
 
 void NavRenderSurface::on_resize(double width, double height, void* data) {
   SPDLOG_TRACE("[NavRenderSurface] on_resize: {} {}", width, height);
-  auto plugin = static_cast<NavRenderSurface*>(data);
+  const auto plugin = static_cast<NavRenderSurface*>(data);
   plugin->Resize(static_cast<int32_t>(width), static_cast<int32_t>(height));
 }
 
@@ -272,29 +269,25 @@ void NavRenderSurface::on_touch(int32_t action,
                                 int32_t point_count,
                                 const size_t point_data_size,
                                 const double* /* point_data */,
-                                void* data) {
+                                void* /* data */) {
   SPDLOG_TRACE(
       "[NavRenderSurface] on_touch: action: {}, point_count: {}, "
       "point_data_size: {}",
       action, point_count, point_data_size);
-  if (!data) {
-    return;
-  }
-  //auto plugin = static_cast<NavRenderSurface*>(data);
 }
 
 void NavRenderSurface::on_dispose(bool /* hybrid */, void* data) {
-  auto obj = static_cast<NavRenderSurface*>(data);
+  const auto obj = static_cast<NavRenderSurface*>(data);
 
   /// Dispose on the next frame callback
   obj->dispose_pending_ = true;
 }
 
-const struct platform_view_listener NavRenderSurface::platform_view_listener_ =
-    {.resize = on_resize,
-     .set_direction = on_set_direction,
-     .set_offset = on_set_offset,
-     .on_touch = on_touch,
-     .dispose = on_dispose};
+const platform_view_listener NavRenderSurface::platform_view_listener_ = {
+    .resize = on_resize,
+    .set_direction = on_set_direction,
+    .set_offset = on_set_offset,
+    .on_touch = on_touch,
+    .dispose = on_dispose};
 
 }  // namespace nav_render_view_plugin

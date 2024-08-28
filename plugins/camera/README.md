@@ -44,11 +44,15 @@ https://github.com/flutter/packages/tree/main/packages/camera/camera/example
 ## Error enumerating cameras
 
 If you see errors in homescreen log similar to:
+
 ```
 /dev/media0[]: Failed to open media device at /dev/media0: Permission denied
 ```
+
 Likely the user needs to be added to the `video` group:
+
 ```
 sudo usermod -a -G video $LOGNAME
 ```
-Reboot after.  Logout/login will not always work.
+
+Reboot after. Logout/login will not always work.

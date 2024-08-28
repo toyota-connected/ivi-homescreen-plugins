@@ -15,7 +15,7 @@ class Display;
 class FlutterView;
 
 namespace nav_render_view_plugin {
-class NavRenderSurface : public PlatformView, public flutter::Plugin {
+class NavRenderSurface final : public PlatformView, public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar,
                                     int32_t id,
@@ -54,10 +54,10 @@ class NavRenderSurface : public PlatformView, public flutter::Plugin {
 
  private:
   struct NATIVE_WINDOW {
-    struct wl_display* wl_display;
-    struct wl_surface* wl_surface;
+    wl_display* wl_display;
+    wl_surface* wl_surface;
     EGLDisplay egl_display;
-    struct wl_egl_window* egl_window;
+    wl_egl_window* egl_window;
     uint32_t width;
     uint32_t height;
   };
