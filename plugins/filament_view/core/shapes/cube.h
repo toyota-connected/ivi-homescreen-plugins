@@ -37,7 +37,7 @@ class Cube : public BaseShape {
   Cube(const Cube&) = delete;
   Cube& operator=(const Cube&) = delete;
 
-  void Print(const char* tag) const override;
+  void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,

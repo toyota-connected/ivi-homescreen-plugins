@@ -53,8 +53,8 @@ class FlutterError {
   }
 
  private:
-  std::string code_ = {};
-  std::string message_ = {};
+  std::string code_{};
+  std::string message_{};
   flutter::EncodableValue details_;
 };
 
@@ -94,7 +94,7 @@ class ErrorOr {
 
   T TakeValue() && { return std::get<T>(std::move(v_)); }
 
-  std::variant<T, FlutterError> v_ = {};
+  std::variant<T, FlutterError> v_{};
 };
 
 class FilamentViewApi {

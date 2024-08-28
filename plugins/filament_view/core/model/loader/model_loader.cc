@@ -337,7 +337,7 @@ void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
                              float scale,
                              const ::filament::math::float3* centerPosition,
                              bool isFallback,
-                             PromisePtr promise) {
+                             const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(buffer, centerPosition, scale, fileSource, true);

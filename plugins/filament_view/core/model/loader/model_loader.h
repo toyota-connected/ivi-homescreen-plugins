@@ -142,14 +142,14 @@ class ModelLoader {
   void setTransform(filament::gltfio::FilamentAsset* asset,
                     ::filament::mat4f mat);
 
-  using PromisePtr =
-      const std::shared_ptr<std::promise<Resource<std::string_view>>>&;
+  using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
   void handleFile(
       const std::vector<uint8_t>& buffer,
       const std::string& fileSource,
       float scale,
       const ::filament::float3* centerPosition,
       bool isFallback,
-      PromisePtr promise);  // NOLINT(readability-avoid-const-params-in-decls)
+      const PromisePtr&
+          promise);  // NOLINT(readability-avoid-const-params-in-decls)
 };
 }  // namespace plugin_filament_view

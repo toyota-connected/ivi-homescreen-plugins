@@ -167,7 +167,7 @@ filament::math::float3 BaseShape::f3GetCenterPosition() const {
   return m_f3CenterPosition;
 }
 
-void BaseShape::Print(const char* tag) const {
+void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Shape)", tag);
 

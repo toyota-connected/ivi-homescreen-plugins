@@ -195,8 +195,8 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
   vBuildRenderable(engine_, material_manager);
 }
 
-void Cube::Print(const char* tag) const {
-  BaseShape::Print(tag);
+void Cube::DebugPrint(const char* tag) const {
+  BaseShape::DebugPrint(tag);
 }
 
 }  // namespace shapes

@@ -163,8 +163,8 @@ void Sphere::createDoubleSidedSphere(::filament::Engine* engine_,
   spdlog::warn("createDoubleSidedSphere not implemented.");
 }
 
-void Sphere::Print(const char* tag) const {
-  BaseShape::Print(tag);
+void Sphere::DebugPrint(const char* tag) const {
+  BaseShape::DebugPrint(tag);
 
   spdlog::debug("++++++++");
   spdlog::debug("{} (Sphere)", tag);

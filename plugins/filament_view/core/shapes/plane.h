@@ -37,7 +37,7 @@ class Plane : public BaseShape {
   Plane(const Plane&) = delete;
   Plane& operator=(const Plane&) = delete;
 
-  void Print(const char* tag) const override;
+  void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,

@@ -168,8 +168,8 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   vBuildRenderable(engine_, material_manager);
 }
 
-void Plane::Print(const char* tag) const {
-  BaseShape::Print(tag);
+void Plane::DebugPrint(const char* tag) const {
+  BaseShape::DebugPrint(tag);
 }
 
 }  // namespace shapes

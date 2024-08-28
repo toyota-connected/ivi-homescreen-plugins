@@ -61,7 +61,7 @@ class Scene {
 
   std::unique_ptr<plugin_filament_view::Skybox> skybox_;
   std::unique_ptr<plugin_filament_view::IndirectLight> indirect_light_;
-  // This will change to be a list of lights. TOOD
+  // This will change to be a list of lights. TODO
   std::unique_ptr<plugin_filament_view::Light> light_;
   // Should be a list of Cameras TODO
   std::unique_ptr<plugin_filament_view::Camera> camera_;

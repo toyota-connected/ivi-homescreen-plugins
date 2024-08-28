@@ -38,7 +38,7 @@ class BaseShape {
 
   virtual ~BaseShape();
 
-  virtual void Print(const char* tag) const;
+  virtual void DebugPrint(const char* tag) const;
 
   // Disallow copy and assign.
   BaseShape(const BaseShape&) = delete;
