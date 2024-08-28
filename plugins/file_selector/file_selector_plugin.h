@@ -17,7 +17,6 @@
 #ifndef FLUTTER_PLUGIN_URL_LAUNCHER_PLUGIN_H
 #define FLUTTER_PLUGIN_URL_LAUNCHER_PLUGIN_H
 
-#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 
 #include "messages.h"

@@ -43,17 +43,18 @@ using flutter::MethodCall;
 using flutter::MethodResult;
 
 /// The codec used by AudioPlayersApi.
-const flutter::StandardMethodCodec& AudioPlayersApi::GetCodec() {
-  return flutter::StandardMethodCodec::GetInstance();
+const StandardMethodCodec& AudioPlayersApi::GetCodec() {
+  return StandardMethodCodec::GetInstance();
 }
 
 // Sets up an instance of `AudioPlayersApi` to handle messages through the
 // `binary_messenger`.
-void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
+void AudioPlayersApi::SetUp(BinaryMessenger* binary_messenger,
                             AudioPlayersApi* api) {
   {
-    auto channel = std::make_unique<flutter::MethodChannel<EncodableValue>>(
-        binary_messenger, "xyz.luan/audioplayers", &GetCodec());
+    const auto channel =
+        std::make_unique<flutter::MethodChannel<EncodableValue>>(
+            binary_messenger, "xyz.luan/audioplayers", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler([api](const MethodCall<EncodableValue>&
                                               methodCall,
@@ -61,10 +62,10 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                               EncodableValue>> result) {
         const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
         std::string playerId;
-        for (auto& it : *args) {
-          if ("playerId" == std::get<std::string>(it.first) &&
-              std::holds_alternative<std::string>(it.second)) {
-            playerId = std::get<std::string>(it.second);
+        for (const auto& [fst, snd] : *args) {
+          if ("playerId" == std::get<std::string>(fst) &&
+              std::holds_alternative<std::string>(snd)) {
+            playerId = std::get<std::string>(snd);
           }
         }
         if (playerId.empty()) {
@@ -107,9 +108,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             player->ReleaseMediaSource();
           } else if (method_name == "seek") {
             EncodableValue valuePosition;
-            for (auto& it : *args) {
-              if ("position" == std::get<std::string>(it.first)) {
-                valuePosition = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("position" == std::get<std::string>(fst)) {
+                valuePosition = snd;
                 break;
               }
             }
@@ -121,11 +122,11 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           } else if (method_name == "setSourceUrl") {
             EncodableValue valueUrl;
             EncodableValue valueIsLocal;
-            for (auto& it : *args) {
-              if ("url" == std::get<std::string>(it.first)) {
-                valueUrl = it.second;
-              } else if ("isLocal" == std::get<std::string>(it.first))
-                valueIsLocal = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("url" == std::get<std::string>(fst)) {
+                valueUrl = snd;
+              } else if ("isLocal" == std::get<std::string>(fst))
+                valueIsLocal = snd;
             }
 
             if (valueUrl.IsNull()) {
@@ -149,9 +150,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             return;
           } else if (method_name == "setVolume") {
             EncodableValue valueVolume;
-            for (auto& it : *args) {
-              if ("volume" == std::get<std::string>(it.first)) {
-                valueVolume = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("volume" == std::get<std::string>(fst)) {
+                valueVolume = snd;
                 break;
               }
             }
@@ -166,9 +167,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             return;
           } else if (method_name == "setPlaybackRate") {
             EncodableValue valuePlaybackRate;
-            for (auto& it : *args) {
-              if ("playbackRate" == std::get<std::string>(it.first)) {
-                valuePlaybackRate = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("playbackRate" == std::get<std::string>(fst)) {
+                valuePlaybackRate = snd;
                 break;
               }
             }
@@ -178,9 +179,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             player->SetPlaybackRate(playbackRate);
           } else if (method_name == "setReleaseMode") {
             EncodableValue valueReleaseMode;
-            for (auto& it : *args) {
-              if ("releaseMode" == std::get<std::string>(it.first)) {
-                valueReleaseMode = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("releaseMode" == std::get<std::string>(fst)) {
+                valueReleaseMode = snd;
                 break;
               }
             }
@@ -202,9 +203,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             // https://gstreamer.freedesktop.org/documentation/additional/design/latency.html?gi-language=c
           } else if (method_name == "setBalance") {
             EncodableValue valueBalance;
-            for (auto& it : *args) {
-              if ("balance" == std::get<std::string>(it.first)) {
-                valueBalance = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("balance" == std::get<std::string>(fst)) {
+                valueBalance = snd;
                 break;
               }
             }
@@ -213,9 +214,9 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             player->SetBalance(static_cast<float>(balance));
           } else if (method_name == "emitLog") {
             EncodableValue valueMessage;
-            for (auto& it : *args) {
-              if ("message" == std::get<std::string>(it.first)) {
-                valueMessage = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("message" == std::get<std::string>(fst)) {
+                valueMessage = snd;
                 break;
               }
             }
@@ -226,12 +227,13 @@ void AudioPlayersApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           } else if (method_name == "emitError") {
             EncodableValue valueCode;
             EncodableValue valueMessage;
-            for (auto& it : *args) {
-              if ("code" == std::get<std::string>(it.first)) {
-                valueCode = it.second;
+            for (const auto& [fst, snd] : *args) {
+              if ("code" == std::get<std::string>(fst)) {
+                valueCode = snd;
                 break;
-              } else if ("message" == std::get<std::string>(it.first)) {
-                valueMessage = it.second;
+              }
+              if ("message" == std::get<std::string>(fst)) {
+                valueMessage = snd;
                 break;
               }
             }
@@ -286,15 +288,15 @@ const flutter::StandardMethodCodec& AudioPlayersGlobalApi::GetCodec() {
 
 // Sets up an instance of `AudioPlayersGlobalApi` to handle messages through the
 // `binary_messenger`.
-void AudioPlayersGlobalApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                                  AudioPlayersGlobalApi* api) {
+void AudioPlayersGlobalApi::SetUp(BinaryMessenger* binary_messenger,
+                                  const AudioPlayersGlobalApi* api) {
   {
-    auto channel = std::make_unique<flutter::MethodChannel<>>(
+    const auto channel = std::make_unique<MethodChannel<>>(
         binary_messenger, "xyz.luan/audioplayers.global", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const flutter::MethodCall<EncodableValue>& call,
-                std::unique_ptr<flutter::MethodResult<EncodableValue>> /* result */) {
+          [](const MethodCall<>& call,
+             std::unique_ptr<MethodResult<EncodableValue>> /* result */) {
             plugin_common::Encodable::PrintFlutterEncodableValue(
                 "global", *call.arguments());
           });
@@ -305,7 +307,7 @@ void AudioPlayersGlobalApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 EncodableValue AudioPlayersGlobalApi::WrapError(
-    std::string_view error_message) {
+    const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});

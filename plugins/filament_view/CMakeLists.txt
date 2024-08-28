@@ -27,7 +27,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
 
 add_library(filament INTERFACE)
-target_include_directories(filament INTERFACE ${FILAMENT_INCLUDE_DIR} ${FILAMENT_INCLUDE_DIR}/filament)
+target_compile_options(filament INTERFACE -isystem${FILAMENT_INCLUDE_DIR} -isystem${FILAMENT_INCLUDE_DIR}/filament)
 target_link_directories(filament INTERFACE ${FILAMENT_LINK_LIBRARIES_DIR})
 target_link_libraries(filament INTERFACE
         libbackend.a
