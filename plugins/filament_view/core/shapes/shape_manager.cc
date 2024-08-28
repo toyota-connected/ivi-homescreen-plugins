@@ -24,7 +24,11 @@
 #include <math/vec3.h>
 #include "asio/post.hpp"
 
+#include "baseshape.h"
+#include "cube.h"
+#include "plane.h"
 #include "plugins/common/common.h"
+#include "sphere.h"
 
 namespace plugin_filament_view {
 
@@ -38,6 +42,7 @@ using ::filament::math::mat3f;
 using ::filament::math::mat4f;
 using ::filament::math::packSnorm16;
 using ::filament::math::short4;
+using shapes::BaseShape;
 using ::utils::Entity;
 
 ShapeManager::ShapeManager(MaterialManager* material_manager)
@@ -46,24 +51,68 @@ ShapeManager::ShapeManager(MaterialManager* material_manager)
   SPDLOG_TRACE("--ShapeManager::ShapeManager");
 }
 
-// TODO, shape vector should be owned by shapemanager instead of scene.
-// backlogged.
-void ShapeManager::vToggleAllShapesInScene(
-    bool bValue,
-    const std::vector<std::unique_ptr<Shape>>& shapes) {
+ShapeManager::~ShapeManager() {
+  // remove all filament entities.
+  vRemoveAllShapesInScene();
+}
+
+void ShapeManager::vToggleAllShapesInScene(bool bValue) {
   if (bValue) {
-    for (const auto& shape : shapes) {
+    for (const auto& shape : shapes_) {
       shape->vAddEntityToScene();
     }
   } else {
-    for (const auto& shape : shapes) {
+    for (const auto& shape : shapes_) {
       shape->vRemoveEntityFromScene();
     }
   }
 }
 
-void ShapeManager::createShapes(
-    const std::vector<std::unique_ptr<Shape>>& shapes) {
+void ShapeManager::vRemoveAllShapesInScene() {
+  vToggleAllShapesInScene(false);
+  shapes_.clear();
+}
+
+std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
+    const std::string& flutter_assets_path,
+    const flutter::EncodableMap& mapData) {
+  shapes::BaseShape::ShapeType type;
+
+  // Find the "shapeType" key in the mapData
+  auto it = mapData.find(flutter::EncodableValue("shapeType"));
+  if (it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
+    int32_t typeValue = std::get<int32_t>(it->second);
+
+    // Check if the value is within the valid range of the ShapeType enum
+    if (typeValue > static_cast<int32_t>(shapes::BaseShape::ShapeType::Unset) &&
+        typeValue < static_cast<int32_t>(shapes::BaseShape::ShapeType::Max)) {
+      type = static_cast<shapes::BaseShape::ShapeType>(typeValue);
+    } else {
+      spdlog::error("Invalid shape type value: {}", typeValue);
+      return nullptr;
+    }
+  } else {
+    spdlog::error("shapeType not found or is of incorrect type");
+    return nullptr;
+  }
+
+  // Based on the type_, create the corresponding shape
+  switch (type) {
+    case shapes::BaseShape::ShapeType::Plane:
+      return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
+    case shapes::BaseShape::ShapeType::Cube:
+      return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
+    case shapes::BaseShape::ShapeType::Sphere:
+      return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
+    default:
+      // Handle unknown shape type
+      spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
+      return nullptr;
+  }
+}
+
+void ShapeManager::addShapesToScene(
+    std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   filament::Engine* poFilamentEngine =
@@ -73,18 +122,12 @@ void ShapeManager::createShapes(
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // oEntitymanager.create(shapes.size(), lstEntities);
 
-  for (const auto& shape : shapes) {
+  for (auto& shape : *shapes) {
     auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
 
     poFilamentScene->addEntity(*oEntity);
-
-    filament::math::float3 f3GetCenterPosition = shape->f3GetCenterPosition();
-
-    auto& tcm = poFilamentEngine->getTransformManager();
-    tcm.setTransform(tcm.getInstance(*oEntity),
-                     mat4f::translation(f3GetCenterPosition));
 
     // To investigate a better system for implementing layer mask
     // across dart to here.
@@ -92,7 +135,10 @@ void ShapeManager::createShapes(
     // auto instance = rcm.getInstance(*oEntity.get());
     // To investigate
     // rcm.setLayerMask(instance, 0xff, 0x00);
+
+    shapes_.emplace_back(shape.release());
   }
+
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 

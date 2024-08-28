@@ -25,7 +25,7 @@ class TouchPair {
   TouchPair()
       : pt0_(filament::math::float2(0.0f)),
         pt1_(filament::math::float2(0.0f)),
-        count_(0){};
+        count_(0) {};
 
   TouchPair(int32_t pointer_count,
             const size_t /* point_data_size */,

@@ -77,7 +77,7 @@ void MaterialLoader::PrintMaterialInformation(
   spdlog::info("Material isColorWriteEnabled {}",
                material->isColorWriteEnabled());
 
-  delete [] InfoList;
+  delete[] InfoList;
 }
 
 }  // namespace plugin_filament_view

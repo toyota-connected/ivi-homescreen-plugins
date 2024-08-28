@@ -97,7 +97,7 @@ void ModelLoader::destroyModel(filament::gltfio::FilamentAsset* asset) {
 }
 
 filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
-    const std::string& szName) {
+    const std::string& /*szName*/) {
   // To be implemented with m_mapszpoAssets
   return assets_[0];
 }
@@ -105,7 +105,7 @@ filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
 void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
                                const ::filament::float3* centerPosition,
                                float scale,
-                               const std::string& assetName,
+                               const std::string& /*assetName*/,
                                bool /*autoScaleEnabled*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
@@ -332,13 +332,12 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
   return promise_future;
 }
 
-void ModelLoader::handleFile(
-    const std::vector<uint8_t>& buffer,
-    const std::string& fileSource,
-    float scale,
-    const ::filament::math::float3* centerPosition,
-    bool isFallback,
-    const std::shared_ptr<std::promise<Resource<std::string_view>>>& promise) {
+void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
+                             const std::string& fileSource,
+                             float scale,
+                             const ::filament::math::float3* centerPosition,
+                             bool isFallback,
+                             const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(buffer, centerPosition, scale, fileSource, true);

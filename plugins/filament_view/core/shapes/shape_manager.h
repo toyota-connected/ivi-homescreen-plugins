@@ -18,21 +18,27 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <list>
+
+#include "baseshape.h"
 #include "core/scene/material/material_manager.h"
-#include "shape.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
 class MaterialManager;
 
-class Shape;
+namespace shapes {
+class BaseShape;
+}
 
 class ShapeManager {
  public:
   explicit ShapeManager(MaterialManager* material_manager);
+  ~ShapeManager();
 
-  void createShapes(const std::vector<std::unique_ptr<Shape>>& shapes);
+  void addShapesToScene(
+      std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   // Disallow copy and assign.
   ShapeManager(const ShapeManager&) = delete;
@@ -40,11 +46,20 @@ class ShapeManager {
   ShapeManager& operator=(const ShapeManager&) = delete;
 
   // will add/remove already made entities to/from the scene
-  static void vToggleAllShapesInScene(
-      bool bValue,
-      const std::vector<std::unique_ptr<Shape>>& shapes);
+  void vToggleAllShapesInScene(bool bValue);
+
+  void vRemoveAllShapesInScene();
+
+  // Creates the derived class of BaseShape based on the map data sent in, does
+  // not add it to any list only returns the shape for you, Also does not build
+  // the data out, only stores it for building when ready.
+  static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
+      const std::string& flutter_assets_path,
+      const flutter::EncodableMap& mapData);
 
  private:
   MaterialManager* material_manager_;
+
+  std::list<std::unique_ptr<shapes::BaseShape>> shapes_;
 };
 }  // namespace plugin_filament_view

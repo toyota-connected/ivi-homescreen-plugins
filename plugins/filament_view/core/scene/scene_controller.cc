@@ -23,28 +23,29 @@
 
 namespace plugin_filament_view {
 
-SceneController::SceneController(PlatformView* platformView,
-                                 FlutterDesktopEngineState* state,
-                                 std::string flutterAssetsPath,
-                                 std::vector<std::unique_ptr<Model>>* models,
-                                 Scene* scene,
-                                 std::vector<std::unique_ptr<Shape>>* shapes,
-                                 int32_t id)
+SceneController::SceneController(
+    PlatformView* platformView,
+    FlutterDesktopEngineState* state,
+    std::string flutterAssetsPath,
+    std::vector<std::unique_ptr<Model>>* models,
+    Scene* scene,
+    std::vector<std::unique_ptr<shapes::BaseShape>>* shapes,
+    int32_t id)
     : id_(id),
       flutterAssetsPath_(std::move(flutterAssetsPath)),
       scene_(scene),
-      models_(models),
-      shapes_(shapes) {
+      models_(models) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+
+  spdlog::info("SceneController {} setup", id_);
 
   setUpViewer(platformView, state);
   setUpLoadingModels();
-  setUpGround();
   setUpCamera();
   setUpSkybox();
   setUpLight();
   setUpIndirectLight();
-  setUpShapes();
+  setUpShapes(shapes);
 
   modelViewer_->setInitialized();
 
@@ -75,13 +76,6 @@ void SceneController::setUpViewer(PlatformView* platformView,
 
   // TODO this may need to be turned off for target
   view->setPostProcessingEnabled(true);
-}
-
-void SceneController::setUpGround() {
-  // Note, setUpGround to be deprecated in future version, for moving
-  // groundplane as a shape for general use case of planes.
-  groundManager_ = std::make_unique<GroundManager>(scene_->ground_.get());
-  groundManager_->createGround(materialManager_.get());
 }
 
 void SceneController::setUpCamera() {
@@ -125,16 +119,14 @@ void SceneController::setUpSkybox() {
         auto shouldUpdateLight =
             (hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath());
         skyboxManager_->setSkyboxFromHdrAsset(
-            hdr_skybox->assetPath_,
-            hdr_skybox->showSun_.has_value() && hdr_skybox->showSun_.value(),
-            shouldUpdateLight, scene_->indirect_light_->getIntensity());
+            hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
+            scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
             (hdr_skybox->url_ == scene_->indirect_light_->getUrl());
         skyboxManager_->setSkyboxFromHdrUrl(
-            hdr_skybox->url_,
-            hdr_skybox->showSun_.has_value() && hdr_skybox->showSun_.value(),
-            shouldUpdateLight, scene_->indirect_light_->getIntensity());
+            hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
+            scene_->indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
@@ -287,12 +279,11 @@ plugin_filament_view::MaterialManager* SceneController::poGetMaterialManager() {
   return materialManager_.get();
 }
 
-void SceneController::setUpShapes() {
+void SceneController::setUpShapes(
+    std::vector<std::unique_ptr<shapes::BaseShape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
-  if (shapes_) {
-    shapeManager_->createShapes(*shapes_);
-  }
+  shapeManager_->addShapesToScene(shapes);
 }
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
@@ -301,7 +292,7 @@ void SceneController::vToggleAllShapesInScene(bool bValue) {
     return;
   }
 
-  shapeManager_->vToggleAllShapesInScene(bValue, *shapes_);
+  shapeManager_->vToggleAllShapesInScene(bValue);
 }
 
 std::string SceneController::setDefaultCamera() {

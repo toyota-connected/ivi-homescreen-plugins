@@ -89,10 +89,9 @@ add_library(plugin_filament_view STATIC
         core/scene/geometry/direction.cc
         core/scene/geometry/position.cc
         core/scene/geometry/size.cc
-        core/scene/ground.cc
-        core/scene/ground_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
+        core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
         core/scene/light/light_manager.cc
@@ -107,7 +106,10 @@ add_library(plugin_filament_view STATIC
         core/scene/skybox/skybox.cc
         core/scene/skybox/skybox_manager.cc
         core/scene/scene.cc
-        core/shapes/shape.cc
+        core/shapes/baseshape.cc
+        core/shapes/cube.cc
+        core/shapes/sphere.cc
+        core/shapes/plane.cc
         core/shapes/shape_manager.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc

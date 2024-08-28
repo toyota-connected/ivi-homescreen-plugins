@@ -55,18 +55,16 @@ class HdrSkybox final : public Skybox {
       : Skybox(assetPath.has_value() ? std::move(assetPath.value()) : "",
                url.has_value() ? std::move(url.value()) : "",
                ""),
-        showSun_(showSun) {}
+        showSun_(showSun.has_value() ? showSun.value() : false) {}
 
   ~HdrSkybox() override = default;
 
-  [[nodiscard]] bool getShowSun() const {
-    return showSun_.has_value() && showSun_.value();
-  };
+  [[nodiscard]] bool getShowSun() const { return showSun_; };
 
   friend class SceneController;
 
  private:
-  std::optional<bool> showSun_;
+  bool showSun_;
 };
 
 class KxtSkybox final : public Skybox {
