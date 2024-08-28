@@ -18,7 +18,6 @@
 #define FLUTTER_PLUGIN_GOOGLE_SIGN_IN_PLUGIN_C_API_H
 
 #include <flutter_plugin_registrar.h>
-#include "flutter_homescreen.h"
 
 #ifdef FLUTTER_PLUGIN_IMPL
 #define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))

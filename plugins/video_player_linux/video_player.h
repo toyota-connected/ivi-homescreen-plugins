@@ -62,7 +62,7 @@ class VideoPlayer {
   void Play();
   void Pause();
   int64_t GetPosition();
-  void SendBufferingUpdate();
+  void SendBufferingUpdate() const;
   void SeekTo(int64_t seek);
   int64_t GetTextureId() const { return m_texture_id; };
   bool IsValid();
@@ -120,14 +120,14 @@ class VideoPlayer {
   std::mutex gst_mutex_;
 
   bool is_initialized_ = false;
-  void SetBuffering(bool buffering);
+  void SetBuffering(bool buffering) const;
 
-  void OnPlaybackEnded();
+  void OnPlaybackEnded() const;
   void OnMediaInitialized();
   void OnMediaStateChange(GstState state);
   static void OnMediaError(GstMessage* msg);
   void OnMediaDurationChange();
-  void SendInitialized();
+  void SendInitialized() const;
 
   static void OnTag(const GstTagList* list,
                     const gchar* tag,

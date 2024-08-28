@@ -16,7 +16,7 @@
 
 #ifndef PIGEON_MESSAGES_G_H_
 #define PIGEON_MESSAGES_G_H_
-#include <flutter/basic_message_channel.h>
+
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
@@ -39,9 +39,11 @@ class FlutterError {
                         const flutter::EncodableValue& details)
       : code_(code), message_(message), details_(details) {}
 
-  const std::string& code() const { return code_; }
-  const std::string& message() const { return message_; }
-  const flutter::EncodableValue& details() const { return details_; }
+  [[nodiscard]] const std::string& code() const { return code_; }
+  [[nodiscard]] const std::string& message() const { return message_; }
+  [[nodiscard]] const flutter::EncodableValue& details() const {
+    return details_;
+  }
 
  private:
   std::string code_;
@@ -52,14 +54,18 @@ class FlutterError {
 template <class T>
 class ErrorOr {
  public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
-  ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const T& rhs) : v_(rhs) {}
+  explicit ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const FlutterError& rhs) : v_(rhs) {}
+  explicit ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
 
-  bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
+  [[nodiscard]] bool has_error() const {
+    return std::holds_alternative<FlutterError>(v_);
+  }
   const T& value() const { return std::get<T>(v_); };
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
+  [[nodiscard]] const FlutterError& error() const {
+    return std::get<FlutterError>(v_);
+  };
 
  private:
   friend class CameraApi;
@@ -75,7 +81,7 @@ class CameraApi {
  public:
   CameraApi(const CameraApi&) = delete;
   CameraApi& operator=(const CameraApi&) = delete;
-  virtual ~CameraApi(){};
+  virtual ~CameraApi() = default;
   virtual void availableCameras(
       std::function<void(ErrorOr<flutter::EncodableList> result)> result) = 0;
   virtual void create(

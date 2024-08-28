@@ -16,9 +16,8 @@
 #include <flutter/standard_method_codec.h>
 
 #include <filesystem>
-#include <optional>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "plugins/common/common.h"
 
@@ -47,7 +46,7 @@ using flutter::EncodableValue;
 // Sets up an instance of `UrlLauncherApi` to handle messages through the
 // `binary_messenger`.
 void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                            FileSelectorApi* api) {
+                            const FileSelectorApi* api) {
   {
     const auto channel = std::make_unique<flutter::MethodChannel<>>(
         binary_messenger, "plugins.flutter.dev/file_selector_linux",
