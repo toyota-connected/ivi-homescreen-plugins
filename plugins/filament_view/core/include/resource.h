@@ -25,12 +25,12 @@ class Resource {
   }
 
   static Resource Error(std::string_view message) {
-    return Resource(Status::Error, message);
+    return Resource(Status::Error, message, std::nullopt);
   }
 
   [[nodiscard]] Status getStatus() const { return status; }
 
   [[nodiscard]] std::string_view getMessage() const { return message; }
 
-  std::optional<T> getData() const { return data; }
+  [[nodiscard]] std::optional<T> getData() const { return data; }
 };

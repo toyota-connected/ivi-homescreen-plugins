@@ -490,22 +490,20 @@ std::string CameraManager::updateLensProjection(
     return "Lens projection not found";
   }
 
-  if (lensProjection->getFocalLength().has_value()) {
-    if (cameraFocalLength_ != lensProjection->getFocalLength().value())
-      cameraFocalLength_ = lensProjection->getFocalLength().value();
-    auto aspect = lensProjection->getAspect().has_value()
-                      ? lensProjection->getAspect().value()
-                      : calculateAspectRatio();
-    camera_->setLensProjection(lensProjection->getFocalLength().value(), aspect,
-                               lensProjection->getNear().has_value()
-                                   ? lensProjection->getNear().value()
-                                   : kNearPlane,
-                               lensProjection->getFar().has_value()
-                                   ? lensProjection->getFar().value()
-                                   : kFarPlane);
-    return "Lens projection updated successfully";
-  }
-  return "Lens projection info must be provided";
+  float lensProjectionFocalLength = lensProjection->getFocalLength();
+  if (cameraFocalLength_ != lensProjectionFocalLength)
+    cameraFocalLength_ = lensProjectionFocalLength;
+  auto aspect = lensProjection->getAspect().has_value()
+                    ? lensProjection->getAspect().value()
+                    : calculateAspectRatio();
+  camera_->setLensProjection(lensProjectionFocalLength, aspect,
+                              lensProjection->getNear().has_value()
+                                  ? lensProjection->getNear().value()
+                                  : kNearPlane,
+                              lensProjection->getFar().has_value()
+                                  ? lensProjection->getFar().value()
+                                  : kFarPlane);
+  return "Lens projection updated successfully";
 }
 
 void CameraManager::updateCameraProjection() {
