@@ -152,8 +152,6 @@ class CameraManager {
 
   float cameraFocalLength_{};
 
-  ::filament::math::float3 target_{};
-
   utils::Entity cameraEntity_;
 
   // Main display size, in pixels (generally == GetMainViewport()->Size)

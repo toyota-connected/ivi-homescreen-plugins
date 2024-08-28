@@ -37,6 +37,8 @@ SceneController::SceneController(
       models_(models) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
+  spdlog::info("SceneController {} setup", id_);
+
   setUpViewer(platformView, state);
   setUpLoadingModels();
   setUpCamera();

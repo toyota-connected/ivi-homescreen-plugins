@@ -161,8 +161,8 @@ void ModelStateChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const MethodCall<EncodableValue>& methodCall,
-                std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<EncodableValue>& methodCall,
+             std::unique_ptr<MethodResult<EncodableValue>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {
@@ -188,8 +188,8 @@ void SceneStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const MethodCall<EncodableValue>& methodCall,
-                std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<EncodableValue>& methodCall,
+             std::unique_ptr<MethodResult<EncodableValue>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {
@@ -215,8 +215,8 @@ void ShapeStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const MethodCall<EncodableValue>& methodCall,
-                std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<EncodableValue>& methodCall,
+             std::unique_ptr<MethodResult<EncodableValue>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {
@@ -242,8 +242,8 @@ void RendererChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const MethodCall<EncodableValue>& methodCall,
-                std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<EncodableValue>& methodCall,
+             std::unique_ptr<MethodResult<EncodableValue>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {

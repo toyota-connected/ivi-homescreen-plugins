@@ -77,18 +77,20 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
-  float sectorStep = 2 * M_PI / sectors;
-  float stackStep = M_PI / stacks;
+  float sectorStep =
+      2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
+  float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
   float sectorAngle, stackAngle;
 
   // Generate vertices and normals for the outer surface
   for (int i = 0; i <= stacks; ++i) {
-    stackAngle = M_PI / 2.0f - (float)i * stackStep;  // from pi/2 to -pi/2
-    float xy = cosf(stackAngle);                      // r * cos(u)
-    float z = sinf(stackAngle);                       // r * sin(u)
+    stackAngle = static_cast<float>(M_PI) / 2.0f -
+                 static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
+    float xy = cosf(stackAngle);                     // r * cos(u)
+    float z = sinf(stackAngle);                      // r * sin(u)
 
     for (int j = 0; j <= sectors; ++j) {
-      sectorAngle = j * sectorStep;  // from 0 to 2pi
+      sectorAngle = static_cast<float>(j) * sectorStep;  // from 0 to 2pi
 
       float x = xy * cosf(sectorAngle);  // x = r * cos(u) * cos(v)
       float y = xy * sinf(sectorAngle);  // y = r * cos(u) * sin(v)
@@ -121,15 +123,16 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   }
 
   // Create the vertex buffer
-  m_poVertexBuffer = VertexBuffer::Builder()
-                         .vertexCount(vertices.size())
-                         .bufferCount(2)
-                         .attribute(VertexAttribute::POSITION, 0,
-                                    VertexBuffer::AttributeType::FLOAT3)
-                         .attribute(VertexAttribute::TANGENTS, 1,
-                                    VertexBuffer::AttributeType::FLOAT3)
-                         //.normalized(VertexAttribute::TANGENTS)
-                         .build(*engine_);
+  m_poVertexBuffer =
+      VertexBuffer::Builder()
+          .vertexCount(static_cast<unsigned int>(vertices.size()))
+          .bufferCount(2)
+          .attribute(VertexAttribute::POSITION, 0,
+                     VertexBuffer::AttributeType::FLOAT3)
+          .attribute(VertexAttribute::TANGENTS, 1,
+                     VertexBuffer::AttributeType::FLOAT3)
+          //.normalized(VertexAttribute::TANGENTS)
+          .build(*engine_);
 
   // Set buffer data
   m_poVertexBuffer->setBufferAt(
@@ -143,7 +146,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
                                      normals.size() * sizeof(float3)));
 
   // Create the index buffer
-  int indexCount = indices.size();
+  unsigned int indexCount = static_cast<unsigned int>(indices.size());
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -156,8 +159,8 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   vBuildRenderable(engine_, material_manager);
 }
 
-void Sphere::createDoubleSidedSphere(::filament::Engine* engine_,
-                                     MaterialManager* material_manager) {
+void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/,
+                                     MaterialManager* /*material_manager*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");

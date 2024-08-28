@@ -101,6 +101,8 @@ class SceneController {
   void vToggleAllShapesInScene(bool bValue);
 
  private:
+  // Note: id_ will be moved in a future version when we start to maintain
+  // scenes to views to swapchains more appropriately.
   int32_t id_;
   std::string flutterAssetsPath_;
 
@@ -108,12 +110,6 @@ class SceneController {
   Scene* scene_;
 
   std::unique_ptr<CustomModelViewer> modelViewer_;
-
-  // private val choreographer: Choreographer = Choreographer.getInstance()
-  // private var modelJob: Job? = null
-  // private var glbModelStateJob: Job? = null
-  // private var sceneStateJob: Job? = null
-  // private var shapeStateJob: Job? = null
 
   std::optional<int32_t> currentAnimationIndex_;
 
