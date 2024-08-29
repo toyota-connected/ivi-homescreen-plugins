@@ -37,9 +37,8 @@ void UrlLauncherApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const flutter::MethodCall<EncodableValue>& call,
-                const std::unique_ptr<flutter::MethodResult<EncodableValue>>&
-                    result) {
+          [api](const flutter::MethodCall<>& call,
+                const std::unique_ptr<flutter::MethodResult<>>& result) {
             SPDLOG_DEBUG("[url_launcher] {}", call.method_name());
             if ("closeWebView" == call.method_name()) {
               result->Success(flutter::EncodableValue(true));
@@ -47,25 +46,24 @@ void UrlLauncherApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (std::holds_alternative<std::string>(*call.arguments())) {
                 const auto& value = std::get<std::string>(*call.arguments());
                 spdlog::debug("[url_launcher] canLaunch: {}", value);
-                const ErrorOr<bool> output = api->CanLaunchUrl(value);
-                if (output.has_error()) {
+                if (const ErrorOr<bool> output = api->CanLaunchUrl(value);
+                    output.has_error()) {
                   result->Error(output.error().code(),
                                 output.error().message());
                   return;
                 }
                 result->Success(flutter::EncodableValue(true));
-              } else if (std::holds_alternative<flutter::EncodableMap>(
+              } else if (std::holds_alternative<EncodableMap>(
                              *call.arguments())) {
-                const auto& args =
-                    std::get_if<flutter::EncodableMap>(call.arguments());
-                for (const auto& it : *args) {
-                  if (std::holds_alternative<std::string>(it.first) &&
-                      std::holds_alternative<std::string>(it.second)) {
-                    auto key = std::get<std::string>(it.first);
-                    auto value = std::get<std::string>(it.second);
+                const auto& args = std::get_if<EncodableMap>(call.arguments());
+                for (const auto& [fst, snd] : *args) {
+                  if (std::holds_alternative<std::string>(fst) &&
+                      std::holds_alternative<std::string>(snd)) {
+                    auto key = std::get<std::string>(fst);
+                    auto value = std::get<std::string>(snd);
                     if (key == "url") {
-                      const ErrorOr<bool> output = api->CanLaunchUrl(value);
-                      if (output.has_error()) {
+                      if (const ErrorOr<bool> output = api->CanLaunchUrl(value);
+                          output.has_error()) {
                         result->Error(output.error().code(),
                                       output.error().message());
                         return;
@@ -99,33 +97,31 @@ void UrlLauncherApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 bool enableDomStorage{};
                 bool universalLinksOnly{};
                 EncodableMap headers{};
-                for (const auto& it : args) {
-                  if (std::holds_alternative<std::string>(it.first) &&
-                      std::holds_alternative<std::string>(it.second)) {
-                    auto key = std::get<std::string>(it.first);
-                    auto value = std::get<std::string>(it.second);
+                for (const auto& [fst, snd] : args) {
+                  if (std::holds_alternative<std::string>(fst) &&
+                      std::holds_alternative<std::string>(snd)) {
+                    auto key = std::get<std::string>(fst);
+                    auto value = std::get<std::string>(snd);
                     if (key == "url") {
                       url = value;
                     }
-                  } else if (std::holds_alternative<std::string>(it.first) &&
-                             std::holds_alternative<bool>(it.second)) {
-                    std::string key = std::get<std::string>(it.first);
+                  } else if (std::holds_alternative<std::string>(fst) &&
+                             std::holds_alternative<bool>(snd)) {
+                    auto key = std::get<std::string>(fst);
                     if (key == "enableJavaScript") {
-                      enableJavaScript = std::get<bool>(it.second);
+                      enableJavaScript = std::get<bool>(snd);
                     } else if (key == "enableDomStorage") {
-                      enableDomStorage = std::get<bool>(it.second);
+                      enableDomStorage = std::get<bool>(snd);
                     } else if (key == "universalLinksOnly") {
-                      universalLinksOnly = std::get<bool>(it.second);
-                    } else if (std::holds_alternative<std::string>(it.first) &&
-                               std::holds_alternative<EncodableMap>(
-                                   it.second)) {
-                      key = std::get<std::string>(it.first);
-                      auto map = std::get<EncodableMap>(it.second);
+                      universalLinksOnly = std::get<bool>(snd);
+                    } else if (std::holds_alternative<std::string>(fst) &&
+                               std::holds_alternative<EncodableMap>(snd)) {
+                      key = std::get<std::string>(fst);
+                      auto map = std::get<EncodableMap>(snd);
                       if (key == "headers") {
-                        for (const auto& header : map) {
-                          auto header_key = std::get<std::string>(header.first);
-                          auto header_value =
-                              std::get<std::string>(header.second);
+                        for (const auto& [fst, snd] : map) {
+                          auto header_key = std::get<std::string>(fst);
+                          auto header_value = std::get<std::string>(snd);
                           SPDLOG_DEBUG("[url_launcher] {}={}", header_key,
                                        header_value);
                         }
@@ -141,8 +137,9 @@ void UrlLauncherApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                     "enableDomStorage: {}, universalLinksOnly: {}",
                     url, enableJavaScript, enableDomStorage,
                     universalLinksOnly);
-                const std::optional<FlutterError> output = api->LaunchUrl(url);
-                if (output.has_value()) {
+                if (const std::optional<FlutterError> output =
+                        api->LaunchUrl(url);
+                    output.has_value()) {
                   result->Error(output->code(), output->message(),
                                 output->details());
                   return;
@@ -157,7 +154,7 @@ void UrlLauncherApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue UrlLauncherApi::WrapError(std::string_view error_message) {
+EncodableValue UrlLauncherApi::WrapError(const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});

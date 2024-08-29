@@ -41,7 +41,7 @@ const flutter::StandardMessageCodec& VideoPlayerApi::GetCodec() {
 void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                            VideoPlayerApi* api) {
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
         "initialize",
@@ -51,13 +51,13 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
-              std::optional<FlutterError> output = api->Initialize();
-              if (output.has_value()) {
+              if (const std::optional<FlutterError> output = api->Initialize();
+                  output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -68,7 +68,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.create",
         &GetCodec());
@@ -98,7 +98,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              wrapped.emplace_back(std::move(output).TakeValue());
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -109,7 +109,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.dispose",
         &GetCodec());
@@ -126,13 +126,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const int64_t texture_id_arg =
                   encodable_texture_id_arg.LongValue();
-              std::optional<FlutterError> output = api->Dispose(texture_id_arg);
-              if (output.has_value()) {
+              if (const std::optional<FlutterError> output =
+                      api->Dispose(texture_id_arg);
+                  output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -143,7 +144,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
         "setLooping",
@@ -168,14 +169,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const auto& is_looping_arg =
                   std::get<bool>(encodable_is_looping_arg);
-              std::optional<FlutterError> output =
+              const std::optional<FlutterError> output =
                   api->SetLooping(texture_id_arg, is_looping_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -186,7 +187,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
         "setVolume",
@@ -210,14 +211,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& volume_arg = std::get<double>(encodable_volume_arg);
-              std::optional<FlutterError> output =
+              const std::optional<FlutterError> output =
                   api->SetVolume(texture_id_arg, volume_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -228,7 +229,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
         "setPlaybackSpeed",
@@ -252,14 +253,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& speed_arg = std::get<double>(encodable_speed_arg);
-              std::optional<FlutterError> output =
+              const std::optional<FlutterError> output =
                   api->SetPlaybackSpeed(texture_id_arg, speed_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -270,7 +271,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.play",
         &GetCodec());
@@ -287,13 +288,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const int64_t texture_id_arg =
                   encodable_texture_id_arg.LongValue();
-              std::optional<FlutterError> output = api->Play(texture_id_arg);
-              if (output.has_value()) {
+              if (const std::optional<FlutterError> output =
+                      api->Play(texture_id_arg);
+                  output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -304,7 +306,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
         "getPosition",
@@ -328,7 +330,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              wrapped.emplace_back(std::move(output).TakeValue());
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -339,7 +341,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.seekTo",
         &GetCodec());
@@ -362,14 +364,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const int64_t position_arg = encodable_position_arg.LongValue();
-              std::optional<FlutterError> output =
+              const std::optional<FlutterError> output =
                   api->SeekTo(texture_id_arg, position_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -380,7 +382,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.pause",
         &GetCodec());
@@ -397,13 +399,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const int64_t texture_id_arg =
                   encodable_texture_id_arg.LongValue();
-              std::optional<FlutterError> output = api->Pause(texture_id_arg);
-              if (output.has_value()) {
+              if (const std::optional<FlutterError> output =
+                      api->Pause(texture_id_arg);
+                  output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
+              wrapped.emplace_back();
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
@@ -415,7 +418,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue VideoPlayerApi::WrapError(std::string_view error_message) {
+EncodableValue VideoPlayerApi::WrapError(const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});

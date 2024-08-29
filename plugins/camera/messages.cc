@@ -48,13 +48,12 @@ const flutter::StandardMethodCodec& CameraApi::GetCodec() {
 // `binary_messenger`.
 void CameraApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                       CameraApi* api) {
-  auto channel = std::make_unique<flutter::MethodChannel<>>(
+  const auto channel = std::make_unique<flutter::MethodChannel<>>(
       binary_messenger, "plugins.flutter.io/camera", &GetCodec());
   if (api != nullptr) {
-    channel->SetMethodCallHandler([api](const MethodCall<EncodableValue>&
-                                            methodCall,
-                                        std::unique_ptr<MethodResult<
-                                            EncodableValue>> result) {
+    channel->SetMethodCallHandler([api](const MethodCall<>& methodCall,
+                                        const std::unique_ptr<MethodResult<>>&
+                                            result) {
       if (methodCall.method_name() == "availableCameras") {
         try {
           api->availableCameras(

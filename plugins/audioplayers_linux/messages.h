@@ -24,6 +24,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace audioplayers_linux_plugin {
 
@@ -31,13 +32,15 @@ namespace audioplayers_linux_plugin {
 
 class FlutterError {
  public:
-  explicit FlutterError(const std::string& code) : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-      : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code,
-                        const std::string& message,
-                        const flutter::EncodableValue& details)
-      : code_(code), message_(message), details_(details) {}
+  explicit FlutterError(std::string code) : code_(std::move(code)) {}
+  explicit FlutterError(std::string code, std::string message)
+      : code_(std::move(code)), message_(std::move(message)) {}
+  explicit FlutterError(std::string code,
+                        std::string message,
+                        flutter::EncodableValue details)
+      : code_(std::move(code)),
+        message_(std::move(message)),
+        details_(std::move(details)) {}
 
   [[nodiscard]] const std::string& code() const { return code_; }
   [[nodiscard]] const std::string& message() const { return message_; }
@@ -54,8 +57,8 @@ class FlutterError {
 template <class T>
 class ErrorOr {
  public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const T& rhs) : v_(rhs) {}
+  explicit ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
   explicit ErrorOr(const FlutterError& rhs) : v_(rhs) {}
   explicit ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
 
@@ -154,7 +157,7 @@ class AudioPlayersApi {
   // Sets up an instance of `AudioPlayersApi` to handle messages through the
   // `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    const AudioPlayersApi* api);
+                    AudioPlayersApi* api);
   static flutter::EncodableValue WrapError(std::string_view error_message);
   static flutter::EncodableValue WrapError(const FlutterError& error);
 
@@ -186,7 +189,7 @@ class AudioPlayersGlobalApi {
   // Sets up an instance of `AudioPlayersGlobalApi` to handle messages through
   // the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    AudioPlayersGlobalApi* api);
+                    const AudioPlayersGlobalApi* api);
   static flutter::EncodableValue WrapError(std::string_view error_message);
   static flutter::EncodableValue WrapError(const FlutterError& error);
 

@@ -838,7 +838,8 @@ class WebViewClientFlutterApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
   WebViewClientFlutterApiCodecSerializer();
-  inline static WebViewClientFlutterApiCodecSerializer& GetInstance() {
+  ~WebViewClientFlutterApiCodecSerializer() override;
+  static WebViewClientFlutterApiCodecSerializer& GetInstance() {
     static WebViewClientFlutterApiCodecSerializer sInstance;
     return sInstance;
   }
@@ -1006,8 +1007,8 @@ class FlutterAssetManagerHostApi {
 class WebChromeClientFlutterApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
-  WebChromeClientFlutterApiCodecSerializer();
-  inline static WebChromeClientFlutterApiCodecSerializer& GetInstance() {
+  WebChromeClientFlutterApiCodecSerializer() = default;
+  static WebChromeClientFlutterApiCodecSerializer& GetInstance() {
     static WebChromeClientFlutterApiCodecSerializer sInstance;
     return sInstance;
   }
@@ -1310,7 +1311,8 @@ class GeolocationPermissionsCallbackHostApi {
 class GeolocationPermissionsCallbackFlutterApi {
  public:
   GeolocationPermissionsCallbackFlutterApi(
-      flutter::BinaryMessenger* binary_messenger);
+      flutter::BinaryMessenger* binary_messenger)
+      : binary_messenger_(binary_messenger) {}
   static const flutter::StandardMessageCodec& GetCodec();
   // Create a new Dart instance and add it to the `InstanceManager`.
   void Create(int64_t instance_id,

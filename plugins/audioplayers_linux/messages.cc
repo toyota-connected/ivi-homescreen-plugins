@@ -52,14 +52,12 @@ const StandardMethodCodec& AudioPlayersApi::GetCodec() {
 void AudioPlayersApi::SetUp(BinaryMessenger* binary_messenger,
                             AudioPlayersApi* api) {
   {
-    const auto channel =
-        std::make_unique<flutter::MethodChannel<EncodableValue>>(
-            binary_messenger, "xyz.luan/audioplayers", &GetCodec());
+    const auto channel = std::make_unique<MethodChannel<>>(
+        binary_messenger, "xyz.luan/audioplayers", &GetCodec());
     if (api != nullptr) {
-      channel->SetMethodCallHandler([api](const MethodCall<EncodableValue>&
-                                              methodCall,
-                                          std::unique_ptr<MethodResult<
-                                              EncodableValue>> result) {
+      channel->SetMethodCallHandler([api](const MethodCall<>& methodCall,
+                                          std::unique_ptr<MethodResult<>>
+                                              result) {
         const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
         std::string playerId;
         for (const auto& [fst, snd] : *args) {
@@ -83,7 +81,6 @@ void AudioPlayersApi::SetUp(BinaryMessenger* binary_messenger,
                 return;
               }
               result->Success(EncodableValue(1));
-              return;
             });
             return;
           }
@@ -97,8 +94,8 @@ void AudioPlayersApi::SetUp(BinaryMessenger* binary_messenger,
             return;
           }
 
-          const auto& method_name = methodCall.method_name();
-          if (method_name == "pause") {
+          if (const auto& method_name = methodCall.method_name();
+              method_name == "pause") {
             player->Pause();
           } else if (method_name == "resume") {
             player->Resume();
@@ -269,7 +266,8 @@ void AudioPlayersApi::SetUp(BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue AudioPlayersApi::WrapError(std::string_view error_message) {
+EncodableValue AudioPlayersApi::WrapError(
+    const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});
@@ -282,8 +280,8 @@ EncodableValue AudioPlayersApi::WrapError(const FlutterError& error) {
 }
 
 /// The codec used by AudioPlayersApi.
-const flutter::StandardMethodCodec& AudioPlayersGlobalApi::GetCodec() {
-  return flutter::StandardMethodCodec::GetInstance();
+const StandardMethodCodec& AudioPlayersGlobalApi::GetCodec() {
+  return StandardMethodCodec::GetInstance();
 }
 
 // Sets up an instance of `AudioPlayersGlobalApi` to handle messages through the
@@ -296,7 +294,7 @@ void AudioPlayersGlobalApi::SetUp(BinaryMessenger* binary_messenger,
     if (api != nullptr) {
       channel->SetMethodCallHandler(
           [](const MethodCall<>& call,
-             std::unique_ptr<MethodResult<EncodableValue>> /* result */) {
+             std::unique_ptr<MethodResult<>> /* result */) {
             plugin_common::Encodable::PrintFlutterEncodableValue(
                 "global", *call.arguments());
           });

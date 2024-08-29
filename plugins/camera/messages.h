@@ -24,6 +24,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace camera_plugin {
 
@@ -31,13 +32,15 @@ namespace camera_plugin {
 
 class FlutterError {
  public:
-  explicit FlutterError(const std::string& code) : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-      : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code,
-                        const std::string& message,
-                        const flutter::EncodableValue& details)
-      : code_(code), message_(message), details_(details) {}
+  explicit FlutterError(std::string code) : code_(std::move(code)) {}
+  explicit FlutterError(std::string code, std::string message)
+      : code_(std::move(code)), message_(std::move(message)) {}
+  explicit FlutterError(std::string code,
+                        std::string message,
+                        flutter::EncodableValue details)
+      : code_(std::move(code)),
+        message_(std::move(message)),
+        details_(std::move(details)) {}
 
   [[nodiscard]] const std::string& code() const { return code_; }
   [[nodiscard]] const std::string& message() const { return message_; }

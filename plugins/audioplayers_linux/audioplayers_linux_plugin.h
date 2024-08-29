@@ -25,13 +25,13 @@
 
 namespace audioplayers_linux_plugin {
 
-class AudioplayersLinuxPlugin final : public flutter::Plugin,
+class AudioplayersLinuxPlugin final : public Plugin,
                                       public AudioPlayersApi,
                                       public AudioPlayersGlobalApi {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar);
+  static void RegisterWithRegistrar(PluginRegistrar* registrar);
 
-  explicit AudioplayersLinuxPlugin(flutter::BinaryMessenger* messenger);
+  explicit AudioplayersLinuxPlugin(BinaryMessenger* messenger);
 
   ~AudioplayersLinuxPlugin() override;
 

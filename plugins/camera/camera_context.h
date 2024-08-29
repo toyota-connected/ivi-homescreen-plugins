@@ -61,10 +61,10 @@ class CameraContext : public flutter::Plugin {
 
   static std::string takePicture();
 
-  void startVideoRecording(bool enableStream);
-  void pauseVideoRecording();
-  void resumeVideoRecording();
-  std::string stopVideoRecording();
+  static void startVideoRecording(bool enableStream);
+  static void pauseVideoRecording();
+  static void resumeVideoRecording();
+  static std::string stopVideoRecording();
 
  private:
   flutter::TextureRegistrar* texture_registrar_{};

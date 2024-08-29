@@ -23,6 +23,6 @@
 void AudioPlayersLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   audioplayers_linux_plugin::AudioplayersLinuxPlugin::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar));
+      PluginRegistrarManager::GetInstance()->GetRegistrar<PluginRegistrar>(
+          registrar));
 }

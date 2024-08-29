@@ -431,7 +431,8 @@ void GoogleSignInPlugin::Init(const std::vector<std::string>& requestedScopes,
         "Confirm client_secret JSON file has been downloaded from the Google "
         "cloud console");
   }
-  if (auto credentials_doc = GetClientCredentials();
+  rapidjson::Document credentials_doc;
+  if (credentials_doc = GetClientCredentials();
       !CredentialsJsonPopulated(credentials_doc)) {
     if (AuthCodeValuePresent(credentials_doc)) {
       credentials_doc = SwapAuthCodeForToken(secret_doc, credentials_doc);
@@ -447,6 +448,7 @@ void GoogleSignInPlugin::Init(const std::vector<std::string>& requestedScopes,
   } else {
     credentials_doc = RefreshToken(secret_doc, credentials_doc);
   }
+  (void)credentials_doc;
 }
 
 flutter::EncodableValue GoogleSignInPlugin::GetUserData() {

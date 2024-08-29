@@ -32,7 +32,7 @@ static std::map<std::string, std::unique_ptr<AudioPlayer>> audioPlayers_;
 
 // static
 void AudioplayersLinuxPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar* registrar) {
+    PluginRegistrar* registrar) {
   auto plugin =
       std::make_unique<AudioplayersLinuxPlugin>(registrar->messenger());
 
@@ -42,8 +42,7 @@ void AudioplayersLinuxPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-AudioplayersLinuxPlugin::AudioplayersLinuxPlugin(
-    flutter::BinaryMessenger* messenger)
+AudioplayersLinuxPlugin::AudioplayersLinuxPlugin(BinaryMessenger* messenger)
     : messenger_(messenger) {
   audioPlayers_.clear();
 
@@ -58,7 +57,7 @@ AudioplayersLinuxPlugin::AudioplayersLinuxPlugin(
 AudioplayersLinuxPlugin::~AudioplayersLinuxPlugin() = default;
 
 AudioPlayer* AudioplayersLinuxPlugin::GetPlayer(const std::string& playerId) {
-  auto searchPlayer = audioPlayers_.find(playerId);
+  const auto searchPlayer = audioPlayers_.find(playerId);
   if (searchPlayer == audioPlayers_.end()) {
     return nullptr;
   }
@@ -67,9 +66,9 @@ AudioPlayer* AudioplayersLinuxPlugin::GetPlayer(const std::string& playerId) {
 
 void AudioplayersLinuxPlugin::Create(
     const std::string& player_id,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  auto searchPlayer = audioPlayers_.find(player_id);
-  if (searchPlayer == audioPlayers_.end()) {
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  if (const auto searchPlayer = audioPlayers_.find(player_id);
+      searchPlayer == audioPlayers_.end()) {
     std::string event_channel = "xyz.luan/audioplayers/events/" + player_id;
     auto player =
         std::make_unique<AudioPlayer>(std::move(event_channel), messenger_);

@@ -71,7 +71,7 @@ bool WriteJsonDocumentToFile(std::string& path,
   constexpr auto bufSize = 1024;
   auto buffer = std::make_unique<char[]>(bufSize);
   rapidjson::FileWriteStream os(fp, buffer.get(), bufSize);
-  rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
+  rapidjson::PrettyWriter writer(os);
   doc.Accept(writer);
 
   fclose(fp);
@@ -81,10 +81,9 @@ bool WriteJsonDocumentToFile(std::string& path,
 }
 
 bool AddEmptyKeyToFile(std::string& path, const char* key) {
-  auto d = JsonUtils::GetJsonDocumentFromFile(path, false);
+  auto d = GetJsonDocumentFromFile(path, false);
   auto& allocator = d.GetAllocator();
-  auto obj = d.GetObject();
-  if (obj.HasMember(key)) {
+  if (auto obj = d.GetObject(); obj.HasMember(key)) {
     obj[key] = "";
   } else {
     rapidjson::Value k(key, allocator);

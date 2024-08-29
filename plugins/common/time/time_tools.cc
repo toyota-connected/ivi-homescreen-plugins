@@ -29,17 +29,18 @@ int64_t GetEpochTimeInSeconds() {
 }
 
 std::string GetCurrentTimeString() {
-  std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto millis =
+  const std::chrono::system_clock::time_point now =
+      std::chrono::system_clock::now();
+  const auto duration = now.time_since_epoch();
+  const auto millis =
       std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() %
       1000;
-  time_t tt = std::chrono::system_clock::to_time_t(now);
-  tm local_tm = *localtime(&tt);
+  const time_t tt = std::chrono::system_clock::to_time_t(now);
+  const tm local_tm = *localtime(&tt);
 
   std::string time_start;
   time_start.resize(80);
-  size_t len =
+  const size_t len =
       strftime(&time_start[0], time_start.size(), "%Y_%m%d_%H%M%S_", &local_tm);
   if (len > 0) {
     time_start.resize(len);
