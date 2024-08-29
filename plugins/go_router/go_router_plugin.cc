@@ -18,8 +18,6 @@
 
 #include "messages.h"
 
-#include "plugins/common/common.h"
-
 namespace go_router_plugin {
 
 // static
@@ -27,7 +25,7 @@ void GoRouterPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<GoRouterPlugin>();
 
-  GoRouterApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }

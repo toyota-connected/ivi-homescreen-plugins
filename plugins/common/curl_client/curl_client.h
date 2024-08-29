@@ -102,7 +102,7 @@ class CurlClient {
    * @relation
    * google_sign_in
    */
-  static int StringWriter(char* data,
+  static int StringWriter(const char* data,
                           size_t size,
                           size_t num_mem_block,
                           std::string* writerData);

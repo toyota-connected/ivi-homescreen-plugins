@@ -47,7 +47,7 @@ namespace video_player_linux {
 class VideoPlayer {
  public:
   VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
-              const std::string& uri,
+              std::string uri,
               std::map<std::string, std::string> http_headers,
               GLsizei width,
               GLsizei height,
@@ -186,8 +186,8 @@ class VideoPlayer {
    */
   static void load_rgb_pixels(GLuint textureId,
                               const unsigned char* data,
-                              const int width,
-                              const int height);
+                              int width,
+                              int height);
 
   /**
    * @brief Load shaders

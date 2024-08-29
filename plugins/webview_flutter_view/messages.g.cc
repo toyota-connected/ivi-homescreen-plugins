@@ -247,15 +247,16 @@ EncodableList ConsoleMessage::ToEncodableList() const {
   list.reserve(4);
   list.push_back(EncodableValue(line_number_));
   list.push_back(EncodableValue(message_));
-  list.push_back(EncodableValue((int)level_));
+  list.push_back(EncodableValue(static_cast<int>(level_)));
   list.push_back(EncodableValue(source_id_));
   return list;
 }
 
 ConsoleMessage ConsoleMessage::FromEncodableList(const EncodableList& list) {
-  ConsoleMessage decoded(list[0].LongValue(), std::get<std::string>(list[1]),
-                         (ConsoleMessageLevel)(std::get<int32_t>(list[2])),
-                         std::get<std::string>(list[3]));
+  ConsoleMessage decoded(
+      list[0].LongValue(), std::get<std::string>(list[1]),
+      static_cast<ConsoleMessageLevel>(std::get<int32_t>(list[2])),
+      std::get<std::string>(list[3]));
   return decoded;
 }
 
@@ -2610,9 +2611,6 @@ EncodableValue WebViewClientHostApi::WrapError(const FlutterError& error) {
                                       error.details()});
 }
 
-WebViewClientFlutterApiCodecSerializer::
-    WebViewClientFlutterApiCodecSerializer() {}
-
 EncodableValue WebViewClientFlutterApiCodecSerializer::ReadValueOfType(
     uint8_t type,
     flutter::ByteStreamReader* stream) const {
@@ -3211,9 +3209,6 @@ EncodableValue FlutterAssetManagerHostApi::WrapError(
                                       error.details()});
 }
 
-WebChromeClientFlutterApiCodecSerializer::
-    WebChromeClientFlutterApiCodecSerializer() {}
-
 EncodableValue WebChromeClientFlutterApiCodecSerializer::ReadValueOfType(
     uint8_t type,
     flutter::ByteStreamReader* stream) const {
@@ -3557,11 +3552,11 @@ void FileChooserParamsFlutterApi::Create(
       "dev.flutter.pigeon.webview_flutter_android.FileChooserParamsFlutterApi."
       "create",
       &GetCodec());
-  EncodableValue encoded_api_arguments = EncodableValue(EncodableList{
+  const EncodableValue encoded_api_arguments = EncodableValue(EncodableList{
       EncodableValue(instance_id_arg),
       EncodableValue(is_capture_enabled_arg),
       EncodableValue(accept_types_arg),
-      EncodableValue((int)mode_arg),
+      EncodableValue(static_cast<int>(mode_arg)),
       filename_hint_arg ? EncodableValue(*filename_hint_arg) : EncodableValue(),
   });
   channel->Send(
@@ -3583,7 +3578,7 @@ const flutter::StandardMessageCodec& PermissionRequestHostApi::GetCodec() {
 void PermissionRequestHostApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                      PermissionRequestHostApi* api) {
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
+    const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
         "dev.flutter.pigeon.webview_flutter_android.PermissionRequestHostApi."
         "grant",
@@ -3915,11 +3910,6 @@ EncodableValue GeolocationPermissionsCallbackHostApi::WrapError(
 
 // Generated class from Pigeon that represents Flutter messages that can be
 // called from C++.
-GeolocationPermissionsCallbackFlutterApi::
-    GeolocationPermissionsCallbackFlutterApi(
-        flutter::BinaryMessenger* binary_messenger)
-    : binary_messenger_(binary_messenger) {}
-
 const flutter::StandardMessageCodec&
 GeolocationPermissionsCallbackFlutterApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(

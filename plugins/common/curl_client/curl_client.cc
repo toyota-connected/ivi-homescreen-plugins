@@ -39,21 +39,20 @@ CurlClient::~CurlClient() {
   mErrorBuffer.reset();
 }
 
-int CurlClient::StringWriter(char* data,
-                             size_t size,
-                             size_t num_mem_block,
+int CurlClient::StringWriter(const char* data,
+                             const size_t size,
+                             const size_t num_mem_block,
                              std::string* writerData) {
   writerData->append(data, size * num_mem_block);
   return static_cast<int>(size * num_mem_block);
 }
 
 int CurlClient::VectorWriter(char* data,
-                             size_t size,
-                             size_t num_mem_block,
+                             const size_t size,
+                             const size_t num_mem_block,
                              std::vector<uint8_t>* writerData) {
   auto* u_data = reinterpret_cast<uint8_t*>(data);
-  writerData->insert(writerData->end(), u_data,
-                     u_data + (size * num_mem_block));
+  writerData->insert(writerData->end(), u_data, u_data + size * num_mem_block);
   return static_cast<int>(size * num_mem_block);
 }
 
@@ -89,11 +88,13 @@ bool CurlClient::Init(
   if (!url_form.empty()) {
     mPostFields.clear();
     int count = 0;
-    for (const auto& item : url_form) {
+    for (const auto& [fst, snd] : url_form) {
       if (count) {
         mPostFields += "&";
       }
-      mPostFields.append(item.first + "=" + item.second);
+      mPostFields.append(fst);
+      mPostFields.append("=");
+      mPostFields.append(snd);
       count++;
     }
     spdlog::trace("[CurlClient] PostFields: {}", mPostFields);
@@ -103,7 +104,7 @@ bool CurlClient::Init(
   }
 
   if (!headers.empty()) {
-    struct curl_slist* curl_headers{};
+    curl_slist* curl_headers{};
     for (const auto& header : headers) {
       spdlog::trace("[CurlClient] Header: {}", header);
       curl_headers = curl_slist_append(curl_headers, header.c_str());
@@ -127,7 +128,7 @@ bool CurlClient::Init(
   return true;
 }
 
-std::string CurlClient::RetrieveContentAsString(bool verbose) {
+std::string CurlClient::RetrieveContentAsString(const bool verbose) {
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",
@@ -159,7 +160,8 @@ std::string CurlClient::RetrieveContentAsString(bool verbose) {
   return mStringBuffer;
 }
 
-const std::vector<uint8_t>& CurlClient::RetrieveContentAsVector(bool verbose) {
+const std::vector<uint8_t>& CurlClient::RetrieveContentAsVector(
+    const bool verbose) {
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",

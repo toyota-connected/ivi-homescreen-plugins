@@ -18,30 +18,28 @@
 
 #include <flutter/plugin_registrar.h>
 
-#include <utility>
-
 #include "layer_playground_view_plugin.h"
 
 void LayerPlaygroundPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar,
-    int32_t id,
+    const int32_t id,
     std::string viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
+    const int32_t direction,
+    const double top,
+    const double left,
+    const double width,
+    const double height,
     const std::vector<uint8_t>& params,
     std::string assetDirectory,
     FlutterDesktopEngineRef engine,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
-    void* platform_view_context) {
+    const PlatformViewAddListener add_listener,
+    const PlatformViewRemoveListener remove_listener,
+    void* platform_views_context) {
   plugin_layer_playground_view::LayerPlaygroundViewPlugin::
       RegisterWithRegistrar(
           flutter::PluginRegistrarManager::GetInstance()
               ->GetRegistrar<flutter::PluginRegistrar>(registrar),
-          id, std::move(viewType), direction, top, left, width, height, params,
-          std::move(assetDirectory), engine, addListener, removeListener,
-          platform_view_context);
+          id, viewType, direction, top, left, width, height, params,
+          assetDirectory, engine, add_listener, remove_listener,
+          platform_views_context);
 }

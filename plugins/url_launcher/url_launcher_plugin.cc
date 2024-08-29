@@ -34,7 +34,7 @@ void UrlLauncherPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<UrlLauncherPlugin>();
 
-  UrlLauncherApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -48,9 +48,9 @@ ErrorOr<bool> UrlLauncherPlugin::CanLaunchUrl(const std::string& url) {
     return false;
   }
 
-  return (url.rfind("https:", 0) == 0) || (url.rfind("http:", 0) == 0) ||
-         (url.rfind("ftp:", 0) == 0) || (url.rfind("file:", 0) == 0) ||
-         (url.rfind("mailto:", 0) == 0) || (url.rfind("tel:", 0) == 0);
+  return url.rfind("https:", 0) == 0 || url.rfind("http:", 0) == 0 ||
+         url.rfind("ftp:", 0) == 0 || url.rfind("file:", 0) == 0 ||
+         url.rfind("mailto:", 0) == 0 || url.rfind("tel:", 0) == 0;
 }
 
 std::optional<FlutterError> UrlLauncherPlugin::LaunchUrl(

@@ -24,7 +24,6 @@
 #include <flutter/method_call.h>
 #include <flutter/method_channel.h>
 
-#include <optional>
 #include <string>
 
 #include "plugins/common/common.h"
@@ -53,32 +52,36 @@ const flutter::StandardMethodCodec& IntegrationTestApi::GetCodec() {
 void IntegrationTestApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                IntegrationTestApi* api) {
   {
-    auto channel = std::make_unique<flutter::MethodChannel<>>(
+    const auto channel = std::make_unique<flutter::MethodChannel<>>(
         binary_messenger, "plugins.flutter.io/integration_test", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const flutter::MethodCall<EncodableValue>& call,
-                std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+          [api](const MethodCall<>& call,
+                const std::unique_ptr<MethodResult<>>& result) {
             const auto& method = call.method_name();
             SPDLOG_DEBUG("[IntegrationTest] {}", method);
 
             if (method == "allTestsFinished") {
-              auto args = std::get_if<EncodableMap>(call.arguments());
+              const auto args = std::get_if<EncodableMap>(call.arguments());
               if (args->empty()) {
                 return result->Error("argument_error", "no arguments provided");
               }
               api->ArgResults(*args);
               return result->Success();
-            } else if (method == "convertFlutterSurfaceToImage") {
+            }
+            if (method == "convertFlutterSurfaceToImage") {
               return result->Error(
                   "Could not convert to image, Not implemented yet");
-            } else if (method == "revertFlutterImage") {
+            }
+            if (method == "revertFlutterImage") {
               return result->Error(
                   "Could not revert Flutter image, Not implemented yet");
-            } else if (method == "captureScreenshot") {
+            }
+            if (method == "captureScreenshot") {
               return result->Error(
                   "Could not capture screenshot, Not implemented yet");
-            } else if (method == "scheduleFrame") {
+            }
+            if (method == "scheduleFrame") {
               return result->Error(
                   "Could not schedule frame, Not implemented yet");
             }

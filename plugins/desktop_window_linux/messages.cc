@@ -49,13 +49,12 @@ const flutter::StandardMethodCodec& DesktopWindowLinuxApi::GetCodec() {
 void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                   DesktopWindowLinuxApi* api) {
   {
-    auto channel = std::make_unique<flutter::MethodChannel<EncodableValue>>(
+    const auto channel = std::make_unique<flutter::MethodChannel<>>(
         binary_messenger, "desktop_window", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const flutter::MethodCall<EncodableValue>& call,
-                const std::unique_ptr<flutter::MethodResult<EncodableValue>>&
-                    result) {
+          [api](const MethodCall<>& call,
+                const std::unique_ptr<MethodResult<>>& result) {
             if (call.method_name() == "getWindowSize") {
               double width = 0;
               double height = 0;
@@ -66,13 +65,13 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               double width = 0;
               double height = 0;
-              for (auto& it : *args) {
-                if ("width" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<double>(it.second)) {
-                  width = std::get<double>(it.second);
-                } else if ("height" == std::get<std::string>(it.first) &&
-                           std::holds_alternative<double>(it.second)) {
-                  height = std::get<double>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("width" == std::get<std::string>(fst) &&
+                    std::holds_alternative<double>(snd)) {
+                  width = std::get<double>(snd);
+                } else if ("height" == std::get<std::string>(fst) &&
+                           std::holds_alternative<double>(snd)) {
+                  height = std::get<double>(snd);
                 }
               }
               if (width == 0 || height == 0) {
@@ -85,13 +84,13 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               double width = 0;
               double height = 0;
-              for (auto& it : *args) {
-                if ("width" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<double>(it.second)) {
-                  width = std::get<double>(it.second);
-                } else if ("height" == std::get<std::string>(it.first) &&
-                           std::holds_alternative<double>(it.second)) {
-                  height = std::get<double>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("width" == std::get<std::string>(fst) &&
+                    std::holds_alternative<double>(snd)) {
+                  width = std::get<double>(snd);
+                } else if ("height" == std::get<std::string>(fst) &&
+                           std::holds_alternative<double>(snd)) {
+                  height = std::get<double>(snd);
                 }
               }
               if (width == 0 || height == 0) {
@@ -104,13 +103,13 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               double width = 0;
               double height = 0;
-              for (auto& it : *args) {
-                if ("width" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<double>(it.second)) {
-                  width = std::get<double>(it.second);
-                } else if ("height" == std::get<std::string>(it.first) &&
-                           std::holds_alternative<double>(it.second)) {
-                  height = std::get<double>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("width" == std::get<std::string>(fst) &&
+                    std::holds_alternative<double>(snd)) {
+                  width = std::get<double>(snd);
+                } else if ("height" == std::get<std::string>(fst) &&
+                           std::holds_alternative<double>(snd)) {
+                  height = std::get<double>(snd);
                 }
               }
               if (width == 0 || height == 0) {
@@ -123,13 +122,13 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               double width = 0;
               double height = 0;
-              for (auto& it : *args) {
-                if ("width" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<double>(it.second)) {
-                  width = std::get<double>(it.second);
-                } else if ("height" == std::get<std::string>(it.first) &&
-                           std::holds_alternative<double>(it.second)) {
-                  height = std::get<double>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("width" == std::get<std::string>(fst) &&
+                    std::holds_alternative<double>(snd)) {
+                  width = std::get<double>(snd);
+                } else if ("height" == std::get<std::string>(fst) &&
+                           std::holds_alternative<double>(snd)) {
+                  height = std::get<double>(snd);
                 }
               }
               if (width == 0 || height == 0) {
@@ -146,10 +145,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             } else if (call.method_name() == "setFullScreen") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               bool fullscreen{};
-              for (auto& it : *args) {
-                if ("fullscreen" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<bool>(it.second)) {
-                  fullscreen = std::get<bool>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("fullscreen" == std::get<std::string>(fst) &&
+                    std::holds_alternative<bool>(snd)) {
+                  fullscreen = std::get<bool>(snd);
                 }
               }
               api->setFullScreen(fullscreen);
@@ -161,10 +160,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             } else if (call.method_name() == "setBorders") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               bool border{};
-              for (auto& it : *args) {
-                if ("border" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<bool>(it.second)) {
-                  border = std::get<bool>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("border" == std::get<std::string>(fst) &&
+                    std::holds_alternative<bool>(snd)) {
+                  border = std::get<bool>(snd);
                 }
               }
               api->setBorders(border);
@@ -178,10 +177,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             } else if (call.method_name() == "stayOnTop") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
               bool stayOnTop{};
-              for (auto& it : *args) {
-                if ("stayOnTop" == std::get<std::string>(it.first) &&
-                    std::holds_alternative<bool>(it.second)) {
-                  stayOnTop = std::get<bool>(it.second);
+              for (const auto& [fst, snd] : *args) {
+                if ("stayOnTop" == std::get<std::string>(fst) &&
+                    std::holds_alternative<bool>(snd)) {
+                  stayOnTop = std::get<bool>(snd);
                 }
               }
               api->stayOnTop(stayOnTop);

@@ -23,9 +23,9 @@ namespace plugin_common::Encodable {
 void PrintFlutterEncodableMap(const char* name,
                               const flutter::EncodableMap& args) {
   spdlog::warn("[{}]", name);
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    PrintFlutterEncodableValue(key.c_str(), it.second);
+  for (const auto& [fst, snd] : args) {
+    auto key = std::get<std::string>(fst);
+    PrintFlutterEncodableValue(key.c_str(), snd);
   }
 }
 

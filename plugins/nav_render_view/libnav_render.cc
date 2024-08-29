@@ -44,7 +44,7 @@ LibNavRenderExports::LibNavRenderExports(void* lib) {
   }
 }
 
-LibNavRenderExports* LibNavRender::operator->() {
+LibNavRenderExports* LibNavRender::operator->() const {
   return loadExports();
 }
 

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <GLES3/gl3.h>
+#include <glib.h>
 
 #include <plugins/common/common.h>
 
@@ -169,12 +170,12 @@ class Shader {
    * @relation
    * flutter
    */
-  void load_pixels(unsigned char* y_buf,
-                   unsigned char* uv_buf,
-                   GLsizei y_p_s,
-                   GLsizei y_s,
-                   GLsizei uv_p_s,
-                   GLsizei uv_s) {
+  void load_pixels(gpointer y_buf,
+                   gpointer uv_buf,
+                   const GLsizei y_p_s,
+                   const GLsizei y_s,
+                   const GLsizei uv_p_s,
+                   const GLsizei uv_s) {
     (void)y_p_s;
     (void)uv_p_s;
     SPDLOG_TRACE("[VideoPlayer] load_pixels");
@@ -284,7 +285,7 @@ class Shader {
     glFinish();
   }
 
-  void load_rgb_pixels(const unsigned char* data) const {
+  void load_rgb_pixels(gpointer data) const {
     SPDLOG_DEBUG("[VideoPlayer] load_rgb_pixels");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);

@@ -27,7 +27,7 @@ void SecureStoragePlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<SecureStoragePlugin>();
 
-  SecureStorageApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -58,8 +58,7 @@ flutter::EncodableValue SecureStoragePlugin::read(const char* key) {
 
 flutter::EncodableValue SecureStoragePlugin::readAll() {
   auto result = flutter::EncodableMap{};
-  auto document = keyring_.readFromKeyring();
-  if (document.IsObject()) {
+  if (auto document = keyring_.readFromKeyring(); document.IsObject()) {
     for (rapidjson::Value::ConstMemberIterator itr = document.MemberBegin();
          itr != document.MemberEnd(); ++itr) {
       result.emplace(flutter::EncodableValue(itr->name.GetString()),
@@ -70,7 +69,7 @@ flutter::EncodableValue SecureStoragePlugin::readAll() {
 }
 
 flutter::EncodableValue SecureStoragePlugin::containsKey(const char* key) {
-  auto document = keyring_.readFromKeyring();
+  const auto document = keyring_.readFromKeyring();
   return flutter::EncodableValue(document.HasMember(key));
 }
 

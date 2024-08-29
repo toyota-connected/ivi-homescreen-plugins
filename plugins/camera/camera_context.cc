@@ -38,10 +38,10 @@ using namespace plugin_common;
 
 CameraContext::CameraContext(std::string cameraName,
                              std::string resolutionPreset,
-                             int64_t fps,
-                             int64_t videoBitrate,
-                             int64_t audioBitrate,
-                             bool enableAudio,
+                             const int64_t fps,
+                             const int64_t videoBitrate,
+                             const int64_t audioBitrate,
+                             const bool enableAudio,
                              std::shared_ptr<libcamera::Camera> camera)
     : mCameraName(std::move(cameraName)),
       mResolutionPreset(std::move(resolutionPreset)),
@@ -49,7 +49,8 @@ CameraContext::CameraContext(std::string cameraName,
       mVideoBitrate(videoBitrate),
       mAudioBitrate(audioBitrate),
       mEnableAudio(enableAudio),
-      mCamera(std::move(camera)) {
+      mCamera(std::move(camera)),
+      mPreview() {
   spdlog::debug("[camera_plugin]");
   spdlog::debug("\tcameraName: [{}]", mCameraName);
   spdlog::debug("\tresolutionPreset: [{}]", mResolutionPreset);
@@ -58,8 +59,7 @@ CameraContext::CameraContext(std::string cameraName,
   spdlog::debug("\taudioBitrate: [{}]", mAudioBitrate);
   spdlog::debug("\tenableAudio: [{}]", mEnableAudio);
   mCameraState = CAM_STATE_AVAILABLE;
-  auto res = mCamera->acquire();
-  if (res == 0) {
+  if (auto res = mCamera->acquire(); res == 0) {
     if (mCameraState == CAM_STATE_AVAILABLE) {
       mCameraState = CAM_STATE_ACQUIRED;
     }
@@ -136,8 +136,8 @@ std::string CameraContext::Initialize(
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          mPreview.textureId, 0);
 
-  auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-  if (status != GL_FRAMEBUFFER_COMPLETE) {
+  if (auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+      status != GL_FRAMEBUFFER_COMPLETE) {
     spdlog::error("[camera_plugin] FramebufferStatus: 0x{:X}", status);
   }
 
@@ -160,7 +160,7 @@ std::string CameraContext::Initialize(
   };
 
   mPreview.gpu_surface_texture = std::make_unique<flutter::GpuSurfaceTexture>(
-      FlutterDesktopGpuSurfaceType::kFlutterDesktopGpuSurfaceTypeGlTexture2D,
+      kFlutterDesktopGpuSurfaceTypeGlTexture2D,
       [&](size_t /* width */,
           size_t /* height */) -> const FlutterDesktopGpuSurfaceDescriptor* {
         return &mPreview.descriptor;
@@ -172,10 +172,10 @@ std::string CameraContext::Initialize(
 
   auto props = mCamera->properties();
 
-  std::string exposureMode("auto");
-  bool exposurePointSupported{};
-  std::string focusMode("locked");
-  bool focusPointSupported{};
+  const std::string exposure_mode("auto");
+  constexpr bool exposure_point_supported{};
+  const std::string focusMode("locked");
+  bool focus_point_supported{};
 
   camera_channel_->InvokeMethod(
       "initialized",
@@ -188,13 +188,13 @@ std::string CameraContext::Initialize(
                {flutter::EncodableValue("previewHeight"),
                 flutter::EncodableValue(static_cast<double>(mPreview.height))},
                {flutter::EncodableValue("exposureMode"),
-                flutter::EncodableValue(exposureMode.c_str())},
+                flutter::EncodableValue(exposure_mode.c_str())},
                {flutter::EncodableValue("exposurePointSupported"),
-                flutter::EncodableValue(exposurePointSupported)},
+                flutter::EncodableValue(exposure_point_supported)},
                {flutter::EncodableValue("focusMode"),
                 flutter::EncodableValue(focusMode.c_str())},
                {flutter::EncodableValue("focusPointSupported"),
-                flutter::EncodableValue(focusPointSupported)}}))));
+                flutter::EncodableValue(focus_point_supported)}}))));
 
   mPreview.is_initialized = true;
 
@@ -228,8 +228,7 @@ std::optional<std::string> CameraContext::GetFilePathForVideo() {
 }
 
 std::string CameraContext::takePicture() {
-  auto filename = GetFilePathForPicture();
-  if (filename.has_value()) {
+  if (auto filename = GetFilePathForPicture(); filename.has_value()) {
     return filename.value();
   }
   return {};
@@ -248,8 +247,7 @@ void CameraContext::resumeVideoRecording() {
 }
 
 std::string CameraContext::stopVideoRecording() {
-  auto filename = GetFilePathForVideo();
-  if (filename.has_value()) {
+  if (auto filename = GetFilePathForVideo(); filename.has_value()) {
     SPDLOG_DEBUG("[camera_plugin] stopVideoRecording: [{}]", filename.value());
     return filename.value();
   }

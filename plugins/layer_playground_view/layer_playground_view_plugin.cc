@@ -26,7 +26,6 @@ class Display;
 
 namespace plugin_layer_playground_view {
 
-// static
 void LayerPlaygroundViewPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar,
     int32_t id,
@@ -90,9 +89,8 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
   assert(egl_window_);
 
   InitializeEGL();
-  egl_surface_ = eglCreateWindowSurface(
-      egl_display_, egl_config_,
-      reinterpret_cast<EGLNativeWindowType>(egl_window_), nullptr);
+  egl_surface_ =
+      eglCreateWindowSurface(egl_display_, egl_config_, egl_window_, nullptr);
 
   // Subsurface
   parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
@@ -111,7 +109,7 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
 
 LayerPlaygroundViewPlugin::~LayerPlaygroundViewPlugin() {
   removeListener_(platformViewsContext_, id_);
-};
+}
 
 void LayerPlaygroundViewPlugin::on_resize(double width,
                                           double height,
@@ -123,7 +121,7 @@ void LayerPlaygroundViewPlugin::on_resize(double width,
   }
 }
 
-void LayerPlaygroundViewPlugin::on_set_direction(int32_t direction,
+void LayerPlaygroundViewPlugin::on_set_direction(const int32_t direction,
                                                  void* data) {
   if (const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data)) {
     plugin->direction_ = direction;
@@ -131,8 +129,8 @@ void LayerPlaygroundViewPlugin::on_set_direction(int32_t direction,
   }
 }
 
-void LayerPlaygroundViewPlugin::on_set_offset(double left,
-                                              double top,
+void LayerPlaygroundViewPlugin::on_set_offset(const double left,
+                                              const double top,
                                               void* data) {
   if (const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data)) {
     plugin->left_ = static_cast<int32_t>(left);

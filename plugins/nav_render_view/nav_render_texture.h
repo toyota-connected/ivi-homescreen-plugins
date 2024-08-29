@@ -28,7 +28,7 @@ class NavRenderTexture final : public flutter::Plugin {
   NavRenderTexture& operator=(const NavRenderTexture&) = delete;
 
  private:
-  std::unique_ptr<flutter::MethodChannel<>> channel_;
+  std::unique_ptr<flutter::MethodChannel<>> channel_{};
 
   static void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
