@@ -154,7 +154,7 @@ class AudioPlayersApi {
   // Sets up an instance of `AudioPlayersApi` to handle messages through the
   // `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    const AudioPlayersApi* api);
+                    AudioPlayersApi* api);
   static flutter::EncodableValue WrapError(std::string_view error_message);
   static flutter::EncodableValue WrapError(const FlutterError& error);
 
@@ -186,7 +186,7 @@ class AudioPlayersGlobalApi {
   // Sets up an instance of `AudioPlayersGlobalApi` to handle messages through
   // the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    AudioPlayersGlobalApi* api);
+                    const AudioPlayersGlobalApi* api);
   static flutter::EncodableValue WrapError(std::string_view error_message);
   static flutter::EncodableValue WrapError(const FlutterError& error);
 
