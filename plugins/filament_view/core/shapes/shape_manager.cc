@@ -17,12 +17,6 @@
 #include "shape_manager.h"
 
 #include <filament/Engine.h>
-#include <filament/RenderableManager.h>
-#include <filament/View.h>
-#include <math/mat3.h>
-#include <math/norm.h>
-#include <math/vec3.h>
-#include "asio/post.hpp"
 
 #include "baseshape.h"
 #include "cube.h"
@@ -32,16 +26,6 @@
 
 namespace plugin_filament_view {
 
-using ::filament::Aabb;
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::mat4f;
-using ::filament::math::packSnorm16;
-using ::filament::math::short4;
 using shapes::BaseShape;
 using ::utils::Entity;
 
@@ -120,6 +104,9 @@ void ShapeManager::addShapesToScene(
   filament::Scene* poFilamentScene =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
+  // Ideally this is changed to create all entities on the first go, then
+  // we pass them through, upon use this failed in filament engine, more R&D
+  // needed
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {

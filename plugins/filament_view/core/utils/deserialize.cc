@@ -19,8 +19,7 @@ namespace plugin_filament_view {
 
 ::filament::math::float3 Deserialize::Format3(
     const flutter::EncodableMap& map) {
-  double x, y, z;
-  x = y = z = 0.0f;
+  double x, y, z = 0.0f;
 
   for (auto& it : map) {
     if (it.second.IsNull())
@@ -39,8 +38,7 @@ namespace plugin_filament_view {
 }
 
 ::filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
-  double x, y, z, w;
-  x = y = z = 0.0f;
+  double x, y, z, w = 0.0f;
   w = 1.0f;
 
   for (auto& it : map) {

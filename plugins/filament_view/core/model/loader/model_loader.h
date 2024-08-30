@@ -120,7 +120,9 @@ class ModelLoader {
   // Todo implement for ease of use of finding assets by tag quickly.
   // std::map<std::string, filament::gltfio::FilamentInstance*> m_mapszpoAssets;
 
+  // Todo, this needs to be moved; if its not initialized, undefined <results>
   ::filament::viewer::Settings settings_;
+
   std::vector<float> morphWeights_;
 
   ::filament::math::mat4f inline fitIntoUnitCube(

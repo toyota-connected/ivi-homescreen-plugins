@@ -26,8 +26,7 @@
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
-namespace plugin_filament_view {
-namespace shapes {
+namespace plugin_filament_view::shapes {
 
 using ::filament::Aabb;
 using ::filament::IndexBuffer;
@@ -62,7 +61,7 @@ bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
 void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
                                    MaterialManager* material_manager) {
   // Vertices for a plane (4 vertices for each side, 8 in total)
-  static const float vertices[] = {
+  static constexpr float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // Front face, Vertex 0
       0.5f,  -0.5f, 0.0f,  // Front face, Vertex 1
       0.5f,  0.5f,  0.0f,  // Front face, Vertex 2
@@ -74,7 +73,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   };
 
   // Indices for 2 triangles per side, 12 indices in total
-  static const uint16_t indices[] = {
+  static constexpr uint16_t indices[] = {
       0, 1, 2, 0, 2, 3,  // Front face
       4, 6, 5, 4, 7, 6   // Back face
   };
@@ -172,5 +171,4 @@ void Plane::DebugPrint(const char* tag) const {
   BaseShape::DebugPrint(tag);
 }
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+}  // namespace plugin_filament_view::shapes

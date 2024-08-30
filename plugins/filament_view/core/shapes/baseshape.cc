@@ -18,7 +18,6 @@
 
 #include <filament/RenderableManager.h>
 #include <math/mat3.h>
-#include <math/mat4.h>
 #include <math/norm.h>
 #include <math/vec3.h>
 
@@ -27,8 +26,7 @@
 
 #include "core/utils/entitytransforms.h"
 
-namespace plugin_filament_view {
-namespace shapes {
+namespace plugin_filament_view::shapes {
 
 using ::filament::Aabb;
 using ::filament::IndexBuffer;
@@ -44,17 +42,15 @@ using ::utils::Entity;
 
 BaseShape::BaseShape(const std::string& flutter_assets_path,
                      const flutter::EncodableMap& params)
-    : id(0),
+    : m_poVertexBuffer(nullptr),
+      m_poIndexBuffer(nullptr),
       type_(ShapeType::Unset),
       m_f3CenterPosition(0, 0, 0),
       m_f3ExtentsSize(0, 0, 0),
-      m_f3Normal(0, 0, 0),
       m_f3Scale(1, 1, 1),
       m_quatRotation(0, 0, 0, 1),
-      m_bDoubleSided(false),
-      m_bCullingOfObjectEnabled(true),
-      m_bReceiveShadows(false),
-      m_bCastShadows(false) {
+      m_f3Normal(0, 0, 0),
+      m_bCullingOfObjectEnabled(true) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   static constexpr char kId[] = "id";
@@ -104,7 +100,7 @@ BaseShape::~BaseShape() {
 }
 
 void BaseShape::vDestroyBuffers() {
-  auto filamentEngine =
+  const auto filamentEngine =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
 
   if (m_poVertexBuffer) {
@@ -118,11 +114,11 @@ void BaseShape::vDestroyBuffers() {
 }
 
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
+                                 MaterialManager* /*material_manager*/) {
   // this will also set all the default values of the material instance from the
   // material param list
-  auto materialInstanceResult =
-      material_manager->getMaterialInstance(m_poMaterial->get());
+  const auto materialInstanceResult =
+      MaterialManager::getMaterialInstance(m_poMaterial->get());
 
   RenderableManager::Builder(1)
       .boundingBox({{}, m_f3ExtentsSize})
@@ -197,5 +193,4 @@ void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++");
 }
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+}  // namespace plugin_filament_view::shapes

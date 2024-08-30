@@ -17,7 +17,6 @@
 #include "messages.g.h"
 
 #include <map>
-#include <optional>
 #include <sstream>
 #include <string>
 
@@ -84,7 +83,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             } else if (methodCall.method_name() == kChangeLightColorByIndex) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
-              int32_t index;
+              int32_t index = 0;
               std::string colorString;
               int32_t intensity = 0;
               for (auto& it : *args) {

@@ -45,63 +45,64 @@ class EntityTransforms {
   static filament::math::mat4f identity4x4();
 
   // Utility function to create a shear matrix and apply it to a mat4f
-  static filament::math::mat4f oApplyShear(filament::math::mat4f matrix,
-                                           filament::math::float3 shear);
+  static filament::math::mat4f oApplyShear(
+      const filament::math::mat4f& matrix,
+      const filament::math::float3 shear);  // NOLINT
 
   // Static functions that use CustomModelViewer to get the engine
-  static void vApplyScale(std::shared_ptr<utils::Entity> poEntity,
-                          filament::math::float3 scale);
-  static void vApplyRotation(std::shared_ptr<utils::Entity> poEntity,
-                             filament::math::quatf rotation);
-  static void vApplyTranslate(std::shared_ptr<utils::Entity> poEntity,
-                              filament::math::float3 translation);
-  static void vApplyTransform(std::shared_ptr<utils::Entity> poEntity,
-                              filament::math::mat4f transform);
-  static void vApplyTransform(std::shared_ptr<utils::Entity> poEntity,
+  static void vApplyScale(const std::shared_ptr<utils::Entity>& poEntity,
+                          const filament::math::float3 scale);  // NOLINT
+  static void vApplyRotation(const std::shared_ptr<utils::Entity>& poEntity,
+                             const filament::math::quatf rotation);  // NOLINT
+  static void vApplyTranslate(
+      const std::shared_ptr<utils::Entity>& poEntity,
+      const filament::math::float3 translation);  // NOLINT
+  static void vApplyTransform(const std::shared_ptr<utils::Entity>& poEntity,
+                              const filament::math::mat4f& transform);
+  static void vApplyTransform(const std::shared_ptr<utils::Entity>& poEntity,
                               filament::math::quatf rotation,
                               filament::math::float3 scale,
                               filament::math::float3 translation);
-  static void vApplyShear(std::shared_ptr<utils::Entity> poEntity,
-                          filament::math::float3 shear);
-  static void vResetTransform(std::shared_ptr<utils::Entity> poEntity);
-  static void vApplyLookAt(std::shared_ptr<utils::Entity> poEntity,
+  static void vApplyShear(const std::shared_ptr<utils::Entity>& poEntity,
+                          const filament::math::float3 shear);  // NOLINT
+  static void vResetTransform(const std::shared_ptr<utils::Entity>& poEntity);
+  static filament::math::mat4f oGetCurrentTransform(
+      const std::shared_ptr<utils::Entity>& poEntity);
+  static void vApplyLookAt(const std::shared_ptr<utils::Entity>& poEntity,
                            filament::math::float3 target,
                            filament::math::float3 up);
 
-  static filament::math::mat4f oGetCurrentTransform(
-      std::shared_ptr<utils::Entity> poEntity);
-
   // Static functions that take an engine as a parameter
-  static void vApplyScale(std::shared_ptr<utils::Entity> poEntity,
-                          filament::math::float3 scale,
+  static void vApplyScale(const std::shared_ptr<utils::Entity>& poEntity,
+                          const filament::math::float3 scale,  // NOLINT
                           ::filament::Engine* engine);
-  static void vApplyRotation(std::shared_ptr<utils::Entity> poEntity,
-                             filament::math::quatf rotation,
+  static void vApplyRotation(const std::shared_ptr<utils::Entity>& poEntity,
+                             const filament::math::quatf rotation,  // NOLINT
                              ::filament::Engine* engine);
-  static void vApplyTranslate(std::shared_ptr<utils::Entity> poEntity,
-                              filament::math::float3 translation,
+  static void vApplyTranslate(
+      const std::shared_ptr<utils::Entity>& poEntity,
+      const filament::math::float3 translation,  // NOLINT
+      ::filament::Engine* engine);
+  static void vApplyTransform(const std::shared_ptr<utils::Entity>& poEntity,
+                              const filament::math::mat4f& transform,
                               ::filament::Engine* engine);
-  static void vApplyTransform(std::shared_ptr<utils::Entity> poEntity,
-                              filament::math::mat4f transform,
-                              ::filament::Engine* engine);
-  static void vApplyTransform(std::shared_ptr<utils::Entity> poEntity,
+  static void vApplyTransform(const std::shared_ptr<utils::Entity>& poEntity,
                               filament::math::quatf rotation,
                               filament::math::float3 scale,
                               filament::math::float3 translation,
                               ::filament::Engine* engine);
-  static void vApplyShear(std::shared_ptr<utils::Entity> poEntity,
-                          filament::math::float3 shear,
+  static void vApplyShear(const std::shared_ptr<utils::Entity>& poEntity,
+                          const filament::math::float3 shear,  // NOLINT
                           ::filament::Engine* engine);
-  static void vResetTransform(std::shared_ptr<utils::Entity> poEntity,
+  static void vResetTransform(const std::shared_ptr<utils::Entity>& poEntity,
                               ::filament::Engine* engine);
-  static void vApplyLookAt(std::shared_ptr<utils::Entity> poEntity,
+  static filament::math::mat4f oGetCurrentTransform(
+      const std::shared_ptr<utils::Entity>& poEntity,
+      ::filament::Engine* engine);
+  static void vApplyLookAt(const std::shared_ptr<utils::Entity>& poEntity,
                            filament::math::float3 target,
                            filament::math::float3 up,
                            ::filament::Engine* engine);
-
-  static filament::math::mat4f oGetCurrentTransform(
-      std::shared_ptr<utils::Entity> poEntity,
-      ::filament::Engine* engine);
 };
 
 }  // namespace plugin_filament_view

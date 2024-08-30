@@ -70,8 +70,6 @@ class CustomModelViewer {
 
   void setModelState(ModelState modelState);
 
-  void setGroundState(SceneState sceneState);
-
   void setLightState(SceneState sceneState);
 
   void setSkyboxState(SceneState sceneState);
@@ -193,10 +191,10 @@ class CustomModelViewer {
 
   CameraManager* cameraManager_;
 
+  // TODO Change state management to a different format
   ModelState currentModelState_;
   [[maybe_unused]] SceneState currentSkyboxState_;
   [[maybe_unused]] SceneState currentLightState_;
-  [[maybe_unused]] SceneState currentGroundState_;
   [[maybe_unused]] ShapeState currentShapesState_;
 
   std::unique_ptr<ModelLoader> modelLoader_;

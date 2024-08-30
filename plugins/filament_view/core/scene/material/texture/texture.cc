@@ -30,9 +30,9 @@ Texture::Texture(TextureType type,
                  std::string assetPath,
                  std::string url,
                  TextureSampler* sampler)
-    : type_(type),
-      assetPath_(std::move(assetPath)),
+    : assetPath_(std::move(assetPath)),
       url_(std::move(url)),
+      type_(type),
       sampler_(sampler) {}
 
 Texture::~Texture() {

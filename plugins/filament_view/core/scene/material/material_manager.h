@@ -41,7 +41,7 @@ class MaterialManager {
  public:
   MaterialManager();
 
-  Resource<::filament::MaterialInstance*> getMaterialInstance(
+  static Resource<::filament::MaterialInstance*> getMaterialInstance(
       Material* material);
 
   // Disallow copy and assign.
@@ -52,7 +52,7 @@ class MaterialManager {
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  Resource<::filament::Material*> loadMaterial(Material* material);
+  static Resource<::filament::Material*> loadMaterial(Material* material);
   static Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,
       const Material* material);

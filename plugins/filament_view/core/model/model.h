@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <functional>
-#include <optional>
 #include <string>
 
 #include "core/model/animation/animation.h"
@@ -40,8 +38,7 @@ class Model {
 
   static std::unique_ptr<Model> Deserialize(
       const std::string& flutterAssetsPath,
-      const flutter::EncodableValue& params,
-      int depth = 0);
+      const flutter::EncodableValue& params);
 
   [[nodiscard]] float GetScale() const { return scale_; }
 
