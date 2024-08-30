@@ -124,17 +124,15 @@ std::unique_ptr<Model> Model::Deserialize(
         scale.has_value() ? scale.value() : 1.0f,
         centerPosition ? centerPosition.release() : nullptr,
         animation ? animation.release() : nullptr);
-
-  } 
+  }
 
   return std::make_unique<plugin_filament_view::GltfModel>(
-        assetPath.has_value() ? std::move(assetPath.value()) : "",
-        url.has_value() ? std::move(url.value()) : "",
-        pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
-        pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
-        scale.has_value() ? scale.value() : 1.0f,
-        centerPosition ? centerPosition.release() : nullptr,
-        animation ? animation.release() : nullptr);
-
+      assetPath.has_value() ? std::move(assetPath.value()) : "",
+      url.has_value() ? std::move(url.value()) : "",
+      pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
+      pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
+      scale.has_value() ? scale.value() : 1.0f,
+      centerPosition ? centerPosition.release() : nullptr,
+      animation ? animation.release() : nullptr);
 }
 }  // namespace plugin_filament_view

@@ -53,7 +53,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
 
       auto deserializedModel = Model::Deserialize(flutterAssetsPath, it.second);
       if (deserializedModel == nullptr) {
-        //load fallback
+        // load fallback
         static constexpr char kFallback[] = "fallback";
         auto fallbackToDeserialize =
             Deserialize::DeserializeParameter(kFallback, it.second);
