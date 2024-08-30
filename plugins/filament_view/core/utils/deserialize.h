@@ -29,6 +29,22 @@ class Deserialize {
   static ::filament::math::float3 Format3(const flutter::EncodableMap& map);
   static ::filament::math::quatf Format4(const flutter::EncodableMap& map);
 
+  static const flutter::EncodableValue& DeserializeParameter(
+      const char* key,
+      const flutter::EncodableValue& value) {
+    if (!std::holds_alternative<flutter::EncodableMap>(value)) {
+      throw std::runtime_error("Provided value is not an EncodableMap");
+    }
+
+    const auto& params = std::get<flutter::EncodableMap>(value);
+    auto it = params.find(flutter::EncodableValue(key));
+    if (it != params.end()) {
+      return it->second;
+    }
+
+    throw std::runtime_error("Key not found in EncodableMap");
+  }
+
   template <typename T>
   static void DecodeParameterWithDefault(const char* key,
                                          T* out_value,

@@ -44,8 +44,8 @@ class Sphere : public BaseShape {
                            MaterialManager* material_manager) override;
 
  private:
-  void createDoubleSidedSphere(::filament::Engine* engine_,
-                               MaterialManager* material_manager);
+  static void createDoubleSidedSphere(::filament::Engine* engine_,
+                                      MaterialManager* material_manager);
 
   void createSingleSidedSphere(::filament::Engine* engine_,
                                MaterialManager* material_manager);

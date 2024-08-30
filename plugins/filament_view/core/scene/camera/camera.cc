@@ -154,7 +154,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
-        std::string modeType = std::get<std::string>(it.second);
+        auto modeType = std::get<std::string>(it.second);
         if (modeType == kModeAutoOrbit) {
           customMode_ = true;
         } else {

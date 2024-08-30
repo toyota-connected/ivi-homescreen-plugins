@@ -248,7 +248,6 @@ void ModelLoader::removeAsset(filament::gltfio::FilamentAsset* asset) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
                                                   asset->getEntityCount());
-  asset = nullptr;
 }
 
 std::optional<::filament::math::mat4f> ModelLoader::getModelTransform(

@@ -64,9 +64,9 @@ GltfModel::GltfModel(std::string assetPath,
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
-std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
-                                          const flutter::EncodableValue& params,
-                                          int depth) {
+std::unique_ptr<Model> Model::Deserialize(
+    const std::string& flutterAssetsPath,
+    const flutter::EncodableValue& params) {
   SPDLOG_TRACE("++Model::Model");
   std::unique_ptr<Animation> animation;
   std::unique_ptr<Model> fallback;
@@ -79,12 +79,7 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  if (depth > 1) {
-    spdlog::error("Failed to deserialize model and fallbackmodel");
-    return nullptr;
-  }
-
-  for (auto& it : std::get<flutter::EncodableMap>(params)) {
+  for (const auto& it : std::get<flutter::EncodableMap>(params)) {
     if (it.second.IsNull())
       continue;
 
@@ -100,12 +95,6 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
                std::holds_alternative<flutter::EncodableMap>(it.second)) {
       centerPosition = std::make_unique<::filament::math::float3>(
           Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-    } else if (key == "fallback" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      fallback = Deserialize(
-          flutterAssetsPath,
-          flutter::EncodableValue(std::get<flutter::EncodableMap>(it.second)),
-          ++depth);
     } else if (key == "isGlb" && std::holds_alternative<bool>(it.second)) {
       is_glb = std::get<bool>(it.second);
     } else if (key == "scale" && std::holds_alternative<double>(it.second)) {
@@ -129,24 +118,23 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   }
 
   if (is_glb) {
-    return std::move(std::make_unique<plugin_filament_view::GlbModel>(
+    return std::make_unique<plugin_filament_view::GlbModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
-        url.has_value() ? std::move(url.value()) : "",
-        fallback ? fallback.release() : nullptr,
+        url.has_value() ? std::move(url.value()) : "", nullptr,
         scale.has_value() ? scale.value() : 1.0f,
         centerPosition ? centerPosition.release() : nullptr,
-        animation ? animation.release() : nullptr));
-  } else {
-    return std::move(std::make_unique<plugin_filament_view::GltfModel>(
+        animation ? animation.release() : nullptr);
+
+  } 
+
+  return std::make_unique<plugin_filament_view::GltfModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "",
         pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
-        pathPostfix.has_value() ? std::move(pathPostfix.value()) : "",
-        fallback ? fallback.release() : nullptr,
+        pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
         scale.has_value() ? scale.value() : 1.0f,
         centerPosition ? centerPosition.release() : nullptr,
-        animation ? animation.release() : nullptr));
-  }
-  SPDLOG_TRACE("--Model::Model");
+        animation ? animation.release() : nullptr);
+
 }
 }  // namespace plugin_filament_view

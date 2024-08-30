@@ -18,8 +18,6 @@
 
 #include <flutter/plugin_registrar.h>
 
-#include <utility>
-
 #include "filament_view_plugin.h"
 
 void FilamentViewPluginCApiRegisterWithRegistrar(

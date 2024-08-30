@@ -27,8 +27,7 @@
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
-namespace plugin_filament_view {
-namespace shapes {
+namespace plugin_filament_view::shapes {
 
 using ::filament::IndexBuffer;
 using ::filament::RenderableManager;
@@ -40,7 +39,7 @@ using ::utils::Entity;
 
 Sphere::Sphere(const std::string& flutter_assets_path,
                const flutter::EncodableMap& params)
-    : BaseShape(flutter_assets_path, params) {
+    : BaseShape(flutter_assets_path, params), stacks_(20), slices_(20) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 
   static constexpr char kStacks[] = "stacks";
@@ -95,13 +94,13 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
       float x = xy * cosf(sectorAngle);  // x = r * cos(u) * cos(v)
       float y = xy * sinf(sectorAngle);  // y = r * cos(u) * sin(v)
 
-      vertices.push_back(float3{x, y, z});
+      vertices.emplace_back(x, y, z);
 
       float length = sqrt(x * x + y * y + z * z);
       if (length == 0)
         length = 0.01f;
 
-      normals.push_back(float3{x / length, y / length, z / length});
+      normals.emplace_back(x / length, y / length, z / length);
     }
   }
 
@@ -146,7 +145,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
                                      normals.size() * sizeof(float3)));
 
   // Create the index buffer
-  unsigned int indexCount = static_cast<unsigned int>(indices.size());
+  auto indexCount = static_cast<unsigned int>(indices.size());
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -176,5 +175,4 @@ void Sphere::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++");
 }
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+}  // namespace plugin_filament_view::shapes

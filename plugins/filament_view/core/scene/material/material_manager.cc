@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ Resource<::filament::Material*> MaterialManager::loadMaterial(
   // The Future object for loading Material
   if (!material->assetPath_.empty()) {
     // THIS does NOT set default a parameter values
-    return materialLoader_->loadMaterialFromAsset(material->assetPath_);
+    return MaterialLoader::loadMaterialFromAsset(material->assetPath_);
   } else if (!material->url_.empty()) {
-    return materialLoader_->loadMaterialFromUrl(material->url_);
+    return MaterialLoader::loadMaterialFromUrl(material->url_);
   } else {
     return Resource<::filament::Material*>::Error(
         "You must provide material asset path or url");

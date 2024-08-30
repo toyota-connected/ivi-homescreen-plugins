@@ -18,6 +18,8 @@ inline ::filament::backend::TextureFormat internalFormat(
     case Texture::TextureType::DATA:
       return ::filament::backend::TextureFormat::RGBA8;
   }
+
+  throw std::runtime_error("Invalid texture type");
 }
 
 ::filament::Texture* TextureLoader::createTextureFromImage(
@@ -59,8 +61,12 @@ inline ::filament::backend::TextureFormat internalFormat(
       ::filament::Texture::PixelBufferDescriptor::PixelDataType::FLOAT,
       freeCallback, image.get());
 
-  (void)image.release();  // Release the ownership since filament engine has the
-                          // responsibility to free the memory
+  auto releasedImage =
+      image.release();  // Release the ownership since filament engine has the
+                        // responsibility to free the memory
+
+  (void)releasedImage;
+
   texture->setImage(*engine, 0, std::move(pbd));
   texture->generateMipmaps(*engine);
   return texture;
@@ -83,12 +89,14 @@ inline ::filament::backend::TextureFormat internalFormat(
     }
     return loadTextureFromStream(new std::ifstream(file_path, std::ios::binary),
                                  texture->type_, texture->assetPath_);
-  } else if (!texture->url_.empty()) {
-    return loadTextureFromUrl(texture->url_, texture->type_);
-  } else {
-    spdlog::error("You must provide texture images asset path or url");
-    return nullptr;
   }
+
+  if (!texture->url_.empty()) {
+    return loadTextureFromUrl(texture->url_, texture->type_);
+  }
+
+  spdlog::error("You must provide texture images asset path or url");
+  return nullptr;
 }
 
 ::filament::Texture* TextureLoader::loadTextureFromStream(

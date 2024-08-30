@@ -26,8 +26,7 @@
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
-namespace plugin_filament_view {
-namespace shapes {
+namespace plugin_filament_view::shapes {
 
 using ::filament::Aabb;
 using ::filament::IndexBuffer;
@@ -199,5 +198,4 @@ void Cube::DebugPrint(const char* tag) const {
   BaseShape::DebugPrint(tag);
 }
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+}  // namespace plugin_filament_view::shapes

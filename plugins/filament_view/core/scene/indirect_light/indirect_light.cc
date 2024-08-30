@@ -79,6 +79,8 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
       spdlog::debug("[IndirectLight] Type: DefaultIndirectLight");
       return std::move(std::make_unique<DefaultIndirectLight>());
     }
+
+    spdlog::error("[IndirectLight] Type: Unknown DefaultIndirectLight");
   } else {
     spdlog::critical("[IndirectLight] Unknown Type: {}", type.value());
   }

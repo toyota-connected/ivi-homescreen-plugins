@@ -107,7 +107,7 @@ void Material::vSetMaterialInstancePropertiesFromMyPropertyMap(
   for (const auto& param : parameters) {
     if (param.name) {
       SPDLOG_TRACE("[Material] name: {}, type: {}", param.name,
-                   (int)param.type);
+                   static_cast<int>(param.type));
 
       const auto& iter = parameters_.find(param.name);
       if (iter != parameters_.end() && iter->second != nullptr) {
