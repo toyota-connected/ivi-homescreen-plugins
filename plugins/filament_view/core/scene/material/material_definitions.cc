@@ -25,7 +25,7 @@ namespace plugin_filament_view {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
-                   const flutter::EncodableMap& params)
+                                         const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
@@ -59,7 +59,7 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
                                                            it.second);
     }
   }
-   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,9 +93,14 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
 }
 
-const std::string MaterialDefinitions::szGetMaterialDefinitionLookupName() const {
-  if(!assetPath_.empty()) {return assetPath_;}
-  if(!url_.empty()) {return url_;}
+std::string MaterialDefinitions::szGetMaterialDefinitionLookupName()
+    const {
+  if (!assetPath_.empty()) {
+    return assetPath_;
+  }
+  if (!url_.empty()) {
+    return url_;
+  }
   return "Unknown";
 }
 

@@ -28,7 +28,7 @@ namespace plugin_filament_view {
 class MaterialDefinitions {
  public:
   MaterialDefinitions(const std::string& flutter_assets_path,
-           const flutter::EncodableMap& params);
+                      const flutter::EncodableMap& params);
 
   ~MaterialDefinitions();
 
@@ -44,9 +44,9 @@ class MaterialDefinitions {
       const ::filament::Material* materialResult,
       filament::MaterialInstance* materialInstance) const;
 
- // this will either get the assetPath or the url, priority of assetPath
- // looking for which is valid. Used to see if we have this loaded in cache.
- const std::string szGetMaterialDefinitionLookupName() const;
+  // this will either get the assetPath or the url, priority of assetPath
+  // looking for which is valid. Used to see if we have this loaded in cache.
+  std::string szGetMaterialDefinitionLookupName() const;
 
  private:
   const std::string& flutterAssetsPath_;

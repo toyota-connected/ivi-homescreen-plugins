@@ -51,8 +51,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       m_quatRotation(0, 0, 0, 1),
       m_f3Normal(0, 0, 0),
       m_bCullingOfObjectEnabled(true),
-m_poMaterialInstance(Resource<::filament::MaterialInstance*>::Error(
-        "Unset")) {
+      m_poMaterialInstance(
+          Resource<::filament::MaterialInstance*>::Error("Unset")) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   static constexpr char kId[] = "id";
@@ -82,8 +82,8 @@ m_poMaterialInstance(Resource<::filament::MaterialInstance*>::Error(
                                           filament::math::float3(1, 1, 1));
   Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params,
                                           filament::math::quatf(0, 0, 0, 1));
-  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions, params,
-                                          flutter_assets_path);
+  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
+                                          params, flutter_assets_path);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
                                           false);
   Deserialize::DecodeParameterWithDefault(
@@ -92,8 +92,6 @@ m_poMaterialInstance(Resource<::filament::MaterialInstance*>::Error(
                                           params, false);
   Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params,
                                           false);
-
-
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
@@ -107,11 +105,11 @@ void BaseShape::vDestroyBuffers() {
   const auto filamentEngine =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
 
-  if(m_poMaterialInstance.getStatus() == Status::Success
-    && m_poMaterialInstance.getData() != nullptr) {
+  if (m_poMaterialInstance.getStatus() == Status::Success &&
+      m_poMaterialInstance.getData() != nullptr) {
     filamentEngine->destroy(m_poMaterialInstance.getData().value());
-    m_poMaterialInstance = Resource<::filament::MaterialInstance*>::Error(
-        "Unset");
+    m_poMaterialInstance =
+        Resource<::filament::MaterialInstance*>::Error("Unset");
   }
 
   if (m_poVertexBuffer) {

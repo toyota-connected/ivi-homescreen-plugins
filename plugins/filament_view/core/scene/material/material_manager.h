@@ -16,9 +16,9 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <mutex>
-#include <map>
 #include <string>
 
 #include <filament/MaterialInstance.h>
@@ -49,15 +49,17 @@ class MaterialManager {
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  static Resource<::filament::Material*> loadMaterialFromResource(MaterialDefinitions* materialDefinition);
+  static Resource<::filament::Material*> loadMaterialFromResource(
+      MaterialDefinitions* materialDefinition);
   static Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,
       const MaterialDefinitions* materialDefinition);
 
- // this map contains the loaded materials from disk, that are not actively used
- // but instead copies (instances) are made of, then the instances are used. Reducing
- // disk reload.
-  std::map<std::string, Resource<::filament::Material*>> loadedTemplateMaterials_;
- std::mutex loadingMaterialsMutex_;
+  // this map contains the loaded materials from disk, that are not actively
+  // used but instead copies (instances) are made of, then the instances are
+  // used. Reducing disk reload.
+  std::map<std::string, Resource<::filament::Material*>>
+      loadedTemplateMaterials_;
+  std::mutex loadingMaterialsMutex_;
 };
 }  // namespace plugin_filament_view

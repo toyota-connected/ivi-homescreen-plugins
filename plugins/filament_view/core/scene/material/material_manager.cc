@@ -34,7 +34,8 @@ Resource<::filament::Material*> MaterialManager::loadMaterialFromResource(
   // The Future object for loading Material
   if (!materialDefinition->assetPath_.empty()) {
     // THIS does NOT set default a parameter values
-    return MaterialLoader::loadMaterialFromAsset(materialDefinition->assetPath_);
+    return MaterialLoader::loadMaterialFromAsset(
+        materialDefinition->assetPath_);
   } else if (!materialDefinition->url_.empty()) {
     return MaterialLoader::loadMaterialFromUrl(materialDefinition->url_);
   } else {
@@ -56,8 +57,8 @@ Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
   auto materialInstance = materialResult->createInstance();
   SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
 
-  materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult,
-                                                            materialInstance);
+  materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
+      materialResult, materialInstance);
   SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
 
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
@@ -68,20 +69,23 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
 
   if (!materialDefinitions) {
-    SPDLOG_ERROR("--Bad MaterialDefinitions Result MaterialManager::getMaterialInstance");
+    SPDLOG_ERROR(
+        "--Bad MaterialDefinitions Result "
+        "MaterialManager::getMaterialInstance");
     Resource<::filament::MaterialInstance*>::Error("Material not found");
   }
 
-  Resource<filament::Material*> materialToInstanceFrom = Resource<::filament::Material*>::Error(
-        "Unset");
+  Resource<filament::Material*> materialToInstanceFrom =
+      Resource<::filament::Material*>::Error("Unset");
 
   // In case of multi material load on <load>
-  // we dont want to reload the same material several times and have collision in the map
+  // we dont want to reload the same material several times and have collision
+  // in the map
   std::lock_guard<std::mutex> lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
   auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
-  if(materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
+  if (materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     SPDLOG_WARN("Found material");
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
@@ -90,17 +94,19 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
-      SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
+      SPDLOG_ERROR(
+          "--Bad Material Result MaterialManager::getMaterialInstance");
       return Resource<::filament::MaterialInstance*>::Error(
           materialToInstanceFrom.getMessage());
     }
 
     // if we got here the material is valid, and we should add it into our map
-    loadedTemplateMaterials_.insert(std::make_pair(lookupName, materialToInstanceFrom));
+    loadedTemplateMaterials_.insert(
+        std::make_pair(lookupName, materialToInstanceFrom));
   }
 
-  auto materialInstance =
-      setupMaterialInstance(materialToInstanceFrom.getData().value(), materialDefinitions);
+  auto materialInstance = setupMaterialInstance(
+      materialToInstanceFrom.getData().value(), materialDefinitions);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;

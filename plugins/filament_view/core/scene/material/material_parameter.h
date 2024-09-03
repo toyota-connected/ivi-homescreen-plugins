@@ -74,8 +74,8 @@ class MaterialParameter {
 
   [[nodiscard]] std::string szGetParameterName() const { return name_; }
 
-    friend class Material;
-    friend class MaterialDefinitions;
+  friend class Material;
+  friend class MaterialDefinitions;
 
  private:
   static constexpr char kColor[] = "COLOR";
