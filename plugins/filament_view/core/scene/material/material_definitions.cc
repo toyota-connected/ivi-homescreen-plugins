@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-#include "material.h"
+#include "material_definitions.h"
 
-#include <filament/MaterialInstance.h>
 #include <filesystem>
 
-#include "core/scene/material/material_manager.h"
+#include "material_manager.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-Material::Material(const std::string& flutter_assets_path,
+MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
                    const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
-  SPDLOG_TRACE("++Material::Material");
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
     auto key = std::get<std::string>(it.first);
     SPDLOG_TRACE("Material Param {}", key);
@@ -60,11 +59,11 @@ Material::Material(const std::string& flutter_assets_path,
                                                            it.second);
     }
   }
-  SPDLOG_TRACE("--Material::Material");
+   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-Material::~Material() {
+MaterialDefinitions::~MaterialDefinitions() {
   for (auto& item : parameters_) {
     item.second.reset();
   }
@@ -72,9 +71,9 @@ Material::~Material() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void Material::Print(const char* tag) {
+void MaterialDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
-  spdlog::debug("{} (Material)", tag);
+  spdlog::debug("{} (MaterialDefinitions)", tag);
   if (!assetPath_.empty()) {
     spdlog::debug("\tassetPath: [{}]", assetPath_);
     std::filesystem::path asset_folder(flutterAssetsPath_);
@@ -94,8 +93,14 @@ void Material::Print(const char* tag) {
   spdlog::debug("++++++++");
 }
 
+const std::string MaterialDefinitions::szGetMaterialDefinitionLookupName() const {
+  if(!assetPath_.empty()) {return assetPath_;}
+  if(!url_.empty()) {return url_;}
+  return "Unknown";
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void Material::vSetMaterialInstancePropertiesFromMyPropertyMap(
+void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
     const ::filament::Material* materialResult,
     filament::MaterialInstance* materialInstance) const {
   auto count = materialResult->getParameterCount();

@@ -29,14 +29,14 @@ MaterialManager::MaterialManager() {
   SPDLOG_TRACE("--MaterialManager::MaterialManager");
 }
 
-Resource<::filament::Material*> MaterialManager::loadMaterial(
-    Material* material) {
+Resource<::filament::Material*> MaterialManager::loadMaterialFromResource(
+    MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
-  if (!material->assetPath_.empty()) {
+  if (!materialDefinition->assetPath_.empty()) {
     // THIS does NOT set default a parameter values
-    return MaterialLoader::loadMaterialFromAsset(material->assetPath_);
-  } else if (!material->url_.empty()) {
-    return MaterialLoader::loadMaterialFromUrl(material->url_);
+    return MaterialLoader::loadMaterialFromAsset(materialDefinition->assetPath_);
+  } else if (!materialDefinition->url_.empty()) {
+    return MaterialLoader::loadMaterialFromUrl(materialDefinition->url_);
   } else {
     return Resource<::filament::Material*>::Error(
         "You must provide material asset path or url");
@@ -45,40 +45,62 @@ Resource<::filament::Material*> MaterialManager::loadMaterial(
 
 Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
     ::filament::Material* materialResult,
-    const Material* material) {
+    const MaterialDefinitions* materialDefinitions) {
   if (!materialResult) {
     SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
     return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
   }
 
-  auto materialInstance = materialResult->createInstance();
+  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
 
-  material->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult,
+  auto materialInstance = materialResult->createInstance();
+  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+
+  materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(materialResult,
                                                             materialInstance);
+  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
 
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }
 
 Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
-    Material* material) {
+    MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
 
-  if (!material) {
-    SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
+  if (!materialDefinitions) {
+    SPDLOG_ERROR("--Bad MaterialDefinitions Result MaterialManager::getMaterialInstance");
     Resource<::filament::MaterialInstance*>::Error("Material not found");
   }
 
-  SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
-  auto materialResult = loadMaterial(material);
+  Resource<filament::Material*> materialToInstanceFrom = Resource<::filament::Material*>::Error(
+        "Unset");
 
-  if (materialResult.getStatus() != Status::Success) {
-    SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
-    return Resource<::filament::MaterialInstance*>::Error(
-        materialResult.getMessage());
+  // In case of multi material load on <load>
+  // we dont want to reload the same material several times and have collision in the map
+  std::lock_guard<std::mutex> lock(loadingMaterialsMutex_);
+
+  auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
+  auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
+  if(materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
+    SPDLOG_WARN("Found material");
+    materialToInstanceFrom = materialToInstanceFromIter->second;
+  } else {
+    SPDLOG_WARN("DIDNT Find material");
+    SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
+    materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
+
+    if (materialToInstanceFrom.getStatus() != Status::Success) {
+      SPDLOG_ERROR("--Bad Material Result MaterialManager::getMaterialInstance");
+      return Resource<::filament::MaterialInstance*>::Error(
+          materialToInstanceFrom.getMessage());
+    }
+
+    // if we got here the material is valid, and we should add it into our map
+    loadedTemplateMaterials_.insert(std::make_pair(lookupName, materialToInstanceFrom));
   }
 
   auto materialInstance =
-      setupMaterialInstance(materialResult.getData().value(), material);
+      setupMaterialInstance(materialToInstanceFrom.getData().value(), materialDefinitions);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;

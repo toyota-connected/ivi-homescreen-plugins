@@ -22,7 +22,7 @@
 
 #include "core/scene/geometry/direction.h"
 #include "core/scene/geometry/position.h"
-#include "core/scene/material/model/material.h"
+#include "core/scene/material/material_definitions.h"
 
 namespace plugin_filament_view {
 
@@ -44,7 +44,7 @@ class BaseShape {
   BaseShape(const BaseShape&) = delete;
   BaseShape& operator=(const BaseShape&) = delete;
 
-  [[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
+  //[[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                                    std::shared_ptr<Entity> entityObject,
@@ -78,7 +78,8 @@ class BaseShape {
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;
   /// material to be used for the shape.
-  std::optional<std::unique_ptr<Material>> m_poMaterial;
+  std::optional<std::unique_ptr<MaterialDefinitions>> m_poMaterialDefinitions;
+  Resource<filament::MaterialInstance*> m_poMaterialInstance;
 
   std::shared_ptr<utils::Entity> m_poEntity;
 

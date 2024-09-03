@@ -19,10 +19,10 @@
 #include <math/vec4.h>
 #include <memory>
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+#include <flutter/encodable_value.h>
 
-#include "core/scene/material/texture/texture.h"
-#include "core/scene/material/texture/texture_sampler.h"
+#include "texture/texture.h"
+#include "texture/texture_sampler.h"
 
 namespace plugin_filament_view {
 
@@ -74,7 +74,8 @@ class MaterialParameter {
 
   [[nodiscard]] std::string szGetParameterName() const { return name_; }
 
-  friend class Material;
+    friend class Material;
+    friend class MaterialDefinitions;
 
  private:
   static constexpr char kColor[] = "COLOR";

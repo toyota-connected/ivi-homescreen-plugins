@@ -17,32 +17,29 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
+#include <map>
+#include <string>
 
 #include <filament/MaterialInstance.h>
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
 #include "core/scene/material/loader/material_loader.h"
 #include "core/scene/material/loader/texture_loader.h"
-#include "core/scene/material/model/material.h"
-#include "core/scene/material/utils/material_instance.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
 class CustomModelViewer;
-class Material;
+class MaterialDefinitions;
 class MaterialLoader;
-class MaterialInstance;
 class TextureLoader;
 
 class MaterialManager {
  public:
   MaterialManager();
 
-  static Resource<::filament::MaterialInstance*> getMaterialInstance(
-      Material* material);
+  Resource<::filament::MaterialInstance*> getMaterialInstance(
+      MaterialDefinitions* materialDefinitions);
 
   // Disallow copy and assign.
   MaterialManager(const MaterialManager&) = delete;
@@ -52,9 +49,15 @@ class MaterialManager {
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  static Resource<::filament::Material*> loadMaterial(Material* material);
+  static Resource<::filament::Material*> loadMaterialFromResource(MaterialDefinitions* materialDefinition);
   static Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,
-      const Material* material);
+      const MaterialDefinitions* materialDefinition);
+
+ // this map contains the loaded materials from disk, that are not actively used
+ // but instead copies (instances) are made of, then the instances are used. Reducing
+ // disk reload.
+  std::map<std::string, Resource<::filament::Material*>> loadedTemplateMaterials_;
+ std::mutex loadingMaterialsMutex_;
 };
 }  // namespace plugin_filament_view

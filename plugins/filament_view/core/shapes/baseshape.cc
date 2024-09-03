@@ -50,7 +50,9 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       m_f3Scale(1, 1, 1),
       m_quatRotation(0, 0, 0, 1),
       m_f3Normal(0, 0, 0),
-      m_bCullingOfObjectEnabled(true) {
+      m_bCullingOfObjectEnabled(true),
+m_poMaterialInstance(Resource<::filament::MaterialInstance*>::Error(
+        "Unset")) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   static constexpr char kId[] = "id";
@@ -80,7 +82,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
                                           filament::math::float3(1, 1, 1));
   Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params,
                                           filament::math::quatf(0, 0, 0, 1));
-  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterial, params,
+  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions, params,
                                           flutter_assets_path);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
                                           false);
@@ -90,6 +92,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
                                           params, false);
   Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params,
                                           false);
+
+
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
@@ -103,6 +107,13 @@ void BaseShape::vDestroyBuffers() {
   const auto filamentEngine =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
 
+  if(m_poMaterialInstance.getStatus() == Status::Success
+    && m_poMaterialInstance.getData() != nullptr) {
+    filamentEngine->destroy(m_poMaterialInstance.getData().value());
+    m_poMaterialInstance = Resource<::filament::MaterialInstance*>::Error(
+        "Unset");
+  }
+
   if (m_poVertexBuffer) {
     filamentEngine->destroy(m_poVertexBuffer);
     m_poVertexBuffer = nullptr;
@@ -114,15 +125,15 @@ void BaseShape::vDestroyBuffers() {
 }
 
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
-                                 MaterialManager* /*material_manager*/) {
+                                 MaterialManager* material_manager) {
   // this will also set all the default values of the material instance from the
   // material param list
-  const auto materialInstanceResult =
-      MaterialManager::getMaterialInstance(m_poMaterial->get());
+  m_poMaterialInstance =
+      material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
 
   RenderableManager::Builder(1)
       .boundingBox({{}, m_f3ExtentsSize})
-      .material(0, materialInstanceResult.getData().value())
+      .material(0, m_poMaterialInstance.getData().value())
       .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
                 m_poVertexBuffer, m_poIndexBuffer)
       .culling(m_bCullingOfObjectEnabled)
@@ -181,8 +192,8 @@ void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
                 m_f3Normal.z);
 
-  if (m_poMaterial.has_value()) {
-    m_poMaterial.value()->Print("\tMaterial");
+  if (m_poMaterialDefinitions.has_value()) {
+    m_poMaterialDefinitions.value()->DebugPrint("\tMaterial Definitions");
   }
 
   spdlog::debug("Double Sided: {}", m_bDoubleSided);

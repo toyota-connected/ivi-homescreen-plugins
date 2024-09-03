@@ -22,11 +22,7 @@
 #include <utils/Entity.h>
 #include <memory>
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include "core/scene/geometry/direction.h"
 #include "core/scene/geometry/position.h"
-#include "core/scene/material/model/material.h"
 
 namespace plugin_filament_view {
 
