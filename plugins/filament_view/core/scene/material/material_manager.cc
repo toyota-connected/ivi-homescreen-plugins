@@ -52,14 +52,9 @@ Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
     return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
   }
 
-  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
-
   auto materialInstance = materialResult->createInstance();
-  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
-
   materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
       materialResult, materialInstance);
-  SPDLOG_WARN("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
 
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }
@@ -86,10 +81,8 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
   auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
   if (materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
-    SPDLOG_WARN("Found material");
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
-    SPDLOG_WARN("DIDNT Find material");
     SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
