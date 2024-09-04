@@ -166,7 +166,7 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
                                             int32_t intensity) {
   if (scene_) {
     if (scene_->light_) {
-      SPDLOG_WARN("Changing light values. {} {}", __FILE__, __FUNCTION__);
+      SPDLOG_TRACE("Changing light values. {} {}", __FILE__, __FUNCTION__);
 
       scene_->light_->ChangeColor(colorValue);
       scene_->light_->ChangeIntensity(static_cast<float>(intensity));

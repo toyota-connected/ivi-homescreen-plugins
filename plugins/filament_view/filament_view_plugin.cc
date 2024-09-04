@@ -130,7 +130,6 @@ void FilamentViewPlugin::SetCameraRotation(
   const auto sceneController = filamentScene_->getSceneController();
   Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
   if (poCamera != nullptr) {
-    SPDLOG_DEBUG("{}", fValue);
     poCamera->vSetCurrentCameraOrbitAngle(fValue);
   }
 }
