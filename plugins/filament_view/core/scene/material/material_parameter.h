@@ -86,6 +86,18 @@ class MaterialParameter {
     }
   }
 
+  [[nodiscard]] TextureSampler* getTextureSampler() const {
+    const auto& textureValue = getTextureValue();
+    const auto& texturePtr =
+        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+
+    if (!texturePtr) {
+      return nullptr;
+    }
+
+    return texturePtr->getSampler();
+  }
+
   [[nodiscard]] std::string getTextureValueAssetPath() const {
     const auto& textureValue = getTextureValue();
     const auto& texturePtr =

@@ -219,8 +219,8 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
     for (int i = 0; i < count; i++) {
       auto ri = rcm.getInstance(readyRenderables_[i]);
       // TODO move to settings & per model
-      //rcm.setCastShadows(ri, true);
-      //rcm.setReceiveShadows(ri, true);
+      // rcm.setCastShadows(ri, true);
+      // rcm.setReceiveShadows(ri, true);
       rcm.setScreenSpaceContactShadows(ri, false);
     }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);

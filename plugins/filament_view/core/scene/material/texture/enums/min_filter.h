@@ -18,26 +18,6 @@
 
 namespace plugin_filament_view {
 
-enum MinFilter {
-  /// No filtering. Nearest neighbor is used.
-  nearest,
-
-  /// Box filtering. Weighted average of 4 neighbors is used.
-  linear,
-
-  /// Mip-mapping is activated. But no filtering occurs.
-  nearestMipmapNearest,
-
-  /// Box filtering within a mip-map level.
-  linearMipmapNearest,
-
-  /// Mip-map levels are interpolated, but no other filtering occurs.
-  nearestMipmapLinear,
-
-  /// Both interpolated Mip-mapping and linear filtering are used.
-  linearMipmapLinear,
-};
-
 static constexpr char kMinFilterNearest[] = "NEAREST";
 static constexpr char kMinFilterLinear[] = "LINEAR";
 static constexpr char kMinFilterNearestMipmapNearest[] =
@@ -45,16 +25,5 @@ static constexpr char kMinFilterNearestMipmapNearest[] =
 static constexpr char kMinFilterLinearMipmapNearest[] = "LINEAR_MIPMAP_NEAREST";
 static constexpr char kMinFilterNearestMipmapLinear[] = "NEAREST_MIPMAP_LINEAR";
 static constexpr char kMinFilterLinearMipmapLinear[] = "LINEAR_MIPMAP_LINEAR";
-
-static const char* getTextForMinFilter(MinFilter min_filter) {
-  return (const char*[]){
-      kMinFilterNearest,
-      kMinFilterLinear,
-      kMinFilterNearestMipmapNearest,
-      kMinFilterLinearMipmapNearest,
-      kMinFilterNearestMipmapLinear,
-      kMinFilterLinearMipmapLinear,
-  }[min_filter];
-}
 
 }  // namespace plugin_filament_view

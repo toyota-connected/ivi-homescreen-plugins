@@ -179,10 +179,28 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
             continue;
           }
 
-          // TODO sampler
-          // sampler will be on 'our' deserialized texturedefinitions->texture_sampler
+          // sampler will be on 'our' deserialized
+          // texturedefinitions->texture_sampler
+          auto textureSampler = iter->second->getTextureSampler();
+
           ::filament::TextureSampler sampler(MinFilter::LINEAR,
                                              MagFilter::LINEAR);
+
+          if (textureSampler != nullptr) {
+            SPDLOG_INFO("Overloading filtering options with set param values");
+            sampler.setMinFilter(textureSampler->getMinFilter());
+            sampler.setMagFilter(textureSampler->getMagFilter());
+            sampler.setAnisotropy(
+                static_cast<float>(textureSampler->getAnisotropy()));
+
+            // Currently leaving this commented out, but this is for 3d
+            // textures, which are not currently expected to be loaded
+            // as time of writing.
+            // sampler.setWrapModeR(textureSampler->getWrapModeR());
+
+            sampler.setWrapModeS(textureSampler->getWrapModeS());
+            sampler.setWrapModeT(textureSampler->getWrapModeT());
+          }
 
           if (!foundResource->second.getData().has_value()) {
             spdlog::warn(

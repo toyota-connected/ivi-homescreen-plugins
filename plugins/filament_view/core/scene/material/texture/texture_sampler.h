@@ -20,6 +20,8 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <filament/TextureSampler.h>
+
 namespace plugin_filament_view {
 
 class TextureSampler {
@@ -33,10 +35,21 @@ class TextureSampler {
 
   TextureSampler& operator=(const TextureSampler&) = delete;
 
+  [[nodiscard]] ::filament::TextureSampler::MagFilter getMagFilter() const;
+  [[nodiscard]] ::filament::TextureSampler::MinFilter getMinFilter() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeR() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeS() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeT() const;
+  [[nodiscard]] double getAnisotropy() const {
+    return anisotropy_.has_value() ? anisotropy_.value() : 1;
+  }
+
  private:
   std::string min_;
   std::string mag_;
-  std::string wrap_;
+  std::string wrapR_;
+  std::string wrapS_;
+  std::string wrapT_;
   std::optional<double> anisotropy_{};
 };
 }  // namespace plugin_filament_view

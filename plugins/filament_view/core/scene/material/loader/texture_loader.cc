@@ -26,8 +26,6 @@ TextureLoader::TextureLoader() = default;
 
 inline ::filament::backend::TextureFormat internalFormat(
     const TextureDefinitions::TextureType type) {
-  // return ::filament::backend::TextureFormat::RGBA8;
-
   switch (type) {
     case TextureDefinitions::TextureType::COLOR:
       return ::filament::backend::TextureFormat::SRGB8_A8;
