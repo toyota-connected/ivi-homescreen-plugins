@@ -88,8 +88,10 @@ class BaseShape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
- // TODO
- bool m_bHasTexturedMaterial = true;
+  // TODO - Note this is backlogged for using value.
+  //        For now this is unimplemented, but would be a <small> savings
+  //        when building as code currently allocates buffers for UVs
+  bool m_bHasTexturedMaterial = true;
 
  private:
   void vDestroyBuffers();

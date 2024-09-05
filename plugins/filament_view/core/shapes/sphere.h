@@ -53,10 +53,10 @@ class Sphere : public BaseShape {
   int stacks_;
   int slices_;
 
-  std::vector<::filament::math::float3> vertices;
-  std::vector<::filament::math::float3> normals;
-  std::vector<unsigned short> indices;
-  std::vector<::filament::math::float2> uvs;
+  std::vector<::filament::math::float3> vertices_;
+  std::vector<::filament::math::float3> normals_;
+  std::vector<unsigned short> indices_;
+  std::vector<::filament::math::float2> uvs_;
 };
 
 }  // namespace shapes

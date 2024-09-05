@@ -21,16 +21,16 @@
 
 #include <flutter/encodable_value.h>
 
-#include "texture/texture.h"
+#include "texture/texture_definitions.h"
 #include "texture/texture_sampler.h"
 
 namespace plugin_filament_view {
 
-class Texture;
+class TextureDefinitions;
 
 class TextureSampler;
 
-using MaterialTextureValue = std::variant<std::unique_ptr<Texture>>;
+using MaterialTextureValue = std::variant<std::unique_ptr<TextureDefinitions>>;
 using MaterialFloatValue = float;
 using MaterialColorValue = ::filament::math::vec4<float>;
 
@@ -77,24 +77,26 @@ class MaterialParameter {
   friend class Material;
   friend class MaterialDefinitions;
 
-   [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
-        if (textureValue_.has_value()) {
-            return textureValue_.value();
-        } else {
-            throw std::runtime_error("MaterialParameter does not contain a texture value.");
-        }
+  [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
+    if (textureValue_.has_value()) {
+      return textureValue_.value();
+    } else {
+      throw std::runtime_error(
+          "MaterialParameter does not contain a texture value.");
+    }
+  }
+
+  std::string getTextureValueAssetPath() const {
+    const auto& textureValue = getTextureValue();
+    const auto& texturePtr =
+        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+
+    if (!texturePtr) {
+      return "";
     }
 
-    std::string getTextureValueAssetPath() const {
-       const auto& textureValue = getTextureValue();
-       const auto& texturePtr = std::get<std::unique_ptr<Texture>>(textureValue);
-
-       if (!texturePtr) {
-           return "";
-       }
-
-       return texturePtr->szGetTextureDefinitionLookupName();
-   }
+    return texturePtr->szGetTextureDefinitionLookupName();
+  }
 
  private:
   static constexpr char kColor[] = "COLOR";

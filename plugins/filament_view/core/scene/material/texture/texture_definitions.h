@@ -23,7 +23,7 @@
 #include "texture_sampler.h"
 
 namespace plugin_filament_view {
-class Texture {
+class TextureDefinitions {
  public:
   enum TextureType {
     COLOR,
@@ -31,32 +31,32 @@ class Texture {
     DATA,
   };
 
-  Texture(TextureType type,
-          std::string assetPath,
-          std::string url,
-          TextureSampler* sampler);
+  TextureDefinitions(TextureType type,
+                     std::string assetPath,
+                     std::string url,
+                     TextureSampler* sampler);
 
-  ~Texture();
+  ~TextureDefinitions();
 
-  static std::unique_ptr<Texture> Deserialize(
+  static std::unique_ptr<TextureDefinitions> Deserialize(
       const flutter::EncodableMap& params);
 
   void DebugPrint(const char* tag);
 
   // Disallow copy and assign.
-  Texture(const Texture&) = delete;
-  Texture& operator=(const Texture&) = delete;
+  TextureDefinitions(const TextureDefinitions&) = delete;
+  TextureDefinitions& operator=(const TextureDefinitions&) = delete;
 
   static TextureType getType(const std::string& type);
 
   static const char* getTextForType(TextureType type);
 
   friend class TextureLoader;
- friend class MaterialManager;
+  friend class MaterialManager;
 
- // this will either get the assetPath or the url, priority of assetPath
- // looking for which is valid. Used to see if we have this loaded in cache.
- std::string szGetTextureDefinitionLookupName() const;
+  // this will either get the assetPath or the url, priority of assetPath
+  // looking for which is valid. Used to see if we have this loaded in cache.
+  std::string szGetTextureDefinitionLookupName() const;
 
  private:
   std::string assetPath_;

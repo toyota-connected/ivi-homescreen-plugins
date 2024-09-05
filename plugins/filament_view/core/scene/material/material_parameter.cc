@@ -91,7 +91,7 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     case MaterialType::TEXTURE:
       return std::make_unique<MaterialParameter>(
           name.has_value() ? name.value() : "", type.value(),
-          Texture::Deserialize(encodMapValue.value()));
+          TextureDefinitions::Deserialize(encodMapValue.value()));
 
     case MaterialType::FLOAT:
       return std::make_unique<MaterialParameter>(
@@ -120,7 +120,8 @@ void MaterialParameter::DebugPrint(const char* tag) {
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
       auto texture =
-          std::get<std::unique_ptr<Texture>>(textureValue_.value()).get();
+          std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value())
+              .get();
       if (texture) {
         texture->DebugPrint("\ttexture");
       } else {

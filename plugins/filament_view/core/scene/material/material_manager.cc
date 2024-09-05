@@ -98,55 +98,51 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
         std::make_pair(lookupName, materialToInstanceFrom));
   }
 
-  // here we need to see if any & all textures that are requested on the material
-  // be loaded before we create an instance of it.
-auto materialsRequiredTextures = materialDefinitions->vecGetTextureMaterialParameters();
-for (auto materialParam : materialsRequiredTextures) {
-    // Convert weak_ptr to shared_ptr to check if it is still valid
-    //if (auto materialParam = materialParamWeak.lock())
-    {
-        try {
+  // here we need to see if any & all textures that are requested on the
+  // material be loaded before we create an instance of it.
+  auto materialsRequiredTextures =
+      materialDefinitions->vecGetTextureMaterialParameters();
+  for (auto materialParam : materialsRequiredTextures) {
+    try {
+      // Call the getTextureValue method
+      const auto& textureValue = materialParam->getTextureValue();
 
-            // Call the getTextureValue method
-            const auto& textureValue = materialParam->getTextureValue();
+      // Access the Texture pointer from the MaterialTextureValue variant
+      const auto& texturePtr =
+          std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
 
-            // Access the Texture pointer from the MaterialTextureValue variant
-            const auto& texturePtr = std::get<std::unique_ptr<Texture>>(textureValue);
+      if (!texturePtr) {
+        spdlog::error("Unable to access texture point value for {}",
+                      materialParam->szGetParameterName());
+        continue;
+      }
 
-            if (!texturePtr) {
-                spdlog::error("Unable to access texture point value for {}", materialParam->szGetParameterName());
-                continue;
-            }
+      // see if the asset path is already in our map of saved textures
+      const auto assetPath = materialParam->getTextureValueAssetPath();
+      auto foundAsset = loadedTextures_.find(assetPath);
+      if (foundAsset != loadedTextures_.end()) {
+        // it exists already, don't need to load it.
+        continue;
+      }
 
-            // see if the asset path is already in our map of saved textures
-            const auto assetPath = materialParam->getTextureValueAssetPath();
-            auto foundAsset = loadedTextures_.find(assetPath);
-            if(foundAsset != loadedTextures_.end()) {
-                // it exists already, don't need to load it.
-                continue;
-            }
+      // its not loaded already, lets load it.
+      auto loadedTexture = textureLoader_->loadTexture(texturePtr.get());
 
-            // its not loaded already, lets load it.
-            SPDLOG_WARN("Loading texture {}.", assetPath);
-            auto loadedTexture = textureLoader_->loadTexture(texturePtr.get());
-            SPDLOG_WARN("Loaded texture {}.", assetPath);
+      if (loadedTexture.getStatus() != Status::Success) {
+        spdlog::error("Unable to load texture from {}", assetPath);
+        Resource<::filament::Texture*>::Error(
+            materialToInstanceFrom.getMessage());
+        continue;
+      }
 
-            if (loadedTexture.getStatus() != Status::Success) {
-                spdlog::error("Unable to load texture from {}", assetPath);
-                Resource<::filament::Texture*>::Error(
-                    materialToInstanceFrom.getMessage());
-                continue;
-            }
-
-            loadedTextures_.insert(std::pair(assetPath, loadedTexture));
-        } catch (const std::bad_variant_access& e) {
-            std::cerr << "Error: Could not retrieve the texture value. " << e.what() << std::endl;
-        } catch (const std::runtime_error& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
+      loadedTextures_.insert(std::pair(assetPath, loadedTexture));
+    } catch (const std::bad_variant_access& e) {
+      spdlog::error("Error: Could not retrieve the texture value. {}",
+                    e.what());
+    } catch (const std::runtime_error& e) {
+      spdlog::error("Error:  {}", e.what());
     }
-}
-    SPDLOG_WARN("setupMaterialInstance");
+  }
 
   auto materialInstance = setupMaterialInstance(
       materialToInstanceFrom.getData().value(), materialDefinitions);

@@ -100,7 +100,7 @@ add_library(plugin_filament_view STATIC
         core/scene/material/material_manager.cc
         core/scene/material/material_definitions.cc
         core/scene/material/material_parameter.cc
-        core/scene/material/texture/texture.cc
+        core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc
         core/scene/skybox/skybox.cc
         core/scene/skybox/skybox_manager.cc

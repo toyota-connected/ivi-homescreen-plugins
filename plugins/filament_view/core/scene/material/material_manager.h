@@ -64,10 +64,11 @@ class MaterialManager {
       loadedTemplateMaterials_;
   std::mutex loadingMaterialsMutex_;
 
-    // This map is a list of all loaded textures. Multiple materials might reference
-    // the same texture, and instead of loading them separately; they'll be reused here.
-    // As of writing 202409 Textures are tied to materials, so it makes sense to have
-    // a check if a material needs a texture, to load it in that stack chain.
+  // This map is a list of all loaded textures. Multiple materials might
+  // reference the same texture, and instead of loading them separately; they'll
+  // be reused here. As of writing 202409 Textures are tied to materials, so it
+  // makes sense to have a check if a material needs a texture, to load it in
+  // that stack chain.
   TextureMap loadedTextures_;
 };
 }  // namespace plugin_filament_view

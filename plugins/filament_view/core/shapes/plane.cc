@@ -64,15 +64,15 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   static constexpr float vertices[] = {
       // Front face
       -0.5f, -0.5f, 0.0f,  // Vertex 0
-      0.5f,  -0.5f, 0.0f,  // Vertex 1
-      0.5f,  0.5f,  0.0f,  // Vertex 2
-      -0.5f, 0.5f,  0.0f,  // Vertex 3
+      0.5f, -0.5f, 0.0f,   // Vertex 1
+      0.5f, 0.5f, 0.0f,    // Vertex 2
+      -0.5f, 0.5f, 0.0f,   // Vertex 3
 
       // Back face
       -0.5f, -0.5f, 0.0f,  // Vertex 4
-      0.5f,  -0.5f, 0.0f,  // Vertex 5
-      0.5f,  0.5f,  0.0f,  // Vertex 6
-      -0.5f, 0.5f,  0.0f   // Vertex 7
+      0.5f, -0.5f, 0.0f,   // Vertex 5
+      0.5f, 0.5f, 0.0f,    // Vertex 6
+      -0.5f, 0.5f, 0.0f    // Vertex 7
   };
 
   // UV coordinates for the plane
@@ -91,12 +91,10 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   };
 
   // Indices for 2 triangles per side (12 indices in total)
-  static constexpr uint16_t indices[] = {
-      // Front face
-      0, 1, 2, 0, 2, 3,
-      // Back face (inverted winding)
-      4, 6, 5, 4, 7, 6
-  };
+  static constexpr uint16_t indices[] = {// Front face
+                                         0, 1, 2, 0, 2, 3,
+                                         // Back face (inverted winding)
+                                         4, 6, 5, 4, 7, 6};
 
   // Packed normal for the plane (same for both sides)
   short4 const tbn =

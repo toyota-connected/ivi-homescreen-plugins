@@ -76,34 +76,38 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
-  float sectorStep = 2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
+  float sectorStep =
+      2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
   float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
   float sectorAngle, stackAngle;
 
   // Generate vertices, normals, and UVs for the outer surface
   for (int i = 0; i <= stacks; ++i) {
-    stackAngle = static_cast<float>(M_PI) / 2.0f - static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    float xy = cosf(stackAngle);  // r * cos(u)
-    float z = sinf(stackAngle);   // r * sin(u)
-    float v = static_cast<float>(i) / static_cast<float>(stacks);  // Latitude, y-axis UV
+    stackAngle = static_cast<float>(M_PI) / 2.0f -
+                 static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
+    float xy = cosf(stackAngle);                     // r * cos(u)
+    float z = sinf(stackAngle);                      // r * sin(u)
+    float v = static_cast<float>(i) /
+              static_cast<float>(stacks);  // Latitude, y-axis UV
 
     for (int j = 0; j <= sectors; ++j) {
       sectorAngle = static_cast<float>(j) * sectorStep;  // from 0 to 2pi
       float x = xy * cosf(sectorAngle);  // x = r * cos(u) * cos(v)
       float y = xy * sinf(sectorAngle);  // y = r * cos(u) * sin(v)
-      float u = static_cast<float>(j) / static_cast<float>(sectors);  // Longitude, x-axis UV
+      float u = static_cast<float>(j) /
+                static_cast<float>(sectors);  // Longitude, x-axis UV
 
       // Add vertex position
-      vertices.emplace_back(x, y, z);
+      vertices_.emplace_back(x, y, z);
 
       // Add normal
       float length = sqrt(x * x + y * y + z * z);
       if (length == 0)
         length = 0.01f;
-      normals.emplace_back(x / length, y / length, z / length);
+      normals_.emplace_back(x / length, y / length, z / length);
 
       // Add UV coordinates
-      uvs.emplace_back(u, v);
+      uvs_.emplace_back(u, v);
     }
   }
 
@@ -114,20 +118,20 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
 
     for (int j = 0; j < sectors; ++j, ++k1, ++k2) {
       // Middle area triangles
-      indices.push_back(static_cast<uint16_t>(k1));
-      indices.push_back(static_cast<uint16_t>(k2));
-      indices.push_back(static_cast<uint16_t>(k1 + 1));
+      indices_.push_back(static_cast<uint16_t>(k1));
+      indices_.push_back(static_cast<uint16_t>(k2));
+      indices_.push_back(static_cast<uint16_t>(k1 + 1));
 
-      indices.push_back(static_cast<uint16_t>(k1 + 1));
-      indices.push_back(static_cast<uint16_t>(k2));
-      indices.push_back(static_cast<uint16_t>(k2 + 1));
+      indices_.push_back(static_cast<uint16_t>(k1 + 1));
+      indices_.push_back(static_cast<uint16_t>(k2));
+      indices_.push_back(static_cast<uint16_t>(k2 + 1));
     }
   }
 
   // Create the vertex buffer
   m_poVertexBuffer =
       VertexBuffer::Builder()
-          .vertexCount(static_cast<unsigned int>(vertices.size()))
+          .vertexCount(static_cast<unsigned int>(vertices_.size()))
           .bufferCount(3)  // Position, Normals, and UVs
           .attribute(VertexAttribute::POSITION, 0,
                      VertexBuffer::AttributeType::FLOAT3)
@@ -140,19 +144,19 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
   // Set buffer data
   m_poVertexBuffer->setBufferAt(
       *engine_, 0,
-      VertexBuffer::BufferDescriptor(vertices.data(),
-                                     vertices.size() * sizeof(float) * 3));
+      VertexBuffer::BufferDescriptor(vertices_.data(),
+                                     vertices_.size() * sizeof(float) * 3));
   m_poVertexBuffer->setBufferAt(
       *engine_, 1,
-      VertexBuffer::BufferDescriptor(normals.data(),
-                                     normals.size() * sizeof(float3)));
+      VertexBuffer::BufferDescriptor(normals_.data(),
+                                     normals_.size() * sizeof(float3)));
   m_poVertexBuffer->setBufferAt(
       *engine_, 2,
-      VertexBuffer::BufferDescriptor(uvs.data(),
-                                     uvs.size() * sizeof(float) * 2));
+      VertexBuffer::BufferDescriptor(uvs_.data(),
+                                     uvs_.size() * sizeof(float) * 2));
 
   // Create the index buffer
-  auto indexCount = static_cast<unsigned int>(indices.size());
+  auto indexCount = static_cast<unsigned int>(indices_.size());
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -160,11 +164,10 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
 
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(
-                    indices.data(), indices.size() * sizeof(unsigned short)));
+                    indices_.data(), indices_.size() * sizeof(unsigned short)));
 
   vBuildRenderable(engine_, material_manager);
 }
-
 
 void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/,
                                      MaterialManager* /*material_manager*/) {

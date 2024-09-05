@@ -63,115 +63,114 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
   static const float vertices[] = {
       // Outside Front face
       -0.5f, -0.5f, 0.5f,  // Vertex 0
-      0.5f,  -0.5f, 0.5f,  // Vertex 1
-      0.5f,  0.5f,  0.5f,  // Vertex 2
-      -0.5f, 0.5f,  0.5f,  // Vertex 3
+      0.5f, -0.5f, 0.5f,   // Vertex 1
+      0.5f, 0.5f, 0.5f,    // Vertex 2
+      -0.5f, 0.5f, 0.5f,   // Vertex 3
 
       // Outside Back face
-      0.5f,  -0.5f, -0.5f,  // Vertex 4
+      0.5f, -0.5f, -0.5f,   // Vertex 4
       -0.5f, -0.5f, -0.5f,  // Vertex 5
-      -0.5f, 0.5f,  -0.5f,  // Vertex 6
-      0.5f,  0.5f,  -0.5f,  // Vertex 7
+      -0.5f, 0.5f, -0.5f,   // Vertex 6
+      0.5f, 0.5f, -0.5f,    // Vertex 7
 
       // Outside Right face
-      0.5f,  -0.5f, 0.5f,   // Vertex 8
-      0.5f,  -0.5f, -0.5f,  // Vertex 9
-      0.5f,  0.5f,  -0.5f,  // Vertex 10
-      0.5f,  0.5f,  0.5f,   // Vertex 11
+      0.5f, -0.5f, 0.5f,   // Vertex 8
+      0.5f, -0.5f, -0.5f,  // Vertex 9
+      0.5f, 0.5f, -0.5f,   // Vertex 10
+      0.5f, 0.5f, 0.5f,    // Vertex 11
 
       // Outside Left face
       -0.5f, -0.5f, -0.5f,  // Vertex 12
       -0.5f, -0.5f, 0.5f,   // Vertex 13
-      -0.5f, 0.5f,  0.5f,   // Vertex 14
-      -0.5f, 0.5f,  -0.5f,  // Vertex 15
+      -0.5f, 0.5f, 0.5f,    // Vertex 14
+      -0.5f, 0.5f, -0.5f,   // Vertex 15
 
       // Outside Top face
-      -0.5f, 0.5f,  0.5f,   // Vertex 16
-      0.5f,  0.5f,  0.5f,   // Vertex 17
-      0.5f,  0.5f,  -0.5f,  // Vertex 18
-      -0.5f, 0.5f,  -0.5f,  // Vertex 19
+      -0.5f, 0.5f, 0.5f,   // Vertex 16
+      0.5f, 0.5f, 0.5f,    // Vertex 17
+      0.5f, 0.5f, -0.5f,   // Vertex 18
+      -0.5f, 0.5f, -0.5f,  // Vertex 19
 
       // Outside Bottom face
       -0.5f, -0.5f, -0.5f,  // Vertex 20
-      0.5f,  -0.5f, -0.5f,  // Vertex 21
-      0.5f,  -0.5f, 0.5f,   // Vertex 22
+      0.5f, -0.5f, -0.5f,   // Vertex 21
+      0.5f, -0.5f, 0.5f,    // Vertex 22
       -0.5f, -0.5f, 0.5f,   // Vertex 23
 
       // Inside Front face (inverted)
       -0.5f, -0.5f, 0.5f,  // Vertex 24
-      0.5f,  -0.5f, 0.5f,  // Vertex 25
-      0.5f,  0.5f,  0.5f,  // Vertex 26
-      -0.5f, 0.5f,  0.5f,  // Vertex 27
+      0.5f, -0.5f, 0.5f,   // Vertex 25
+      0.5f, 0.5f, 0.5f,    // Vertex 26
+      -0.5f, 0.5f, 0.5f,   // Vertex 27
 
       // Inside Back face (inverted)
-      0.5f,  -0.5f, -0.5f,  // Vertex 28
+      0.5f, -0.5f, -0.5f,   // Vertex 28
       -0.5f, -0.5f, -0.5f,  // Vertex 29
-      -0.5f, 0.5f,  -0.5f,  // Vertex 30
-      0.5f,  0.5f,  -0.5f,  // Vertex 31
+      -0.5f, 0.5f, -0.5f,   // Vertex 30
+      0.5f, 0.5f, -0.5f,    // Vertex 31
 
       // Inside Right face (inverted)
-      0.5f,  -0.5f, 0.5f,   // Vertex 32
-      0.5f,  -0.5f, -0.5f,  // Vertex 33
-      0.5f,  0.5f,  -0.5f,  // Vertex 34
-      0.5f,  0.5f,  0.5f,   // Vertex 35
+      0.5f, -0.5f, 0.5f,   // Vertex 32
+      0.5f, -0.5f, -0.5f,  // Vertex 33
+      0.5f, 0.5f, -0.5f,   // Vertex 34
+      0.5f, 0.5f, 0.5f,    // Vertex 35
 
       // Inside Left face (inverted)
       -0.5f, -0.5f, -0.5f,  // Vertex 36
       -0.5f, -0.5f, 0.5f,   // Vertex 37
-      -0.5f, 0.5f,  0.5f,   // Vertex 38
-      -0.5f, 0.5f,  -0.5f,  // Vertex 39
+      -0.5f, 0.5f, 0.5f,    // Vertex 38
+      -0.5f, 0.5f, -0.5f,   // Vertex 39
 
       // Inside Top face (inverted)
-      -0.5f, 0.5f,  0.5f,   // Vertex 40
-      0.5f,  0.5f,  0.5f,   // Vertex 41
-      0.5f,  0.5f,  -0.5f,  // Vertex 42
-      -0.5f, 0.5f,  -0.5f,  // Vertex 43
+      -0.5f, 0.5f, 0.5f,   // Vertex 40
+      0.5f, 0.5f, 0.5f,    // Vertex 41
+      0.5f, 0.5f, -0.5f,   // Vertex 42
+      -0.5f, 0.5f, -0.5f,  // Vertex 43
 
       // Inside Bottom face (inverted)
       -0.5f, -0.5f, -0.5f,  // Vertex 44
-      0.5f,  -0.5f, -0.5f,  // Vertex 45
-      0.5f,  -0.5f, 0.5f,   // Vertex 46
+      0.5f, -0.5f, -0.5f,   // Vertex 45
+      0.5f, -0.5f, 0.5f,    // Vertex 46
       -0.5f, -0.5f, 0.5f    // Vertex 47
   };
 
   // UV coordinates for each face (same for inside and outside)
   static const float uvCoords[] = {
       // Outside Front face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Back face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Right face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Left face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Top face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Bottom face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
 
       // Inside Front face (same UVs as outside)
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Inside Back face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Inside Right face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Inside Left face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Inside Top face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Inside Bottom face
-      0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f
-  };
+      0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 
   // Indices for double-sided cube (showing both inside and outside)
   static const uint16_t indices[] = {
       // Outside faces
-      0, 1, 2, 0, 2, 3,    // Front
-      4, 5, 6, 4, 6, 7,    // Back
-      8, 9, 10, 8, 10, 11, // Right
-      12, 13, 14, 12, 14, 15, // Left
-      16, 17, 18, 16, 18, 19, // Top
-      20, 21, 22, 20, 22, 23, // Bottom
+      0, 1, 2, 0, 2, 3,        // Front
+      4, 5, 6, 4, 6, 7,        // Back
+      8, 9, 10, 8, 10, 11,     // Right
+      12, 13, 14, 12, 14, 15,  // Left
+      16, 17, 18, 16, 18, 19,  // Top
+      20, 21, 22, 20, 22, 23,  // Bottom
 
       // Inside faces (inverted winding order)
       24, 27, 26, 24, 26, 25,  // Front
@@ -190,17 +189,18 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
 
   const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
 
-  m_poVertexBuffer = VertexBuffer::Builder()
-                         .vertexCount(48)  // 24 vertices for outside, 24 for inside
-                         .bufferCount(3)
-                         .attribute(VertexAttribute::POSITION, 0,
-                                    VertexBuffer::AttributeType::FLOAT3)
-                         .attribute(VertexAttribute::TANGENTS, 1,
-                                    VertexBuffer::AttributeType::SHORT4)
-                         .attribute(VertexAttribute::UV0, 2,
-                                    VertexBuffer::AttributeType::FLOAT2)
-                         .normalized(VertexAttribute::TANGENTS)
-                         .build(*engine_);
+  m_poVertexBuffer =
+      VertexBuffer::Builder()
+          .vertexCount(48)  // 24 vertices for outside, 24 for inside
+          .bufferCount(3)
+          .attribute(VertexAttribute::POSITION, 0,
+                     VertexBuffer::AttributeType::FLOAT3)
+          .attribute(VertexAttribute::TANGENTS, 1,
+                     VertexBuffer::AttributeType::SHORT4)
+          .attribute(VertexAttribute::UV0, 2,
+                     VertexBuffer::AttributeType::FLOAT2)
+          .normalized(VertexAttribute::TANGENTS)
+          .build(*engine_);
 
   m_poVertexBuffer->setBufferAt(
       *engine_, 0, VertexBuffer::BufferDescriptor(vertices, sizeof(vertices)));
@@ -211,7 +211,8 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
   m_poVertexBuffer->setBufferAt(
       *engine_, 2, VertexBuffer::BufferDescriptor(uvCoords, sizeof(uvCoords)));
 
-  constexpr int indexCount = 72 * 2;  // 24 triangles * 3 vertices (inside + outside)
+  constexpr int indexCount =
+      72 * 2;  // 24 triangles * 3 vertices (inside + outside)
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -229,38 +230,38 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
   static const float vertices[] = {
       // Front face
       -0.5f, -0.5f, 0.5f,  // Vertex 0
-      0.5f,  -0.5f, 0.5f,  // Vertex 1
-      0.5f,  0.5f,  0.5f,  // Vertex 2
-      -0.5f, 0.5f,  0.5f,  // Vertex 3
+      0.5f, -0.5f, 0.5f,   // Vertex 1
+      0.5f, 0.5f, 0.5f,    // Vertex 2
+      -0.5f, 0.5f, 0.5f,   // Vertex 3
 
       // Back face
-      0.5f,  -0.5f, -0.5f,  // Vertex 4
+      0.5f, -0.5f, -0.5f,   // Vertex 4
       -0.5f, -0.5f, -0.5f,  // Vertex 5
-      -0.5f, 0.5f,  -0.5f,  // Vertex 6
-      0.5f,  0.5f,  -0.5f,  // Vertex 7
+      -0.5f, 0.5f, -0.5f,   // Vertex 6
+      0.5f, 0.5f, -0.5f,    // Vertex 7
 
       // Right face
-      0.5f,  -0.5f, 0.5f,   // Vertex 8
-      0.5f,  -0.5f, -0.5f,  // Vertex 9
-      0.5f,  0.5f,  -0.5f,  // Vertex 10
-      0.5f,  0.5f,  0.5f,   // Vertex 11
+      0.5f, -0.5f, 0.5f,   // Vertex 8
+      0.5f, -0.5f, -0.5f,  // Vertex 9
+      0.5f, 0.5f, -0.5f,   // Vertex 10
+      0.5f, 0.5f, 0.5f,    // Vertex 11
 
       // Left face
       -0.5f, -0.5f, -0.5f,  // Vertex 12
       -0.5f, -0.5f, 0.5f,   // Vertex 13
-      -0.5f, 0.5f,  0.5f,   // Vertex 14
-      -0.5f, 0.5f,  -0.5f,  // Vertex 15
+      -0.5f, 0.5f, 0.5f,    // Vertex 14
+      -0.5f, 0.5f, -0.5f,   // Vertex 15
 
       // Top face
-      -0.5f, 0.5f,  0.5f,   // Vertex 16
-      0.5f,  0.5f,  0.5f,   // Vertex 17
-      0.5f,  0.5f,  -0.5f,  // Vertex 18
-      -0.5f, 0.5f,  -0.5f,  // Vertex 19
+      -0.5f, 0.5f, 0.5f,   // Vertex 16
+      0.5f, 0.5f, 0.5f,    // Vertex 17
+      0.5f, 0.5f, -0.5f,   // Vertex 18
+      -0.5f, 0.5f, -0.5f,  // Vertex 19
 
       // Bottom face
       -0.5f, -0.5f, -0.5f,  // Vertex 20
-      0.5f,  -0.5f, -0.5f,  // Vertex 21
-      0.5f,  -0.5f, 0.5f,   // Vertex 22
+      0.5f, -0.5f, -0.5f,   // Vertex 21
+      0.5f, -0.5f, 0.5f,    // Vertex 22
       -0.5f, -0.5f, 0.5f    // Vertex 23
   };
 
@@ -304,25 +305,23 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
   };
 
   // Indices for 12 triangles (6 faces)
-  static const uint16_t indices[] = {
-      // Front face
-      0, 1, 2, 0, 2, 3,
+  static const uint16_t indices[] = {// Front face
+                                     0, 1, 2, 0, 2, 3,
 
-      // Back face (adjusted winding)
-      4, 5, 6, 4, 6, 7,
+                                     // Back face (adjusted winding)
+                                     4, 5, 6, 4, 6, 7,
 
-      // Right face
-      8, 9, 10, 8, 10, 11,
+                                     // Right face
+                                     8, 9, 10, 8, 10, 11,
 
-      // Left face
-      12, 13, 14, 12, 14, 15,
+                                     // Left face
+                                     12, 13, 14, 12, 14, 15,
 
-      // Top face
-      16, 17, 18, 16, 18, 19,
+                                     // Top face
+                                     16, 17, 18, 16, 18, 19,
 
-      // Bottom face (adjusted winding)
-      20, 21, 22, 20, 22, 23
-  };
+                                     // Bottom face (adjusted winding)
+                                     20, 21, 22, 20, 22, 23};
 
   short4 const tbn =
       packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
