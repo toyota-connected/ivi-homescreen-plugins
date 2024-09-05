@@ -91,7 +91,7 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     case MaterialType::TEXTURE:
       return std::make_unique<MaterialParameter>(
           name.has_value() ? name.value() : "", type.value(),
-          Texture::Deserialize(encodMapValue.value()));
+          TextureDefinitions::Deserialize(encodMapValue.value()));
 
     case MaterialType::FLOAT:
       return std::make_unique<MaterialParameter>(
@@ -112,7 +112,7 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
 
 MaterialParameter::~MaterialParameter() = default;
 
-void MaterialParameter::Print(const char* tag) {
+void MaterialParameter::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (MaterialParameter)", tag);
   spdlog::debug("\tname: {}", name_);
@@ -120,9 +120,10 @@ void MaterialParameter::Print(const char* tag) {
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
       auto texture =
-          std::get<std::unique_ptr<Texture>>(textureValue_.value()).get();
+          std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value())
+              .get();
       if (texture) {
-        texture->Print("\ttexture");
+        texture->DebugPrint("\ttexture");
       } else {
         spdlog::debug("[MaterialParameter] Texture Empty");
       }
@@ -141,6 +142,7 @@ const char* MaterialParameter::getTextForType(
 
 MaterialParameter::MaterialType MaterialParameter::getTypeForText(
     const std::string& type) {
+  // TODO Change to map for faster lookup
   if (type == kColor) {
     return MaterialType::COLOR;
   } else if (type == kBool) {

@@ -92,7 +92,7 @@ FilamentViewPlugin::FilamentViewPlugin(
 
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
-};
+}
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
     int32_t /* index */,
@@ -130,7 +130,6 @@ void FilamentViewPlugin::SetCameraRotation(
   const auto sceneController = filamentScene_->getSceneController();
   Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
   if (poCamera != nullptr) {
-    SPDLOG_DEBUG("{}", fValue);
     poCamera->vSetCurrentCameraOrbitAngle(fValue);
   }
 }

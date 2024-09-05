@@ -19,18 +19,18 @@
 #include <math/vec4.h>
 #include <memory>
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+#include <flutter/encodable_value.h>
 
-#include "core/scene/material/texture/texture.h"
-#include "core/scene/material/texture/texture_sampler.h"
+#include "texture/texture_definitions.h"
+#include "texture/texture_sampler.h"
 
 namespace plugin_filament_view {
 
-class Texture;
+class TextureDefinitions;
 
 class TextureSampler;
 
-using MaterialTextureValue = std::variant<std::unique_ptr<Texture>>;
+using MaterialTextureValue = std::variant<std::unique_ptr<TextureDefinitions>>;
 using MaterialFloatValue = float;
 using MaterialColorValue = ::filament::math::vec4<float>;
 
@@ -66,7 +66,7 @@ class MaterialParameter {
 
   ~MaterialParameter();
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   // Disallow copy and assign.
   MaterialParameter(const MaterialParameter&) = delete;
@@ -75,6 +75,40 @@ class MaterialParameter {
   [[nodiscard]] std::string szGetParameterName() const { return name_; }
 
   friend class Material;
+  friend class MaterialDefinitions;
+
+  [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
+    if (textureValue_.has_value()) {
+      return textureValue_.value();
+    } else {
+      throw std::runtime_error(
+          "MaterialParameter does not contain a texture value.");
+    }
+  }
+
+  [[nodiscard]] TextureSampler* getTextureSampler() const {
+    const auto& textureValue = getTextureValue();
+    const auto& texturePtr =
+        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+
+    if (!texturePtr) {
+      return nullptr;
+    }
+
+    return texturePtr->getSampler();
+  }
+
+  [[nodiscard]] std::string getTextureValueAssetPath() const {
+    const auto& textureValue = getTextureValue();
+    const auto& texturePtr =
+        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+
+    if (!texturePtr) {
+      return "";
+    }
+
+    return texturePtr->szGetTextureDefinitionLookupName();
+  }
 
  private:
   static constexpr char kColor[] = "COLOR";

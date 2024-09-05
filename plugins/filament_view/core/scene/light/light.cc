@@ -150,13 +150,17 @@ void Light::Print(const char* tag) {
 ::filament::LightManager::Type Light::textToLightType(const std::string& type) {
   if (type == "SUN") {
     return ::filament::LightManager::Type::SUN;
-  } else if (type == "DIRECTIONAL") {
+  }
+  if (type == "DIRECTIONAL") {
     return ::filament::LightManager::Type::DIRECTIONAL;
-  } else if (type == "POINT") {
+  }
+  if (type == "POINT") {
     return ::filament::LightManager::Type::POINT;
-  } else if (type == "FOCUSED_SPOT") {
+  }
+  if (type == "FOCUSED_SPOT") {
     return ::filament::LightManager::Type::FOCUSED_SPOT;
-  } else if (type == "SPOT") {
+  }
+  if (type == "SPOT") {
     return ::filament::LightManager::Type::SPOT;
   }
   return ::filament::LightManager::Type::DIRECTIONAL;

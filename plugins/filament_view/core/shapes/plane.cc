@@ -62,22 +62,41 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
                                    MaterialManager* material_manager) {
   // Vertices for a plane (4 vertices for each side, 8 in total)
   static constexpr float vertices[] = {
-      -0.5f, -0.5f, 0.0f,  // Front face, Vertex 0
-      0.5f,  -0.5f, 0.0f,  // Front face, Vertex 1
-      0.5f,  0.5f,  0.0f,  // Front face, Vertex 2
-      -0.5f, 0.5f,  0.0f,  // Front face, Vertex 3
-      -0.5f, -0.5f, 0.0f,  // Back face, Vertex 4
-      0.5f,  -0.5f, 0.0f,  // Back face, Vertex 5
-      0.5f,  0.5f,  0.0f,  // Back face, Vertex 6
-      -0.5f, 0.5f,  0.0f   // Back face, Vertex 7
+      // Front face
+      -0.5f, -0.5f, 0.0f,  // Vertex 0
+      0.5f, -0.5f, 0.0f,   // Vertex 1
+      0.5f, 0.5f, 0.0f,    // Vertex 2
+      -0.5f, 0.5f, 0.0f,   // Vertex 3
+
+      // Back face
+      -0.5f, -0.5f, 0.0f,  // Vertex 4
+      0.5f, -0.5f, 0.0f,   // Vertex 5
+      0.5f, 0.5f, 0.0f,    // Vertex 6
+      -0.5f, 0.5f, 0.0f    // Vertex 7
   };
 
-  // Indices for 2 triangles per side, 12 indices in total
-  static constexpr uint16_t indices[] = {
-      0, 1, 2, 0, 2, 3,  // Front face
-      4, 6, 5, 4, 7, 6   // Back face
+  // UV coordinates for the plane
+  static constexpr float uvCoords[] = {
+      // Front face
+      0.0f, 0.0f,  // Vertex 0
+      1.0f, 0.0f,  // Vertex 1
+      1.0f, 1.0f,  // Vertex 2
+      0.0f, 1.0f,  // Vertex 3
+
+      // Back face (same UVs as front)
+      0.0f, 0.0f,  // Vertex 4
+      1.0f, 0.0f,  // Vertex 5
+      1.0f, 1.0f,  // Vertex 6
+      0.0f, 1.0f   // Vertex 7
   };
 
+  // Indices for 2 triangles per side (12 indices in total)
+  static constexpr uint16_t indices[] = {// Front face
+                                         0, 1, 2, 0, 2, 3,
+                                         // Back face (inverted winding)
+                                         4, 6, 5, 4, 7, 6};
+
+  // Packed normal for the plane (same for both sides)
   short4 const tbn =
       packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
                                                 float3{0.0f, 1.0f, 0.0f},
@@ -87,12 +106,14 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
 
   m_poVertexBuffer = VertexBuffer::Builder()
-                         .vertexCount(8)
-                         .bufferCount(2)
+                         .vertexCount(8)  // 4 vertices for each side
+                         .bufferCount(3)  // Positions, Normals, UVs
                          .attribute(VertexAttribute::POSITION, 0,
                                     VertexBuffer::AttributeType::FLOAT3)
                          .attribute(VertexAttribute::TANGENTS, 1,
                                     VertexBuffer::AttributeType::SHORT4)
+                         .attribute(VertexAttribute::UV0, 2,
+                                    VertexBuffer::AttributeType::FLOAT2)
                          .normalized(VertexAttribute::TANGENTS)
                          .build(*engine_);
 
@@ -101,6 +122,9 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
 
   m_poVertexBuffer->setBufferAt(
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
+
+  m_poVertexBuffer->setBufferAt(
+      *engine_, 2, VertexBuffer::BufferDescriptor(uvCoords, sizeof(uvCoords)));
 
   constexpr int indexCount = 12;
   m_poIndexBuffer = IndexBuffer::Builder()
@@ -117,19 +141,28 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
 void Plane::createSingleSidedPlane(::filament::Engine* engine_,
                                    MaterialManager* material_manager) {
   // Vertices for a single-sided plane (4 vertices)
-  static const float vertices[] = {
+  static constexpr float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // Vertex 0
       0.5f,  -0.5f, 0.0f,  // Vertex 1
       0.5f,  0.5f,  0.0f,  // Vertex 2
       -0.5f, 0.5f,  0.0f   // Vertex 3
   };
 
+  // UV coordinates for the plane
+  static constexpr float uvCoords[] = {
+      0.0f, 0.0f,  // Vertex 0
+      1.0f, 0.0f,  // Vertex 1
+      1.0f, 1.0f,  // Vertex 2
+      0.0f, 1.0f   // Vertex 3
+  };
+
   // Indices for 2 triangles
-  static const uint16_t indices[] = {
+  static constexpr uint16_t indices[] = {
       0, 1, 2,  // Triangle 1
       0, 2, 3   // Triangle 2
   };
 
+  // Packed normal for the plane
   short4 const tbn =
       packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
                                                 float3{0.0f, 1.0f, 0.0f},
@@ -140,11 +173,13 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
 
   m_poVertexBuffer = VertexBuffer::Builder()
                          .vertexCount(4)
-                         .bufferCount(2)
+                         .bufferCount(3)  // Positions, Normals, UVs
                          .attribute(VertexAttribute::POSITION, 0,
                                     VertexBuffer::AttributeType::FLOAT3)
                          .attribute(VertexAttribute::TANGENTS, 1,
                                     VertexBuffer::AttributeType::SHORT4)
+                         .attribute(VertexAttribute::UV0, 2,
+                                    VertexBuffer::AttributeType::FLOAT2)
                          .normalized(VertexAttribute::TANGENTS)
                          .build(*engine_);
 
@@ -154,7 +189,9 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   m_poVertexBuffer->setBufferAt(
       *engine_, 1, VertexBuffer::BufferDescriptor(normals, sizeof(normals)));
 
-  // Create IndexBuffer
+  m_poVertexBuffer->setBufferAt(
+      *engine_, 2, VertexBuffer::BufferDescriptor(uvCoords, sizeof(uvCoords)));
+
   constexpr int indexCount = 6;
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)

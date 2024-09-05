@@ -117,13 +117,13 @@ void SceneController::setUpSkybox() {
       auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
       if (!hdr_skybox->assetPath_.empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath());
+            hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath();
         skyboxManager_->setSkyboxFromHdrAsset(
             hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->url_ == scene_->indirect_light_->getUrl());
+            hdr_skybox->url_ == scene_->indirect_light_->getUrl();
         skyboxManager_->setSkyboxFromHdrUrl(
             hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
@@ -166,7 +166,7 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
                                             int32_t intensity) {
   if (scene_) {
     if (scene_->light_) {
-      SPDLOG_WARN("Changing light values. {} {}", __FILE__, __FUNCTION__);
+      SPDLOG_TRACE("Changing light values. {} {}", __FILE__, __FUNCTION__);
 
       scene_->light_->ChangeColor(colorValue);
       scene_->light_->ChangeIntensity(static_cast<float>(intensity));

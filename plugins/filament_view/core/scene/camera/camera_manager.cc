@@ -85,18 +85,17 @@ std::string CameraManager::updateExposure(Exposure* exposure) {
     SPDLOG_DEBUG("[setExposure] exposure: {}", e->exposure_.value());
     camera_->setExposure(e->exposure_.value());
     return "Exposure updated successfully";
-  } else {
-    auto aperture = e->aperture_.has_value() ? e->aperture_.value() : kAperture;
-    auto shutterSpeed =
-        e->shutterSpeed_.has_value() ? e->shutterSpeed_.value() : kShutterSpeed;
-    auto sensitivity =
-        e->sensitivity_.has_value() ? e->sensitivity_.value() : kSensitivity;
-    SPDLOG_DEBUG(
-        "[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",
-        aperture, shutterSpeed, sensitivity);
-    camera_->setExposure(aperture, shutterSpeed, sensitivity);
-    return "Exposure updated successfully";
   }
+
+  auto aperture = e->aperture_.has_value() ? e->aperture_.value() : kAperture;
+  auto shutterSpeed =
+      e->shutterSpeed_.has_value() ? e->shutterSpeed_.value() : kShutterSpeed;
+  auto sensitivity =
+      e->sensitivity_.has_value() ? e->sensitivity_.value() : kSensitivity;
+  SPDLOG_DEBUG("[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",
+               aperture, shutterSpeed, sensitivity);
+  camera_->setExposure(aperture, shutterSpeed, sensitivity);
+  return "Exposure updated successfully";
 }
 
 std::string CameraManager::updateProjection(Projection* projection) {
@@ -119,7 +118,9 @@ std::string CameraManager::updateProjection(Projection* projection) {
         left, right, bottom, top, near, far);
     camera_->setProjection(project, left, right, bottom, top, near, far);
     return "Projection updated successfully";
-  } else if (p->fovInDegrees_.has_value() && p->fovDirection_.has_value()) {
+  }
+
+  if (p->fovInDegrees_.has_value() && p->fovDirection_.has_value()) {
     auto fovInDegrees = p->fovInDegrees_.value();
     auto aspect =
         p->aspect_.has_value() ? p->aspect_.value() : calculateAspectRatio();

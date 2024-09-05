@@ -18,27 +18,8 @@
 
 namespace plugin_filament_view {
 
-enum WrapMode {
-  /// The edge of the texture extends to infinity.
-  clampToEdge,
-
-  /// The texture infinitely repeats in the wrap direction.
-  repeat,
-
-  /// The texture infinitely repeats and mirrors in the wrap direction.
-  mirroredRepeat,
-};
-
 static constexpr char KWrapModeClampToEdge[] = "CLAMP_TO_EDGE";
 static constexpr char KWrapModeRepeat[] = "REPEAT";
 static constexpr char KWrapModeMirroredRepeat[] = "MIRRORED_REPEAT";
-
-static const char* getTextForWrapMode(WrapMode mode) {
-  return (const char*[]){
-      KWrapModeClampToEdge,
-      KWrapModeRepeat,
-      KWrapModeMirroredRepeat,
-  }[mode];
-}
 
 }  // namespace plugin_filament_view

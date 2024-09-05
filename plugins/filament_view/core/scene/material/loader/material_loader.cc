@@ -25,11 +25,11 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
                         .build(*engine);
 
     return Resource<::filament::Material*>::Success(material);
-  } else {
-    SPDLOG_ERROR("Could not load material from asset.");
-    return Resource<::filament::Material*>::Error(
-        "Could not load material from asset.");
   }
+
+  SPDLOG_ERROR("Could not load material from asset.");
+  return Resource<::filament::Material*>::Error(
+      "Could not load material from asset.");
 }
 
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
@@ -50,10 +50,10 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
                         .package(buffer.data(), buffer.size())
                         .build(*engine);
     return Resource<::filament::Material*>::Success(material);
-  } else {
-    return Resource<::filament::Material*>::Error(
-        "Could not load material from asset.");
   }
+
+  return Resource<::filament::Material*>::Error(
+      "Could not load material from asset.");
 }
 
 void MaterialLoader::PrintMaterialInformation(

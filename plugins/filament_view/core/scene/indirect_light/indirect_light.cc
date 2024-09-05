@@ -67,22 +67,27 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
   }
 
   if (type.has_value()) {
-    if (type == 1) {
-      spdlog::debug("[IndirectLight] Type: KtxIndirectLight");
-      return std::move(std::make_unique<KtxIndirectLight>(
-          std::move(assetPath), std::move(url), intensity));
-    } else if (type == 2) {
-      spdlog::debug("[IndirectLight] Type: HdrIndirectLight");
-      return std::move(std::make_unique<HdrIndirectLight>(
-          std::move(assetPath), std::move(url), intensity));
-    } else if (type == 3) {
-      spdlog::debug("[IndirectLight] Type: DefaultIndirectLight");
-      return std::move(std::make_unique<DefaultIndirectLight>());
-    }
+    switch (type.value()) {
+      case 1:
+        spdlog::debug("[IndirectLight] Type: KtxIndirectLight");
+        return std::move(std::make_unique<KtxIndirectLight>(
+            std::move(assetPath), std::move(url), intensity));
 
-    spdlog::error("[IndirectLight] Type: Unknown DefaultIndirectLight");
+      case 2:
+        spdlog::debug("[IndirectLight] Type: HdrIndirectLight");
+        return std::move(std::make_unique<HdrIndirectLight>(
+            std::move(assetPath), std::move(url), intensity));
+
+      case 3:
+        spdlog::debug("[IndirectLight] Type: DefaultIndirectLight");
+        return std::move(std::make_unique<DefaultIndirectLight>());
+
+      default:
+        spdlog::error("[IndirectLight] Type: Unknown DefaultIndirectLight");
+        break;
+    }
   } else {
-    spdlog::critical("[IndirectLight] Unknown Type: {}", type.value());
+    spdlog::error("[IndirectLight] No Type Value");
   }
 
   SPDLOG_TRACE("--IndirectLight::Deserialize");

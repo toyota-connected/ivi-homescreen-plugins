@@ -42,7 +42,7 @@ void IndirectLightManager::setDefaultIndirectLight() {
   light.reset();
   SPDLOG_TRACE("--IndirectLightManager::setDefaultIndirectLight: {}",
                f.get().getMessage());
-};
+}
 
 std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
     DefaultIndirectLight* indirectLight) {

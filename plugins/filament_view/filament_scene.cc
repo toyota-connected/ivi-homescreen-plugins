@@ -131,6 +131,6 @@ FilamentScene::~FilamentScene() {
   SPDLOG_TRACE("++FilamentScene::~FilamentScene");
   SPDLOG_ERROR("::~FilamentScene:: TODO");
   SPDLOG_TRACE("--FilamentScene::~FilamentScene");
-};
+}
 
 }  // namespace plugin_filament_view
