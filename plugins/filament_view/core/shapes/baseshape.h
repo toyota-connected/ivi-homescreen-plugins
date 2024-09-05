@@ -88,6 +88,8 @@ class BaseShape {
   bool m_bCullingOfObjectEnabled = false;
   bool m_bReceiveShadows = false;
   bool m_bCastShadows = false;
+ // TODO
+ bool m_bHasTexturedMaterial = true;
 
  private:
   void vDestroyBuffers();

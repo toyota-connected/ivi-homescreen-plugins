@@ -17,11 +17,15 @@
 #include "material_definitions.h"
 
 #include <filesystem>
+#include <filament/TextureSampler.h>
 
 #include "material_manager.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
+
+using MinFilter = ::filament::TextureSampler::MinFilter;
+using MagFilter = ::filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
@@ -88,11 +92,12 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
 
   for (const auto& param : parameters_) {
     if (param.second != nullptr)
-      param.second->Print("\tparameter");
+      param.second->DebugPrint("\tparameter");
   }
   spdlog::debug("++++++++");
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 std::string MaterialDefinitions::szGetMaterialDefinitionLookupName()
     const {
   if (!assetPath_.empty()) {
@@ -105,9 +110,24 @@ std::string MaterialDefinitions::szGetMaterialDefinitionLookupName()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<MaterialParameter*> MaterialDefinitions::vecGetTextureMaterialParameters() const {
+  std::vector<MaterialParameter*> returnVector;
+
+  for (const auto& param : parameters_) {
+    // Check if the type is TEXTURE
+    if(param.second->type_ == MaterialParameter::MaterialType::TEXTURE) {
+      returnVector.push_back(param.second.get());
+    }
+  }
+
+  return returnVector;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
     const ::filament::Material* materialResult,
-    filament::MaterialInstance* materialInstance) const {
+    filament::MaterialInstance* materialInstance,
+    const TextureMap& loadedTextures) const {
   auto count = materialResult->getParameterCount();
   std::vector<::filament::Material::ParameterInfo> parameters(count);
 
@@ -120,14 +140,18 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
                    static_cast<int>(param.type));
 
       const auto& iter = parameters_.find(param.name);
-      if (iter != parameters_.end() && iter->second != nullptr) {
-        SPDLOG_TRACE("Setting material param {}", param.name);
+      if (iter == parameters_.end() || iter->second == nullptr) {
+        // This can get pretty spammy, but good if needing to debug further into
+        // parameter values.
+        SPDLOG_INFO("No default parameter value available for {}::{} {}", __FILE__, __FUNCTION__, param.name);
+        continue;
+      }
+        SPDLOG_ERROR("Setting material param {}", param.name);
 
         // Should probably check to make sure the two types match as well
         // TODO
         auto& parameterType = iter->second->type_;
 
-        // todo make sure has values? might be overkill.
         switch (parameterType) {
           case MaterialParameter::MaterialType::COLOR: {
             materialInstance->setParameter(param.name,
@@ -140,19 +164,31 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
                                            iter->second->fValue_.value());
           } break;
 
-          case MaterialParameter::MaterialType::TEXTURE:
-            // materialInstance->setParameter(param.name,
-            // iter->second->textureValue_.value());
+          // materialInstance->setParameter(param.name,
+          case MaterialParameter::MaterialType::TEXTURE: {
+            // make sure we have the texture:
+
+            auto foundResource = loadedTextures.find(iter->second->getTextureValueAssetPath());
+            SPDLOG_ERROR("Setting texture material parameter 2");
+
+            if (foundResource == loadedTextures.end()){
+                // log and continue
+                spdlog::warn("Got to a case where a texture was not loaded before trying to apply to a material.");
+                continue;
+              }
+            // TODO sampler
+            // sampler will be on 'our' deserialized texture->texture_sampler
+            ::filament::TextureSampler sampler(MinFilter::LINEAR, MagFilter::LINEAR);
+            // TODO null check here before grabbing
+            auto texture = foundResource->second.getData().value();
+            materialInstance->setParameter(param.name, texture, sampler);
+          }  break;
+
           default: {
             SPDLOG_WARN("Type template not setup yet, see {} {}", __FILE__,
                         __FUNCTION__);
           } break;
         }
-      } else {
-        // This can get pretty spammy, but good if needing to debug further into
-        // parameter values. SPDLOG_INFO("No default parameter value available
-        // for {}::{} {}", __FILE__, __FUNCTION__, param.name);
-      }
     }
   }
 }

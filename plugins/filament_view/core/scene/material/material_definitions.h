@@ -22,7 +22,10 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include "core/include/resource.h"
 #include "material_parameter.h"
+
+using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
 namespace plugin_filament_view {
 class MaterialDefinitions {
@@ -40,13 +43,18 @@ class MaterialDefinitions {
 
   friend class MaterialManager;
 
-  void vSetMaterialInstancePropertiesFromMyPropertyMap(
-      const ::filament::Material* materialResult,
-      filament::MaterialInstance* materialInstance) const;
+ void vSetMaterialInstancePropertiesFromMyPropertyMap(
+     const ::filament::Material* materialResult,
+     filament::MaterialInstance* materialInstance,
+     const TextureMap& loadedTextures) const;
 
   // this will either get the assetPath or the url, priority of assetPath
   // looking for which is valid. Used to see if we have this loaded in cache.
   std::string szGetMaterialDefinitionLookupName() const;
+
+ // This will go through each of the parameters and return only the texture_(definitions)
+ // so the material manager can load what's not already loaded.
+ std::vector<MaterialParameter*> vecGetTextureMaterialParameters() const;
 
  private:
   const std::string& flutterAssetsPath_;

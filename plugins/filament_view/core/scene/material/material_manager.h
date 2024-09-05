@@ -34,6 +34,8 @@ class MaterialDefinitions;
 class MaterialLoader;
 class TextureLoader;
 
+using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
+
 class MaterialManager {
  public:
   MaterialManager();
@@ -49,9 +51,9 @@ class MaterialManager {
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  static Resource<::filament::Material*> loadMaterialFromResource(
+  Resource<::filament::Material*> loadMaterialFromResource(
       MaterialDefinitions* materialDefinition);
-  static Resource<::filament::MaterialInstance*> setupMaterialInstance(
+  Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,
       const MaterialDefinitions* materialDefinition);
 
@@ -61,5 +63,11 @@ class MaterialManager {
   std::map<std::string, Resource<::filament::Material*>>
       loadedTemplateMaterials_;
   std::mutex loadingMaterialsMutex_;
+
+    // This map is a list of all loaded textures. Multiple materials might reference
+    // the same texture, and instead of loading them separately; they'll be reused here.
+    // As of writing 202409 Textures are tied to materials, so it makes sense to have
+    // a check if a material needs a texture, to load it in that stack chain.
+  TextureMap loadedTextures_;
 };
 }  // namespace plugin_filament_view

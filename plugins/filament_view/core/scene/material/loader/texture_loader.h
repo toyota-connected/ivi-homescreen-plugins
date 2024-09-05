@@ -23,7 +23,7 @@ class TextureLoader {
   TextureLoader();
   ~TextureLoader() = default;
 
-  static ::filament::Texture* loadTexture(Texture* texture);
+  static Resource<::filament::Texture*> loadTexture(Texture* texture);
 
   // Disallow copy and assign.
   TextureLoader(const TextureLoader&) = delete;
@@ -31,10 +31,10 @@ class TextureLoader {
 
  private:
   static ::filament::Texture* createTextureFromImage(
-      Texture::TextureType type,
-      std::unique_ptr<image::LinearImage> image);
+      const std::string& file_path, Texture::TextureType type);
 
-  static ::filament::Texture* loadTextureFromStream(std::istream* ins,
+    //std::istream* ins
+  static ::filament::Texture* loadTextureFromStream(const std::string& file_path,
                                                     Texture::TextureType type,
                                                     const std::string& name);
 

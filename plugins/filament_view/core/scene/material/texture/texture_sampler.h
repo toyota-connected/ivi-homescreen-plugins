@@ -26,7 +26,7 @@ class TextureSampler {
  public:
   explicit TextureSampler(const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   // Disallow copy and assign.
   TextureSampler(const TextureSampler&) = delete;

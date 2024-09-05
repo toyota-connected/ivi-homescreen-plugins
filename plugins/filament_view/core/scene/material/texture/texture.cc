@@ -39,6 +39,18 @@ Texture::~Texture() {
   delete sampler_;
 }
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  std::string Texture::szGetTextureDefinitionLookupName()
+      const {
+  if (!assetPath_.empty()) {
+    return assetPath_;
+  }
+  if (!url_.empty()) {
+    return url_;
+  }
+  return "Unknown";
+}
+
 std::unique_ptr<Texture> Texture::Deserialize(
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Texture::Texture");
@@ -81,7 +93,7 @@ std::unique_ptr<Texture> Texture::Deserialize(
       sampler.has_value() ? sampler.value().get() : nullptr);
 }
 
-void Texture::Print(const char* tag) {
+void Texture::DebugPrint(const char* tag) {
   SPDLOG_DEBUG("++{} {} ", __FILE__, __FUNCTION__);
   spdlog::debug("{} (Texture)", tag);
   if (!assetPath_.empty()) {

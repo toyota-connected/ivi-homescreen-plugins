@@ -41,7 +41,7 @@ class Texture {
   static std::unique_ptr<Texture> Deserialize(
       const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   // Disallow copy and assign.
   Texture(const Texture&) = delete;
@@ -52,6 +52,11 @@ class Texture {
   static const char* getTextForType(TextureType type);
 
   friend class TextureLoader;
+ friend class MaterialManager;
+
+ // this will either get the assetPath or the url, priority of assetPath
+ // looking for which is valid. Used to see if we have this loaded in cache.
+ std::string szGetTextureDefinitionLookupName() const;
 
  private:
   std::string assetPath_;

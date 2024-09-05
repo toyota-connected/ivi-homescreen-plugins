@@ -46,7 +46,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("--TextureSampler::TextureSampler");
 }
 
-void TextureSampler::Print(const char* tag) {
+void TextureSampler::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (TextureSampler)", tag);
   if (!min_.empty()) {

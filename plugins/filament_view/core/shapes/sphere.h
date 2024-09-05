@@ -56,6 +56,7 @@ class Sphere : public BaseShape {
   std::vector<::filament::math::float3> vertices;
   std::vector<::filament::math::float3> normals;
   std::vector<unsigned short> indices;
+  std::vector<::filament::math::float2> uvs;
 };
 
 }  // namespace shapes
