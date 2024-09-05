@@ -113,9 +113,11 @@ TextureDefinitions::TextureType TextureDefinitions::getType(
     const std::string& type) {
   if (type == kTypeColor) {
     return TextureType::COLOR;
-  } else if (type == kTypeNormal) {
+  }
+  if (type == kTypeNormal) {
     return TextureType::NORMAL;
-  } else if (type == kTypeData) {
+  }
+  if (type == kTypeData) {
     return TextureType::DATA;
   }
   assert(false);

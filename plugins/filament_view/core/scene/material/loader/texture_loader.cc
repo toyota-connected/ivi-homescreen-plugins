@@ -25,7 +25,7 @@ namespace plugin_filament_view {
 TextureLoader::TextureLoader() = default;
 
 inline ::filament::backend::TextureFormat internalFormat(
-    TextureDefinitions::TextureType type) {
+    const TextureDefinitions::TextureType type) {
   // return ::filament::backend::TextureFormat::RGBA8;
 
   switch (type) {
@@ -41,7 +41,7 @@ inline ::filament::backend::TextureFormat internalFormat(
 
 ::filament::Texture* TextureLoader::createTextureFromImage(
     const std::string& file_path,
-    TextureDefinitions::TextureType type) {
+    const TextureDefinitions::TextureType type) {
   int w, h, n;
   unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
@@ -117,13 +117,13 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
 
 ::filament::Texture* TextureLoader::loadTextureFromStream(
     const std::string& file_path,
-    TextureDefinitions::TextureType type) {
+    const TextureDefinitions::TextureType type) {
   return createTextureFromImage(file_path, type);
 }
 
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
     const std::string& url,
-    TextureDefinitions::TextureType type) {
+    const TextureDefinitions::TextureType type) {
   plugin_common_curl::CurlClient client;
   client.Init(url, {}, {});
   std::vector<uint8_t> buffer = client.RetrieveContentAsVector();

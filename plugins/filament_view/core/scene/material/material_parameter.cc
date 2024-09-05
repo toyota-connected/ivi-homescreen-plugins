@@ -142,6 +142,7 @@ const char* MaterialParameter::getTextForType(
 
 MaterialParameter::MaterialType MaterialParameter::getTypeForText(
     const std::string& type) {
+  // TODO Change to map for faster lookup
   if (type == kColor) {
     return MaterialType::COLOR;
   } else if (type == kBool) {

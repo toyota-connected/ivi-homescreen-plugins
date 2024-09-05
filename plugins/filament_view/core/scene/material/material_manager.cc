@@ -36,12 +36,14 @@ Resource<::filament::Material*> MaterialManager::loadMaterialFromResource(
     // THIS does NOT set default a parameter values
     return MaterialLoader::loadMaterialFromAsset(
         materialDefinition->assetPath_);
-  } else if (!materialDefinition->url_.empty()) {
-    return MaterialLoader::loadMaterialFromUrl(materialDefinition->url_);
-  } else {
-    return Resource<::filament::Material*>::Error(
-        "You must provide material asset path or url");
   }
+
+  if (!materialDefinition->url_.empty()) {
+    return MaterialLoader::loadMaterialFromUrl(materialDefinition->url_);
+  }
+
+  return Resource<::filament::Material*>::Error(
+      "You must provide material asset path or url");
 }
 
 Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
@@ -76,7 +78,7 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
   // In case of multi material load on <load>
   // we dont want to reload the same material several times and have collision
   // in the map
-  std::lock_guard<std::mutex> lock(loadingMaterialsMutex_);
+  std::lock_guard lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
   auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
@@ -126,7 +128,7 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
       }
 
       // its not loaded already, lets load it.
-      auto loadedTexture = textureLoader_->loadTexture(texturePtr.get());
+      auto loadedTexture = TextureLoader::loadTexture(texturePtr.get());
 
       if (loadedTexture.getStatus() != Status::Success) {
         spdlog::error("Unable to load texture from {}", assetPath);

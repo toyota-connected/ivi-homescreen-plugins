@@ -86,7 +86,7 @@ class MaterialParameter {
     }
   }
 
-  std::string getTextureValueAssetPath() const {
+  [[nodiscard]] std::string getTextureValueAssetPath() const {
     const auto& textureValue = getTextureValue();
     const auto& texturePtr =
         std::get<std::unique_ptr<TextureDefinitions>>(textureValue);

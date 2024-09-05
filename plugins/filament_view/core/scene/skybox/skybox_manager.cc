@@ -322,10 +322,10 @@ Resource<std::string_view> SkyboxManager::loadSkyboxFromHdrFile(
     modelViewer->setSkyboxState(SceneState::LOADED);
     return Resource<std::string_view>::Success(
         "Loaded hdr skybox successfully");
-  } else {
-    modelViewer->setSkyboxState(SceneState::ERROR);
-    return Resource<std::string_view>::Error("Could not decode HDR file");
   }
+
+  modelViewer->setSkyboxState(SceneState::ERROR);
+  return Resource<std::string_view>::Error("Could not decode HDR file");
 }
 
 Resource<std::string_view> SkyboxManager::loadSkyboxFromHdrBuffer(
@@ -372,10 +372,10 @@ Resource<std::string_view> SkyboxManager::loadSkyboxFromHdrBuffer(
     modelViewer->setSkyboxState(SceneState::LOADED);
     return Resource<std::string_view>::Success(
         "Loaded hdr skybox successfully");
-  } else {
-    modelViewer->setSkyboxState(SceneState::ERROR);
-    return Resource<std::string_view>::Error("Could not decode HDR file");
   }
+
+  modelViewer->setSkyboxState(SceneState::ERROR);
+  return Resource<std::string_view>::Error("Could not decode HDR file");
 }
 
 }  // namespace plugin_filament_view

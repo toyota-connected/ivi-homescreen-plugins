@@ -24,7 +24,7 @@ namespace plugin_filament_view {
 Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
-             float scale,
+             const float scale,
              ::filament::float3* centerPosition,
              Animation* animation)
     : assetPath_(std::move(assetPath)),

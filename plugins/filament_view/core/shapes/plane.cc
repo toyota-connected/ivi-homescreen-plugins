@@ -76,7 +76,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   };
 
   // UV coordinates for the plane
-  static const float uvCoords[] = {
+  static constexpr float uvCoords[] = {
       // Front face
       0.0f, 0.0f,  // Vertex 0
       1.0f, 0.0f,  // Vertex 1
@@ -141,7 +141,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
 void Plane::createSingleSidedPlane(::filament::Engine* engine_,
                                    MaterialManager* material_manager) {
   // Vertices for a single-sided plane (4 vertices)
-  static const float vertices[] = {
+  static constexpr float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // Vertex 0
       0.5f,  -0.5f, 0.0f,  // Vertex 1
       0.5f,  0.5f,  0.0f,  // Vertex 2
@@ -149,7 +149,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   };
 
   // UV coordinates for the plane
-  static const float uvCoords[] = {
+  static constexpr float uvCoords[] = {
       0.0f, 0.0f,  // Vertex 0
       1.0f, 0.0f,  // Vertex 1
       1.0f, 1.0f,  // Vertex 2
@@ -157,7 +157,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   };
 
   // Indices for 2 triangles
-  static const uint16_t indices[] = {
+  static constexpr uint16_t indices[] = {
       0, 1, 2,  // Triangle 1
       0, 2, 3   // Triangle 2
   };

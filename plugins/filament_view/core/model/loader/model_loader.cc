@@ -165,8 +165,7 @@ void ModelLoader::loadModelGltf(
   assets_.push_back(asset);
 
   auto uri_data = asset->getResourceUris();
-  auto uris = std::vector<const char*>(uri_data,
-                                       uri_data + asset->getResourceUriCount());
+  auto uris = std::vector(uri_data, uri_data + asset->getResourceUriCount());
   for (const auto uri : uris) {
     SPDLOG_DEBUG("resource uri: {}", uri);
 #if 0   // TODO
@@ -219,7 +218,9 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
     asset->popRenderables(readyRenderables_, count);
     for (int i = 0; i < count; i++) {
       auto ri = rcm.getInstance(readyRenderables_[i]);
-      // TODO move to setting
+      // TODO move to settings & per model
+      //rcm.setCastShadows(ri, true);
+      //rcm.setReceiveShadows(ri, true);
       rcm.setScreenSpaceContactShadows(ri, false);
     }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);

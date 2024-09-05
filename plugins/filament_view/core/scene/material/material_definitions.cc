@@ -39,7 +39,9 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
     if (it.second.IsNull() && key != "url") {
       SPDLOG_WARN("Material Param Second mapping is null {}", key);
       continue;
-    } else if (it.second.IsNull() && key == "url") {
+    }
+
+    if (it.second.IsNull() && key == "url") {
       SPDLOG_TRACE("Material Param URL mapping is null {}", key);
       continue;
     }
@@ -147,7 +149,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
                     __FILE__, __FUNCTION__, param.name);
         continue;
       }
-      SPDLOG_ERROR("Setting material param {}", param.name);
+      SPDLOG_TRACE("Setting material param {}", param.name);
 
       // Should probably check to make sure the two types match as well
       // TODO
@@ -178,7 +180,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
           }
 
           // TODO sampler
-          // sampler will be on 'our' deserialized texture->texture_sampler
+          // sampler will be on 'our' deserialized texturedefinitions->texture_sampler
           ::filament::TextureSampler sampler(MinFilter::LINEAR,
                                              MagFilter::LINEAR);
 

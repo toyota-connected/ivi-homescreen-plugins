@@ -92,7 +92,7 @@ FilamentViewPlugin::FilamentViewPlugin(
 
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
-};
+}
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
     int32_t /* index */,

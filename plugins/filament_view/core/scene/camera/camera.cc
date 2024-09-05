@@ -326,7 +326,8 @@ const char* Camera::getTextForMode(::filament::camutils::Mode mode) {
 ::filament::camutils::Mode Camera::getModeForText(const std::string& mode) {
   if (mode == kModeMap) {
     return ::filament::camutils::Mode::MAP;
-  } else if (mode == kModeFreeFlight) {
+  }
+  if (mode == kModeFreeFlight) {
     return ::filament::camutils::Mode::FREE_FLIGHT;
   }
   return ::filament::camutils::Mode::ORBIT;
@@ -342,7 +343,9 @@ const char* Camera::getTextForFov(::filament::camutils::Fov fov) {
 ::filament::camutils::Fov Camera::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
     return ::filament::camutils::Fov::VERTICAL;
-  } else if (fov == kFovHorizontal) {
+  }
+
+  if (fov == kFovHorizontal) {
     return ::filament::camutils::Fov::HORIZONTAL;
   }
   return ::filament::camutils::Fov::HORIZONTAL;

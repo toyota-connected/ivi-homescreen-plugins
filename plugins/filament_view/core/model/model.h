@@ -30,7 +30,7 @@ class Model {
   Model(std::string assetPath,
         std::string url,
         Model* fallback,
-        float scale,
+        const float scale,
         ::filament::math::float3* centerPosition,
         Animation* animation);
 

@@ -20,6 +20,7 @@
 
 namespace plugin_filament_view {
 
+/// TO BE DEPRECATED
 /// Represents the state of the model.
 enum class ModelState {
   /// represents idle state.

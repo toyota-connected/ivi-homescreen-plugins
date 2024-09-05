@@ -117,13 +117,13 @@ void SceneController::setUpSkybox() {
       auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
       if (!hdr_skybox->assetPath_.empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath());
+            hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath();
         skyboxManager_->setSkyboxFromHdrAsset(
             hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->url_ == scene_->indirect_light_->getUrl());
+            hdr_skybox->url_ == scene_->indirect_light_->getUrl();
         skyboxManager_->setSkyboxFromHdrUrl(
             hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
