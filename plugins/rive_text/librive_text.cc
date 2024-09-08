@@ -40,7 +40,7 @@ LibRiveTextExports* LibRiveText::loadExports(
     const char* library_path = nullptr) {
   static LibRiveTextExports exports = [&] {
     void* lib = dlopen(library_path ? library_path : "librive_text.so",
-                       RTLD_NOW | RTLD_LOCAL);
+                       RTLD_NOW | RTLD_GLOBAL);
 
     return LibRiveTextExports(lib);
   }();
