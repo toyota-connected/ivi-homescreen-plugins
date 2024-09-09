@@ -325,9 +325,27 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       G_LastTime = time;
     }
 
+    // Frames from Native to dart, currently run in order of
+    // - updateFrame - Called regardless if a frame is going to be drawn or not
+    // - preRenderFrame - Called before native <features>, but we know we're
+    // going to draw a frame
+    // - renderFrame - Called after native <features>, right before drawing a
+    // frame
+    // - postRenderFrame - Called after we've drawn natively, right after
+    // drawing a frame.
+
+    static constexpr char kUpdateFrame[] = "updateFrame";
+    static constexpr char kPreRenderFrame[] = "preRenderFrame";
+    static constexpr char kRenderFrame[] = "renderFrame";
+    static constexpr char kPostRenderFrame[] = "postRenderFrame";
+    static constexpr char kParam_TimeSinceLastRenderedSec[] =
+        "timeSinceLastRenderedSec";
+    static constexpr char kParam_FPS[] = "fps";
+    static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
+
     SendFrameViewCallback(
-        "updateFrame", {std::make_pair("elapsedFrameTime",
-                                       flutter::EncodableValue(G_LastTime))});
+        kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
+                                      flutter::EncodableValue(G_LastTime))});
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
@@ -345,27 +363,27 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       float fps = 1.0f / timeSinceLastRenderedSec;  // calculate FPS
 
       SendFrameViewCallback(
-          "preRenderFrame",
-          {std::make_pair("timeSinceLastRenderedSec",
+          kPreRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair("fps", flutter::EncodableValue(fps))});
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
       doCameraFeatures(timeSinceLastRenderedSec);
 
       SendFrameViewCallback(
-          "renderFrame",
-          {std::make_pair("timeSinceLastRenderedSec",
+          kRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair("fps", flutter::EncodableValue(fps))});
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
       frenderer_->render(fview_);
       frenderer_->endFrame();
 
       SendFrameViewCallback(
-          "postRenderFrame",
-          {std::make_pair("timeSinceLastRenderedSec",
+          kPostRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair("fps", flutter::EncodableValue(fps))});
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
     }
 
     G_LastTime = time;
