@@ -391,7 +391,7 @@ void CustomModelViewer::OnFrame(void* data,
 
   // Z-Order
   // These do not need <seem> to need to be called every frame.
-  wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
+  // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);
