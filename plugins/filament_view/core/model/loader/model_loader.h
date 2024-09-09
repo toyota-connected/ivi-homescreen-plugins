@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020-2023 Toyota Connected North America
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 
 #include <filament/IndirectLight.h>
@@ -105,12 +120,10 @@ class ModelLoader {
   // Todo implement for ease of use of finding assets by tag quickly.
   // std::map<std::string, filament::gltfio::FilamentInstance*> m_mapszpoAssets;
 
+  // Todo, this needs to be moved; if its not initialized, undefined <results>
   ::filament::viewer::Settings settings_;
-  std::vector<float> morphWeights_;
 
-  //   void fetchResources(
-  //       ::filament::gltfio::FilamentAsset* asset,
-  //       std::function<uint8_t*(std::string asset)> callback);
+  std::vector<float> morphWeights_;
 
   ::filament::math::mat4f inline fitIntoUnitCube(
       const ::filament::Aabb& bounds,
@@ -131,13 +144,14 @@ class ModelLoader {
   void setTransform(filament::gltfio::FilamentAsset* asset,
                     ::filament::mat4f mat);
 
-  std::vector<char> buffer_;
+  using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
   void handleFile(
       const std::vector<uint8_t>& buffer,
       const std::string& fileSource,
       float scale,
       const ::filament::float3* centerPosition,
       bool isFallback,
-      const std::shared_ptr<std::promise<Resource<std::string_view>>>& promise);
+      const PromisePtr&
+          promise);  // NOLINT(readability-avoid-const-params-in-decls)
 };
 }  // namespace plugin_filament_view

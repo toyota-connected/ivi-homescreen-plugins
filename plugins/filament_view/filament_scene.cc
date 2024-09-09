@@ -16,6 +16,8 @@
 
 #include "filament_scene.h"
 
+#include <core/utils/deserialize.h>
+
 #include "shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 
 #include "core/scene/scene_controller.h"
@@ -30,7 +32,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
                              const std::string& flutterAssetsPath) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
-  std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes_{};
+  std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes{};
 
   auto& codec = flutter::StandardMessageCodec::GetInstance();
   const auto decoded = codec.DecodeMessage(params.data(), params.size());
@@ -48,7 +50,21 @@ FilamentScene::FilamentScene(PlatformView* platformView,
     if (key == "model") {
       SPDLOG_WARN("Loading Single Model - Deprecated Functionality {}", key);
       models_ = std::make_unique<std::vector<std::unique_ptr<Model>>>();
-      models_->emplace_back(Model::Deserialize(flutterAssetsPath, it.second));
+
+      auto deserializedModel = Model::Deserialize(flutterAssetsPath, it.second);
+      if (deserializedModel == nullptr) {
+        // load fallback
+        static constexpr char kFallback[] = "fallback";
+        auto fallbackToDeserialize =
+            Deserialize::DeserializeParameter(kFallback, it.second);
+        deserializedModel =
+            Model::Deserialize(flutterAssetsPath, fallbackToDeserialize);
+      }
+      if (deserializedModel == nullptr) {
+        spdlog::error("Unable to load model and fallback model");
+        continue;
+      }
+      models_->emplace_back(std::move(deserializedModel));
     } else if (key == "models" &&
                std::holds_alternative<flutter::EncodableList>(it.second)) {
       // load models here.
@@ -63,14 +79,27 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           continue;
         }
 
-        models_->emplace_back(Model::Deserialize(flutterAssetsPath, iter));
+        auto deserializedModel = Model::Deserialize(flutterAssetsPath, iter);
+        if (deserializedModel == nullptr) {
+          // load fallback
+          static constexpr char kFallback[] = "fallback";
+          auto fallbackToDeserialize =
+              Deserialize::DeserializeParameter(kFallback, iter);
+          deserializedModel =
+              Model::Deserialize(flutterAssetsPath, fallbackToDeserialize);
+        }
+        if (deserializedModel == nullptr) {
+          spdlog::error("Unable to load model and fallback model");
+          continue;
+        }
+        models_->emplace_back(std::move(deserializedModel));
       }
 
     } else if (key == "scene") {
       scene_ = std::make_unique<Scene>(flutterAssetsPath, it.second);
     } else if (key == "shapes" &&
                std::holds_alternative<flutter::EncodableList>(it.second)) {
-      shapes_ =
+      shapes =
           std::make_unique<std::vector<std::unique_ptr<shapes::BaseShape>>>();
 
       auto list = std::get<flutter::EncodableList>(it.second);
@@ -80,10 +109,10 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-
-        auto shape = std::make_unique<shapes::BaseShape>(
+        auto shape = ShapeManager::poDeserializeShapeFromData(
             flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
-        shapes_->emplace_back(shape.release());
+
+        shapes->emplace_back(shape.release());
       }
     } else {
       spdlog::warn("[FilamentView] Unhandled Parameter {}", key.c_str());
@@ -93,7 +122,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
   }
   sceneController_ = std::make_unique<SceneController>(
       platformView, state, flutterAssetsPath, models_.get(), scene_.get(),
-      shapes_.get(), id);
+      shapes.get(), id);
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
@@ -102,6 +131,6 @@ FilamentScene::~FilamentScene() {
   SPDLOG_TRACE("++FilamentScene::~FilamentScene");
   SPDLOG_ERROR("::~FilamentScene:: TODO");
   SPDLOG_TRACE("--FilamentScene::~FilamentScene");
-};
+}
 
 }  // namespace plugin_filament_view

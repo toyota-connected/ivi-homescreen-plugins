@@ -57,12 +57,11 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
       callback_(nullptr),
       fanimator_(nullptr),
+      cameraManager_(nullptr),
       currentModelState_(ModelState::NONE),
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
-      currentGroundState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE),
-      cameraManager_(nullptr) {
+      currentShapesState_(ShapeState::NONE) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
@@ -73,7 +72,7 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 
-  auto f = Initialize(platformView);
+  const auto f = Initialize(platformView);
   f.wait();
 
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
@@ -135,7 +134,7 @@ void CustomModelViewer::setupWaylandSubsurface() {
     return;
   }
 
-  auto flutter_view = state_->view_controller->view;
+  const auto flutter_view = state_->view_controller->view;
   if (!flutter_view) {
     // Handle error: flutter_view is not initialized
     spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
@@ -217,12 +216,6 @@ void CustomModelViewer::setModelState(ModelState modelState) {
                getTextForModelState(currentModelState_));
 }
 
-void CustomModelViewer::setGroundState(SceneState sceneState) {
-  currentGroundState_ = sceneState;
-  SPDLOG_DEBUG("[FilamentView] setGroundState: {}",
-               getTextForSceneState(currentGroundState_));
-}
-
 void CustomModelViewer::setLightState(SceneState sceneState) {
   currentLightState_ = sceneState;
   SPDLOG_DEBUG("[FilamentView] setLightState: {}",
@@ -236,7 +229,7 @@ void CustomModelViewer::setSkyboxState(SceneState sceneState) {
 }
 
 void CustomModelViewer::destroyIndirectLight() {
-  auto scene = fview_->getScene();
+  const auto scene = fview_->getScene();
   auto indirectLight = scene->getIndirectLight();
   if (indirectLight) {
     fengine_->destroy(indirectLight);
@@ -314,7 +307,7 @@ void CustomModelViewer::SendFrameViewCallback(
 /**
  * Renders the model and updates the Filament camera.
  *
- * @param frameTimeNanos time in nanoseconds when the frame started being
+ * @param time - timestamp of running program
  * rendered
  */
 void CustomModelViewer::DrawFrame(uint32_t time) {

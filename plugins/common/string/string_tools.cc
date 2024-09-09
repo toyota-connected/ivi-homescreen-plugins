@@ -22,8 +22,7 @@ namespace plugin_common::StringTools {
                                                 const std::string& token) {
   std::vector<std::string> result;
   while (!str.empty()) {
-    const auto index = str.find(token);
-    if (index != std::string::npos) {
+    if (const auto index = str.find(token); index != std::string::npos) {
       result.push_back(str.substr(0, index));
       str = str.substr(index + token.size());
       if (str.empty())

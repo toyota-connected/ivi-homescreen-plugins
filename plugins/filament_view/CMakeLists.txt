@@ -27,7 +27,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
 
 add_library(filament INTERFACE)
-target_include_directories(filament INTERFACE ${FILAMENT_INCLUDE_DIR} ${FILAMENT_INCLUDE_DIR}/filament)
+target_compile_options(filament INTERFACE -isystem${FILAMENT_INCLUDE_DIR} -isystem${FILAMENT_INCLUDE_DIR}/filament)
 target_link_directories(filament INTERFACE ${FILAMENT_LINK_LIBRARIES_DIR})
 target_link_libraries(filament INTERFACE
         libbackend.a
@@ -89,25 +89,26 @@ add_library(plugin_filament_view STATIC
         core/scene/geometry/direction.cc
         core/scene/geometry/position.cc
         core/scene/geometry/size.cc
-        core/scene/ground.cc
-        core/scene/ground_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
+        core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
         core/scene/light/light_manager.cc
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
         core/scene/material/material_manager.cc
-        core/scene/material/model/material.cc
-        core/scene/material/model/material_parameter.cc
-        core/scene/material/texture/texture.cc
+        core/scene/material/material_definitions.cc
+        core/scene/material/material_parameter.cc
+        core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc
-        core/scene/material/utils/material_instance.cc
         core/scene/skybox/skybox.cc
         core/scene/skybox/skybox_manager.cc
         core/scene/scene.cc
-        core/shapes/shape.cc
+        core/shapes/baseshape.cc
+        core/shapes/cube.cc
+        core/shapes/sphere.cc
+        core/shapes/plane.cc
         core/shapes/shape_manager.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
@@ -130,22 +131,22 @@ target_link_libraries(plugin_filament_view PUBLIC
 #
 # Filament MVP Example
 #
-pkg_check_modules(SDL2 IMPORTED_TARGET sdl2)
-if (SDL2_FOUND)
-    add_executable(filament-mvp test/mvp.cc)
-    target_link_libraries(filament-mvp PUBLIC
-            PkgConfig::SDL2
-            filament
-            ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-tools/source/opt/libSPIRV-Tools-opt.a
-            ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-cross/tnt/libspirv-cross-msl.a
-    )
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(filament-mvp PRIVATE ${CONTEXT_COMPILE_OPTIONS})
-        target_link_options(filament-mvp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fuse-ld=lld -l:libc++.a -l:libc++abi.a -static-libgcc -lc -lm -v>)
-    endif ()
-    add_sanitizers(filament-mvp)
+# pkg_check_modules(SDL2 IMPORTED_TARGET sdl2)
+# if (SDL2_FOUND)
+#     add_executable(filament-mvp test/mvp.cc)
+#     target_link_libraries(filament-mvp PUBLIC
+#             PkgConfig::SDL2
+#             filament
+#             ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-tools/source/opt/libSPIRV-Tools-opt.a
+#             ${FILAMENT_LINK_LIBRARIES_DIR}/../../../../third_party/spirv-cross/tnt/libspirv-cross-msl.a
+#     )
+#     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#         target_compile_options(filament-mvp PRIVATE ${CONTEXT_COMPILE_OPTIONS})
+#         target_link_options(filament-mvp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fuse-ld=lld -l:libc++.a -l:libc++abi.a -static-libgcc -lc -lm -v>)
+#     endif ()
+#     add_sanitizers(filament-mvp)
 
-    if (IPO_SUPPORT_RESULT)
-        set_property(TARGET filament-mvp PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-    endif ()
-endif ()
+#     if (IPO_SUPPORT_RESULT)
+#         set_property(TARGET filament-mvp PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+#     endif ()
+# endif ()

@@ -33,13 +33,14 @@ SceneController::SceneController(
     int32_t id)
     : id_(id),
       flutterAssetsPath_(std::move(flutterAssetsPath)),
-      scene_(scene),
-      models_(models) {
+      models_(models),
+      scene_(scene) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+
+  spdlog::info("SceneController {} setup", id_);
 
   setUpViewer(platformView, state);
   setUpLoadingModels();
-  setUpGround();
   setUpCamera();
   setUpSkybox();
   setUpLight();
@@ -77,13 +78,6 @@ void SceneController::setUpViewer(PlatformView* platformView,
   view->setPostProcessingEnabled(true);
 }
 
-void SceneController::setUpGround() {
-  groundManager_ = std::make_unique<GroundManager>(scene_->ground_.get());
-  groundManager_->createGround(materialManager_.get());
-  // auto f = groundManager_->createGround();
-  // f.wait();
-}
-
 void SceneController::setUpCamera() {
   cameraManager_ = std::make_unique<CameraManager>();
   modelViewer_->setCameraManager(cameraManager_.get());
@@ -101,7 +95,7 @@ void SceneController::setUpCamera() {
 std::future<void> SceneController::setUpIblProfiler() {
   const auto promise(std::make_shared<std::promise<void>>());
   auto future(promise->get_future());
-  asio::post(modelViewer_->getStrandContext(), [&, promise] {
+  asio::post(modelViewer_->getStrandContext(), [&/*, promise*/] {
     iblProfiler_ = std::make_unique<plugin_filament_view::IBLProfiler>(
         modelViewer_->getFilamentEngine());
   });
@@ -115,7 +109,7 @@ void SceneController::setUpSkybox() {
       std::make_unique<plugin_filament_view::SkyboxManager>(iblProfiler_.get());
 
   if (!scene_->skybox_) {
-    skyboxManager_->setDefaultSkybox();
+    plugin_filament_view::SkyboxManager::setDefaultSkybox();
     makeSurfaceViewTransparent();
   } else {
     auto skybox = scene_->skybox_.get();
@@ -123,30 +117,31 @@ void SceneController::setUpSkybox() {
       auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
       if (!hdr_skybox->assetPath_.empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath());
+            hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath();
         skyboxManager_->setSkyboxFromHdrAsset(
-            hdr_skybox->assetPath_,
-            hdr_skybox->showSun_.has_value() && hdr_skybox->showSun_.value(),
-            shouldUpdateLight, scene_->indirect_light_->getIntensity());
+            hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
+            scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
-            (hdr_skybox->url_ == scene_->indirect_light_->getUrl());
+            hdr_skybox->url_ == scene_->indirect_light_->getUrl();
         skyboxManager_->setSkyboxFromHdrUrl(
-            hdr_skybox->url_,
-            hdr_skybox->showSun_.has_value() && hdr_skybox->showSun_.value(),
-            shouldUpdateLight, scene_->indirect_light_->getIntensity());
+            hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
+            scene_->indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
       if (!kxt_skybox->assetPath_.empty()) {
-        skyboxManager_->setSkyboxFromKTXAsset(kxt_skybox->assetPath_);
+        plugin_filament_view::SkyboxManager::setSkyboxFromKTXAsset(
+            kxt_skybox->assetPath_);
       } else if (!kxt_skybox->url_.empty()) {
-        skyboxManager_->setSkyboxFromKTXUrl(kxt_skybox->url_);
+        plugin_filament_view::SkyboxManager::setSkyboxFromKTXUrl(
+            kxt_skybox->url_);
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
       auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
       if (!color_skybox->color_.empty()) {
-        skyboxManager_->setSkyboxFromColor(color_skybox->color_);
+        plugin_filament_view::SkyboxManager::setSkyboxFromColor(
+            color_skybox->color_);
       }
     }
   }
@@ -171,10 +166,10 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
                                             int32_t intensity) {
   if (scene_) {
     if (scene_->light_) {
-      SPDLOG_WARN("Changing light values. {} {}", __FILE__, __FUNCTION__);
+      SPDLOG_TRACE("Changing light values. {} {}", __FILE__, __FUNCTION__);
 
       scene_->light_->ChangeColor(colorValue);
-      scene_->light_->ChangeIntensity((float)intensity);
+      scene_->light_->ChangeIntensity(static_cast<float>(intensity));
 
       lightManager_->changeLight(scene_->light_.get());
       return;
@@ -192,7 +187,7 @@ void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
 
   if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
     SPDLOG_WARN("setIndirectLight  {} {}", __FILE__, __FUNCTION__);
-    indirectLightManager_->setIndirectLight(
+    plugin_filament_view::IndirectLightManager::setIndirectLight(
         dynamic_cast<DefaultIndirectLight*>(indirectLight));
   }
 }
@@ -201,15 +196,16 @@ void SceneController::setUpIndirectLight() {
   indirectLightManager_ =
       std::make_unique<IndirectLightManager>(iblProfiler_.get());
   if (!scene_->indirect_light_) {
-    indirectLightManager_->setDefaultIndirectLight();
+    plugin_filament_view::IndirectLightManager::setDefaultIndirectLight();
   } else {
     auto indirectLight = scene_->indirect_light_.get();
     if (dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
-        indirectLightManager_->setIndirectLightFromKtxAsset(
-            indirectLight->getAssetPath(), indirectLight->getIntensity());
+        plugin_filament_view::IndirectLightManager::
+            setIndirectLightFromKtxAsset(indirectLight->getAssetPath(),
+                                         indirectLight->getIntensity());
       } else if (!indirectLight->getUrl().empty()) {
-        indirectLightManager_->setIndirectLightFromKtxUrl(
+        plugin_filament_view::IndirectLightManager::setIndirectLightFromKtxUrl(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
@@ -224,15 +220,15 @@ void SceneController::setUpIndirectLight() {
         // auto shouldUpdateLight = indirectLight->getUrl() !=
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
-        indirectLightManager_->setIndirectLightFromHdrUrl(
+        plugin_filament_view::IndirectLightManager::setIndirectLightFromHdrUrl(
             indirectLight->getUrl(), indirectLight->getIntensity());
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      indirectLightManager_->setIndirectLight(
+      plugin_filament_view::IndirectLightManager::setIndirectLight(
           dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
-      indirectLightManager_->setDefaultIndirectLight();
+      plugin_filament_view::IndirectLightManager::setDefaultIndirectLight();
     }
   }
 }
@@ -318,7 +314,9 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
                                    glb_model->center_position_);
       f.wait();
       return f.get();
-    } else if (!glb_model->url_.empty()) {
+    }
+
+    if (!glb_model->url_.empty()) {
       auto f = loader->loadGlbFromUrl(glb_model->url_, glb_model->scale_,
                                       glb_model->center_position_);
       f.wait();
@@ -327,15 +325,17 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
   } else if (dynamic_cast<GltfModel*>(model)) {
     auto gltf_model = dynamic_cast<GltfModel*>(model);
     if (!gltf_model->assetPath_.empty()) {
-      auto f = loader->loadGltfFromAsset(
+      auto f = plugin_filament_view::ModelLoader::loadGltfFromAsset(
           gltf_model->assetPath_, gltf_model->pathPrefix_,
           gltf_model->pathPostfix_, gltf_model->scale_,
           gltf_model->center_position_);
       f.wait();
       return f.get();
-    } else if (!gltf_model->url_.empty()) {
-      auto f = loader->loadGltfFromUrl(gltf_model->url_, gltf_model->scale_,
-                                       gltf_model->center_position_);
+    }
+
+    if (!gltf_model->url_.empty()) {
+      auto f = plugin_filament_view::ModelLoader::loadGltfFromUrl(
+          gltf_model->url_, gltf_model->scale_, gltf_model->center_position_);
       f.wait();
       return f.get();
     }

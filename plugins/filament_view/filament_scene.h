@@ -20,10 +20,7 @@
 
 #include <filament/Engine.h>
 #include <gltfio/AssetLoader.h>
-#include <gltfio/ResourceLoader.h>
-#include "asio/executor_work_guard.hpp"
 #include "asio/io_context.hpp"
-#include "asio/io_context_strand.hpp"
 
 #include "core/scene/scene_controller.h"
 #include "flutter_desktop_engine_state.h"

@@ -42,7 +42,7 @@ void IndirectLightManager::setDefaultIndirectLight() {
   light.reset();
   SPDLOG_TRACE("--IndirectLightManager::setDefaultIndirectLight: {}",
                f.get().getMessage());
-};
+}
 
 std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
     DefaultIndirectLight* indirectLight) {
@@ -83,7 +83,7 @@ std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
 
 std::future<Resource<std::string_view>>
 IndirectLightManager::setIndirectLightFromKtxAsset(std::string path,
-                                                   double intensity) {
+                                                   double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -91,7 +91,7 @@ IndirectLightManager::setIndirectLightFromKtxAsset(std::string path,
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
-  asio::post(strand_, [&, promise, path = std::move(path), intensity] {
+  asio::post(strand_, [&, promise, path = std::move(path) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;
@@ -99,7 +99,7 @@ IndirectLightManager::setIndirectLightFromKtxAsset(std::string path,
 
 std::future<Resource<std::string_view>>
 IndirectLightManager::setIndirectLightFromKtxUrl(std::string url,
-                                                 double intensity) {
+                                                 double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -107,7 +107,7 @@ IndirectLightManager::setIndirectLightFromKtxUrl(std::string url,
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
-  asio::post(strand_, [&, promise, url = std::move(url), intensity] {
+  asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;
@@ -185,7 +185,7 @@ IndirectLightManager::setIndirectLightFromHdrAsset(std::string path,
 
 std::future<Resource<std::string_view>>
 IndirectLightManager::setIndirectLightFromHdrUrl(std::string url,
-                                                 double intensity) {
+                                                 double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
 
@@ -193,7 +193,7 @@ IndirectLightManager::setIndirectLightFromHdrUrl(std::string url,
   const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
   auto future(promise->get_future());
-  asio::post(strand_, [&, promise, url = std::move(url), intensity] {
+  asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;

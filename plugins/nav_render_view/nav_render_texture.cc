@@ -28,15 +28,16 @@ NavRenderTexture::NavRenderTexture(flutter::PluginRegistrar* registrar) {
       registrar->messenger(), "nav_render_view",
       &flutter::StandardMethodCodec::GetInstance());
   channel_->SetMethodCallHandler(
-      [this](const flutter::MethodCall<flutter::EncodableValue>& call,
-             std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
-                 result) { HandleMethodCall(call, std::move(result)); });
+      [](const flutter::MethodCall<>& call,
+         std::unique_ptr<flutter::MethodResult<>> result) {
+        HandleMethodCall(call, std::move(result));
+      });
 }
 
 void NavRenderTexture::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (call.method_name() == "create") {
+    const flutter::MethodCall<>& method_call,
+    std::unique_ptr<flutter::MethodResult<>> result) {
+  if (method_call.method_name() == "create") {
     std::string access_token;
     std::string module;
     bool map_flutter_assets{};
@@ -45,33 +46,33 @@ void NavRenderTexture::HandleMethodCall(
     std::string misc_folder;
     int interface_version = 0;
 
-    const auto& args = std::get_if<flutter::EncodableMap>(call.arguments());
+    const auto& args =
+        std::get_if<flutter::EncodableMap>(method_call.arguments());
 
-    for (const auto& it : *args) {
-      const auto& key = std::get<std::string>(it.first);
-      if (key == "access_token") {
-        if (std::holds_alternative<std::string>(it.second)) {
-          access_token = std::get<std::string>(it.second);
+    for (const auto& [fst, snd] : *args) {
+      if (const auto& key = std::get<std::string>(fst); key == "access_token") {
+        if (std::holds_alternative<std::string>(snd)) {
+          access_token = std::get<std::string>(snd);
         }
       } else if (key == "map_flutter_assets") {
-        if (std::holds_alternative<bool>(it.second)) {
-          map_flutter_assets = std::get<bool>(it.second);
+        if (std::holds_alternative<bool>(snd)) {
+          map_flutter_assets = std::get<bool>(snd);
         }
       } else if (key == "asset_path") {
-        if (std::holds_alternative<std::string>(it.second)) {
-          asset_path = std::get<std::string>(it.second);
+        if (std::holds_alternative<std::string>(snd)) {
+          asset_path = std::get<std::string>(snd);
         }
       } else if (key == "cache_folder") {
-        if (std::holds_alternative<std::string>(it.second)) {
-          cache_folder = std::get<std::string>(it.second);
+        if (std::holds_alternative<std::string>(snd)) {
+          cache_folder = std::get<std::string>(snd);
         }
       } else if (key == "misc_folder") {
-        if (std::holds_alternative<std::string>(it.second)) {
-          misc_folder = std::get<std::string>(it.second);
+        if (std::holds_alternative<std::string>(snd)) {
+          misc_folder = std::get<std::string>(snd);
         }
       } else if (key == "intf_ver") {
-        if (std::holds_alternative<int>(it.second)) {
-          interface_version = std::get<int>(it.second);
+        if (std::holds_alternative<int>(snd)) {
+          interface_version = std::get<int>(snd);
         }
       }
     }
@@ -92,7 +93,7 @@ NavRenderTexture::~NavRenderTexture() = default;
 
 ErrorOr<flutter::EncodableMap> NavRenderTexture::Create(
     const std::string& access_token,
-    bool map_flutter_assets,
+    const bool map_flutter_assets,
     const std::string& asset_path,
     const std::string& cache_folder,
     const std::string& misc_folder,
@@ -106,8 +107,6 @@ ErrorOr<flutter::EncodableMap> NavRenderTexture::Create(
   config.height = 480;
   if (map_flutter_assets) {
     config.asset_path = asset_path.c_str();
-  } else {
-    config.asset_path = asset_path.c_str();
   }
   config.cache_folder = cache_folder.c_str();
   config.misc_folder = misc_folder.c_str();
@@ -118,7 +117,7 @@ ErrorOr<flutter::EncodableMap> NavRenderTexture::Create(
   MAYBE_UNUSED
   auto ctx = LibNavRender->TextureInitialize2(&config);
 
-  return flutter::EncodableMap{};
+  return ErrorOr(flutter::EncodableMap{});
 }
 
 }  // namespace nav_render_view_plugin

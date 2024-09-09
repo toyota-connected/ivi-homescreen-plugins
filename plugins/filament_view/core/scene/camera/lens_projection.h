@@ -29,9 +29,7 @@ class LensProjection {
 
   void Print(const char* tag);
 
-  [[nodiscard]] std::optional<float> getFocalLength() const {
-    return focalLength_;
-  }
+  [[nodiscard]] float getFocalLength() const { return focalLength_; }
 
   [[nodiscard]] std::optional<float> getAspect() const { return aspect_; }
 

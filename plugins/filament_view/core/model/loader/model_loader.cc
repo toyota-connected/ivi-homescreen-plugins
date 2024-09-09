@@ -97,7 +97,7 @@ void ModelLoader::destroyModel(filament::gltfio::FilamentAsset* asset) {
 }
 
 filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
-    const std::string& szName) {
+    const std::string& /*szName*/) {
   // To be implemented with m_mapszpoAssets
   return assets_[0];
 }
@@ -105,14 +105,14 @@ filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
 void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
                                const ::filament::float3* centerPosition,
                                float scale,
-                               const std::string& assetName,
+                               const std::string& /*assetName*/,
                                bool /*autoScaleEnabled*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
-    // TODO THROW ERROR
+    spdlog::error("Failed to loadModelGlb->createasset from buffered data.");
     return;
   }
 
@@ -158,15 +158,14 @@ void ModelLoader::loadModelGltf(
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
-    // TODO THROW ERROR
+    spdlog::error("Failed to loadModelGltf->createasset from buffered data.");
     return;
   }
 
   assets_.push_back(asset);
 
   auto uri_data = asset->getResourceUris();
-  auto uris = std::vector<const char*>(uri_data,
-                                       uri_data + asset->getResourceUriCount());
+  auto uris = std::vector(uri_data, uri_data + asset->getResourceUriCount());
   for (const auto uri : uris) {
     SPDLOG_DEBUG("resource uri: {}", uri);
 #if 0   // TODO
@@ -219,7 +218,9 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
     asset->popRenderables(readyRenderables_, count);
     for (int i = 0; i < count; i++) {
       auto ri = rcm.getInstance(readyRenderables_[i]);
-      // TODO move to setting
+      // TODO move to settings & per model
+      // rcm.setCastShadows(ri, true);
+      // rcm.setReceiveShadows(ri, true);
       rcm.setScreenSpaceContactShadows(ri, false);
     }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
@@ -248,7 +249,6 @@ void ModelLoader::removeAsset(filament::gltfio::FilamentAsset* asset) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
                                                   asset->getEntityCount());
-  asset = nullptr;
 }
 
 std::optional<::filament::math::mat4f> ModelLoader::getModelTransform(
@@ -332,13 +332,12 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
   return promise_future;
 }
 
-void ModelLoader::handleFile(
-    const std::vector<uint8_t>& buffer,
-    const std::string& fileSource,
-    float scale,
-    const ::filament::math::float3* centerPosition,
-    bool isFallback,
-    const std::shared_ptr<std::promise<Resource<std::string_view>>>& promise) {
+void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
+                             const std::string& fileSource,
+                             float scale,
+                             const ::filament::math::float3* centerPosition,
+                             bool isFallback,
+                             const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(buffer, centerPosition, scale, fileSource, true);

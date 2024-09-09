@@ -238,7 +238,7 @@ struct ViewSettings {
 
 template <typename T>
 struct MaterialProperty {
-  std::string name;
+  std::string name{};
   T value;
 };
 

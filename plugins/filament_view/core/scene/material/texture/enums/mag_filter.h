@@ -18,22 +18,7 @@
 
 namespace plugin_filament_view {
 
-enum MagFilter {
-  /// No filtering. Nearest neighbor is used.
-  nearest,
-
-  /// Box filtering. Weighted average of 4 neighbors is used.
-  linear,
-};
-
 static constexpr char kMagFilterNearest[] = "NEAREST";
 static constexpr char kMagFilterLinear[] = "LINEAR";
-
-static const char* getTextForMagFilter(MagFilter mag_filter) {
-  return (const char*[]){
-      kMagFilterNearest,
-      kMagFilterLinear,
-  }[mag_filter];
-}
 
 }  // namespace plugin_filament_view

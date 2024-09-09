@@ -59,20 +59,23 @@ std::unique_ptr<Skybox> Skybox::Deserialize(
   }
 
   if (skyboxType.has_value()) {
-    if (skyboxType == 1) {
-      spdlog::debug("[Skybox] Type: KxtSkybox");
-      return std::move(std::make_unique<KxtSkybox>(assetPath, url));
-    } else if (skyboxType == 2) {
-      spdlog::debug("[Skybox] Type: HdrSkybox");
-      return std::move(std::make_unique<HdrSkybox>(assetPath, url, showSun));
-    } else if (skyboxType == 3) {
-      spdlog::debug("[Skybox] Type: ColorSkybox");
-      return std::move(std::make_unique<ColorSkybox>(assetPath, url, color));
+    switch (skyboxType.value()) {
+      case 1:
+        spdlog::debug("[Skybox] Type: KxtSkybox");
+        return std::move(std::make_unique<KxtSkybox>(assetPath, url));
+      case 2:
+        spdlog::debug("[Skybox] Type: HdrSkybox");
+        return std::move(std::make_unique<HdrSkybox>(assetPath, url, showSun));
+      case 3:
+        spdlog::debug("[Skybox] Type: ColorSkybox");
+        return std::move(std::make_unique<ColorSkybox>(assetPath, url, color));
+      default:
+        spdlog::error("[IndirectLight] Unknown Type: {}", skyboxType.value());
+        return nullptr;
     }
-  } else {
-    spdlog::critical("[IndirectLight] Unknown Type: {}", skyboxType.value());
   }
 
+  spdlog::critical("[IndirectLight] Type has no value");
   SPDLOG_TRACE("--Skybox::Skybox");
   return nullptr;
 }

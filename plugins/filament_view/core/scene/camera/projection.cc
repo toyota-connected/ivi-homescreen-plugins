@@ -134,7 +134,8 @@ const char* Projection::getTextForFov(::filament::Camera::Fov fov) {
 ::filament::Camera::Fov Projection::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
     return ::filament::Camera::Fov::VERTICAL;
-  } else if (fov == kFovHorizontal) {
+  }
+  if (fov == kFovHorizontal) {
     return ::filament::Camera::Fov::HORIZONTAL;
   }
   return ::filament::Camera::Fov::HORIZONTAL;

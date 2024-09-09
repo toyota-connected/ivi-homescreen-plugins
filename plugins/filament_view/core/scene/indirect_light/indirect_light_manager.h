@@ -40,7 +40,7 @@ class IndirectLightManager {
  public:
   explicit IndirectLightManager(IBLProfiler* ibl_profiler);
 
-  void setDefaultIndirectLight();
+  static void setDefaultIndirectLight();
 
   static std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
       std::string path,

@@ -42,7 +42,7 @@
 #include "core/model/state/shape_state.h"
 #include "core/scene/camera/camera_manager.h"
 #include "core/scene/scene.h"
-#include "core/shapes/shape.h"
+#include "core/shapes/baseshape.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
 #include "settings.h"
@@ -70,8 +70,6 @@ class CustomModelViewer {
 
   void setModelState(ModelState modelState);
 
-  void setGroundState(SceneState sceneState);
-
   void setLightState(SceneState sceneState);
 
   void setSkyboxState(SceneState sceneState);
@@ -81,8 +79,8 @@ class CustomModelViewer {
   void destroySkybox();
 
   // Disallow copy and assign.
-  // CustomModelViewer(const CustomModelViewer&) = delete;
-  // CustomModelViewer& operator=(const CustomModelViewer&) = delete;
+  CustomModelViewer(const CustomModelViewer&) = delete;
+  CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
   [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
     return fengine_;
@@ -197,10 +195,10 @@ class CustomModelViewer {
 
   CameraManager* cameraManager_;
 
+  // TODO Change state management to a different format
   ModelState currentModelState_;
   [[maybe_unused]] SceneState currentSkyboxState_;
   [[maybe_unused]] SceneState currentLightState_;
-  [[maybe_unused]] SceneState currentGroundState_;
   [[maybe_unused]] ShapeState currentShapesState_;
 
   std::unique_ptr<ModelLoader> modelLoader_;

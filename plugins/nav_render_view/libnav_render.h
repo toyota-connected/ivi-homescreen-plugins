@@ -90,7 +90,7 @@ class LibNavRender {
 
   static bool IsPresent() { return loadExports() != nullptr; }
 
-  LibNavRenderExports* operator->();
+  LibNavRenderExports* operator->() const;
 
  private:
   static LibNavRenderExports* loadExports();

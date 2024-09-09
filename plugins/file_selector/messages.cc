@@ -16,7 +16,6 @@
 #include <flutter/standard_method_codec.h>
 
 #include <filesystem>
-#include <optional>
 #include <sstream>
 #include <string>
 
@@ -47,16 +46,15 @@ using flutter::EncodableValue;
 // Sets up an instance of `UrlLauncherApi` to handle messages through the
 // `binary_messenger`.
 void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                            FileSelectorApi* api) {
+                            const FileSelectorApi* api) {
   {
     const auto channel = std::make_unique<flutter::MethodChannel<>>(
         binary_messenger, "plugins.flutter.dev/file_selector_linux",
         &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const flutter::MethodCall<EncodableValue>& call,
-             const std::unique_ptr<flutter::MethodResult<EncodableValue>>&
-                 result) {
+          [](const flutter::MethodCall<>& call,
+             const std::unique_ptr<flutter::MethodResult<>>& result) {
             SPDLOG_DEBUG("[file_selector] {}", call.method_name());
             if (call.method_name() == kGetDirectoryPath) {
               SPDLOG_DEBUG("[file_selector] getDirectoryPath:");
@@ -70,18 +68,17 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               bool multiple{};
               std::ostringstream oss;
 
-              auto args = std::get_if<flutter::EncodableMap>(call.arguments());
-              for (auto& it : *args) {
-                auto key = std::get<std::string>(it.first);
-                if (key == kArgInitialDirectory && !it.second.IsNull() &&
-                    std::holds_alternative<std::string>(it.second)) {
-                  initialDirectory = std::get<std::string>(it.second);
-                } else if (key == kArgConfirmButtonText &&
-                           !it.second.IsNull()) {
-                  confirmButtonText.assign(std::get<std::string>(it.second));
-                } else if (key == kArgMultiple && !it.second.IsNull() &&
-                           std::holds_alternative<bool>(it.second)) {
-                  multiple = std::get<bool>(it.second);
+              auto args = std::get_if<EncodableMap>(call.arguments());
+              for (const auto& [fst, snd] : *args) {
+                if (auto key = std::get<std::string>(fst);
+                    key == kArgInitialDirectory && !snd.IsNull() &&
+                    std::holds_alternative<std::string>(snd)) {
+                  initialDirectory = std::get<std::string>(snd);
+                } else if (key == kArgConfirmButtonText && !snd.IsNull()) {
+                  confirmButtonText.assign(std::get<std::string>(snd));
+                } else if (key == kArgMultiple && !snd.IsNull() &&
+                           std::holds_alternative<bool>(snd)) {
+                  multiple = std::get<bool>(snd);
                 }
               }
 
@@ -111,15 +108,16 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 result->Error("failed", "failed to execute command");
                 return;
               }
-              flutter::EncodableList results;
+              EncodableList results;
               auto paths = plugin_common::StringTools::split(path, "|");
               for (auto p : paths) {
-                results.emplace_back(
-                    std::move(plugin_common::StringTools::trim(p, "\n")));
+                results.emplace_back(EncodableValue(
+                    std::move(plugin_common::StringTools::trim(p, "\n"))));
               }
               result->Success(flutter::EncodableValue(results));
               return;
-            } else if (call.method_name() == kGetSavePath) {
+            }
+            if (call.method_name() == kGetSavePath) {
               SPDLOG_DEBUG("[file_selector] getSavePath:");
               if (call.arguments()->IsNull()) {
                 result->Error("invalid_arguments", "");
@@ -132,25 +130,24 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               std::string confirmButtonText;
               std::ostringstream oss;
 
-              auto args = std::get_if<flutter::EncodableMap>(call.arguments());
-              for (auto& it : *args) {
-                auto key = std::get<std::string>(it.first);
-                if (key == kArgInitialDirectory && !it.second.IsNull() &&
-                    std::holds_alternative<std::string>(it.second)) {
-                  initialDirectory = std::get<std::string>(it.second);
-                } else if (key == kArgSuggestedName && !it.second.IsNull() &&
-                           std::holds_alternative<std::string>(it.second)) {
-                  suggestedName.assign(std::get<std::string>(it.second));
-                } else if (key == kArgConfirmButtonText &&
-                           !it.second.IsNull()) {
-                  confirmButtonText.assign(std::get<std::string>(it.second));
+              auto args = std::get_if<EncodableMap>(call.arguments());
+              for (const auto& [fst, snd] : *args) {
+                if (auto key = std::get<std::string>(fst);
+                    key == kArgInitialDirectory && !snd.IsNull() &&
+                    std::holds_alternative<std::string>(snd)) {
+                  initialDirectory = std::get<std::string>(snd);
+                } else if (key == kArgSuggestedName && !snd.IsNull() &&
+                           std::holds_alternative<std::string>(snd)) {
+                  suggestedName.assign(std::get<std::string>(snd));
+                } else if (key == kArgConfirmButtonText && !snd.IsNull()) {
+                  confirmButtonText.assign(std::get<std::string>(snd));
                 }
               }
 
               SPDLOG_DEBUG("initialDirectory: [{}]", initialDirectory);
               filepath.assign(initialDirectory);
               if (!exists(filepath)) {
-                if (!std::filesystem::create_directories(filepath)) {
+                if (!create_directories(filepath)) {
                   result->Error("error", "Failed to create directories");
                   return;
                 }
@@ -159,10 +156,11 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               filepath.append(suggestedName);
               SPDLOG_DEBUG("confirmButtonText: [{}]", confirmButtonText);
               SPDLOG_DEBUG("save filepath: [{}]", filepath.c_str());
-              flutter::EncodableValue val(filepath.c_str());
-              result->Success(flutter::EncodableValue(filepath.c_str()));
+              EncodableValue val(filepath.c_str());
+              result->Success(EncodableValue(filepath.c_str()));
               return;
-            } else if (call.method_name() == kMethodOpenFile) {
+            }
+            if (call.method_name() == kMethodOpenFile) {
               SPDLOG_DEBUG("[file_selector] openFile");
 
               if (call.arguments()->IsNull()) {
@@ -177,32 +175,29 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               std::stringstream extensions;
               bool multiple{};
 
-              auto args = std::get_if<flutter::EncodableMap>(call.arguments());
-              for (auto& it : *args) {
-                auto key = std::get<std::string>(it.first);
-                if (key == kArgAcceptedTypeGroups && !it.second.IsNull() &&
-                    std::holds_alternative<flutter::EncodableList>(it.second)) {
-                  auto acceptedTypeGroups =
-                      std::get<flutter::EncodableList>(it.second);
+              auto args = std::get_if<EncodableMap>(call.arguments());
+              for (const auto& [fst, snd] : *args) {
+                if (auto key = std::get<std::string>(fst);
+                    key == kArgAcceptedTypeGroups && !snd.IsNull() &&
+                    std::holds_alternative<EncodableList>(snd)) {
+                  auto acceptedTypeGroups = std::get<EncodableList>(snd);
                   for (auto const& group : acceptedTypeGroups) {
                     if (!group.IsNull() &&
-                        std::holds_alternative<flutter::EncodableMap>(group)) {
-                      auto map = std::get<flutter::EncodableMap>(group);
-                      for (const auto& ele : map) {
-                        if (std::holds_alternative<std::string>(ele.first) &&
-                            std::holds_alternative<std::string>(ele.second)) {
-                          const auto k = std::get<std::string>(ele.first);
-                          if (k == kArgTypeGroupLabel) {
-                            label = std::get<std::string>(ele.second);
+                        std::holds_alternative<EncodableMap>(group)) {
+                      auto map = std::get<EncodableMap>(group);
+                      for (const auto& [fst, snd] : map) {
+                        if (std::holds_alternative<std::string>(fst) &&
+                            std::holds_alternative<std::string>(snd)) {
+                          if (const auto k = std::get<std::string>(fst);
+                              k == kArgTypeGroupLabel) {
+                            label = std::get<std::string>(snd);
                             SPDLOG_DEBUG("{}: {}", k, label);
                           }
                         }
-                        if (std::holds_alternative<std::string>(ele.first) &&
-                            std::holds_alternative<flutter::EncodableList>(
-                                ele.second)) {
-                          auto k = std::get<std::string>(ele.first);
-                          auto list =
-                              std::get<flutter::EncodableList>(ele.second);
+                        if (std::holds_alternative<std::string>(fst) &&
+                            std::holds_alternative<EncodableList>(snd)) {
+                          auto k = std::get<std::string>(fst);
+                          auto list = std::get<EncodableList>(snd);
                           for (const auto& item : list) {
                             if (std::holds_alternative<std::string>(item)) {
                               auto value = std::get<std::string>(item);
@@ -216,15 +211,14 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                       }
                     }
                   }
-                } else if (key == kArgInitialDirectory && !it.second.IsNull() &&
-                           std::holds_alternative<std::string>(it.second)) {
-                  initialDirectory.assign(std::get<std::string>(it.second));
-                } else if (key == kArgConfirmButtonText &&
-                           !it.second.IsNull()) {
-                  confirmButtonText.assign(std::get<std::string>(it.second));
-                } else if (key == kArgMultiple && !it.second.IsNull() &&
-                           std::holds_alternative<bool>(it.second)) {
-                  multiple = std::get<bool>(it.second);
+                } else if (key == kArgInitialDirectory && !snd.IsNull() &&
+                           std::holds_alternative<std::string>(snd)) {
+                  initialDirectory.assign(std::get<std::string>(snd));
+                } else if (key == kArgConfirmButtonText && !snd.IsNull()) {
+                  confirmButtonText.assign(std::get<std::string>(snd));
+                } else if (key == kArgMultiple && !snd.IsNull() &&
+                           std::holds_alternative<bool>(snd)) {
+                  multiple = std::get<bool>(snd);
                 }
               }
 
@@ -273,7 +267,8 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue FileSelectorApi::WrapError(std::string_view error_message) {
+EncodableValue FileSelectorApi::WrapError(
+    const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});

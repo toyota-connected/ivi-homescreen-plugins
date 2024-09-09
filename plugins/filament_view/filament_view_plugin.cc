@@ -95,7 +95,7 @@ FilamentViewPlugin::FilamentViewPlugin(
 
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
-};
+}
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
     int32_t /* index */,
@@ -106,36 +106,33 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
     std::string color,
     int32_t intensity,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  auto sceneController = filamentScene_->getSceneController();
+  const auto sceneController = filamentScene_->getSceneController();
   sceneController->ChangeLightProperties(index, color, intensity);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleShapesInScene(
     bool value,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  auto sceneController = filamentScene_->getSceneController();
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  const auto sceneController = filamentScene_->getSceneController();
   sceneController->vToggleAllShapesInScene(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleCameraAutoRotate(
     bool value,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  CustomModelViewer* instance =
-      CustomModelViewer::Instance("FilamentViewPlugin");
-  auto sceneController = filamentScene_->getSceneController();
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  const auto sceneController = filamentScene_->getSceneController();
   sceneController->getCameraManager()->togglePrimaryCameraFeatureMode(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::SetCameraRotation(
     float fValue,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  auto sceneController = filamentScene_->getSceneController();
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  const auto sceneController = filamentScene_->getSceneController();
   Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
   if (poCamera != nullptr) {
-    SPDLOG_DEBUG("{}", fValue);
     poCamera->vSetCurrentCameraOrbitAngle(fValue);
   }
 }
@@ -209,7 +206,7 @@ void FilamentViewPlugin::on_resize(double width, double height, void* data) {
 }
 
 void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
-  auto plugin = static_cast<FilamentViewPlugin*>(data);
+  const auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin) {
     plugin->direction_ = direction;
   }

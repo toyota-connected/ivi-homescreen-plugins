@@ -47,7 +47,7 @@ namespace video_player_linux {
 class VideoPlayer {
  public:
   VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
-              const std::string& uri,
+              std::string uri,
               std::map<std::string, std::string> http_headers,
               GLsizei width,
               GLsizei height,
@@ -62,7 +62,7 @@ class VideoPlayer {
   void Play();
   void Pause();
   int64_t GetPosition();
-  void SendBufferingUpdate();
+  void SendBufferingUpdate() const;
   void SeekTo(int64_t seek);
   int64_t GetTextureId() const { return m_texture_id; };
   bool IsValid();
@@ -120,14 +120,14 @@ class VideoPlayer {
   std::mutex gst_mutex_;
 
   bool is_initialized_ = false;
-  void SetBuffering(bool buffering);
+  void SetBuffering(bool buffering) const;
 
-  void OnPlaybackEnded();
+  void OnPlaybackEnded() const;
   void OnMediaInitialized();
   void OnMediaStateChange(GstState state);
   static void OnMediaError(GstMessage* msg);
   void OnMediaDurationChange();
-  void SendInitialized();
+  void SendInitialized() const;
 
   static void OnTag(const GstTagList* list,
                     const gchar* tag,
@@ -186,8 +186,8 @@ class VideoPlayer {
    */
   static void load_rgb_pixels(GLuint textureId,
                               const unsigned char* data,
-                              const int width,
-                              const int height);
+                              int width,
+                              int height);
 
   /**
    * @brief Load shaders

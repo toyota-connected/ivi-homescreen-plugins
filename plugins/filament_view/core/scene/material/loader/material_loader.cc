@@ -25,11 +25,11 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
                         .build(*engine);
 
     return Resource<::filament::Material*>::Success(material);
-  } else {
-    SPDLOG_ERROR("Could not load material from asset.");
-    return Resource<::filament::Material*>::Error(
-        "Could not load material from asset.");
   }
+
+  SPDLOG_ERROR("Could not load material from asset.");
+  return Resource<::filament::Material*>::Error(
+      "Could not load material from asset.");
 }
 
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
@@ -50,34 +50,34 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
                         .package(buffer.data(), buffer.size())
                         .build(*engine);
     return Resource<::filament::Material*>::Success(material);
-  } else {
-    return Resource<::filament::Material*>::Error(
-        "Could not load material from asset.");
   }
+
+  return Resource<::filament::Material*>::Error(
+      "Could not load material from asset.");
 }
 
 void MaterialLoader::PrintMaterialInformation(
     const ::filament::Material* material) {
-  SPDLOG_DEBUG("Material Informaton {}", material->getName());
+  spdlog::info("Material Informaton {}", material->getName());
   size_t paramCount = material->getParameterCount();
-  SPDLOG_DEBUG("Material Informaton {}", paramCount);
+  spdlog::info("Material Informaton {}", paramCount);
 
   auto InfoList = new filament::Material::ParameterInfo[paramCount];
   material->getParameters(InfoList, paramCount);
 
   for (size_t i = 0; i < paramCount; ++i) {
-    SPDLOG_DEBUG("Param Informaton {}", InfoList[i].name);
+    spdlog::info("Param Informaton {}", InfoList[i].name);
   }
 
-  SPDLOG_DEBUG("Material isDoubleSided {}", material->isDoubleSided());
-  SPDLOG_DEBUG("Material isDepthCullingEnabled {}",
+  spdlog::info("Material isDoubleSided {}", material->isDoubleSided());
+  spdlog::info("Material isDepthCullingEnabled {}",
                material->isDepthCullingEnabled());
-  SPDLOG_DEBUG("Material isDepthWriteEnabled {}",
+  spdlog::info("Material isDepthWriteEnabled {}",
                material->isDepthWriteEnabled());
-  SPDLOG_DEBUG("Material isColorWriteEnabled {}",
+  spdlog::info("Material isColorWriteEnabled {}",
                material->isColorWriteEnabled());
 
-  delete InfoList;
+  delete[] InfoList;
 }
 
 }  // namespace plugin_filament_view

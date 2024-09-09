@@ -27,11 +27,10 @@
 #include "core/scene/light/light_manager.h"
 #include "core/scene/material/material_manager.h"
 #include "core/scene/skybox/skybox_manager.h"
-#include "core/shapes/shape.h"
+#include "core/shapes/baseshape.h"
 #include "core/shapes/shape_manager.h"
 #include "core/utils/ibl_profiler.h"
 #include "flutter_desktop_engine_state.h"
-#include "ground_manager.h"
 #include "platform_views/platform_view.h"
 #include "scene.h"
 #include "viewer/custom_model_viewer.h"
@@ -59,6 +58,10 @@ class GroundManager;
 class MaterialManager;
 
 class ShapeManager;
+
+namespace shapes {
+class BaseShape;
+}
 
 class IBLProfiler;
 
@@ -98,6 +101,8 @@ class SceneController {
   void vToggleAllShapesInScene(bool bValue);
 
  private:
+  // Note: id_ will be moved in a future version when we start to maintain
+  // scenes to views to swapchains more appropriately.
   int32_t id_;
   std::string flutterAssetsPath_;
 
@@ -105,12 +110,6 @@ class SceneController {
   Scene* scene_;
 
   std::unique_ptr<CustomModelViewer> modelViewer_;
-
-  // private val choreographer: Choreographer = Choreographer.getInstance()
-  // private var modelJob: Job? = null
-  // private var glbModelStateJob: Job? = null
-  // private var sceneStateJob: Job? = null
-  // private var shapeStateJob: Job? = null
 
   std::optional<int32_t> currentAnimationIndex_;
 
@@ -121,7 +120,6 @@ class SceneController {
   std::unique_ptr<plugin_filament_view::SkyboxManager> skyboxManager_;
   std::unique_ptr<plugin_filament_view::AnimationManager> animationManager_;
   std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
-  std::unique_ptr<plugin_filament_view::GroundManager> groundManager_;
   // this should probably be promoted to outside this class TODO
   std::unique_ptr<plugin_filament_view::MaterialManager> materialManager_;
   std::unique_ptr<plugin_filament_view::ShapeManager> shapeManager_;
@@ -132,8 +130,6 @@ class SceneController {
   void setUpLoadingModels();
 
   void setUpCamera();
-
-  void setUpGround();
 
   std::future<void> setUpIblProfiler();
 

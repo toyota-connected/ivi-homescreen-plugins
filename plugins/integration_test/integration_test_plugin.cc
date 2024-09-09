@@ -28,15 +28,15 @@ void IntegrationTestPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<IntegrationTestPlugin>();
 
-  IntegrationTestApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }
 
 void IntegrationTestPlugin::ArgResults(const flutter::EncodableMap& map) {
-  for (const auto& results : map) {
-    auto k = std::get<std::string>(results.first);
-    auto v = std::get<std::string>(results.second);
+  for (const auto& [fst, snd] : map) {
+    auto k = std::get<std::string>(fst);
+    auto v = std::get<std::string>(snd);
     spdlog::debug("{}={}", k, v);
   }
 }

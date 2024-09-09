@@ -154,7 +154,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
-        std::string modeType = std::get<std::string>(it.second);
+        auto modeType = std::get<std::string>(it.second);
         if (modeType == kModeAutoOrbit) {
           customMode_ = true;
         } else {
@@ -167,10 +167,7 @@ Camera::Camera(const flutter::EncodableMap& params) {
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
         orbitHomePosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      }  // else if (std::holds_alternative<std::monostate>(it.second)) {
-      //   orbitHomePosition_ =
-      //       std::make_unique<::filament::math::float3>(0, 0, 0);
-      // }
+      }
     } else if (key == "orbitSpeed") {
       if (std::holds_alternative<flutter::EncodableList>(it.second)) {
         auto list = std::get<flutter::EncodableList>(it.second);
@@ -329,7 +326,8 @@ const char* Camera::getTextForMode(::filament::camutils::Mode mode) {
 ::filament::camutils::Mode Camera::getModeForText(const std::string& mode) {
   if (mode == kModeMap) {
     return ::filament::camutils::Mode::MAP;
-  } else if (mode == kModeFreeFlight) {
+  }
+  if (mode == kModeFreeFlight) {
     return ::filament::camutils::Mode::FREE_FLIGHT;
   }
   return ::filament::camutils::Mode::ORBIT;
@@ -345,7 +343,9 @@ const char* Camera::getTextForFov(::filament::camutils::Fov fov) {
 ::filament::camutils::Fov Camera::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
     return ::filament::camutils::Fov::VERTICAL;
-  } else if (fov == kFovHorizontal) {
+  }
+
+  if (fov == kFovHorizontal) {
     return ::filament::camutils::Fov::HORIZONTAL;
   }
   return ::filament::camutils::Fov::HORIZONTAL;

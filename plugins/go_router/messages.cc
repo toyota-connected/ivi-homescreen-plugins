@@ -47,21 +47,20 @@ const flutter::JsonMethodCodec& GoRouterApi::GetCodec() {
 // Sets up an instance of `DesktopWindowLinuxApi` to handle messages through the
 // `binary_messenger`.
 void GoRouterApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                        GoRouterApi* api) {
+                        const GoRouterApi* api) {
   {
     auto const channel =
         std::make_unique<flutter::MethodChannel<rapidjson::Document>>(
             binary_messenger, "flutter/navigation", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const flutter::MethodCall<rapidjson::Document>& call,
-             std::unique_ptr<flutter::MethodResult<rapidjson::Document>>
-                 result) {
+          [](const MethodCall<rapidjson::Document>& call,
+             const std::unique_ptr<MethodResult<rapidjson::Document>>& result) {
             const auto& method = call.method_name();
             const auto args = call.arguments();
             rapidjson::StringBuffer buffer;
             buffer.Clear();
-            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            rapidjson::Writer writer(buffer);
             args->Accept(writer);
             spdlog::debug("[go_router] {}", buffer.GetString());
 
@@ -71,9 +70,8 @@ void GoRouterApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               spdlog::debug("[go_router] selectMultiEntryHistory");
             } else if (method == "routeInformationUpdated") {
               spdlog::debug("[go_router] routeInformationUpdated");
-              std::string uri;
               if (args->HasMember("uri") && (*args)["uri"].IsString()) {
-                uri = (*args)["uri"].GetString();
+                std::string uri = (*args)["uri"].GetString();
                 spdlog::debug("\turi: {}", uri);
               }
               bool replace{};
@@ -81,11 +79,12 @@ void GoRouterApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 replace = (*args)["replace"].GetBool();
                 spdlog::debug("\treplace: {}", replace);
               }
+              (void)replace;
               std::string codec;
               std::string encoded;
               std::string location;
               if (args->HasMember("state") && (*args)["state"].IsObject()) {
-                auto state = (*args)["state"].GetObject();
+                const auto state = (*args)["state"].GetObject();
 
                 if (state.HasMember("location") &&
                     state["location"].IsString()) {
@@ -117,7 +116,6 @@ void GoRouterApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               return;
             }
             result->Success();
-            return;
           });
     } else {
       channel->SetMethodCallHandler(nullptr);

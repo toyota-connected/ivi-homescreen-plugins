@@ -26,53 +26,53 @@
 
 namespace google_sign_in_plugin {
 
-static constexpr const char* kPeopleUrl =
+static constexpr auto kPeopleUrl =
     "https://people.googleapis.com/v1/people/"
     "me?personFields=photos,names,emailAddresses";
 
 // Key Constants
-static constexpr const char* kKeyAccessToken = "access_token";
-static constexpr const char* kKeyAuthCode = "auth_code";
-static constexpr const char* kKeyAuthProviderX509CertUrl =
+static constexpr auto kKeyAccessToken = "access_token";
+static constexpr auto kKeyAuthCode = "auth_code";
+static constexpr auto kKeyAuthProviderX509CertUrl =
     "auth_provider_x509_cert_url";
-static constexpr const char* kKeyAuthUri = "auth_uri";
-static constexpr const char* kKeyClientId = "client_id";
-static constexpr const char* kKeyClientSecret = "client_secret";
-static constexpr const char* kKeyCode = "code";
-static constexpr const char* kKeyExpiresAt = "expires_at";
-static constexpr const char* kKeyExpiresIn = "expires_in";
-static constexpr const char* kKeyGrantType = "grant_type";
-static constexpr const char* kKeyIdToken = "id_token";
-static constexpr const char* kKeyInstalled = "installed";
-static constexpr const char* kKeyProjectId = "project_id";
-static constexpr const char* kKeyRefreshToken = "refresh_token";
-static constexpr const char* kKeyRedirectUri = "redirect_uri";
-static constexpr const char* kKeyRedirectUris = "redirect_uris";
+static constexpr auto kKeyAuthUri = "auth_uri";
+static constexpr auto kKeyClientId = "client_id";
+static constexpr auto kKeyClientSecret = "client_secret";
+static constexpr auto kKeyCode = "code";
+static constexpr auto kKeyExpiresAt = "expires_at";
+static constexpr auto kKeyExpiresIn = "expires_in";
+static constexpr auto kKeyGrantType = "grant_type";
+static constexpr auto kKeyIdToken = "id_token";
+static constexpr auto kKeyInstalled = "installed";
+static constexpr auto kKeyProjectId = "project_id";
+static constexpr auto kKeyRefreshToken = "refresh_token";
+static constexpr auto kKeyRedirectUri = "redirect_uri";
+static constexpr auto kKeyRedirectUris = "redirect_uris";
 
-static constexpr const char* kKeyScope = "scope";
-static constexpr const char* kKeyTokenType = "token_type";
-static constexpr const char* kKeyTokenUri = "token_uri";
+static constexpr auto kKeyScope = "scope";
+static constexpr auto kKeyTokenType = "token_type";
+static constexpr auto kKeyTokenUri = "token_uri";
 
 /// Value Constants
-static constexpr const char* kValueAuthorizationCode = "authorization_code";
-static constexpr const char* kValueRedirectUri = "urn:ietf:wg:oauth:2.0:oob";
-static constexpr const char* kValueRefreshToken = "refresh_token";
+static constexpr auto kValueAuthorizationCode = "authorization_code";
+static constexpr auto kValueRedirectUri = "urn:ietf:wg:oauth:2.0:oob";
+static constexpr auto kValueRefreshToken = "refresh_token";
 
 /// People Response Constants
-static constexpr const char* kKeyDisplayName = "displayName";
-static constexpr const char* kKeyEmailAddresses = "emailAddresses";
-static constexpr const char* kKeyMetadata = "metadata";
-static constexpr const char* kKeyNames = "names";
-static constexpr const char* kKeyPhotos = "photos";
-static constexpr const char* kKeyPrimary = "primary";
-static constexpr const char* kKeyResourceName = "resourceName";
-static constexpr const char* kKeySourcePrimary = "sourcePrimary";
-static constexpr const char* kKeyUrl = "url";
-static constexpr const char* kKeyValue = "value";
+static constexpr auto kKeyDisplayName = "displayName";
+static constexpr auto kKeyEmailAddresses = "emailAddresses";
+static constexpr auto kKeyMetadata = "metadata";
+static constexpr auto kKeyNames = "names";
+static constexpr auto kKeyPhotos = "photos";
+static constexpr auto kKeyPrimary = "primary";
+static constexpr auto kKeyResourceName = "resourceName";
+static constexpr auto kKeySourcePrimary = "sourcePrimary";
+static constexpr auto kKeyUrl = "url";
+static constexpr auto kKeyValue = "value";
 
-static constexpr const char* kClientCredentialsPathEnvironmentVariable =
+static constexpr auto kClientCredentialsPathEnvironmentVariable =
     "GOOGLE_API_OAUTH2_CLIENT_CREDENTIALS";
-static constexpr const char* kClientSecretPathEnvironmentVariable =
+static constexpr auto kClientSecretPathEnvironmentVariable =
     "GOOGLE_API_OAUTH2_CLIENT_SECRET_JSON";
 
 // static
@@ -80,15 +80,14 @@ void GoogleSignInPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<GoogleSignInPlugin>();
 
-  GoogleSignInApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }
 
 rapidjson::Document GoogleSignInPlugin::GetClientSecret() {
   std::string path;
-  auto env_var = getenv(kClientSecretPathEnvironmentVariable);
-  if (env_var) {
+  if (const auto env_var = getenv(kClientSecretPathEnvironmentVariable)) {
     path.assign(env_var);
   }
   return plugin_common::JsonUtils::GetJsonDocumentFromFile(path);
@@ -96,8 +95,7 @@ rapidjson::Document GoogleSignInPlugin::GetClientSecret() {
 
 rapidjson::Document GoogleSignInPlugin::GetClientCredentials() {
   std::string path;
-  auto env_var = getenv(kClientCredentialsPathEnvironmentVariable);
-  if (env_var) {
+  if (const auto env_var = getenv(kClientCredentialsPathEnvironmentVariable)) {
     path.assign(env_var);
   }
   return plugin_common::JsonUtils::GetJsonDocumentFromFile(path);
@@ -323,37 +321,36 @@ std::string GoogleSignInPlugin::GetAuthUrl(
     rapidjson::Document& secret_doc,
     const std::vector<std::string>& scopes) {
   std::string res;
-  const auto secret_obj = secret_doc.GetObject();
-  if (secret_obj.HasMember(kKeyInstalled)) {
+  if (const auto secret_obj = secret_doc.GetObject();
+      secret_obj.HasMember(kKeyInstalled)) {
     const auto obj = secret_obj[kKeyInstalled].GetObject();
     if (!obj.HasMember(kKeyClientId) || !obj.HasMember(kKeyAuthUri) ||
         !obj[kKeyClientId].IsString() || !obj[kKeyAuthUri].IsString()) {
       spdlog::error("Invalid client_secret object");
       return res;
-    } else {
-      const std::string client_id_ = obj[kKeyClientId].GetString();
-      const std::string auth_uri_ = obj[kKeyAuthUri].GetString();
-      std::stringstream ss;
-      ss << auth_uri_ << "?client_id=" << client_id_;
-      ss << "&redirect_uri=urn:ietf:wg:oauth:2.0:oob";
-      ss << "&scope=";
-      for (auto& scope : scopes) {
-        ss << scope << "%20";
-      }
-      ss << "https://www.googleapis.com/auth/userinfo.profile";
-      ss << "&response_type=code";
-      res.assign(ss.str());
     }
+    const std::string client_id_ = obj[kKeyClientId].GetString();
+    const std::string auth_uri_ = obj[kKeyAuthUri].GetString();
+    std::stringstream ss;
+    ss << auth_uri_ << "?client_id=" << client_id_;
+    ss << "&redirect_uri=urn:ietf:wg:oauth:2.0:oob";
+    ss << "&scope=";
+    for (auto& scope : scopes) {
+      ss << scope << "%20";
+    }
+    ss << "https://www.googleapis.com/auth/userinfo.profile";
+    ss << "&response_type=code";
+    res.assign(ss.str());
   }
   return res;
 }
 
 bool GoogleSignInPlugin::AuthCodeValuePresent(
     rapidjson::Document& credentials_doc) {
-  const auto obj = credentials_doc.GetObject();
-  if (obj.HasMember(kKeyAuthCode) && obj[kKeyAuthCode].IsString()) {
-    const std::string auth_code = obj[kKeyAuthCode].GetString();
-    if (!auth_code.empty()) {
+  if (const auto obj = credentials_doc.GetObject();
+      obj.HasMember(kKeyAuthCode) && obj[kKeyAuthCode].IsString()) {
+    if (const std::string auth_code = obj[kKeyAuthCode].GetString();
+        !auth_code.empty()) {
       return true;
     }
   }
@@ -361,8 +358,7 @@ bool GoogleSignInPlugin::AuthCodeValuePresent(
 }
 
 bool GoogleSignInPlugin::SecretJsonPopulated(rapidjson::Document& secret_doc) {
-  const auto obj = secret_doc.GetObject();
-  if (obj.HasMember(kKeyInstalled)) {
+  if (const auto obj = secret_doc.GetObject(); obj.HasMember(kKeyInstalled)) {
     const auto installed_obj = obj[kKeyInstalled].GetObject();
     const bool client_id = installed_obj.HasMember(kKeyClientId) &&
                            installed_obj[kKeyClientId].IsString();
@@ -390,8 +386,8 @@ bool GoogleSignInPlugin::SecretJsonPopulated(rapidjson::Document& secret_doc) {
 
 bool GoogleSignInPlugin::CredentialsJsonPopulated(
     rapidjson::Document& credentials_doc) {
-  const auto obj = credentials_doc.GetObject();
-  if (obj.HasMember(kKeyAccessToken) && obj[kKeyAccessToken].IsString() &&
+  if (const auto obj = credentials_doc.GetObject();
+      obj.HasMember(kKeyAccessToken) && obj[kKeyAccessToken].IsString() &&
       obj.HasMember(kKeyIdToken) && obj[kKeyIdToken].IsString() &&
       obj.HasMember(kKeyScope) && obj[kKeyScope].IsString() &&
       obj.HasMember(kKeyTokenType) && obj[kKeyTokenType].IsString() &&
@@ -435,8 +431,9 @@ void GoogleSignInPlugin::Init(const std::vector<std::string>& requestedScopes,
         "Confirm client_secret JSON file has been downloaded from the Google "
         "cloud console");
   }
-  auto credentials_doc = GetClientCredentials();
-  if (!CredentialsJsonPopulated(credentials_doc)) {
+  rapidjson::Document credentials_doc;
+  if (credentials_doc = GetClientCredentials();
+      !CredentialsJsonPopulated(credentials_doc)) {
     if (AuthCodeValuePresent(credentials_doc)) {
       credentials_doc = SwapAuthCodeForToken(secret_doc, credentials_doc);
     } else {
@@ -451,13 +448,14 @@ void GoogleSignInPlugin::Init(const std::vector<std::string>& requestedScopes,
   } else {
     credentials_doc = RefreshToken(secret_doc, credentials_doc);
   }
+  (void)credentials_doc;
 }
 
 flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
   std::unique_ptr<std::vector<uint8_t>> result;
 
-  auto credentials_doc = GetClientCredentials();
-  if (CredentialsJsonPopulated(credentials_doc)) {
+  if (auto credentials_doc = GetClientCredentials();
+      CredentialsJsonPopulated(credentials_doc)) {
     auto o = credentials_doc.GetObject();
     std::string id_token = o[kKeyIdToken].GetString();
     std::string auth_code = o[kKeyAuthCode].GetString();
@@ -477,8 +475,8 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
     if (client.GetCode() != CURLE_OK) {
       spdlog::error("[google_sign_in] curl failure {} - {}",
                     static_cast<int>(client.GetCode()), response);
-      result = codec.EncodeErrorEnvelope("http_client_failure", "");
-      return std::move(result);
+      result = GetCodec().EncodeErrorEnvelope("http_client_failure", "");
+      return flutter::EncodableValue(std::move(result));
     }
 
     rapidjson::Document doc;
@@ -486,24 +484,24 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
     if (doc.GetParseError() != rapidjson::kParseErrorNone) {
       spdlog::error("[google_sign_in] curl response parse failure: {} - {}",
                     static_cast<int>(doc.GetParseError()), response);
-      result = codec.EncodeErrorEnvelope("parse_error", "");
-      return std::move(result);
+      result = GetCodec().EncodeErrorEnvelope("parse_error", "");
+      return flutter::EncodableValue(std::move(result));
     }
 
     auto resp = doc.GetObject();
 
     // check for error
     if (resp.HasMember("error") && resp["error"].IsObject()) {
-      auto obj = resp["error"].GetObject();
-      if (obj.HasMember("code") && obj["code"].IsNumber() &&
+      if (auto obj = resp["error"].GetObject();
+          obj.HasMember("code") && obj["code"].IsNumber() &&
           obj.HasMember("message") && obj["message"].IsString() &&
           obj.HasMember("status") && obj["status"].IsString()) {
         int code = obj["code"].GetInt();
         std::string message = obj["message"].GetString();
         std::string status = obj["status"].GetString();
         spdlog::error("[google_sign_in] [{}] {}: {}", code, status, message);
-        result = codec.EncodeErrorEnvelope(status, message);
-        return std::move(result);
+        result = GetCodec().EncodeErrorEnvelope(status, message);
+        return flutter::EncodableValue(std::move(result));
       }
     }
 
@@ -516,11 +514,11 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
     if (resp.HasMember(kKeyEmailAddresses) &&
         resp[kKeyEmailAddresses].IsArray()) {
       auto arr = resp[kKeyEmailAddresses].GetArray();
-      auto index0 = arr[0].GetObject();
-      if (index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
+      if (auto index0 = arr[0].GetObject();
+          index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
           index0.HasMember(kKeyValue) && index0[kKeyValue].IsString()) {
-        auto meta_obj = index0[kKeyMetadata].GetObject();
-        if (meta_obj.HasMember(kKeySourcePrimary) &&
+        if (auto meta_obj = index0[kKeyMetadata].GetObject();
+            meta_obj.HasMember(kKeySourcePrimary) &&
             meta_obj[kKeySourcePrimary].IsBool() &&
             meta_obj[kKeySourcePrimary].GetBool()) {
           email = index0[kKeyValue].GetString();
@@ -531,12 +529,12 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
     std::string display_name;
     if (resp.HasMember(kKeyNames) && resp[kKeyNames].IsArray()) {
       auto arr = resp[kKeyNames].GetArray();
-      auto index0 = arr[0].GetObject();
-      if (index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
+      if (auto index0 = arr[0].GetObject();
+          index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
           index0.HasMember(kKeyDisplayName) &&
           index0[kKeyDisplayName].IsString()) {
-        auto meta_obj = index0[kKeyMetadata].GetObject();
-        if (meta_obj.HasMember(kKeySourcePrimary) &&
+        if (auto meta_obj = index0[kKeyMetadata].GetObject();
+            meta_obj.HasMember(kKeySourcePrimary) &&
             meta_obj[kKeySourcePrimary].IsBool() &&
             meta_obj[kKeySourcePrimary].GetBool()) {
           display_name = index0[kKeyDisplayName].GetString();
@@ -547,11 +545,11 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
     std::string photo_url;
     if (resp.HasMember(kKeyPhotos) && resp[kKeyPhotos].IsArray()) {
       auto arr = resp[kKeyPhotos].GetArray();
-      auto index0 = arr[0].GetObject();
-      if (index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
+      if (auto index0 = arr[0].GetObject();
+          index0.HasMember(kKeyMetadata) && index0[kKeyMetadata].IsObject() &&
           index0.HasMember(kKeyUrl) && index0[kKeyUrl].IsString()) {
-        auto meta_obj = index0[kKeyMetadata].GetObject();
-        if (meta_obj.HasMember(kKeyPrimary) && meta_obj[kKeyPrimary].IsBool() &&
+        if (auto meta_obj = index0[kKeyMetadata].GetObject();
+            meta_obj.HasMember(kKeyPrimary) && meta_obj[kKeyPrimary].IsBool() &&
             meta_obj[kKeyPrimary].GetBool()) {
           photo_url = index0[kKeyUrl].GetString();
         }
@@ -576,34 +574,34 @@ flutter::EncodableValue GoogleSignInPlugin::GetUserData() {
         {flutter::EncodableValue(kMethodResponseKeyIdToken),
          flutter::EncodableValue(id_token.c_str())},
     });
-    result = codec.EncodeSuccessEnvelope(&res);
+    result = GetCodec().EncodeSuccessEnvelope(&res);
   } else {
-    result = codec.EncodeErrorEnvelope("authentication_failure", "");
+    result = GetCodec().EncodeErrorEnvelope("authentication_failure", "");
   }
-  return std::move(result);
+  return flutter::EncodableValue(std::move(result));
 }
 
 flutter::EncodableValue GoogleSignInPlugin::GetTokens(
     const std::string& /* email */,
     bool /* shouldRecoverAuth */) {
-  auto credentials_doc = GetClientCredentials();
-  if (CredentialsJsonPopulated(credentials_doc)) {
+  if (auto credentials_doc = GetClientCredentials();
+      CredentialsJsonPopulated(credentials_doc)) {
     const auto o = credentials_doc.GetObject();
     const std::string access_token = o[kKeyAccessToken].GetString();
     const std::string id_token = o[kKeyIdToken].GetString();
     const std::string auth_code = o[kKeyAuthCode].GetString();
 
-    return flutter::EncodableValue(flutter::EncodableMap{
+    return flutter::EncodableValue(std::move(flutter::EncodableMap{
         {flutter::EncodableValue(kMethodResponseKeyServerAuthCode),
          flutter::EncodableValue(auth_code.c_str())},
         {flutter::EncodableValue(kMethodResponseKeyIdToken),
          flutter::EncodableValue(id_token.c_str())},
         {flutter::EncodableValue(kMethodResponseKeyAccessToken),
-         flutter::EncodableValue(access_token.c_str())}});
-  } else {
-    result = codec.EncodeErrorEnvelope("authentication_failure", "");
+         flutter::EncodableValue(access_token.c_str())}}));
   }
-  return std::move(result);
+  std::unique_ptr<std::vector<uint8_t>> result =
+      GetCodec().EncodeErrorEnvelope("authentication_failure", "");
+  return flutter::EncodableValue(std::move(result));
 }
 
 }  // namespace google_sign_in_plugin

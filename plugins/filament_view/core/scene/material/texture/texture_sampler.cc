@@ -16,6 +16,9 @@
 
 #include "texture_sampler.h"
 
+#include "enums/mag_filter.h"
+#include "enums/min_filter.h"
+#include "enums/wrap_mode.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
@@ -33,7 +36,18 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
       mag_ = std::get<std::string>(it.second);
     } else if (key == "wrap" &&
                std::holds_alternative<std::string>(it.second)) {
-      wrap_ = std::get<std::string>(it.second);
+      wrapR_ = std::get<std::string>(it.second);
+      wrapS_ = std::get<std::string>(it.second);
+      wrapT_ = std::get<std::string>(it.second);
+    } else if (key == "wrapR" &&
+               std::holds_alternative<std::string>(it.second)) {
+      wrapR_ = std::get<std::string>(it.second);
+    } else if (key == "wrapS" &&
+               std::holds_alternative<std::string>(it.second)) {
+      wrapS_ = std::get<std::string>(it.second);
+    } else if (key == "wrapT" &&
+               std::holds_alternative<std::string>(it.second)) {
+      wrapT_ = std::get<std::string>(it.second);
     } else if (key == "anisotropy" &&
                std::holds_alternative<double>(it.second)) {
       anisotropy_ = std::get<double>(it.second);
@@ -46,7 +60,75 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("--TextureSampler::TextureSampler");
 }
 
-void TextureSampler::Print(const char* tag) {
+::filament::TextureSampler::MagFilter TextureSampler::getMagFilter() const {
+  if (mag_ == kMagFilterNearest) {
+    return ::filament::TextureSampler::MagFilter::NEAREST;
+  }
+  return ::filament::TextureSampler::MagFilter::LINEAR;
+}
+
+::filament::TextureSampler::MinFilter TextureSampler::getMinFilter() const {
+  if (min_ == kMinFilterNearest) {
+    return ::filament::TextureSampler::MinFilter::NEAREST;
+  }
+
+  if (min_ == kMinFilterLinear) {
+    return ::filament::TextureSampler::MinFilter::LINEAR;
+  }
+
+  if (min_ == kMinFilterNearestMipmapNearest) {
+    return ::filament::TextureSampler::MinFilter::NEAREST_MIPMAP_NEAREST;
+  }
+
+  if (min_ == kMinFilterLinearMipmapNearest) {
+    return ::filament::TextureSampler::MinFilter::LINEAR_MIPMAP_NEAREST;
+  }
+
+  if (min_ == kMinFilterNearestMipmapLinear) {
+    return ::filament::TextureSampler::MinFilter::NEAREST_MIPMAP_LINEAR;
+  }
+
+  // Note: might need to change default in the future.
+  return ::filament::TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR;
+}
+
+::filament::TextureSampler::WrapMode TextureSampler::getWrapModeR() const {
+  if (wrapR_ == KWrapModeClampToEdge) {
+    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+  }
+
+  if (wrapR_ == KWrapModeRepeat) {
+    return ::filament::TextureSampler::WrapMode::REPEAT;
+  }
+
+  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+}
+
+::filament::TextureSampler::WrapMode TextureSampler::getWrapModeS() const {
+  if (wrapS_ == KWrapModeClampToEdge) {
+    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+  }
+
+  if (wrapS_ == KWrapModeRepeat) {
+    return ::filament::TextureSampler::WrapMode::REPEAT;
+  }
+
+  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+}
+
+::filament::TextureSampler::WrapMode TextureSampler::getWrapModeT() const {
+  if (wrapT_ == KWrapModeClampToEdge) {
+    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+  }
+
+  if (wrapT_ == KWrapModeRepeat) {
+    return ::filament::TextureSampler::WrapMode::REPEAT;
+  }
+
+  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+}
+
+void TextureSampler::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (TextureSampler)", tag);
   if (!min_.empty()) {
@@ -55,8 +137,14 @@ void TextureSampler::Print(const char* tag) {
   if (!mag_.empty()) {
     spdlog::debug("\tmag: [{}]", mag_);
   }
-  if (!wrap_.empty()) {
-    spdlog::debug("\twrap: [{}]", wrap_);
+  if (!wrapR_.empty()) {
+    spdlog::debug("\twrapR: [{}]", wrapR_);
+  }
+  if (!wrapS_.empty()) {
+    spdlog::debug("\twrapS: [{}]", wrapS_);
+  }
+  if (!wrapT_.empty()) {
+    spdlog::debug("\twrapT: [{}]", wrapT_);
   }
   if (anisotropy_.has_value()) {
     spdlog::debug("\tanisotropy: [{}]", anisotropy_.value());

@@ -159,7 +159,6 @@ class GoogleSignInPlugin final : public flutter::Plugin,
 
   /**
    * @brief GetUserData
-   * @param codec standard method code pointer
    * @return std::unique_ptr<std::vector<uint8_t>>
    * @retval Returns value suitable to send to engine
    * @relation
@@ -171,8 +170,8 @@ class GoogleSignInPlugin final : public flutter::Plugin,
    * @brief GetTokens
    * @param email
    * @param shouldRecoverAuth
-   * @param codec standard method code pointer
-   * @return std::unique_ptr<std::vector<uint8_t>>
+   * @param shouldRecoverAuth flag to recover auth
+   * @return flutter::EncodableValue
    * @retval Returns value suitable to send to engine
    * @relation
    * google_sign_in
@@ -186,13 +185,12 @@ class GoogleSignInPlugin final : public flutter::Plugin,
 
  private:
   // Method Response Constants
-  static constexpr const char* kMethodResponseKeyAccessToken = "accessToken";
-  static constexpr const char* kMethodResponseKeyEmail = "email";
-  static constexpr const char* kMethodResponseKeyId = "id";
-  static constexpr const char* kMethodResponseKeyIdToken = "idToken";
-  static constexpr const char* kMethodResponseKeyPhotoUrl = "photoUrl";
-  static constexpr const char* kMethodResponseKeyServerAuthCode =
-      "serverAuthCode";
+  static constexpr auto kMethodResponseKeyAccessToken = "accessToken";
+  static constexpr auto kMethodResponseKeyEmail = "email";
+  static constexpr auto kMethodResponseKeyId = "id";
+  static constexpr auto kMethodResponseKeyIdToken = "idToken";
+  static constexpr auto kMethodResponseKeyPhotoUrl = "photoUrl";
+  static constexpr auto kMethodResponseKeyServerAuthCode = "serverAuthCode";
 };
 }  // namespace google_sign_in_plugin
 

@@ -85,18 +85,17 @@ std::string CameraManager::updateExposure(Exposure* exposure) {
     SPDLOG_DEBUG("[setExposure] exposure: {}", e->exposure_.value());
     camera_->setExposure(e->exposure_.value());
     return "Exposure updated successfully";
-  } else {
-    auto aperture = e->aperture_.has_value() ? e->aperture_.value() : kAperture;
-    auto shutterSpeed =
-        e->shutterSpeed_.has_value() ? e->shutterSpeed_.value() : kShutterSpeed;
-    auto sensitivity =
-        e->sensitivity_.has_value() ? e->sensitivity_.value() : kSensitivity;
-    SPDLOG_DEBUG(
-        "[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",
-        aperture, shutterSpeed, sensitivity);
-    camera_->setExposure(aperture, shutterSpeed, sensitivity);
-    return "Exposure updated successfully";
   }
+
+  auto aperture = e->aperture_.has_value() ? e->aperture_.value() : kAperture;
+  auto shutterSpeed =
+      e->shutterSpeed_.has_value() ? e->shutterSpeed_.value() : kShutterSpeed;
+  auto sensitivity =
+      e->sensitivity_.has_value() ? e->sensitivity_.value() : kSensitivity;
+  SPDLOG_DEBUG("[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",
+               aperture, shutterSpeed, sensitivity);
+  camera_->setExposure(aperture, shutterSpeed, sensitivity);
+  return "Exposure updated successfully";
 }
 
 std::string CameraManager::updateProjection(Projection* projection) {
@@ -106,7 +105,7 @@ std::string CameraManager::updateProjection(Projection* projection) {
   auto p = projection;
   if (p->projection_.has_value() && p->left_.has_value() &&
       p->right_.has_value() && p->top_.has_value() && p->bottom_.has_value()) {
-    auto project = p->projection_.value();
+    const auto project = p->projection_.value();
     auto left = p->left_.value();
     auto right = p->right_.value();
     auto top = p->top_.value();
@@ -119,13 +118,15 @@ std::string CameraManager::updateProjection(Projection* projection) {
         left, right, bottom, top, near, far);
     camera_->setProjection(project, left, right, bottom, top, near, far);
     return "Projection updated successfully";
-  } else if (p->fovInDegrees_.has_value() && p->fovDirection_.has_value()) {
+  }
+
+  if (p->fovInDegrees_.has_value() && p->fovDirection_.has_value()) {
     auto fovInDegrees = p->fovInDegrees_.value();
     auto aspect =
         p->aspect_.has_value() ? p->aspect_.value() : calculateAspectRatio();
     auto near = p->near_.has_value() ? p->near_.value() : kNearPlane;
     auto far = p->far_.has_value() ? p->far_.value() : kFarPlane;
-    auto fovDirection = p->fovDirection_.value();
+    const auto fovDirection = p->fovDirection_.value();
     SPDLOG_DEBUG(
         "[setProjection] fovInDegress: {}, aspect: {}, near: {}, far: {}, "
         "direction: {}",
@@ -134,16 +135,16 @@ std::string CameraManager::updateProjection(Projection* projection) {
 
     camera_->setProjection(fovInDegrees, aspect, near, far, fovDirection);
     return "Projection updated successfully";
-  } else {
-    return "Projection info must be provided";
   }
+
+  return "Projection info must be provided";
 }
 
 std::string CameraManager::updateCameraShift(std::vector<double>* shift) {
   if (!shift) {
     return "Camera shift not found";
   }
-  auto s = shift;
+  const auto s = shift;
   if (s->size() >= 2) {
     return "Camera shift info must be provided";
   }
@@ -156,7 +157,7 @@ std::string CameraManager::updateCameraScaling(std::vector<double>* scaling) {
   if (!scaling) {
     return "Camera scaling must be provided";
   }
-  auto s = scaling;
+  const auto s = scaling;
   if (s->size() >= 2) {
     return "Camera scaling info must be provided";
   }
@@ -173,7 +174,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   auto manipulatorBuilder = CameraManipulator::Builder();
 
   if (cameraInfo->targetPosition_) {
-    auto tp = cameraInfo->targetPosition_.get();
+    const auto tp = cameraInfo->targetPosition_.get();
     manipulatorBuilder.targetPosition(tp->x, tp->y, tp->z);
     SPDLOG_DEBUG("[CameraManipulator] targetPosition: {}, {}, {}", tp->x, tp->y,
                  tp->z);
@@ -187,7 +188,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->upVector_) {
-    auto upVector = cameraInfo->upVector_.get();
+    const auto upVector = cameraInfo->upVector_.get();
     manipulatorBuilder.upVector(upVector->x, upVector->y, upVector->z);
     SPDLOG_DEBUG("[CameraManipulator] upVector: {}, {}, {}", upVector->x,
                  upVector->y, upVector->z);
@@ -199,7 +200,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->orbitHomePosition_) {
-    auto orbitHomePosition = cameraInfo->orbitHomePosition_.get();
+    const auto orbitHomePosition = cameraInfo->orbitHomePosition_.get();
     manipulatorBuilder.orbitHomePosition(
         orbitHomePosition->x, orbitHomePosition->y, orbitHomePosition->z);
     SPDLOG_DEBUG("[CameraManipulator] orbitHomePosition: {}, {}, {}",
@@ -208,7 +209,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->orbitSpeed_) {
-    auto orbitSpeed = cameraInfo->orbitSpeed_.get();
+    const auto orbitSpeed = cameraInfo->orbitSpeed_.get();
     manipulatorBuilder.orbitSpeed(orbitSpeed->at(0), orbitSpeed->at(1));
     SPDLOG_DEBUG("[CameraManipulator] orbitSpeed: {}, {}", orbitSpeed->at(0),
                  orbitSpeed->at(1));
@@ -216,7 +217,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
 
   manipulatorBuilder.fovDirection(cameraInfo->fovDirection_);
   SPDLOG_DEBUG("[CameraManipulator] fovDirection: {}",
-               (int)cameraInfo->fovDirection_);
+               static_cast<int>(cameraInfo->fovDirection_));
 
   if (cameraInfo->fovDegrees_.has_value()) {
     manipulatorBuilder.fovDegrees(cameraInfo->fovDegrees_.value());
@@ -231,14 +232,14 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->mapExtent_) {
-    auto mapExtent = cameraInfo->mapExtent_.get();
+    const auto mapExtent = cameraInfo->mapExtent_.get();
     manipulatorBuilder.mapExtent(mapExtent->at(0), mapExtent->at(1));
     SPDLOG_DEBUG("[CameraManipulator] mapExtent: {}, {}", mapExtent->at(0),
                  mapExtent->at(1));
   }
 
   if (cameraInfo->flightStartPosition_) {
-    auto flightStartPosition = cameraInfo->flightStartPosition_.get();
+    const auto flightStartPosition = cameraInfo->flightStartPosition_.get();
     manipulatorBuilder.flightStartPosition(
         flightStartPosition->x, flightStartPosition->y, flightStartPosition->z);
     SPDLOG_DEBUG("[CameraManipulator] flightStartPosition: {}, {}, {}",
@@ -247,7 +248,8 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->flightStartOrientation_) {
-    auto flightStartOrientation = cameraInfo->flightStartOrientation_.get();
+    const auto flightStartOrientation =
+        cameraInfo->flightStartOrientation_.get();
     auto pitch = flightStartOrientation->at(0);  // 0f;
     auto yaw = flightStartOrientation->at(1);    // 0f;
     manipulatorBuilder.flightStartOrientation(pitch, yaw);
@@ -276,7 +278,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   }
 
   if (cameraInfo->groundPlane_) {
-    auto groundPlane = cameraInfo->groundPlane_.get();
+    const auto groundPlane = cameraInfo->groundPlane_.get();
     auto a = groundPlane->at(0);
     auto b = groundPlane->at(1);
     auto c = groundPlane->at(2);
@@ -286,9 +288,9 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
                  c, d);
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  const auto modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
-  auto viewport = modelViewer->getFilamentView()->getViewport();
+  const auto viewport = modelViewer->getFilamentView()->getViewport();
   manipulatorBuilder.viewport(static_cast<int>(viewport.width),
                               static_cast<int>(viewport.height));
   cameraManipulator_ = manipulatorBuilder.build(cameraInfo->mode_);
@@ -348,10 +350,12 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 
   primaryCamera_->forceSingleFrameUpdate_ = false;
 
+  // Note these TODOs are marked for a next iteration tasking.
+
   // TODO this should be moved to a property on camera
-  const float speed = 0.05f;  // Rotation speed
+  constexpr float speed = 0.05f;  // Rotation speed
   // TODO this should be moved to a property on camera
-  const float radius = 8.0f;  // Distance from the camera to the object
+  constexpr float radius = 8.0f;  // Distance from the camera to the object
 
   // camera needs angle
   primaryCamera_->fCurrentOrbitAngle_ += fElapsedTime * speed;
@@ -488,22 +492,19 @@ std::string CameraManager::updateLensProjection(
     return "Lens projection not found";
   }
 
-  if (lensProjection->getFocalLength().has_value()) {
-    if (cameraFocalLength_ != lensProjection->getFocalLength().value())
-      cameraFocalLength_ = lensProjection->getFocalLength().value();
-    auto aspect = lensProjection->getAspect().has_value()
-                      ? lensProjection->getAspect().value()
-                      : calculateAspectRatio();
-    camera_->setLensProjection(lensProjection->getFocalLength().value(), aspect,
-                               lensProjection->getNear().has_value()
-                                   ? lensProjection->getNear().value()
-                                   : kNearPlane,
-                               lensProjection->getFar().has_value()
-                                   ? lensProjection->getFar().value()
-                                   : kFarPlane);
-    return "Lens projection updated successfully";
-  }
-  return "Lens projection info must be provided";
+  float lensProjectionFocalLength = lensProjection->getFocalLength();
+  if (cameraFocalLength_ != lensProjectionFocalLength)
+    cameraFocalLength_ = lensProjectionFocalLength;
+  auto aspect = lensProjection->getAspect().has_value()
+                    ? lensProjection->getAspect().value()
+                    : calculateAspectRatio();
+  camera_->setLensProjection(
+      lensProjectionFocalLength, aspect,
+      lensProjection->getNear().has_value() ? lensProjection->getNear().value()
+                                            : kNearPlane,
+      lensProjection->getFar().has_value() ? lensProjection->getFar().value()
+                                           : kFarPlane);
+  return "Lens projection updated successfully";
 }
 
 void CameraManager::updateCameraProjection() {

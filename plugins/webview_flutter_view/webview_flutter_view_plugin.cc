@@ -88,7 +88,7 @@ WebviewFlutterPlugin::WebviewFlutterPlugin(
   SPDLOG_TRACE("++WebviewFlutterPlugin::WebviewFlutterPlugin");
 
   /* Setup Wayland subsurface */
-  auto flutter_view = state->view_controller->view;
+  const auto flutter_view = state->view_controller->view;
   display_ = flutter_view->GetDisplay()->GetDisplay();
   parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
   surface_ =
@@ -431,7 +431,7 @@ void WebviewFlutterPlugin::on_touch(int32_t /* action */,
 }
 
 void WebviewFlutterPlugin::on_dispose(bool /* hybrid */, void* data) {
-  auto plugin = static_cast<WebviewFlutterPlugin*>(data);
+  const auto plugin = static_cast<WebviewFlutterPlugin*>(data);
   if (plugin->callback_) {
     wl_callback_destroy(plugin->callback_);
     plugin->callback_ = nullptr;

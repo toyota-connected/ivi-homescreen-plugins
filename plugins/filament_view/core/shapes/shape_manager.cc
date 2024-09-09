@@ -17,27 +17,15 @@
 #include "shape_manager.h"
 
 #include <filament/Engine.h>
-#include <filament/RenderableManager.h>
-#include <filament/View.h>
-#include <math/mat3.h>
-#include <math/norm.h>
-#include <math/vec3.h>
-#include "asio/post.hpp"
 
+#include "baseshape.h"
+#include "cube.h"
+#include "plane.h"
 #include "plugins/common/common.h"
+#include "sphere.h"
 
 namespace plugin_filament_view {
 
-using ::filament::Aabb;
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::mat4f;
-using ::filament::math::packSnorm16;
-using ::filament::math::short4;
 using shapes::BaseShape;
 using ::utils::Entity;
 
@@ -69,6 +57,44 @@ void ShapeManager::vRemoveAllShapesInScene() {
   shapes_.clear();
 }
 
+std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
+    const std::string& flutter_assets_path,
+    const flutter::EncodableMap& mapData) {
+  shapes::BaseShape::ShapeType type;
+
+  // Find the "shapeType" key in the mapData
+  auto it = mapData.find(flutter::EncodableValue("shapeType"));
+  if (it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
+    int32_t typeValue = std::get<int32_t>(it->second);
+
+    // Check if the value is within the valid range of the ShapeType enum
+    if (typeValue > static_cast<int32_t>(shapes::BaseShape::ShapeType::Unset) &&
+        typeValue < static_cast<int32_t>(shapes::BaseShape::ShapeType::Max)) {
+      type = static_cast<shapes::BaseShape::ShapeType>(typeValue);
+    } else {
+      spdlog::error("Invalid shape type value: {}", typeValue);
+      return nullptr;
+    }
+  } else {
+    spdlog::error("shapeType not found or is of incorrect type");
+    return nullptr;
+  }
+
+  // Based on the type_, create the corresponding shape
+  switch (type) {
+    case shapes::BaseShape::ShapeType::Plane:
+      return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
+    case shapes::BaseShape::ShapeType::Cube:
+      return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
+    case shapes::BaseShape::ShapeType::Sphere:
+      return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
+    default:
+      // Handle unknown shape type
+      spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
+      return nullptr;
+  }
+}
+
 void ShapeManager::addShapesToScene(
     std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
@@ -78,6 +104,9 @@ void ShapeManager::addShapesToScene(
   filament::Scene* poFilamentScene =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
+  // Ideally this is changed to create all entities on the first go, then
+  // we pass them through, upon use this failed in filament engine, more R&D
+  // needed
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
@@ -86,12 +115,6 @@ void ShapeManager::addShapesToScene(
     shape->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
 
     poFilamentScene->addEntity(*oEntity);
-
-    filament::math::float3 f3GetCenterPosition = shape->f3GetCenterPosition();
-
-    auto& tcm = poFilamentEngine->getTransformManager();
-    tcm.setTransform(tcm.getInstance(*oEntity),
-                     mat4f::translation(f3GetCenterPosition));
 
     // To investigate a better system for implementing layer mask
     // across dart to here.

@@ -70,8 +70,6 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
   asio::post(strand_, [&, promise, light] {
     auto builder = ::filament::LightManager::Builder(light->type_);
 
-    light->Print("Light Manager Instantiation");
-
     if (light->color_.has_value()) {
       auto colorValue = colorOf(light->color_.value());
       builder.color({colorValue[0], colorValue[1], colorValue[2]});

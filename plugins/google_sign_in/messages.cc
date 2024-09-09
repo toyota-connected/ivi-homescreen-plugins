@@ -24,7 +24,6 @@
 #include <flutter/method_call.h>
 #include <flutter/method_channel.h>
 
-#include <optional>
 #include <string>
 
 #include "plugins/common/common.h"
@@ -40,24 +39,24 @@ using flutter::MethodCall;
 using flutter::MethodResult;
 
 // Method Constants
-static constexpr const char* kMethodInit = "init";
-static constexpr const char* kMethodSignIn = "signIn";
-static constexpr const char* kMethodSignInSilently = "signInSilently";
-static constexpr const char* kMethodGetTokens = "getTokens";
-static constexpr const char* kMethodSignOut = "signOut";
-static constexpr const char* kMethodDisconnect = "disconnect";
+static constexpr auto kMethodInit = "init";
+static constexpr auto kMethodSignIn = "signIn";
+static constexpr auto kMethodSignInSilently = "signInSilently";
+static constexpr auto kMethodGetTokens = "getTokens";
+static constexpr auto kMethodSignOut = "signOut";
+static constexpr auto kMethodDisconnect = "disconnect";
 
 // Method Argument Constants
-static constexpr const char* kMethodArgSignInOption = "signInOption";
-static constexpr const char* kMethodArgScopes = "scopes";
-static constexpr const char* kMethodArgHostedDomain = "hostedDomain";
-static constexpr const char* kMethodArgClientId = "clientId";
-static constexpr const char* kMethodArgServerClientId = "serverClientId";
-static constexpr const char* kMethodArgForceCodeForRefreshToken =
+static constexpr auto kMethodArgSignInOption = "signInOption";
+static constexpr auto kMethodArgScopes = "scopes";
+static constexpr auto kMethodArgHostedDomain = "hostedDomain";
+static constexpr auto kMethodArgClientId = "clientId";
+static constexpr auto kMethodArgServerClientId = "serverClientId";
+static constexpr auto kMethodArgForceCodeForRefreshToken =
     "forceCodeForRefreshToken";
-static constexpr const char* kMethodArgShouldRecoverAuth = "shouldRecoverAuth";
+static constexpr auto kMethodArgShouldRecoverAuth = "shouldRecoverAuth";
 
-static constexpr const char* kMethodResponseKeyEmail = "email";
+static constexpr auto kMethodResponseKeyEmail = "email";
 
 /// The codec used by GoogleSignInApi.
 const flutter::StandardMethodCodec& GoogleSignInApi::GetCodec() {
@@ -69,15 +68,14 @@ const flutter::StandardMethodCodec& GoogleSignInApi::GetCodec() {
 void GoogleSignInApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                             GoogleSignInApi* api) {
   {
-    auto channel = std::make_unique<flutter::MethodChannel<>>(
+    const auto channel = std::make_unique<flutter::MethodChannel<>>(
         binary_messenger, "plugins.flutter.io/google_sign_in", &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const flutter::MethodCall<EncodableValue>& call,
-                std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
-            const auto& method = call.method_name();
-
-            if (method == kMethodInit) {
+          [api](const MethodCall<>& call,
+                std::unique_ptr<MethodResult<>> result) {
+            if (const auto& method = call.method_name();
+                method == kMethodInit) {
               SPDLOG_DEBUG("[google_sign_in] <init>");
 
               const auto args = std::get<EncodableMap>(*call.arguments());
@@ -93,30 +91,28 @@ void GoogleSignInApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               std::string serverClientId;
               bool forceCodeForRefreshToken{};
 
-              for (auto& it : args) {
-                const auto key = std::get<std::string>(it.first);
-                if (key == kMethodArgSignInOption && !it.second.IsNull()) {
-                  signInOption.assign(std::get<std::string>(it.second));
-                } else if (key == kMethodArgScopes && !it.second.IsNull()) {
+              for (const auto& [fst, snd] : args) {
+                if (const auto key = std::get<std::string>(fst);
+                    key == kMethodArgSignInOption && !snd.IsNull()) {
+                  signInOption.assign(std::get<std::string>(snd));
+                } else if (key == kMethodArgScopes && !snd.IsNull()) {
                   auto requestedScopes_ =
-                      std::get<std::vector<EncodableValue>>(it.second);
+                      std::get<std::vector<EncodableValue>>(snd);
                   for (auto& scope : requestedScopes_) {
                     if (!scope.IsNull()) {
                       auto val = std::get<std::string>(scope);
                       requestedScopes.push_back(std::move(val));
                     }
                   }
-                } else if (key == kMethodArgHostedDomain &&
-                           !it.second.IsNull()) {
-                  hostedDomain.assign(std::get<std::string>(it.second));
-                } else if (key == kMethodArgClientId && !it.second.IsNull()) {
-                  clientId.assign(std::get<std::string>(it.second));
-                } else if (key == kMethodArgServerClientId &&
-                           !it.second.IsNull()) {
-                  serverClientId.assign(std::get<std::string>(it.second));
+                } else if (key == kMethodArgHostedDomain && !snd.IsNull()) {
+                  hostedDomain.assign(std::get<std::string>(snd));
+                } else if (key == kMethodArgClientId && !snd.IsNull()) {
+                  clientId.assign(std::get<std::string>(snd));
+                } else if (key == kMethodArgServerClientId && !snd.IsNull()) {
+                  serverClientId.assign(std::get<std::string>(snd));
                 } else if (key == kMethodArgForceCodeForRefreshToken &&
-                           !it.second.IsNull()) {
-                  forceCodeForRefreshToken = std::get<bool>(it.second);
+                           !snd.IsNull()) {
+                  forceCodeForRefreshToken = std::get<bool>(snd);
                 }
               }
 
@@ -139,13 +135,13 @@ void GoogleSignInApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               std::string email;
               bool shouldRecoverAuth{};
-              for (auto& it : args) {
-                const auto key = std::get<std::string>(it.first);
-                if (key == kMethodResponseKeyEmail && !it.second.IsNull()) {
-                  email.assign(std::get<std::string>(it.second));
+              for (const auto& [fst, snd] : args) {
+                if (const auto key = std::get<std::string>(fst);
+                    key == kMethodResponseKeyEmail && !snd.IsNull()) {
+                  email.assign(std::get<std::string>(snd));
                 } else if (key == kMethodArgShouldRecoverAuth &&
-                           !it.second.IsNull()) {
-                  shouldRecoverAuth = std::get<bool>(it.second);
+                           !snd.IsNull()) {
+                  shouldRecoverAuth = std::get<bool>(snd);
                 }
               }
               SPDLOG_DEBUG("\temail: [{}]", email);

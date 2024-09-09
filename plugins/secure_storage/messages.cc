@@ -15,7 +15,6 @@
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
 
-#include <optional>
 #include <string>
 
 #include "plugins/common/common.h"
@@ -38,29 +37,26 @@ const flutter::StandardMethodCodec& SecureStorageApi::GetCodec() {
 void SecureStorageApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                              SecureStorageApi* api) {
   {
-    const auto channel =
-        std::make_unique<flutter::MethodChannel<EncodableValue>>(
-            binary_messenger, "plugins.it_nomads.com/flutter_secure_storage",
-            &GetCodec());
+    const auto channel = std::make_unique<flutter::MethodChannel<>>(
+        binary_messenger, "plugins.it_nomads.com/flutter_secure_storage",
+        &GetCodec());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [api](const flutter::MethodCall<EncodableValue>& call,
-                const std::unique_ptr<flutter::MethodResult<EncodableValue>>&
-                    result) {
+          [api](const flutter::MethodCall<>& call,
+                const std::unique_ptr<flutter::MethodResult<>>& result) {
             SPDLOG_DEBUG("[secure_storage] {}", call.method_name());
-            auto args = std::get_if<flutter::EncodableMap>(call.arguments());
+            auto args = std::get_if<EncodableMap>(call.arguments());
 
             std::string key;
             std::string value;
 
-            for (const auto& it : *args) {
-              if (std::holds_alternative<std::string>(it.first) &&
-                  std::holds_alternative<std::string>(it.second)) {
-                auto k = std::get<std::string>(it.first);
-                if (k == "key") {
-                  key = std::get<std::string>(it.second);
+            for (const auto& [fst, snd] : *args) {
+              if (std::holds_alternative<std::string>(fst) &&
+                  std::holds_alternative<std::string>(snd)) {
+                if (auto k = std::get<std::string>(fst); k == "key") {
+                  key = std::get<std::string>(snd);
                 } else if (k == "value") {
-                  value = std::get<std::string>(it.second);
+                  value = std::get<std::string>(snd);
                 }
               }
             }
@@ -87,7 +83,7 @@ void SecureStorageApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             } else if (call.method_name() == "containsKey") {
               SPDLOG_DEBUG("secure_storage: [ContainsKey]");
               auto val = api->containsKey(key.c_str());
-              result->Success(flutter::EncodableValue(val));
+              result->Success(EncodableValue(val));
             } else {
               result->NotImplemented();
             }
@@ -98,7 +94,8 @@ void SecureStorageApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue SecureStorageApi::WrapError(std::string_view error_message) {
+EncodableValue SecureStorageApi::WrapError(
+    const std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});

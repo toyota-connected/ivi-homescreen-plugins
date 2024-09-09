@@ -103,11 +103,12 @@ PLUGIN_OPTION(url_launcher "Includes URL Launcher Plugin" OFF)
 
 PLUGIN_OPTION(video_player_linux "Include Video Player plugin" OFF)
 
-
 if (BUILD_PLUGIN_CLOUD_FIRESTORE OR BUILD_PLUGIN_FIREBASE_AUTH OR BUILD_PLUGIN_FIREBASE_STORAGE)
     PLUGIN_OPTION(firebase_core "Plugin Firebase Core" ON)
     include(firebase)
 endif ()
+
+PLUGIN_OPTION(rive_text "Include Rive Text plugin" OFF)
 
 # TODO create source file for view
 

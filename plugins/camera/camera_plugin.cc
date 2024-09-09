@@ -45,7 +45,7 @@ void CameraPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarDesktop* registrar) {
   auto plugin =
       std::make_unique<CameraPlugin>(registrar, registrar->messenger());
-  CameraPlugin::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
   registrar->AddPlugin(std::move(plugin));
 }
 
@@ -56,10 +56,10 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
   g_camera_manager->cameraAdded.connect(this, &CameraPlugin::camera_added);
   g_camera_manager->cameraRemoved.connect(this, &CameraPlugin::camera_removed);
 
-  spdlog::debug("[camera_plugin] libcamera {}", g_camera_manager->version());
+  spdlog::debug("[camera_plugin] libcamera {}",
+                libcamera::CameraManager::version());
 
-  auto res = g_camera_manager->start();
-  if (res != 0) {
+  if (const auto res = g_camera_manager->start(); res != 0) {
     spdlog::critical("Failed to start camera manager: {}", strerror(-res));
   }
 }
@@ -97,8 +97,7 @@ std::string CameraPlugin::get_camera_lens_facing(
   std::string lensFacing;
 
   // If location is specified use it, otherwise select external
-  const auto& location = props.get(libcamera::properties::Location);
-  if (location) {
+  if (const auto& location = props.get(libcamera::properties::Location)) {
     switch (*location) {
       case libcamera::properties::CameraLocationFront:
         lensFacing = "front";
@@ -109,6 +108,7 @@ std::string CameraPlugin::get_camera_lens_facing(
       case libcamera::properties::CameraLocationExternal:
         lensFacing = "external";
         break;
+      default:;
     }
   } else {
     lensFacing = "external";
@@ -117,10 +117,10 @@ std::string CameraPlugin::get_camera_lens_facing(
 }
 
 void CameraPlugin::availableCameras(
-    std::function<void(ErrorOr<flutter::EncodableList> reply)> result) {
+    const std::function<void(ErrorOr<flutter::EncodableList> reply)> result) {
   spdlog::debug("[camera_plugin] availableCameras:");
 
-  auto cameras = g_camera_manager->cameras();
+  const auto cameras = g_camera_manager->cameras();
   flutter::EncodableList list;
   for (auto const& camera : cameras) {
     std::string id = camera->id();
@@ -137,14 +137,14 @@ void CameraPlugin::availableCameras(
                               {flutter::EncodableValue("sensorOrientation"),
                                flutter::EncodableValue(sensorOrientation)}});
   }
-  result(list);
+  result(ErrorOr(list));
 }
 
 void CameraPlugin::create(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<flutter::EncodableMap> reply)> result) {
+    const std::function<void(ErrorOr<flutter::EncodableMap> reply)> result) {
   spdlog::debug("[camera_plugin] create:");
-  plugin_common::Encodable::PrintFlutterEncodableMap("create", args);
+  Encodable::PrintFlutterEncodableMap("create", args);
 
   // method arguments
   std::string cameraName;
@@ -154,24 +154,21 @@ void CameraPlugin::create(
   int64_t audioBitrate = 0;
   bool enableAudio{};
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraName" && std::holds_alternative<std::string>(it.second)) {
-      cameraName = std::get<std::string>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraName" && std::holds_alternative<std::string>(snd)) {
+      cameraName = std::get<std::string>(snd);
     } else if (key == "resolutionPreset" &&
-               std::holds_alternative<std::string>(it.second)) {
-      resolutionPreset = std::get<std::string>(it.second);
-    } else if (key == "fps" && std::holds_alternative<int64_t>(it.second)) {
-      fps = std::get<int64_t>(it.second);
-    } else if (key == "videoBitrate" &&
-               std::holds_alternative<int64_t>(it.second)) {
-      videoBitrate = std::get<int64_t>(it.second);
-    } else if (key == "audioBitrate" &&
-               std::holds_alternative<int64_t>(it.second)) {
-      audioBitrate = std::get<int64_t>(it.second);
-    } else if (key == "enableAudio" &&
-               std::holds_alternative<bool>(it.second)) {
-      enableAudio = std::get<bool>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      resolutionPreset = std::get<std::string>(snd);
+    } else if (key == "fps" && std::holds_alternative<int64_t>(snd)) {
+      fps = std::get<int64_t>(snd);
+    } else if (key == "videoBitrate" && std::holds_alternative<int64_t>(snd)) {
+      videoBitrate = std::get<int64_t>(snd);
+    } else if (key == "audioBitrate" && std::holds_alternative<int64_t>(snd)) {
+      audioBitrate = std::get<int64_t>(snd);
+    } else if (key == "enableAudio" && std::holds_alternative<bool>(snd)) {
+      enableAudio = std::get<bool>(snd);
     }
   }
   // Create Camera instance
@@ -188,75 +185,73 @@ void CameraPlugin::create(
 
 void CameraPlugin::initialize(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<std::string> reply)> result) {
+    const std::function<void(ErrorOr<std::string> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
   std::string imageFormatGroup;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     } else if (key == "imageFormatGroup" &&
-               std::holds_alternative<std::string>(it.second)) {
-      imageFormatGroup = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      imageFormatGroup = std::get<std::string>(snd);
     }
   }
 
   // Initialize Camera
   if (cameraId - 1 < g_cameras.size()) {
-    auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+    const auto& camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
     if (!camera) {
       spdlog::error("Invalid cameraId");
       result(ErrorOr<std::string>("Invalid cameraId"));
       return;
     }
-    auto id = camera->getCameraId();
+    const auto id = camera->getCameraId();
 
     camera->setCamera(g_camera_manager->get(id));
-    auto channel_name =
+    const auto channel_name =
         camera->Initialize(registrar_, cameraId, imageFormatGroup);
-    result(channel_name);
+    result(ErrorOr(channel_name));
   }
 }
 
 void CameraPlugin::takePicture(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<std::string> reply)> result) {
+    const std::function<void(ErrorOr<std::string> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
-  result(camera->takePicture());
+  g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  result(ErrorOr(CameraContext::takePicture()));
 }
 
 void CameraPlugin::startVideoRecording(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("startVideoRecording",
-                                                     args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("startVideoRecording", args);
   // method arguments
   int32_t cameraId = 0;
   bool enableStream{};
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
-    } else if (key == "enableStream" &&
-               std::holds_alternative<bool>(it.second)) {
-      enableStream = std::get<bool>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
+    } else if (key == "enableStream" && std::holds_alternative<bool>(snd)) {
+      enableStream = std::get<bool>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  const auto& camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
   camera->startVideoRecording(enableStream);
 
   result(std::nullopt);
@@ -264,20 +259,19 @@ void CameraPlugin::startVideoRecording(
 
 void CameraPlugin::pauseVideoRecording(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("pauseVideoRecording",
-                                                     args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("pauseVideoRecording", args);
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  const auto& camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
   camera->pauseVideoRecording();
 
   result(std::nullopt);
@@ -285,20 +279,19 @@ void CameraPlugin::pauseVideoRecording(
 
 void CameraPlugin::resumeVideoRecording(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("resumeVideoRecording",
-                                                     args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("resumeVideoRecording", args);
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  const auto& camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
   camera->resumeVideoRecording();
 
   result(std::nullopt);
@@ -306,118 +299,116 @@ void CameraPlugin::resumeVideoRecording(
 
 void CameraPlugin::stopVideoRecording(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<std::string> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("stopVideoRecording",
-                                                     args);
+    const std::function<void(ErrorOr<std::string> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("stopVideoRecording", args);
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
-  result(camera->stopVideoRecording());
+  const auto& camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  result(ErrorOr(camera->stopVideoRecording()));
 }
 
 void CameraPlugin::pausePreview(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
+  (void)cameraId;
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
   SPDLOG_DEBUG("[camera_plugin] pausePreview: camera_id: {}", cameraId);
-  result(1);
+  result(ErrorOr<double>(1));
 }
 
 void CameraPlugin::resumePreview(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
 
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
   SPDLOG_DEBUG("[camera_plugin] resumePreview: camera_id: {}", cameraId);
-  result(1);
+  result(ErrorOr<double>(cameraId));
 }
 
 void CameraPlugin::lockCaptureOrientation(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<std::string>)> result) {
+    const std::function<void(ErrorOr<std::string>)> result) {
   // method arguments
   int32_t cameraId = 0;
   std::string orientation;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     } else if (key == "orientation" &&
-               std::holds_alternative<std::string>(it.second)) {
-      orientation = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      orientation = std::get<std::string>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG(
       "[camera_plugin] lockCaptureOrientation: camera_id: {}, orientation: {}",
       cameraId, orientation);
-  result(orientation);
+  result(ErrorOr(orientation));
 }
 
 void CameraPlugin::unlockCaptureOrientation(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<std::string>)> result) {
+    const std::function<void(ErrorOr<std::string>)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] unlockCaptureOrientation: camera_id: {}",
                cameraId);
-  std::string res;
-  result(res);
+  const std::string res;
+  result(ErrorOr(res));
 }
 
 void CameraPlugin::setFlashMode(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
+    const std::function<void(std::optional<FlutterError> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
   std::string mode;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
-    } else if (key == "mode" &&
-               std::holds_alternative<std::string>(it.second)) {
-      mode = std::get<std::string>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
+    } else if (key == "mode" && std::holds_alternative<std::string>(snd)) {
+      mode = std::get<std::string>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
+  (void)mode;
   SPDLOG_DEBUG("[camera_plugin] setFlashMode: camera_id: {}, orientation: {}",
                cameraId, mode);
 
@@ -426,21 +417,21 @@ void CameraPlugin::setFlashMode(
 
 void CameraPlugin::setFocusMode(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
+    const std::function<void(std::optional<FlutterError> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
   std::string mode;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
-    } else if (key == "mode" &&
-               std::holds_alternative<std::string>(it.second)) {
-      mode = std::get<std::string>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
+    } else if (key == "mode" && std::holds_alternative<std::string>(snd)) {
+      mode = std::get<std::string>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
+  (void)mode;
   SPDLOG_DEBUG("[camera_plugin] setFocusMode: camera_id: {}, mode: {}",
                cameraId, mode);
 
@@ -449,146 +440,146 @@ void CameraPlugin::setFocusMode(
 
 void CameraPlugin::setExposureMode(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("setExposureMode", args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("setExposureMode", args);
 
   result(std::nullopt);
 }
 
 void CameraPlugin::setExposurePoint(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("setExposurePoint", args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("setExposurePoint", args);
 
   result(std::nullopt);
 }
 
 void CameraPlugin::setFocusPoint(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
-  plugin_common::Encodable::PrintFlutterEncodableMap("setFocusPoint", args);
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  Encodable::PrintFlutterEncodableMap("setFocusPoint", args);
   result(std::nullopt);
 }
 
 void CameraPlugin::setExposureOffset(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
   double offset;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
-    } else if (key == "offset" && std::holds_alternative<double>(it.second)) {
-      offset = std::get<double>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
+    } else if (key == "offset" && std::holds_alternative<double>(snd)) {
+      offset = std::get<double>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] setExposureOffset: camera_id: {}, offset: {}",
                cameraId, offset);
-  result(offset);
+  result(ErrorOr(offset));
 }
 
 void CameraPlugin::getExposureOffsetStepSize(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] getExposureOffsetStepSize: camera_id: {}",
                cameraId);
 
-  result(2);
+  result(ErrorOr<double>(2));
 }
 
 void CameraPlugin::getMinExposureOffset(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] getMinExposureOffset: camera_id: {}", cameraId);
-  result(0);
+  result(ErrorOr<double>(0));
 }
 
 void CameraPlugin::getMaxExposureOffset(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] getMaxExposureOffset: camera_id: {}", cameraId);
-  result(64);
+  result(ErrorOr<double>(64));
 }
 
 void CameraPlugin::getMaxZoomLevel(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] getMaxZoomLevel: camera_id: {}", cameraId);
-  result(32);
+  result(ErrorOr<double>(32));
 }
 
 void CameraPlugin::getMinZoomLevel(
     const flutter::EncodableMap& args,
-    std::function<void(ErrorOr<double> reply)> result) {
+    const std::function<void(ErrorOr<double> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
-  auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];
+  (void)cameraId;
   SPDLOG_DEBUG("[camera_plugin] getMinZoomLevel: camera_id: {}", cameraId);
 
-  result(0);
+  result(ErrorOr<double>(0));
 }
 
 void CameraPlugin::dispose(
     const flutter::EncodableMap& args,
-    std::function<void(std::optional<FlutterError> reply)> result) {
+    const std::function<void(std::optional<FlutterError> reply)> result) {
   // method arguments
   int32_t cameraId = 0;
 
-  for (auto& it : args) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "cameraId" && std::holds_alternative<int32_t>(it.second)) {
-      cameraId = std::get<int32_t>(it.second);
+  for (const auto& [fst, snd] : args) {
+    if (auto key = std::get<std::string>(fst);
+        key == "cameraId" && std::holds_alternative<int32_t>(snd)) {
+      cameraId = std::get<int32_t>(snd);
     }
   }
   auto camera = g_cameras[static_cast<unsigned long>(cameraId - 1)];

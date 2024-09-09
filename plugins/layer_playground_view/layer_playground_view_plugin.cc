@@ -26,7 +26,6 @@ class Display;
 
 namespace plugin_layer_playground_view {
 
-// static
 void LayerPlaygroundViewPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar,
     int32_t id,
@@ -90,9 +89,8 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
   assert(egl_window_);
 
   InitializeEGL();
-  egl_surface_ = eglCreateWindowSurface(
-      egl_display_, egl_config_,
-      reinterpret_cast<EGLNativeWindowType>(egl_window_), nullptr);
+  egl_surface_ =
+      eglCreateWindowSurface(egl_display_, egl_config_, egl_window_, nullptr);
 
   // Subsurface
   parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
@@ -111,33 +109,30 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
 
 LayerPlaygroundViewPlugin::~LayerPlaygroundViewPlugin() {
   removeListener_(platformViewsContext_, id_);
-};
+}
 
 void LayerPlaygroundViewPlugin::on_resize(double width,
                                           double height,
                                           void* data) {
-  auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
-  if (plugin) {
+  if (const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data)) {
     plugin->width_ = static_cast<int32_t>(width);
     plugin->height_ = static_cast<int32_t>(height);
     SPDLOG_TRACE("Resize: {} {}", width, height);
   }
 }
 
-void LayerPlaygroundViewPlugin::on_set_direction(int32_t direction,
+void LayerPlaygroundViewPlugin::on_set_direction(const int32_t direction,
                                                  void* data) {
-  auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
-  if (plugin) {
+  if (const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data)) {
     plugin->direction_ = direction;
     SPDLOG_TRACE("SetDirection: {}", plugin->direction_);
   }
 }
 
-void LayerPlaygroundViewPlugin::on_set_offset(double left,
-                                              double top,
+void LayerPlaygroundViewPlugin::on_set_offset(const double left,
+                                              const double top,
                                               void* data) {
-  auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
-  if (plugin) {
+  if (const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data)) {
     plugin->left_ = static_cast<int32_t>(left);
     plugin->top_ = static_cast<int32_t>(top);
     if (plugin->subsurface_) {
@@ -155,12 +150,10 @@ void LayerPlaygroundViewPlugin::on_touch(int32_t /* action */,
                                          int32_t /* point_count */,
                                          const size_t /* point_data_size */,
                                          const double* /* point_data */,
-                                         void* /* data */) {
-  // auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
-}
+                                         void* /* data */) {}
 
 void LayerPlaygroundViewPlugin::on_dispose(bool /* hybrid */, void* data) {
-  auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
+  const auto plugin = static_cast<LayerPlaygroundViewPlugin*>(data);
   if (plugin->callback_) {
     wl_callback_destroy(plugin->callback_);
     plugin->callback_ = nullptr;
@@ -182,7 +175,7 @@ void LayerPlaygroundViewPlugin::on_dispose(bool /* hybrid */, void* data) {
   }
 }
 
-const struct platform_view_listener
+const platform_view_listener
     LayerPlaygroundViewPlugin::platform_view_listener_ = {
         .resize = on_resize,
         .set_direction = on_set_direction,

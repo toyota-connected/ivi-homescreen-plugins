@@ -27,7 +27,7 @@ void DesktopWindowLinuxPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar) {
   auto plugin = std::make_unique<DesktopWindowLinuxPlugin>();
 
-  DesktopWindowLinuxApi::SetUp(registrar->messenger(), plugin.get());
+  SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "texture.h"
+#include "texture_definitions.h"
 
 #include <optional>
 
@@ -26,20 +26,31 @@ static constexpr char kTypeColor[] = "COLOR";
 static constexpr char kTypeNormal[] = "NORMAL";
 static constexpr char kTypeData[] = "DATA";
 
-Texture::Texture(TextureType type,
-                 std::string assetPath,
-                 std::string url,
-                 TextureSampler* sampler)
-    : type_(type),
-      assetPath_(std::move(assetPath)),
+TextureDefinitions::TextureDefinitions(TextureType type,
+                                       std::string assetPath,
+                                       std::string url,
+                                       TextureSampler* sampler)
+    : assetPath_(std::move(assetPath)),
       url_(std::move(url)),
+      type_(type),
       sampler_(sampler) {}
 
-Texture::~Texture() {
+TextureDefinitions::~TextureDefinitions() {
   delete sampler_;
 }
 
-std::unique_ptr<Texture> Texture::Deserialize(
+///////////////////////////////////////////////////////////////////////////////////////////////////
+std::string TextureDefinitions::szGetTextureDefinitionLookupName() const {
+  if (!assetPath_.empty()) {
+    return assetPath_;
+  }
+  if (!url_.empty()) {
+    return url_;
+  }
+  return "Unknown";
+}
+
+std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Texture::Texture");
   std::optional<std::string> assetPath;
@@ -75,13 +86,13 @@ std::unique_ptr<Texture> Texture::Deserialize(
   }
 
   SPDLOG_TRACE("--Texture::Texture");
-  return std::make_unique<Texture>(
+  return std::make_unique<TextureDefinitions>(
       type.value(), assetPath.has_value() ? std::move(assetPath.value()) : "",
       url.has_value() ? std::move(url.value()) : "",
       sampler.has_value() ? sampler.value().get() : nullptr);
 }
 
-void Texture::Print(const char* tag) {
+void TextureDefinitions::DebugPrint(const char* tag) {
   SPDLOG_DEBUG("++{} {} ", __FILE__, __FUNCTION__);
   spdlog::debug("{} (Texture)", tag);
   if (!assetPath_.empty()) {
@@ -98,18 +109,22 @@ void Texture::Print(const char* tag) {
   SPDLOG_DEBUG("--{} {} ", __FILE__, __FUNCTION__);
 }
 
-Texture::TextureType Texture::getType(const std::string& type) {
+TextureDefinitions::TextureType TextureDefinitions::getType(
+    const std::string& type) {
   if (type == kTypeColor) {
     return TextureType::COLOR;
-  } else if (type == kTypeNormal) {
+  }
+  if (type == kTypeNormal) {
     return TextureType::NORMAL;
-  } else if (type == kTypeData) {
+  }
+  if (type == kTypeData) {
     return TextureType::DATA;
   }
   assert(false);
 }
 
-const char* Texture::getTextForType(Texture::TextureType type) {
+const char* TextureDefinitions::getTextForType(
+    TextureDefinitions::TextureType type) {
   return (const char*[]){
       kTypeColor,
       kTypeNormal,

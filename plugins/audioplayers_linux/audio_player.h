@@ -1,17 +1,12 @@
 #pragma once
 
-#include <functional>
 #include <future>
-#include <map>
-#include <memory>
 #include <optional>
-#include <sstream>
 #include <string>
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
-#include <flutter/method_channel.h>
 
 extern "C" {
 #include <gst/gst.h>
@@ -19,7 +14,7 @@ extern "C" {
 
 using namespace flutter;
 
-class AudioPlayer : public flutter::BasicMessageChannel<> {
+class AudioPlayer : public BasicMessageChannel<> {
  public:
   AudioPlayer(const std::string& playerId, BinaryMessenger* messenger);
 
@@ -29,7 +24,7 @@ class AudioPlayer : public flutter::BasicMessageChannel<> {
 
   std::optional<int64_t> GetDuration();
 
-  bool GetLooping() const;
+  [[nodiscard]] bool GetLooping() const;
 
   void Play();
 
@@ -45,7 +40,7 @@ class AudioPlayer : public flutter::BasicMessageChannel<> {
 
   void SetLooping(bool isLooping);
 
-  void SetVolume(double volume);
+  void SetVolume(double volume) const;
 
   void SetPlaybackRate(double rate);
 
@@ -57,7 +52,7 @@ class AudioPlayer : public flutter::BasicMessageChannel<> {
 
   void OnError(const gchar* code,
                const gchar* message,
-               flutter::EncodableValue* details,
+               EncodableValue* details,
                GError** error);
 
   void OnLog(const gchar* message);
@@ -96,7 +91,7 @@ class AudioPlayer : public flutter::BasicMessageChannel<> {
 
   void OnMediaError(GError* error, gchar* debug);
 
-  void OnMediaStateChange(GstObject* src,
+  void OnMediaStateChange(const GstObject* src,
                           const GstState* old_state,
                           const GstState* new_state);
 
