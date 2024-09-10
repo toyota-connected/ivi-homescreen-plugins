@@ -24,6 +24,19 @@
 #include "view/flutter_view.h"
 #include "wayland/display.h"
 
+#include <flutter/basic_message_channel.h>
+#include <flutter/binary_messenger.h>
+#include <flutter/encodable_value.h>
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
+using flutter::EncodableList;
+using flutter::EncodableMap;
+using flutter::EncodableValue;
+using flutter::MessageReply;
+using flutter::MethodCall;
+using flutter::MethodResult;
+
 class Display;
 
 class FlutterView;
@@ -101,6 +114,16 @@ CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
   if (m_poInstance == nullptr)
     SPDLOG_DEBUG("Instance is null {}", where.c_str());
   return m_poInstance;
+}
+
+void CustomModelViewer::setupMessageChannels(
+    flutter::PluginRegistrar* plugin_registrar) {
+  const std::string channel_name =
+      std::string("plugin.filament_view.frame_view");
+
+  frameViewCallback_ = std::make_unique<flutter::MethodChannel<>>(
+      plugin_registrar->messenger(), channel_name,
+      &flutter::StandardMethodCodec::GetInstance());
 }
 
 void CustomModelViewer::setupWaylandSubsurface() {
@@ -264,6 +287,23 @@ void CustomModelViewer::setupView() {
 
 static uint32_t G_LastTime = 0;
 
+void CustomModelViewer::SendFrameViewCallback(
+    const std::string& methodName,
+    std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
+        args) {
+  if (frameViewCallback_ == nullptr) {
+    return;
+  }
+
+  flutter::EncodableMap encodableMap;
+  for (const auto& arg : args) {
+    encodableMap[flutter::EncodableValue(arg.first)] = arg.second;
+  }
+  frameViewCallback_->InvokeMethod(methodName,
+                                   std::make_unique<flutter::EncodableValue>(
+                                       flutter::EncodableValue(encodableMap)));
+}
+
 /**
  * Renders the model and updates the Filament camera.
  *
@@ -285,6 +325,28 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       G_LastTime = time;
     }
 
+    // Frames from Native to dart, currently run in order of
+    // - updateFrame - Called regardless if a frame is going to be drawn or not
+    // - preRenderFrame - Called before native <features>, but we know we're
+    // going to draw a frame
+    // - renderFrame - Called after native <features>, right before drawing a
+    // frame
+    // - postRenderFrame - Called after we've drawn natively, right after
+    // drawing a frame.
+
+    static constexpr char kUpdateFrame[] = "updateFrame";
+    static constexpr char kPreRenderFrame[] = "preRenderFrame";
+    static constexpr char kRenderFrame[] = "renderFrame";
+    static constexpr char kPostRenderFrame[] = "postRenderFrame";
+    static constexpr char kParam_TimeSinceLastRenderedSec[] =
+        "timeSinceLastRenderedSec";
+    static constexpr char kParam_FPS[] = "fps";
+    static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
+
+    SendFrameViewCallback(
+        kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
+                                      flutter::EncodableValue(G_LastTime))});
+
     // Render the scene, unless the renderer wants to skip the frame.
     if (frenderer_->beginFrame(fswapChain_, time)) {
       // Note you might want render time and gameplay time to be different
@@ -292,11 +354,36 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       // render)
       //
       // Future tasking for making a more featured timing / frame info class.
-      const uint32_t deltaTime = time - G_LastTime;
-      doCameraFeatures(static_cast<float>(deltaTime) / 1000.0f);
+      uint32_t deltaTimeMS = time - G_LastTime;
+      float timeSinceLastRenderedSec =
+          static_cast<float>(deltaTimeMS) / 100.0f;  // convert to seconds
+      if (timeSinceLastRenderedSec == 0.0f) {
+        timeSinceLastRenderedSec += 1.0f;
+      }
+      float fps = 1.0f / timeSinceLastRenderedSec;  // calculate FPS
+
+      SendFrameViewCallback(
+          kPreRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                          flutter::EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+
+      doCameraFeatures(timeSinceLastRenderedSec);
+
+      SendFrameViewCallback(
+          kRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                          flutter::EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
       frenderer_->render(fview_);
       frenderer_->endFrame();
+
+      SendFrameViewCallback(
+          kPostRenderFrame,
+          {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                          flutter::EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
     }
 
     G_LastTime = time;

@@ -353,7 +353,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
   // Note these TODOs are marked for a next iteration tasking.
 
   // TODO this should be moved to a property on camera
-  constexpr float speed = 0.5f;  // Rotation speed
+  constexpr float speed = 0.05f;  // Rotation speed
   // TODO this should be moved to a property on camera
   constexpr float radius = 8.0f;  // Distance from the camera to the object
 
