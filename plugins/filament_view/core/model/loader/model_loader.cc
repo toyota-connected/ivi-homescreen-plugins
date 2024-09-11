@@ -25,8 +25,8 @@
 #include <gltfio/ResourceLoader.h>
 #include <gltfio/TextureProvider.h>
 #include <math/mat4.h>
-#include <asio/post.hpp>
 #include <utils/Slice.h>
+#include <asio/post.hpp>
 
 #include "gltfio/materials/uberarchive.h"
 
@@ -131,13 +131,16 @@ void ModelLoader::loadModelGlb(Model* poOurModel,
   auto& rcm = engine->getRenderableManager();
 
   utils::Slice<Entity> const listOfRenderables{
-    asset->getRenderableEntities(), asset->getRenderableEntityCount() };
+      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
 
-  for (auto entity: listOfRenderables) {
+  for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
-    rcm.setCastShadows(ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
-    rcm.setReceiveShadows(ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
-    // Investigate this more before making it a property on common renderable component.
+    rcm.setCastShadows(
+        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+    rcm.setReceiveShadows(
+        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+    // Investigate this more before making it a property on common renderable
+    // component.
     rcm.setScreenSpaceContactShadows(ri, false);
   }
 
@@ -181,13 +184,16 @@ void ModelLoader::loadModelGltf(
   auto& rcm = engine->getRenderableManager();
 
   utils::Slice<Entity> const listOfRenderables{
-    asset->getRenderableEntities(), asset->getRenderableEntityCount() };
+      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
 
-  for (auto entity: listOfRenderables) {
+  for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
-    rcm.setCastShadows(ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
-    rcm.setReceiveShadows(ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
-    // Investigate this more before making it a property on common renderable component.
+    rcm.setCastShadows(
+        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+    rcm.setReceiveShadows(
+        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+    // Investigate this more before making it a property on common renderable
+    // component.
     rcm.setScreenSpaceContactShadows(ri, false);
   }
 

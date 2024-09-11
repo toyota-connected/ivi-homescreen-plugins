@@ -58,7 +58,9 @@ class Model {
   filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
 
   const BaseTransform& GetBaseTransform() const { return m_oBaseTransform; }
-  const CommonRenderable& GetCommonRenderable() const { return m_oCommonRenderable; }
+  const CommonRenderable& GetCommonRenderable() const {
+    return m_oCommonRenderable;
+  }
 
  protected:
   std::string assetPath_;
