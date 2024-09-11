@@ -341,4 +341,34 @@ void EntityTransforms::vApplyLookAt(
   transformManager.setTransform(instance, lookAtMatrix);
 }
 
+void EntityTransforms::vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+                                       const BaseTransform& transform,
+                                       ::filament::Engine* engine) {
+  auto& transformManager = engine->getTransformManager();
+  auto ei = transformManager.getInstance(poAsset->getRoot());
+
+  // Create the rotation, scaling, and translation matrices
+  auto rotationMatrix = QuaternionToMat4f(transform.GetRotation());
+  auto scalingMatrix = filament::math::mat4f::scaling(transform.GetScale());
+  auto translationMatrix =
+      filament::math::mat4f::translation(transform.GetCenterPosition());
+
+  // Combine the transformations: translate * rotate * scale
+  auto combinedTransform = translationMatrix * rotationMatrix * scalingMatrix;
+
+  // Set the combined transform back to the entity
+  transformManager.setTransform(ei, combinedTransform);
+}
+
+void EntityTransforms::vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+                                       const BaseTransform& transform) {
+  if (!poAsset)
+    return;
+
+  const auto engine =
+      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+
+  vApplyTransform(poAsset, transform, engine);
+}
+
 }  // namespace plugin_filament_view

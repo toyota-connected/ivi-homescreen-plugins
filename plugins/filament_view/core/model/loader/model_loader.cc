@@ -18,13 +18,14 @@
 #include <algorithm>  // for max
 #include <sstream>
 
+#include <core/utils/entitytransforms.h>
 #include <filament/DebugRegistry.h>
 #include <filament/RenderableManager.h>
 #include <filament/TransformManager.h>
 #include <gltfio/ResourceLoader.h>
 #include <gltfio/TextureProvider.h>
 #include <math/mat4.h>
-#include <math/vec3.h>
+#include <utils/Slice.h>
 #include <asio/post.hpp>
 
 #include "gltfio/materials/uberarchive.h"
@@ -102,11 +103,9 @@ filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
   return assets_[0];
 }
 
-void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
-                               const ::filament::float3* centerPosition,
-                               float scale,
-                               const std::string& /*assetName*/,
-                               bool /*autoScaleEnabled*/) {
+void ModelLoader::loadModelGlb(Model* poOurModel,
+                               const std::vector<uint8_t>& buffer,
+                               const std::string& /*assetName*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
@@ -118,6 +117,8 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
 
   assets_.push_back(asset);
   resourceLoader_->asyncBeginLoad(asset);
+
+  // This will move to be on the model itself.
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
 
   // TODO Append names or types / change list, something
@@ -126,33 +127,31 @@ void ModelLoader::loadModelGlb(const std::vector<uint8_t>& buffer,
 
   asset->releaseSourceData();
 
-  // TODO is this needed?
-  // if (autoScaleEnabled) {
-  //   transformToUnitCube(asset, centerPosition, scale);
-  // } else {
-  //   clearRootTransform(asset);
-  // }
-
-  clearRootTransform(asset);
-  SPDLOG_DEBUG("glb {}", scale);
-
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto& rcm = engine->getRenderableManager();
 
-  auto& tm = engine->getTransformManager();
-  auto ei = tm.getInstance(asset->getRoot());
+  utils::Slice<Entity> const listOfRenderables{
+      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
 
-  tm.setTransform(ei, ::filament::math::mat4f{::filament::math::mat3f(scale),
-                                              *centerPosition} *
-                          tm.getWorldTransform(ei));
+  for (auto entity : listOfRenderables) {
+    auto ri = rcm.getInstance(entity);
+    rcm.setCastShadows(
+        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+    rcm.setReceiveShadows(
+        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+    // Investigate this more before making it a property on common renderable
+    // component.
+    rcm.setScreenSpaceContactShadows(ri, false);
+  }
+
+  poOurModel->setAsset(asset);
 }
 
 void ModelLoader::loadModelGltf(
+    Model* poOurModel,
     const std::vector<uint8_t>& buffer,
-    const ::filament::float3* centerPosition,
-    float scale,
     std::function<const ::filament::backend::BufferDescriptor&(
-        std::string uri)>& /* callback */,
-    bool transform) {
+        std::string uri)>& /* callback */) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
@@ -180,49 +179,33 @@ void ModelLoader::loadModelGltf(
   resourceLoader_->asyncBeginLoad(asset);
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
   asset->releaseSourceData();
-  if (transform) {
-    transformToUnitCube(asset, centerPosition, scale);
-  }
-}
 
-void ModelLoader::transformToUnitCube(
-    filament::gltfio::FilamentAsset* asset,
-    const ::filament::float3* /* centerPoint */,
-    float /* modelScale */) {
-  if (!asset) {
-    return;
-  }
-  auto aabb = asset->getBoundingBox();
-  auto center = aabb.center();
-  auto halfExtent = aabb.extent();
-  auto maxExtent = max(halfExtent) * 2;
-  auto scaleFactor = 2.0f / maxExtent;
-  auto transform = ::filament::math::mat4f::scaling(scaleFactor) *
-                   ::filament::math::mat4f::translation(-center);
-
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto& rcm = engine->getRenderableManager();
 
-  auto& tm = engine->getTransformManager();
-  tm.setTransform(tm.getInstance(asset->getRoot()), transform);
+  utils::Slice<Entity> const listOfRenderables{
+      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+
+  for (auto entity : listOfRenderables) {
+    auto ri = rcm.getInstance(entity);
+    rcm.setCastShadows(
+        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+    rcm.setReceiveShadows(
+        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+    // Investigate this more before making it a property on common renderable
+    // component.
+    rcm.setScreenSpaceContactShadows(ri, false);
+  }
+
+  poOurModel->setAsset(asset);
 }
 
 void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
-
-  auto& rcm = engine->getRenderableManager();
 
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
     asset->popRenderables(readyRenderables_, count);
-    for (int i = 0; i < count; i++) {
-      auto ri = rcm.getInstance(readyRenderables_[i]);
-      // TODO move to settings & per model
-      // rcm.setCastShadows(ri, true);
-      // rcm.setReceiveShadows(ri, true);
-      rcm.setScreenSpaceContactShadows(ri, false);
-    }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
   }
@@ -274,9 +257,8 @@ void ModelLoader::clearRootTransform(filament::gltfio::FilamentAsset* asset) {
 }
 
 std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
+    Model* poOurModel,
     const std::string& path,
-    float scale,
-    const ::filament::math::float3* centerPosition,
     bool isFallback) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
@@ -288,11 +270,10 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
     const asio::io_context::strand& strand_(modelViewer->getStrandContext());
     const std::string assetPath = modelViewer->getAssetPath();
 
-    asio::post(strand_, [&, promise, path, scale, centerPosition, isFallback,
-                         assetPath] {
+    asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
       try {
         auto buffer = readBinaryFile(path, assetPath);
-        handleFile(buffer, path, scale, centerPosition, isFallback, promise);
+        handleFile(poOurModel, buffer, path, isFallback, promise);
       } catch (const std::exception& e) {
         std::cerr << "Lambda Exception " << e.what() << '\n';
         promise->set_exception(std::make_exception_ptr(e));
@@ -308,39 +289,36 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
 }
 
 std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
+    Model* poOurModel,
     std::string url,
-    float scale,
-    const ::filament::math::float3* centerPosition,
     bool isFallback) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
-  asio::post(
-      modelViewer->getStrandContext(),
-      [&, promise, url = std::move(url), scale, centerPosition, isFallback] {
-        plugin_common_curl::CurlClient client;
-        auto buffer = client.RetrieveContentAsVector();
-        if (client.GetCode() != CURLE_OK) {
-          modelViewer->setModelState(ModelState::ERROR);
-          promise->set_value(Resource<std::string_view>::Error(
-              "Couldn't load Glb from " + url));
-        }
-        handleFile(buffer, url, scale, centerPosition, isFallback, promise);
-      });
+  asio::post(modelViewer->getStrandContext(),
+             [&, poOurModel, promise, url = std::move(url), isFallback] {
+               plugin_common_curl::CurlClient client;
+               auto buffer = client.RetrieveContentAsVector();
+               if (client.GetCode() != CURLE_OK) {
+                 modelViewer->setModelState(ModelState::ERROR);
+                 promise->set_value(Resource<std::string_view>::Error(
+                     "Couldn't load Glb from " + url));
+               }
+               handleFile(poOurModel, buffer, url, isFallback, promise);
+             });
   return promise_future;
 }
 
-void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
+void ModelLoader::handleFile(Model* poOurModel,
+                             const std::vector<uint8_t>& buffer,
                              const std::string& fileSource,
-                             float scale,
-                             const ::filament::math::float3* centerPosition,
                              bool isFallback,
                              const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
-    loadModelGlb(buffer, centerPosition, scale, fileSource, true);
+    loadModelGlb(poOurModel, buffer, fileSource);
     modelViewer->setModelState(isFallback ? ModelState::FALLBACK_LOADED
                                           : ModelState::LOADED);
     promise->set_value(Resource<std::string_view>::Success(
@@ -353,11 +331,10 @@ void ModelLoader::handleFile(const std::vector<uint8_t>& buffer,
 }
 
 std::future<Resource<std::string_view>> ModelLoader::loadGltfFromAsset(
+    Model* /*poOurModel*/,
     const std::string& /* path */,
     const std::string& /* pre_path */,
     const std::string& /* post_path */,
-    float /* scale */,
-    const ::filament::math::float3* /* centerPosition */,
     bool /* isFallback */) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
@@ -367,9 +344,8 @@ std::future<Resource<std::string_view>> ModelLoader::loadGltfFromAsset(
 }
 
 std::future<Resource<std::string_view>> ModelLoader::loadGltfFromUrl(
+    Model* /*poOurModel*/,
     const std::string& /* url */,
-    float /* scale */,
-    const ::filament::math::float3* /* centerPosition */,
     bool /* isFallback */) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());

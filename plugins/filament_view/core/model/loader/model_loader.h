@@ -44,18 +44,14 @@ class ModelLoader {
 
   void destroyModel(filament::gltfio::FilamentAsset* asset);
 
-  void loadModelGlb(const std::vector<uint8_t>& buffer,
-                    const ::filament::float3* centerPosition,
-                    float scale,
-                    const std::string& assetName,
-                    bool transformToUnitCube = false);
+  void loadModelGlb(Model* poOurModel,
+                    const std::vector<uint8_t>& buffer,
+                    const std::string& assetName);
 
-  void loadModelGltf(const std::vector<uint8_t>& buffer,
-                     const ::filament::float3* centerPosition,
-                     float scale,
+  void loadModelGltf(Model* poOurModel,
+                     const std::vector<uint8_t>& buffer,
                      std::function<const ::filament::backend::BufferDescriptor&(
-                         std::string uri)>& callback,
-                     bool transform = false);
+                         std::string uri)>& callback);
 
   [[nodiscard]] std::vector<filament::gltfio::FilamentAsset*> getAssets()
       const {
@@ -69,36 +65,26 @@ class ModelLoader {
 
   static void clearRootTransform(filament::gltfio::FilamentAsset* asset);
 
-  static void transformToUnitCube(filament::gltfio::FilamentAsset* asset,
-                                  const ::filament::float3* centerPoint,
-                                  float scale);
-
   void updateScene();
 
   std::future<Resource<std::string_view>> loadGlbFromAsset(
+      Model* poOurModel,
       const std::string& path,
-      float scale,
-      const ::filament::float3* centerPosition,
       bool isFallback = false);
 
-  std::future<Resource<std::string_view>> loadGlbFromUrl(
-      std::string url,
-      float scale,
-      const ::filament::float3* centerPosition,
-      bool isFallback = false);
+  std::future<Resource<std::string_view>>
+  loadGlbFromUrl(Model* poOurModel, std::string url, bool isFallback = false);
 
   static std::future<Resource<std::string_view>> loadGltfFromAsset(
+      Model* poOurModel,
       const std::string& path,
       const std::string& pre_path,
       const std::string& post_path,
-      float scale,
-      const ::filament::float3* centerPosition,
       bool isFallback = false);
 
   static std::future<Resource<std::string_view>> loadGltfFromUrl(
+      Model* poOurModel,
       const std::string& url,
-      float scale,
-      const ::filament::float3* centerPosition,
       bool isFallback = false);
 
   friend class CustomModelViewer;
@@ -111,6 +97,7 @@ class ModelLoader {
   ::filament::gltfio::MaterialProvider* materialProvider_;
   ::filament::gltfio::ResourceLoader* resourceLoader_;
 
+  // TODO This *might* should go away, its stored on model now.
   std::vector<filament::gltfio::FilamentAsset*> assets_;
 
   ::filament::IndirectLight* indirectLight_ = nullptr;
@@ -146,10 +133,9 @@ class ModelLoader {
 
   using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
   void handleFile(
+      Model* poOurModel,
       const std::vector<uint8_t>& buffer,
       const std::string& fileSource,
-      float scale,
-      const ::filament::float3* centerPosition,
       bool isFallback,
       const PromisePtr&
           promise);  // NOLINT(readability-avoid-const-params-in-decls)

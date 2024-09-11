@@ -16,6 +16,7 @@
 
 #include "scene_controller.h"
 
+#include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
 
@@ -261,6 +262,8 @@ void SceneController::setUpLoadingModels() {
 
   for (const auto& iter : *models_) {
     plugin_filament_view::Model* poCurrModel = iter.get();
+    // TODO loadModel needs to save the model internally in the map that's
+    // there. backlogged.
     auto result = loadModel(poCurrModel);
     if (result.getStatus() != Status::Success && poCurrModel->GetFallback()) {
       auto fallback = poCurrModel->GetFallback();
@@ -272,6 +275,10 @@ void SceneController::setUpLoadingModels() {
         spdlog::error("[SceneController] Error.FallbackLoadFailed");
       }
     } else {
+      // use the entities transform(s) data.
+      EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
+                                        poCurrModel->GetBaseTransform());
+
       setUpAnimation(poCurrModel->GetAnimation());
     }
   }
@@ -309,16 +316,13 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
   if (dynamic_cast<GlbModel*>(model)) {
     auto glb_model = dynamic_cast<GlbModel*>(model);
     if (!glb_model->assetPath_.empty()) {
-      auto f =
-          loader->loadGlbFromAsset(glb_model->assetPath_, glb_model->scale_,
-                                   glb_model->center_position_);
+      auto f = loader->loadGlbFromAsset(model, glb_model->assetPath_, false);
       f.wait();
       return f.get();
     }
 
     if (!glb_model->url_.empty()) {
-      auto f = loader->loadGlbFromUrl(glb_model->url_, glb_model->scale_,
-                                      glb_model->center_position_);
+      auto f = loader->loadGlbFromUrl(model, glb_model->url_);
       f.wait();
       return f.get();
     }
@@ -326,16 +330,15 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
     auto gltf_model = dynamic_cast<GltfModel*>(model);
     if (!gltf_model->assetPath_.empty()) {
       auto f = plugin_filament_view::ModelLoader::loadGltfFromAsset(
-          gltf_model->assetPath_, gltf_model->pathPrefix_,
-          gltf_model->pathPostfix_, gltf_model->scale_,
-          gltf_model->center_position_);
+          model, gltf_model->assetPath_, gltf_model->pathPrefix_,
+          gltf_model->pathPostfix_);
       f.wait();
       return f.get();
     }
 
     if (!gltf_model->url_.empty()) {
       auto f = plugin_filament_view::ModelLoader::loadGltfFromUrl(
-          gltf_model->url_, gltf_model->scale_, gltf_model->center_position_);
+          model, gltf_model->url_);
       f.wait();
       return f.get();
     }
@@ -348,7 +351,7 @@ void SceneController::makeSurfaceViewTransparent() {
   modelViewer_->getFilamentView()->setBlendMode(
       ::filament::View::BlendMode::TRANSLUCENT);
 
-  // TODO
+  // TODO - not sure if needed.
   // surfaceView.holder.setFormat(PixelFormat.TRANSLUCENT)
 
   auto clearOptions = modelViewer_->getFilamentRenderer()->getClearOptions();
@@ -356,7 +359,7 @@ void SceneController::makeSurfaceViewTransparent() {
   modelViewer_->getFilamentRenderer()->setClearOptions(clearOptions);
 }
 
-// TODO Move to model viewer
+// TODO Move to model viewer - if still needed.
 void SceneController::makeSurfaceViewNotTransparent() {
   modelViewer_->getFilamentView()->setBlendMode(
       ::filament::View::BlendMode::OPAQUE);

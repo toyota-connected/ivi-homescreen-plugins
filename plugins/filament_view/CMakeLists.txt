@@ -76,7 +76,8 @@ add_library(plugin_filament_view STATIC
 
         filament_scene.cc
         core/scene/scene_controller.cc
-
+        core/components/basetransform.cc
+        core/components/commonrenderable.cc
         core/model/animation/animation.cc
         core/model/animation/animation_manager.cc
         core/model/loader/model_loader.cc

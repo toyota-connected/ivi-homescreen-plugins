@@ -16,9 +16,12 @@
 
 #pragma once
 
+#include <core/components/commonrenderable.h>
 #include <string>
 
+#include "core/components/basetransform.h"
 #include "core/model/animation/animation.h"
+#include "core/scene/geometry/direction.h"
 #include "core/scene/geometry/position.h"
 
 namespace plugin_filament_view {
@@ -30,21 +33,15 @@ class Model {
   Model(std::string assetPath,
         std::string url,
         Model* fallback,
-        const float scale,
-        ::filament::math::float3* centerPosition,
-        Animation* animation);
+        Animation* animation,
+        BaseTransform& oTransform,
+        CommonRenderable& oCommonRenderable);
 
   virtual ~Model() = default;
 
   static std::unique_ptr<Model> Deserialize(
       const std::string& flutterAssetsPath,
-      const flutter::EncodableValue& params);
-
-  [[nodiscard]] float GetScale() const { return scale_; }
-
-  [[nodiscard]] ::filament::math::float3* GetCenterPosition() const {
-    return center_position_;
-  }
+      const flutter::EncodableMap& params);
 
   [[nodiscard]] Model* GetFallback() const { return fallback_; }
 
@@ -52,16 +49,30 @@ class Model {
 
   // Disallow copy and assign.
   Model(const Model&) = delete;
-
   Model& operator=(const Model&) = delete;
+
+  void setAsset(filament::gltfio::FilamentAsset* poAsset) {
+    m_poAsset = poAsset;
+  }
+
+  filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
+
+  const BaseTransform& GetBaseTransform() const { return m_oBaseTransform; }
+  const CommonRenderable& GetCommonRenderable() const {
+    return m_oCommonRenderable;
+  }
 
  protected:
   std::string assetPath_;
   std::string url_;
   Model* fallback_;
-  float scale_;
-  ::filament::math::float3* center_position_;
   Animation* animation_;
+
+  filament::gltfio::FilamentAsset* m_poAsset;
+
+  // Components
+  BaseTransform m_oBaseTransform;
+  CommonRenderable m_oCommonRenderable;
 };
 
 class GlbModel final : public Model {
@@ -69,9 +80,9 @@ class GlbModel final : public Model {
   GlbModel(std::string assetPath,
            std::string url,
            Model* fallback,
-           float scale,
-           ::filament::math::float3* centerPosition,
-           Animation* animation);
+           Animation* animation,
+           BaseTransform& oTransform,
+           CommonRenderable& oCommonRenderable);
 
   ~GlbModel() override = default;
 
@@ -87,9 +98,9 @@ class GltfModel final : public Model {
             std::string pathPrefix,
             std::string pathPostfix,
             Model* fallback,
-            float scale,
-            ::filament::math::float3* centerPosition,
-            Animation* animation);
+            Animation* animation,
+            BaseTransform& oTransform,
+            CommonRenderable& oCommonRenderable);
 
   ~GltfModel() override = default;
 
