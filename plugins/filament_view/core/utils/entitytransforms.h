@@ -99,6 +99,11 @@ class EntityTransforms {
                            filament::math::float3 target,
                            filament::math::float3 up,
                            ::filament::Engine* engine);
+  static void vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+                              const BaseTransform& transform);
+  static void vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+                              const BaseTransform& transform,
+                              ::filament::Engine* engine);
 };
 
 }  // namespace plugin_filament_view

@@ -16,6 +16,7 @@
 
 #include "core/model/model.h"
 
+#include "core/include/literals.h"
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
@@ -24,49 +25,49 @@ namespace plugin_filament_view {
 Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
-             const float scale,
-             ::filament::float3* centerPosition,
-             Animation* animation)
+             Animation* animation,
+             BaseTransform& oTransform,
+             CommonRenderable& oCommonRenderable)
     : assetPath_(std::move(assetPath)),
       url_(std::move(url)),
       fallback_(fallback),
-      scale_(scale),
-      center_position_(centerPosition),
-      animation_(animation) {}
+      animation_(animation),
+      m_oBaseTransform(oTransform),
+      m_oCommonRenderable(oCommonRenderable),
+      m_poAsset(nullptr) {}
 
 GlbModel::GlbModel(std::string assetPath,
                    std::string url,
                    Model* fallback,
-                   float scale,
-                   ::filament::math::float3* centerPosition,
-                   Animation* animation)
+                   Animation* animation,
+                   BaseTransform& oTransform,
+                   CommonRenderable& oCommonRenderable)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
-            scale,
-            centerPosition,
-            animation) {}
+            animation,
+            oTransform,
+            oCommonRenderable) {}
 
 GltfModel::GltfModel(std::string assetPath,
                      std::string url,
                      std::string pathPrefix,
                      std::string pathPostfix,
                      Model* fallback,
-                     float scale,
-                     ::filament::math::float3* centerPosition,
-                     Animation* animation)
+                     Animation* animation,
+                     BaseTransform& oTransform,
+                     CommonRenderable& oCommonRenderable)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
-            scale,
-            centerPosition,
-            animation),
+            animation,
+            oTransform,
+            oCommonRenderable),
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
-std::unique_ptr<Model> Model::Deserialize(
-    const std::string& flutterAssetsPath,
-    const flutter::EncodableValue& params) {
+std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
+                                          const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Model::Model");
   std::unique_ptr<Animation> animation;
   std::unique_ptr<Model> fallback;
@@ -74,12 +75,13 @@ std::unique_ptr<Model> Model::Deserialize(
   std::optional<std::string> pathPrefix;
   std::optional<std::string> pathPostfix;
   std::optional<std::string> url;
-  std::optional<float> scale;
-  std::unique_ptr<::filament::math::float3> centerPosition;
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  for (const auto& it : std::get<flutter::EncodableMap>(params)) {
+  BaseTransform oTransform(params);
+  CommonRenderable oCommonRenderable(params);
+
+  for (const auto& it : params) {
     if (it.second.IsNull())
       continue;
 
@@ -91,14 +93,8 @@ std::unique_ptr<Model> Model::Deserialize(
     } else if (key == "assetPath" &&
                std::holds_alternative<std::string>(it.second)) {
       assetPath = std::get<std::string>(it.second);
-    } else if (key == "centerPosition" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      centerPosition = std::make_unique<::filament::math::float3>(
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
     } else if (key == "isGlb" && std::holds_alternative<bool>(it.second)) {
       is_glb = std::get<bool>(it.second);
-    } else if (key == "scale" && std::holds_alternative<double>(it.second)) {
-      scale = static_cast<float>(std::get<double>(it.second));
     } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
       url = std::get<std::string>(it.second);
     } else if (key == "pathPrefix" &&
@@ -121,9 +117,8 @@ std::unique_ptr<Model> Model::Deserialize(
     return std::make_unique<plugin_filament_view::GlbModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", nullptr,
-        scale.has_value() ? scale.value() : 1.0f,
-        centerPosition ? centerPosition.release() : nullptr,
-        animation ? animation.release() : nullptr);
+        animation ? animation.release() : nullptr, oTransform,
+        oCommonRenderable);
   }
 
   return std::make_unique<plugin_filament_view::GltfModel>(
@@ -131,8 +126,6 @@ std::unique_ptr<Model> Model::Deserialize(
       url.has_value() ? std::move(url.value()) : "",
       pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
       pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
-      scale.has_value() ? scale.value() : 1.0f,
-      centerPosition ? centerPosition.release() : nullptr,
-      animation ? animation.release() : nullptr);
+      animation ? animation.release() : nullptr, oTransform, oCommonRenderable);
 }
 }  // namespace plugin_filament_view

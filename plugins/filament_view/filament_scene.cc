@@ -51,14 +51,16 @@ FilamentScene::FilamentScene(PlatformView* platformView,
       SPDLOG_WARN("Loading Single Model - Deprecated Functionality {}", key);
       models_ = std::make_unique<std::vector<std::unique_ptr<Model>>>();
 
-      auto deserializedModel = Model::Deserialize(flutterAssetsPath, it.second);
+      auto deserializedModel = Model::Deserialize(
+          flutterAssetsPath, std::get<flutter::EncodableMap>(it.second));
       if (deserializedModel == nullptr) {
         // load fallback
         static constexpr char kFallback[] = "fallback";
         auto fallbackToDeserialize =
             Deserialize::DeserializeParameter(kFallback, it.second);
-        deserializedModel =
-            Model::Deserialize(flutterAssetsPath, fallbackToDeserialize);
+        deserializedModel = Model::Deserialize(
+            flutterAssetsPath,
+            std::get<flutter::EncodableMap>(fallbackToDeserialize));
       }
       if (deserializedModel == nullptr) {
         spdlog::error("Unable to load model and fallback model");
@@ -79,14 +81,16 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           continue;
         }
 
-        auto deserializedModel = Model::Deserialize(flutterAssetsPath, iter);
+        auto deserializedModel = Model::Deserialize(
+            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           // load fallback
           static constexpr char kFallback[] = "fallback";
           auto fallbackToDeserialize =
               Deserialize::DeserializeParameter(kFallback, iter);
-          deserializedModel =
-              Model::Deserialize(flutterAssetsPath, fallbackToDeserialize);
+          deserializedModel = Model::Deserialize(
+              flutterAssetsPath,
+              std::get<flutter::EncodableMap>(fallbackToDeserialize));
         }
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model and fallback model");

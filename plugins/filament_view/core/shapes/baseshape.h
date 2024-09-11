@@ -24,6 +24,9 @@
 #include "core/scene/geometry/position.h"
 #include "core/scene/material/material_definitions.h"
 
+#include "core/components/basetransform.h"
+#include "core/components/commonrenderable.h"
+
 namespace plugin_filament_view {
 
 class MaterialManager;
@@ -50,8 +53,6 @@ class BaseShape {
                                    std::shared_ptr<Entity> entityObject,
                                    MaterialManager* material_manager) = 0;
 
-  [[nodiscard]] filament::math::float3 f3GetCenterPosition() const;
-
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
 
@@ -69,11 +70,10 @@ class BaseShape {
 
   int id{};
   ShapeType type_{};
-  /// center position of the shape in the world space.
-  filament::math::float3 m_f3CenterPosition;
-  filament::math::float3 m_f3ExtentsSize;
-  filament::math::float3 m_f3Scale;
-  filament::math::quatf m_quatRotation;
+
+  // Components
+  BaseTransform m_oBaseTransform;
+  CommonRenderable m_oCommonRenderable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;
@@ -83,11 +83,9 @@ class BaseShape {
 
   std::shared_ptr<utils::Entity> m_poEntity;
 
-  // tasking for future implementation
+  // Whether we have winding indexes in both directions.
   bool m_bDoubleSided = false;
-  bool m_bCullingOfObjectEnabled = false;
-  bool m_bReceiveShadows = false;
-  bool m_bCastShadows = false;
+
   // TODO - Note this is backlogged for using value.
   //        For now this is unimplemented, but would be a <small> savings
   //        when building as code currently allocates buffers for UVs
