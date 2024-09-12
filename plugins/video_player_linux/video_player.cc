@@ -670,7 +670,7 @@ void VideoPlayer::SeekTo(const int64_t seek) {
 void VideoPlayer::prepare(VideoPlayer* user_data) {
   SPDLOG_DEBUG("[VideoPlayer] prepare");
   g_object_get(user_data->playbin_, "n-video", &user_data->n_video_, nullptr);
-  SPDLOG_DEBUG("[VideoPlayer] {} video streams", obj->n_video_);
+  SPDLOG_DEBUG("[VideoPlayer] {} video streams", user_data->n_video_);
   g_object_get(user_data->playbin_, "current-video", &user_data->current_video_,
                nullptr);
   GstPad* pad = nullptr;
@@ -691,7 +691,7 @@ void VideoPlayer::prepare(VideoPlayer* user_data) {
     // return;
   }
   SPDLOG_DEBUG("[VideoPlayer] original video width: {}, height: {}",
-               obj->info_.width, obj->info_.height);
+               user_data->info_.width, user_data->info_.height);
   // set to the target
   if (!gst_video_info_set_format(&user_data->info_, GST_VIDEO_FORMAT_NV12,
                                  static_cast<guint>(user_data->width_),
