@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/shapes/baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 
@@ -27,15 +27,15 @@ using ::utils::Entity;
 
 namespace shapes {
 
-class Plane : public BaseShape {
+class Sphere : public BaseShape {
  public:
-  Plane(const std::string& flutter_assets_path,
-        const flutter::EncodableMap& params);
-  ~Plane() override = default;
+  Sphere(const std::string& flutter_assets_path,
+         const flutter::EncodableMap& params);
+  ~Sphere() override = default;
 
   // Disallow copy and assign.
-  Plane(const Plane&) = delete;
-  Plane& operator=(const Plane&) = delete;
+  Sphere(const Sphere&) = delete;
+  Sphere& operator=(const Sphere&) = delete;
 
   void DebugPrint(const char* tag) const override;
 
@@ -44,11 +44,19 @@ class Plane : public BaseShape {
                            MaterialManager* material_manager) override;
 
  private:
-  void createDoubleSidedPlane(::filament::Engine* engine_,
-                              MaterialManager* material_manager);
+  static void createDoubleSidedSphere(::filament::Engine* engine_,
+                                      MaterialManager* material_manager);
 
-  void createSingleSidedPlane(::filament::Engine* engine_,
-                              MaterialManager* material_manager);
+  void createSingleSidedSphere(::filament::Engine* engine_,
+                               MaterialManager* material_manager);
+
+  int stacks_;
+  int slices_;
+
+  std::vector<::filament::math::float3> vertices_;
+  std::vector<::filament::math::float3> normals_;
+  std::vector<unsigned short> indices_;
+  std::vector<::filament::math::float2> uvs_;
 };
 
 }  // namespace shapes

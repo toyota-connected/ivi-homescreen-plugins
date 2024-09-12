@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/shapes/baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 

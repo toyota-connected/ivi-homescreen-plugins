@@ -19,7 +19,7 @@
 #include <list>
 #include "core/components/basetransform.h"
 #include "core/components/collidable.h"
-#include "core/shapes/baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 

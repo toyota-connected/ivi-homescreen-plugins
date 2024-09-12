@@ -80,19 +80,19 @@ add_library(plugin_filament_view STATIC
         core/components/basetransform.cc
         core/components/commonrenderable.cc
         core/components/collidable.cc
-        core/model/animation/animation.cc
-        core/model/animation/animation_manager.cc
-        core/model/loader/model_loader.cc
-        core/model/model.cc
+        core/entity/model/animation/animation.cc
+        core/entity/model/animation/animation_manager.cc
+        core/entity/model/loader/model_loader.cc
+        core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc
-        core/scene/entity/entityobject.cc
+        core/entity/entityobject.cc
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
-        core/scene/geometry/collision_manager.cc
+        core/systems/collision_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
         core/utils/entitytransforms.cc
@@ -109,11 +109,11 @@ add_library(plugin_filament_view STATIC
         core/scene/skybox/skybox.cc
         core/scene/skybox/skybox_manager.cc
         core/scene/scene.cc
-        core/shapes/baseshape.cc
-        core/shapes/cube.cc
-        core/shapes/sphere.cc
-        core/shapes/plane.cc
-        core/shapes/shape_manager.cc
+        core/entity/shapes/baseshape.cc
+        core/entity/shapes/cube.cc
+        core/entity/shapes/sphere.cc
+        core/entity/shapes/plane.cc
+        core/systems/shape_manager.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
 )

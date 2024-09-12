@@ -18,11 +18,12 @@
 
 #include <filament/Engine.h>
 
-#include "baseshape.h"
-#include "cube.h"
-#include "plane.h"
+#include "core/entity/shapes/baseshape.h"
+#include "core/entity/shapes/cube.h"
+#include "core/entity/shapes/plane.h"
+#include "core/entity/shapes/sphere.h"
+
 #include "plugins/common/common.h"
-#include "sphere.h"
 
 namespace plugin_filament_view {
 

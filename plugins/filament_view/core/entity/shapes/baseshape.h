@@ -29,7 +29,7 @@
 
 #include "core/include/shapetypes.h"
 
-#include "core/scene/entity/entityobject.h"
+#include "core/entity/entityobject.h"
 
 #include <filament/IndexBuffer.h>
 #include <filament/VertexBuffer.h>

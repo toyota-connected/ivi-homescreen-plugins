@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "core/model/model.h"
+#include "core/entity/model/model.h"
 
 #include "core/include/literals.h"
 #include "core/scene/scene.h"

@@ -21,9 +21,9 @@
 
 #include <gltfio/FilamentAsset.h>
 #include "core/components/basetransform.h"
-#include "core/model/animation/animation.h"
+#include "core/entity/model/animation/animation.h"
 
-#include "core/scene/entity/entityobject.h"
+#include "core/entity/entityobject.h"
 
 namespace plugin_filament_view {
 

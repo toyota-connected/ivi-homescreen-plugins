@@ -23,8 +23,8 @@
 #include <gltfio/ResourceLoader.h>
 #include <asio/io_context_strand.hpp>
 
+#include "core/entity/model/model.h"
 #include "core/include/resource.h"
-#include "core/model/model.h"
 #include "viewer/custom_model_viewer.h"
 #include "viewer/settings.h"
 

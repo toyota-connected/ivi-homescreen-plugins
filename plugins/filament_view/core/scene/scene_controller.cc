@@ -20,7 +20,7 @@
 #include <asio/post.hpp>
 #include <utility>
 
-#include "core/scene/geometry/collision_manager.h"
+#include "core/systems//collision_manager.h"
 
 #include "plugins/common/common.h"
 
