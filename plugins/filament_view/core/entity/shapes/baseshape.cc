@@ -101,20 +101,35 @@ void BaseShape::vDestroyBuffers() {
 
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
                                  MaterialManager* material_manager) {
-  // this will also set all the default values of the material instance from the
-  // material param list
-  m_poMaterialInstance =
+  if(m_bIsWireframe) {
+    // We might want to have a specific Material for wireframes in the future.
+    // m_poMaterialInstance =
+    //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
+    RenderableManager::Builder(1)
+        .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
+        //.material(0, m_poMaterialInstance.getData().value())
+        .geometry(0, RenderableManager::PrimitiveType::LINES,
+                  m_poVertexBuffer, m_poIndexBuffer)
+        .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
+        .receiveShadows(false)
+        .castShadows(false)
+        .build(*engine_, *m_poEntity);
+  } else {
+    // this will also set all the default values of the material instance from the
+    // material param list
+    m_poMaterialInstance =
       material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
 
-  RenderableManager::Builder(1)
-      .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
-      .material(0, m_poMaterialInstance.getData().value())
-      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
-                m_poVertexBuffer, m_poIndexBuffer)
-      .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
-      .receiveShadows(m_poCommonRenderable->IsReceiveShadowsEnabled())
-      .castShadows(m_poCommonRenderable->IsCastShadowsEnabled())
-      .build(*engine_, *m_poEntity);
+    RenderableManager::Builder(1)
+        .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
+        .material(0, m_poMaterialInstance.getData().value())
+        .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
+                  m_poVertexBuffer, m_poIndexBuffer)
+        .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
+        .receiveShadows(m_poCommonRenderable->IsReceiveShadowsEnabled())
+        .castShadows(m_poCommonRenderable->IsCastShadowsEnabled())
+        .build(*engine_, *m_poEntity);
+  }
 
   EntityTransforms::vApplyTransform(
       m_poEntity, m_poBaseTransform->GetRotation(),
@@ -152,7 +167,7 @@ void BaseShape::DebugPrint() const {
 
 void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++ (Shape) ++++++++");
-  spdlog::debug("Tag {} ID {} Type {}", tag, id, static_cast<int>(type_));
+  spdlog::debug("Tag {} ID {} Type {} Wireframe {}", tag, id, static_cast<int>(type_), m_bIsWireframe);
   spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
                 m_f3Normal.z);
 

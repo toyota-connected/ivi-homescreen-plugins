@@ -97,6 +97,11 @@ class BaseShape : public EntityObject {
   //        when building as code currently allocates buffers for UVs
   bool m_bHasTexturedMaterial = true;
 
+ friend class CollisionManager;
+ // This does NOT come over as a property (currently), only used by CollisionManager
+ // when created debug wireframe models for seeing collidable shapes.
+ bool m_bIsWireframe = false;
+
  private:
   void vDestroyBuffers();
 };
