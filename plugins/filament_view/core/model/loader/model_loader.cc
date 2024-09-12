@@ -136,9 +136,9 @@ void ModelLoader::loadModelGlb(Model* poOurModel,
   for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
     rcm.setCastShadows(
-        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+        ri, poOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
     rcm.setReceiveShadows(
-        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+        ri, poOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
     // Investigate this more before making it a property on common renderable
     // component.
     rcm.setScreenSpaceContactShadows(ri, false);
@@ -189,9 +189,9 @@ void ModelLoader::loadModelGltf(
   for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
     rcm.setCastShadows(
-        ri, poOurModel->GetCommonRenderable().IsCastShadowsEnabled());
+        ri, poOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
     rcm.setReceiveShadows(
-        ri, poOurModel->GetCommonRenderable().IsReceiveShadowsEnabled());
+        ri, poOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
     // Investigate this more before making it a property on common renderable
     // component.
     rcm.setScreenSpaceContactShadows(ri, false);

@@ -19,23 +19,24 @@
 #include <core/components/commonrenderable.h>
 #include <string>
 
+#include <gltfio/FilamentAsset.h>
 #include "core/components/basetransform.h"
 #include "core/model/animation/animation.h"
-#include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
+
+#include "core/scene/entity/entityobject.h"
 
 namespace plugin_filament_view {
 
 class Animation;
 
-class Model {
+class Model : public EntityObject {
  public:
   Model(std::string assetPath,
         std::string url,
         Model* fallback,
         Animation* animation,
-        BaseTransform& oTransform,
-        CommonRenderable& oCommonRenderable);
+        BaseTransform* poTransform,
+        CommonRenderable* poCommonRenderable);
 
   virtual ~Model() = default;
 
@@ -57,9 +58,9 @@ class Model {
 
   filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
 
-  const BaseTransform& GetBaseTransform() const { return m_oBaseTransform; }
-  const CommonRenderable& GetCommonRenderable() const {
-    return m_oCommonRenderable;
+  const BaseTransform* GetBaseTransform() const { return m_poBaseTransform; }
+  const CommonRenderable* GetCommonRenderable() const {
+    return m_poCommonRenderable;
   }
 
  protected:
@@ -70,9 +71,13 @@ class Model {
 
   filament::gltfio::FilamentAsset* m_poAsset;
 
-  // Components
-  BaseTransform m_oBaseTransform;
-  CommonRenderable m_oCommonRenderable;
+  void DebugPrint() const override;
+
+  // Components - saved off here for faster
+  // lookup, but they're not owned here, but on EntityObject's list.
+  // Todo change to shared_ptrs
+  BaseTransform* m_poBaseTransform;
+  CommonRenderable* m_poCommonRenderable;
 };
 
 class GlbModel final : public Model {
@@ -81,8 +86,8 @@ class GlbModel final : public Model {
            std::string url,
            Model* fallback,
            Animation* animation,
-           BaseTransform& oTransform,
-           CommonRenderable& oCommonRenderable);
+           BaseTransform* poTransform,
+           CommonRenderable* poCommonRenderable);
 
   ~GlbModel() override = default;
 
@@ -99,8 +104,8 @@ class GltfModel final : public Model {
             std::string pathPostfix,
             Model* fallback,
             Animation* animation,
-            BaseTransform& oTransform,
-            CommonRenderable& oCommonRenderable);
+            BaseTransform* poTransform,
+            CommonRenderable* poCommonRenderable);
 
   ~GltfModel() override = default;
 

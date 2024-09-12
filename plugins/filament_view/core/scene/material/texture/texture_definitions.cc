@@ -93,20 +93,20 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
 }
 
 void TextureDefinitions::DebugPrint(const char* tag) {
-  SPDLOG_DEBUG("++{} {} ", __FILE__, __FUNCTION__);
-  spdlog::debug("{} (Texture)", tag);
+  spdlog::debug("++++++++ (Texture) ++++++++");
+  spdlog::debug("{} ", tag);
   if (!assetPath_.empty()) {
-    spdlog::debug("\tassetPath: [{}]", assetPath_);
+    spdlog::debug("assetPath: [{}]", assetPath_);
   }
   if (!url_.empty()) {
-    spdlog::debug("\turl: [{}]", url_);
+    spdlog::debug("url: [{}]", url_);
   }
-  spdlog::debug("\ttype: {}", getTextForType(type_));
+  spdlog::debug("type: {}", getTextForType(type_));
   if (sampler_) {
     // TODO CRASH
     // sampler_->Print("\t\tsampler");
   }
-  SPDLOG_DEBUG("--{} {} ", __FILE__, __FUNCTION__);
+  spdlog::debug("-------- (Texture) --------");
 }
 
 TextureDefinitions::TextureType TextureDefinitions::getType(

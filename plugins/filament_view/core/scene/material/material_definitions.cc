@@ -78,25 +78,26 @@ MaterialDefinitions::~MaterialDefinitions() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::DebugPrint(const char* tag) {
-  spdlog::debug("++++++++");
-  spdlog::debug("{} (MaterialDefinitions)", tag);
+  spdlog::debug("++++++++ (MaterialDefinitions) ++++++++");
+  spdlog::debug("{}", tag);
   if (!assetPath_.empty()) {
-    spdlog::debug("\tassetPath: [{}]", assetPath_);
+    spdlog::debug("assetPath: [{}]", assetPath_);
     std::filesystem::path asset_folder(flutterAssetsPath_);
     spdlog::debug(
-        "\tasset_path {} valid",
+        "asset_path {} valid",
         std::filesystem::exists(asset_folder / assetPath_) ? "is" : "is not");
   }
   if (!url_.empty()) {
-    spdlog::debug("\turl: [{}]", url_);
+    spdlog::debug("url: [{}]", url_);
   }
-  spdlog::debug("\tParamCount: [{}]", parameters_.size());
+  spdlog::debug("ParamCount: [{}]", parameters_.size());
 
   for (const auto& param : parameters_) {
     if (param.second != nullptr)
       param.second->DebugPrint("\tparameter");
   }
-  spdlog::debug("++++++++");
+
+  spdlog::debug("-------- (MaterialDefinitions) --------");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

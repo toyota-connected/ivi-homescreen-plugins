@@ -13,17 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #pragma once
 
-#include <math/vec3.h>
-
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <sstream>
 
 namespace plugin_filament_view {
 
-typedef ::filament::math::float3 Direction;
+std::string generateUUID() {
+  std::random_device rd;
+  std::uniform_int_distribution<int> dist(0, 15);
+  std::uniform_int_distribution<int> dist2(8, 11);
+
+  std::stringstream ss;
+  ss << std::hex;
+  for (int i = 0; i < 8; ++i)
+    ss << dist(rd);
+  ss << "-";
+  for (int i = 0; i < 4; ++i)
+    ss << dist(rd);
+  ss << "-4";  // UUID version 4
+  for (int i = 0; i < 3; ++i)
+    ss << dist(rd);
+  ss << "-";
+  ss << dist2(rd);  // UUID variant
+  for (int i = 0; i < 3; ++i)
+    ss << dist(rd);
+  ss << "-";
+  for (int i = 0; i < 12; ++i)
+    ss << dist(rd);
+  return ss.str();
+}
 
 }  // namespace plugin_filament_view

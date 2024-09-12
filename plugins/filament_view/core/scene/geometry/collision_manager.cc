@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "collision_manager.h"
 
-#pragma once
-
-#include <math/vec3.h>
-
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
+#include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 
-typedef ::filament::math::float3 Direction;
+CollisionManager::CollisionManager() {}
+
+void CollisionManager::DebugPrint() {
+  spdlog::debug("CollisionManager Debug Info:");
+}
 
 }  // namespace plugin_filament_view

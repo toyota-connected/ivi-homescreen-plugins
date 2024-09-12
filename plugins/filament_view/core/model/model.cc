@@ -17,6 +17,7 @@
 #include "core/model/model.h"
 
 #include "core/include/literals.h"
+#include "core/scene/scene.h"
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
@@ -26,28 +27,33 @@ Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
              Animation* animation,
-             BaseTransform& oTransform,
-             CommonRenderable& oCommonRenderable)
-    : assetPath_(std::move(assetPath)),
+             BaseTransform* poTransform,
+             CommonRenderable* poCommonRenderable)
+    : EntityObject(assetPath),
+      assetPath_(std::move(assetPath)),
       url_(std::move(url)),
       fallback_(fallback),
       animation_(animation),
-      m_oBaseTransform(oTransform),
-      m_oCommonRenderable(oCommonRenderable),
-      m_poAsset(nullptr) {}
+      m_poAsset(nullptr) {
+  m_poBaseTransform = poTransform;
+  m_poCommonRenderable = poCommonRenderable;
+
+  vAddComponent(m_poBaseTransform);
+  vAddComponent(m_poCommonRenderable);
+}
 
 GlbModel::GlbModel(std::string assetPath,
                    std::string url,
                    Model* fallback,
                    Animation* animation,
-                   BaseTransform& oTransform,
-                   CommonRenderable& oCommonRenderable)
+                   BaseTransform* poTransform,
+                   CommonRenderable* poCommonRenderable)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
-            oTransform,
-            oCommonRenderable) {}
+            poTransform,
+            poCommonRenderable) {}
 
 GltfModel::GltfModel(std::string assetPath,
                      std::string url,
@@ -55,14 +61,14 @@ GltfModel::GltfModel(std::string assetPath,
                      std::string pathPostfix,
                      Model* fallback,
                      Animation* animation,
-                     BaseTransform& oTransform,
-                     CommonRenderable& oCommonRenderable)
+                     BaseTransform* poTransform,
+                     CommonRenderable* poCommonRenderable)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
-            oTransform,
-            oCommonRenderable),
+            poTransform,
+            poCommonRenderable),
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
@@ -78,8 +84,8 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  BaseTransform oTransform(params);
-  CommonRenderable oCommonRenderable(params);
+  auto oTransform = new BaseTransform(params);
+  auto oCommonRenderable = new CommonRenderable(params);
 
   for (const auto& it : params) {
     if (it.second.IsNull())
@@ -128,4 +134,9 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
       pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
       animation ? animation.release() : nullptr, oTransform, oCommonRenderable);
 }
+
+void Model::DebugPrint() const {
+  vDebugPrintComponents();
+}
+
 }  // namespace plugin_filament_view

@@ -22,6 +22,7 @@ static constexpr char kId[] = "id";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";
 static constexpr char kCenterPosition[] = "centerPosition";
+static constexpr char kStartingPosition[] = "startingPosition";
 static constexpr char kNormal[] = "normal";
 static constexpr char kScale[] = "scale";
 static constexpr char kRotation[] = "rotation";
@@ -30,5 +31,16 @@ static constexpr char kDoubleSided[] = "doubleSided";
 static constexpr char kCullingEnabled[] = "cullingEnabled";
 static constexpr char kReceiveShadows[] = "receiveShadows";
 static constexpr char kCastShadows[] = "castShadows";
+static constexpr char kDirection[] = "direction";
+static constexpr char kLength[] = "length";
+
+// specific collidable values:
+static constexpr char kCollidableShapeType[] = "collidable_shapeType";
+static constexpr char kCollidableExtents[] = "collidable_extentsSize";
+static constexpr char kCollidableIsStatic[] = "collidable_isStatic";
+static constexpr char kCollidableLayer[] = "collidable_layer";
+static constexpr char kCollidableMask[] = "collidable_mask";
+static constexpr char kCollidableShouldMatchAttachedObject[] =
+    "collidable_shouldMatchAttachedObject";
 
 }  // namespace plugin_filament_view

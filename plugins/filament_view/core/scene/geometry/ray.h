@@ -18,12 +18,38 @@
 
 #include <math/vec3.h>
 
+#include "direction.h"
+#include "position.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
 
 namespace plugin_filament_view {
 
-typedef ::filament::math::float3 Direction;
+class Ray {
+ public:
+  Ray(Position& pos, Direction& dir, float length)
+      : position_(pos), direction_(dir), length_(length) {}
+  explicit Ray(const flutter::EncodableMap& params);
+
+  [[nodiscard]] ::filament::math::float3 f3GetPosition() const {
+    return position_;
+  }
+
+  [[nodiscard]] ::filament::math::float3 f3GetDirection() const {
+    return direction_;
+  }
+
+  [[nodiscard]] double dGetLength() const { return length_; }
+
+  void DebugPrint(const char* tag);
+
+  // Disallow copy and assign.
+  Ray(const Ray&) = delete;
+  Ray& operator=(const Ray&) = delete;
+
+ private:
+  Direction direction_;
+  Position position_;
+  double length_;
+};
 
 }  // namespace plugin_filament_view

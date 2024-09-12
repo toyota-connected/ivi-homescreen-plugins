@@ -22,7 +22,8 @@
 #include <utils/Entity.h>
 #include <memory>
 
-#include "core/scene/geometry/position.h"
+#include <gltfio/FilamentAsset.h>
+#include "core/components/basetransform.h"
 
 namespace plugin_filament_view {
 

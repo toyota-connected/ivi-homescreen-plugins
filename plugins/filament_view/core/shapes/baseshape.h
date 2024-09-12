@@ -17,15 +17,22 @@
 #pragma once
 
 #include <filament/math/quat.h>
+#include <utils/EntityManager.h>
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
 #include "core/scene/material/material_definitions.h"
 
 #include "core/components/basetransform.h"
 #include "core/components/commonrenderable.h"
+
+#include "core/include/shapetypes.h"
+
+#include "core/scene/entity/entityobject.h"
+
+#include <filament/IndexBuffer.h>
+#include <filament/VertexBuffer.h>
 
 namespace plugin_filament_view {
 
@@ -34,7 +41,7 @@ using ::utils::Entity;
 
 namespace shapes {
 
-class BaseShape {
+class BaseShape : public EntityObject {
  public:
   BaseShape(const std::string& flutter_assets_path,
             const flutter::EncodableMap& params);
@@ -47,8 +54,6 @@ class BaseShape {
   BaseShape(const BaseShape&) = delete;
   BaseShape& operator=(const BaseShape&) = delete;
 
-  //[[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
-
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                                    std::shared_ptr<Entity> entityObject,
                                    MaterialManager* material_manager) = 0;
@@ -56,12 +61,11 @@ class BaseShape {
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
 
-  // futures to create - capsule, cylinder
-  enum class ShapeType { Unset = 0, Plane = 1, Cube = 2, Sphere = 3, Max };
-
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer;
   ::filament::IndexBuffer* m_poIndexBuffer;
+
+  void DebugPrint() const override;
 
   // uses Vertex and Index buffer to create the material and geometry
   // using all the internal variables.
@@ -71,9 +75,11 @@ class BaseShape {
   int id{};
   ShapeType type_{};
 
-  // Components
-  BaseTransform m_oBaseTransform;
-  CommonRenderable m_oCommonRenderable;
+  // Components - saved off here for faster
+  // lookup, but they're not owned here, but on EntityObject's list.
+  // Todo change to shared_ptrs
+  BaseTransform* m_poBaseTransform;
+  CommonRenderable* m_poCommonRenderable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;

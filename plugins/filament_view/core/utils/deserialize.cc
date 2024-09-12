@@ -105,4 +105,30 @@ void Deserialize::DecodeParameterWithDefault(
   }
 }
 
+void Deserialize::DecodeParameterWithDefault(
+    const char* key,
+    double* out_value,
+    const flutter::EncodableMap& params,
+    const double& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() && std::holds_alternative<double>(it->second)) {
+    *out_value = std::get<double>(it->second);
+  } else {
+    *out_value = default_value;
+  }
+}
+
+void Deserialize::DecodeParameterWithDefaultInt64(
+    const char* key,
+    int64_t* out_value,
+    const flutter::EncodableMap& params,
+    const int64_t& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() && std::holds_alternative<int64_t>(it->second)) {
+    *out_value = std::get<int64_t>(it->second);
+  } else {
+    *out_value = default_value;
+  }
+}
+
 }  // namespace plugin_filament_view

@@ -20,6 +20,8 @@
 #include <asio/post.hpp>
 #include <utility>
 
+#include "core/scene/geometry/collision_manager.h"
+
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
@@ -277,7 +279,7 @@ void SceneController::setUpLoadingModels() {
     } else {
       // use the entities transform(s) data.
       EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
-                                        poCurrModel->GetBaseTransform());
+                                        *poCurrModel->GetBaseTransform());
 
       setUpAnimation(poCurrModel->GetAnimation());
     }

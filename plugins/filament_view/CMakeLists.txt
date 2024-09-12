@@ -26,7 +26,8 @@ endif ()
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
 
-add_library(filament INTERFACE)
+add_library(filament INTERFACE
+        core/include/shapetypes.h)
 target_compile_options(filament INTERFACE -isystem${FILAMENT_INCLUDE_DIR} -isystem${FILAMENT_INCLUDE_DIR}/filament)
 target_link_directories(filament INTERFACE ${FILAMENT_LINK_LIBRARIES_DIR})
 target_link_libraries(filament INTERFACE
@@ -78,6 +79,7 @@ add_library(plugin_filament_view STATIC
         core/scene/scene_controller.cc
         core/components/basetransform.cc
         core/components/commonrenderable.cc
+        core/components/collidable.cc
         core/model/animation/animation.cc
         core/model/animation/animation_manager.cc
         core/model/loader/model_loader.cc
@@ -87,9 +89,10 @@ add_library(plugin_filament_view STATIC
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc
-        core/scene/geometry/direction.cc
-        core/scene/geometry/position.cc
+        core/scene/entity/entityobject.cc
+        core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
+        core/scene/geometry/collision_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
         core/utils/entitytransforms.cc

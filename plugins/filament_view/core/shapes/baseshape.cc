@@ -26,6 +26,7 @@
 #include "plugins/common/common.h"
 
 #include "core/utils/entitytransforms.h"
+#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view::shapes {
 
@@ -43,7 +44,8 @@ using ::utils::Entity;
 
 BaseShape::BaseShape(const std::string& flutter_assets_path,
                      const flutter::EncodableMap& params)
-    : m_poVertexBuffer(nullptr),
+    : EntityObject("unset name tbd"),
+      m_poVertexBuffer(nullptr),
       m_poIndexBuffer(nullptr),
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
@@ -53,8 +55,11 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
 
-  m_oBaseTransform = BaseTransform(params);
-  m_oCommonRenderable = CommonRenderable(params);
+  m_poBaseTransform = new BaseTransform(params);
+  m_poCommonRenderable = new CommonRenderable(params);
+
+  vAddComponent(m_poBaseTransform);
+  vAddComponent(m_poCommonRenderable);
 
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
                                               ShapeType::Unset);
@@ -102,18 +107,18 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
       material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
 
   RenderableManager::Builder(1)
-      .boundingBox({{}, m_oBaseTransform.GetExtentsSize()})
+      .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
       .material(0, m_poMaterialInstance.getData().value())
       .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
                 m_poVertexBuffer, m_poIndexBuffer)
-      .culling(m_oCommonRenderable.IsCullingOfObjectEnabled())
-      .receiveShadows(m_oCommonRenderable.IsReceiveShadowsEnabled())
-      .castShadows(m_oCommonRenderable.IsCastShadowsEnabled())
+      .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
+      .receiveShadows(m_poCommonRenderable->IsReceiveShadowsEnabled())
+      .castShadows(m_poCommonRenderable->IsCastShadowsEnabled())
       .build(*engine_, *m_poEntity);
 
-  EntityTransforms::vApplyTransform(m_poEntity, m_oBaseTransform.GetRotation(),
-                                    m_oBaseTransform.GetScale(),
-                                    m_oBaseTransform.GetCenterPosition());
+  EntityTransforms::vApplyTransform(
+      m_poEntity, m_poBaseTransform->GetRotation(),
+      m_poBaseTransform->GetScale(), m_poBaseTransform->GetCenterPosition());
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal
@@ -141,26 +146,25 @@ void BaseShape::vAddEntityToScene() {
       *m_poEntity);
 }
 
+void BaseShape::DebugPrint() const {
+  vDebugPrintComponents();
+}
+
 void BaseShape::DebugPrint(const char* tag) const {
-  spdlog::debug("++++++++");
-  spdlog::debug("{} (Shape)", tag);
-
-  spdlog::debug("ID: {}", id);
-  spdlog::debug("Type: {}", static_cast<int>(type_));
-
+  spdlog::debug("++++++++ (Shape) ++++++++");
+  spdlog::debug("Tag {} ID {} Type {}", tag, id, static_cast<int>(type_));
   spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
                 m_f3Normal.z);
+
+  spdlog::debug("Double Sided: {}", m_bDoubleSided);
 
   if (m_poMaterialDefinitions.has_value()) {
     m_poMaterialDefinitions.value()->DebugPrint("\tMaterial Definitions");
   }
 
-  m_oBaseTransform.DebugPrint();
-  m_oCommonRenderable.DebugPrint();
+  DebugPrint();
 
-  spdlog::debug("Double Sided: {}", m_bDoubleSided);
-
-  spdlog::debug("++++++++");
+  spdlog::debug("-------- (Shape) --------");
 }
 
 }  // namespace plugin_filament_view::shapes
