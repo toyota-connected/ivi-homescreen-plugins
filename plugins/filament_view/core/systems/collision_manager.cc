@@ -45,16 +45,28 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   collidables_.push_back(collidable);
 
-  // this will eventually not be a shape, and be a model as well, for now just
-  // shape.
-  if (dynamic_cast<Model*>(collidable)) {
-    // jhjhvb
-  }
-
   // make the BaseShape Object
-  shapes::BaseShape* newShape = nullptr;  // new shapes::Cube();
+  shapes::BaseShape* newShape = nullptr;
+  if (dynamic_cast<Model*>(collidable)) {
+    auto ourModelObject = dynamic_cast<Model*>(collidable);
+    auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
 
-  if (dynamic_cast<shapes::Cube*>(collidable)) {
+    newShape = new shapes::Cube();
+    newShape->m_bDoubleSided= false;
+    newShape->type_ = ShapeType::Cube;
+
+    ourModelObject->vShallowCopyComponentToOther(BaseTransform::StaticGetTypeID(), *newShape);
+    ourModelObject->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
+                                       *newShape);
+
+    auto ourTransform = dynamic_cast<BaseTransform*>(newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
+    ourTransform->SetCenterPosition(ourAABB.center());
+    ourTransform->SetExtentsSize(ourAABB.extent());
+
+    newShape->m_poBaseTransform = ourTransform;
+    newShape->m_poCommonRenderable = dynamic_cast<CommonRenderable*>(newShape->GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID()));
+
+  } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();
     originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));

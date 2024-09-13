@@ -23,6 +23,7 @@
 namespace plugin_filament_view {
 
 class EntityObject {
+  friend class CollisionManager;
  public:
   // Overloading the == operator to compare based on global_guid_
   bool operator==(const EntityObject& other) const {
