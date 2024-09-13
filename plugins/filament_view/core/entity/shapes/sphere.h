@@ -31,6 +31,7 @@ class Sphere : public BaseShape {
  public:
   Sphere(const std::string& flutter_assets_path,
          const flutter::EncodableMap& params);
+  Sphere();
   ~Sphere() override = default;
 
   // Disallow copy and assign.
@@ -42,6 +43,7 @@ class Sphere : public BaseShape {
   bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,
                            MaterialManager* material_manager) override;
+  void CloneToOther(BaseShape& other) const override;
 
  private:
   static void createDoubleSidedSphere(::filament::Engine* engine_,

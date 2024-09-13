@@ -27,6 +27,7 @@ class Collidable : public Component {
   Collidable()
       : Component(std::string(__FUNCTION__)),
         isStatic(true),
+        m_f3CenterPosition({0.0f, 0.0f, 0.0f}),
         collisionLayer(0),
         collisionMask(0xFFFFFFFF),
         shouldMatchAttachedObject(false),
@@ -46,6 +47,9 @@ class Collidable : public Component {
   [[nodiscard]] filament::math::float3 GetExtentsSize() const {
     return m_f3ExtentsSize;
   }
+  [[nodiscard]] filament::math::float3 GetCenterPoint() const {
+    return m_f3CenterPosition;
+  }
 
   // Setters
   void SetIsStatic(bool value) { isStatic = value; }
@@ -58,16 +62,30 @@ class Collidable : public Component {
   void SetExtentsSize(const filament::math::float3& value) {
     m_f3ExtentsSize = value;
   }
+  void SetCenterPoint(const filament::math::float3& value) {
+    m_f3CenterPosition = value;
+  }
 
-  void DebugPrint(const std::string tabPrefix) const;
+  void DebugPrint(const std::string& tabPrefix) const override;
 
   bool bDoesOverlap(const Collidable& other) const;
   bool bDoesIntersect(const Ray& ray) const;
+
+  static size_t StaticGetTypeID() { return typeid(Collidable).hash_code(); }
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  Component* Clone() const override {
+    return new Collidable(*this);  // Copy constructor is called here
+  }
 
  private:
   // If true, the object is static and won't sync move with its renderable
   // object once created in place.
   bool isStatic = true;
+  // if this isStatic, then we need to copy this on creation
+  // from basetransform property
+  filament::math::float3 m_f3CenterPosition;
 
   // Layer for collision filtering
   // Not actively used in first iteration, but should be in future.
@@ -81,6 +99,8 @@ class Collidable : public Component {
   // At the time of implementation, models must do their own shapeType_ usage.
   bool shouldMatchAttachedObject = false;
 
+  // if this !shouldMatchAttachedObject, then we need to deserialize these two
+  // vars
   ShapeType shapeType_;
   filament::math::float3 m_f3ExtentsSize;
 };

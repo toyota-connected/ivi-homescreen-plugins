@@ -42,18 +42,22 @@ class CollisionManager {
 
   void vUpdate();
 
-  /// GroupingGuid is how the objects recognize one another
-  /// This should be the 'EntityObject' (parent) object
-  void vAddCollidable(std::string groupingGuid,
-                      Collidable* collidable,
-                      BaseTransform* transform);
+  void vAddCollidable(EntityObject* collidable);
+  void vRemoveCollidable(EntityObject* collidable);
+
+  static CollisionManager* Instance();
 
  private:
+  static CollisionManager* m_poInstance;
+
   bool currentlyDrawingDebugCollidables = false;
 
   void vMatchCollidablesToRenderingModelsTransforms();
+  void vMatchCollidablesToDebugDrawingTransforms();
 
-  std::list<shapes::BaseShape*> collidablesDebugDrawingRepresentation_;
+  std::list<EntityObject*> collidables_;
+  std::map<std::string, shapes::BaseShape*>
+      collidablesDebugDrawingRepresentation_;
 };
 
 }  // namespace plugin_filament_view

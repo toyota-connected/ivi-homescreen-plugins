@@ -296,6 +296,14 @@ void SceneController::setUpShapes(
     std::vector<std::unique_ptr<shapes::BaseShape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
+
+  for (const auto& shape : *shapes) {
+    if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
+      CollisionManager::Instance()->vAddCollidable(shape.get());
+    }
+  }
+
+  // This method releases shapes,
   shapeManager_->addShapesToScene(shapes);
 }
 

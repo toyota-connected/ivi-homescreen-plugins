@@ -49,11 +49,8 @@
 namespace plugin_filament_view {
 
 class CameraManager;
-
 class ModelLoader;
-
 class Model;
-
 class Scene;
 
 class CustomModelViewer {

@@ -101,9 +101,9 @@ void ShapeManager::addShapesToScene(
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   // TODO remove this, just debug info print for now;
-  for (auto& shape : *shapes) {
+  /*for (auto& shape : *shapes) {
     shape->DebugPrint("Add shapes to scene");
-  }
+  }*/
 
   filament::Engine* poFilamentEngine =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();

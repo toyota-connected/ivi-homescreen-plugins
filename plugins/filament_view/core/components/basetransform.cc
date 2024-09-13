@@ -37,7 +37,7 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
                                           filament::math::quatf(0, 0, 0, 1));
 }
 
-void BaseTransform::DebugPrint(const std::string tabPrefix) const {
+void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Center Position: x={}, y={}, z={}",
                 m_f3CenterPosition.x, m_f3CenterPosition.y,
                 m_f3CenterPosition.z);

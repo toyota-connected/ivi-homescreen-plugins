@@ -64,7 +64,15 @@ class BaseTransform : public Component {
     m_quatRotation = rotation;
   }
 
-  void DebugPrint(const std::string tabPrefix) const;
+  void DebugPrint(const std::string& tabPrefix) const override;
+
+  static size_t StaticGetTypeID() { return typeid(BaseTransform).hash_code(); }
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  Component* Clone() const override {
+    return new BaseTransform(*this);  // Copy constructor is called here
+  }
 
  private:
   filament::math::float3 m_f3CenterPosition;

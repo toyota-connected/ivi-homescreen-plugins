@@ -38,15 +38,23 @@ class Component {
 
   [[nodiscard]] std::string GetName() { return name_; }
 
+  virtual size_t GetTypeID() const = 0;
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(Component).hash_code();
+  }
+
  protected:
   Component(const std::string& name) : name_(name) {}
   virtual ~Component() = default;
 
   virtual const std::type_info& GetType() const { return typeid(*this); }
 
-  virtual void DebugPrint(const std::string tabPrefix) const = 0;
+  virtual void DebugPrint(const std::string& tabPrefix) const = 0;
 
   const EntityObject* GetOwner() const { return entityOwner_; }
+
+  virtual Component* Clone() const = 0;
 
  private:
   std::string rttiTypeName_;

@@ -24,6 +24,22 @@ namespace plugin_filament_view {
 
 class EntityObject {
  public:
+  // Overloading the == operator to compare based on global_guid_
+  bool operator==(const EntityObject& other) const {
+    return global_guid_ == other.global_guid_;
+  }
+
+  // Pass in the <DerivedClass>::StaticGetTypeID()
+  // Returns true if valid, false if not found.
+  bool HasComponentByStaticTypeID(size_t staticTypeID) const {
+    for (const auto& item : components_) {
+      if (item->GetTypeID() == staticTypeID) {
+        return true;
+      }
+    }
+    return false;
+  }
+
  protected:
   EntityObject(std::string name);
   virtual ~EntityObject() {
@@ -32,6 +48,9 @@ class EntityObject {
     }
     components_.clear();
   }
+
+  EntityObject(const EntityObject&) = delete;
+  EntityObject& operator=(const EntityObject&) = delete;
 
   virtual void DebugPrint() const = 0;
 
@@ -44,16 +63,41 @@ class EntityObject {
     components_.emplace_back(component);
   }
 
+  // Pass in the <DerivedClass>::StaticGetTypeID()
+  // Returns component if valid, nullptr if not found.
+  Component* GetComponentByStaticTypeID(size_t staticTypeID) {
+    for (const auto& item : components_) {
+      if (item->GetTypeID() == staticTypeID) {
+        return item;
+      }
+    }
+    return nullptr;
+  }
+
+  Component* GetComponentByStaticTypeID(size_t staticTypeID) const {
+    for (const auto& item : components_) {
+      if (item->GetTypeID() == staticTypeID) {
+        return item;
+      }
+    }
+    return nullptr;
+  }
+
   void vDebugPrintComponents() const;
+
+  // finds the size_t staticTypeID in the component list
+  // and creates a copy and assigns to the others list
+  void vShallowCopyComponentToOther(size_t staticTypeID,
+                                    EntityObject& other) const;
 
  private:
   std::string global_guid_;
   std::string name_;
 
-  // Vector for now, we shouldnt be adding and removing
+  // Vector for now, we shouldn't be adding and removing
   // components frequently during runtime.
   //
-  // In the future this is probably a map<type, vector<Comp*>>
+  // In the future this is probably a map<type, vector_or_list<Comp*>>
   std::vector<Component*> components_;
 };
 }  // namespace plugin_filament_view

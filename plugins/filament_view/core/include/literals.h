@@ -35,6 +35,7 @@ static constexpr char kDirection[] = "direction";
 static constexpr char kLength[] = "length";
 
 // specific collidable values:
+static constexpr char kCollidable[] = "collidable";
 static constexpr char kCollidableShapeType[] = "collidable_shapeType";
 static constexpr char kCollidableExtents[] = "collidable_extentsSize";
 static constexpr char kCollidableIsStatic[] = "collidable_isStatic";

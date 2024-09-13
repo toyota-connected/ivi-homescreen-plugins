@@ -33,4 +33,15 @@ void EntityObject::vDebugPrintComponents() const {
   }
 }
 
+void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
+                                                EntityObject& other) const {
+  const auto component = GetComponentByStaticTypeID(staticTypeID);
+  if (component == nullptr) {
+    spdlog::warn("Unable to clone component of {}", staticTypeID);
+    return;
+  }
+
+  other.vAddComponent(component->Clone());
+}
+
 }  // namespace plugin_filament_view

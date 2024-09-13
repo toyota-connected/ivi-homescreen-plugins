@@ -39,6 +39,8 @@ using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
 
+Plane::Plane() {}
+
 Plane::Plane(const std::string& flutter_assets_path,
              const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params) {

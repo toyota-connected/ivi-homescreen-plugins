@@ -50,7 +50,17 @@ class CommonRenderable : public Component {
 
   void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-  void DebugPrint(const std::string tabPrefix) const;
+  void DebugPrint(const std::string& tabPrefix) const override;
+
+  static size_t StaticGetTypeID() {
+    return typeid(CommonRenderable).hash_code();
+  }
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  Component* Clone() const override {
+    return new CommonRenderable(*this);  // Copy constructor is called here
+  }
 
  private:
   bool m_bCullingOfObjectEnabled;

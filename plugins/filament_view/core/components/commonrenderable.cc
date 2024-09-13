@@ -33,7 +33,7 @@ CommonRenderable::CommonRenderable(const flutter::EncodableMap& params)
                                           false);
 }
 
-void CommonRenderable::DebugPrint(const std::string tabPrefix) const {
+void CommonRenderable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Culling Enabled: {}", m_bCullingOfObjectEnabled);
   spdlog::debug(tabPrefix + "Receive Shadows: {}", m_bReceiveShadows);
   spdlog::debug(tabPrefix + "Cast Shadows: {}", m_bCastShadows);

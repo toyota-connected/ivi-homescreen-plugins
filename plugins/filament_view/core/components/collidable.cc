@@ -30,6 +30,12 @@ Collidable::Collidable(const flutter::EncodableMap& params)
   Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &isStatic,
                                           params, true);
 
+  if (isStatic) {
+    Deserialize::DecodeParameterWithDefault(kCenterPosition,
+                                            &m_f3CenterPosition, params,
+                                            filament::math::float3(0, 0, 0));
+  }
+
   // Deserialize the collision layer, defaulting to 0
   Deserialize::DecodeParameterWithDefaultInt64(kCollidableLayer,
                                                &collisionLayer, params, 0);
@@ -43,17 +49,29 @@ Collidable::Collidable(const flutter::EncodableMap& params)
                                           &shouldMatchAttachedObject, params,
                                           false);
 
-  // Deserialize the shape type, defaulting to some default ShapeType (replace
-  // ShapeType::Default with your actual default)
-  Deserialize::DecodeEnumParameterWithDefault(kCollidableShapeType, &shapeType_,
-                                              params, ShapeType::Cube);
+  if (!shouldMatchAttachedObject) {
+    Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3ExtentsSize,
+                                            params,
+                                            filament::math::float3(1, 1, 1));
+
+    // Deserialize the shape type, defaulting to some default ShapeType (replace
+    // ShapeType::Default with your actual default)
+    Deserialize::DecodeEnumParameterWithDefault(
+        kCollidableShapeType, &shapeType_, params, ShapeType::Cube);
+  }
 }
 
-void Collidable::DebugPrint(const std::string tabPrefix) const {
+void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Collidable Debug Info:");
 
   // Log whether the object is static
   spdlog::debug(tabPrefix + "Is Static: {}", isStatic);
+
+  if (isStatic) {
+    spdlog::debug(tabPrefix + "Center Point: x={}, y={}, z={}",
+                  m_f3CenterPosition.x, m_f3CenterPosition.y,
+                  m_f3CenterPosition.z);
+  }
 
   // Log the collision layer and mask
   spdlog::debug(tabPrefix + "Collision Layer: {}", collisionLayer);

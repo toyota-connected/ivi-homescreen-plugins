@@ -16,6 +16,7 @@
 
 #include "baseshape.h"
 
+#include <core/components/collidable.h>
 #include <filament/RenderableManager.h>
 #include <math/mat3.h>
 #include <math/norm.h>
@@ -41,6 +42,17 @@ using ::filament::math::mat4f;
 using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
+
+BaseShape::BaseShape()
+    : EntityObject("unset name tbd"),
+      m_poVertexBuffer(nullptr),
+      m_poIndexBuffer(nullptr),
+      type_(ShapeType::Unset),
+      m_poBaseTransform(nullptr),
+      m_poCommonRenderable(nullptr),
+      m_f3Normal(0, 0, 0),
+      m_poMaterialInstance(
+          Resource<::filament::MaterialInstance*>::Error("Unset")) {}
 
 BaseShape::BaseShape(const std::string& flutter_assets_path,
                      const flutter::EncodableMap& params)
@@ -69,6 +81,15 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
                                           params, flutter_assets_path);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
                                           false);
+
+  // if we have collidable data request, we need to build that component, as its
+  // optional
+  auto it = params.find(flutter::EncodableValue(kCollidable));
+  if (it != params.end() && !it->second.IsNull()) {
+    // They're requesting a collidable on this object. Make one.
+    auto collidableComp = new Collidable(params);
+    vAddComponent(collidableComp);
+  }
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
@@ -99,26 +120,48 @@ void BaseShape::vDestroyBuffers() {
   }
 }
 
+// Unique that we don't want to copy all components, as shapes can have
+// collidables, which would make a cascading collidable chain
+void BaseShape::CloneToOther(BaseShape& other) const {
+  other.m_f3Normal = m_f3Normal;
+  other.m_bDoubleSided = m_bDoubleSided;
+  other.m_bIsWireframe = m_bIsWireframe;
+  other.type_ = type_;
+  other.m_bHasTexturedMaterial = m_bHasTexturedMaterial;
+
+  // and now components.
+  this->vShallowCopyComponentToOther(BaseTransform::StaticGetTypeID(), other);
+  this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
+                                     other);
+
+  other.m_poBaseTransform = dynamic_cast<BaseTransform*>(
+      GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
+  other.m_poCommonRenderable = dynamic_cast<CommonRenderable*>(
+      GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID()));
+}
+
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
                                  MaterialManager* material_manager) {
-  if(m_bIsWireframe) {
+  // material_manager can and will be null for now on wireframe creation.
+
+  if (m_bIsWireframe) {
     // We might want to have a specific Material for wireframes in the future.
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
         .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
         //.material(0, m_poMaterialInstance.getData().value())
-        .geometry(0, RenderableManager::PrimitiveType::LINES,
-                  m_poVertexBuffer, m_poIndexBuffer)
+        .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
+                  m_poIndexBuffer)
         .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
         .receiveShadows(false)
         .castShadows(false)
         .build(*engine_, *m_poEntity);
   } else {
-    // this will also set all the default values of the material instance from the
-    // material param list
+    // this will also set all the default values of the material instance from
+    // the material param list
     m_poMaterialInstance =
-      material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
+        material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
 
     RenderableManager::Builder(1)
         .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
@@ -167,7 +210,8 @@ void BaseShape::DebugPrint() const {
 
 void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++ (Shape) ++++++++");
-  spdlog::debug("Tag {} ID {} Type {} Wireframe {}", tag, id, static_cast<int>(type_), m_bIsWireframe);
+  spdlog::debug("Tag {} ID {} Type {} Wireframe {}", tag, id,
+                static_cast<int>(type_), m_bIsWireframe);
   spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
                 m_f3Normal.z);
 

@@ -31,6 +31,7 @@ class Cube : public BaseShape {
  public:
   Cube(const std::string& flutter_assets_path,
        const flutter::EncodableMap& params);
+  Cube();
   ~Cube() override = default;
 
   // Disallow copy and assign.

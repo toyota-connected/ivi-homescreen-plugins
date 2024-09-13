@@ -37,6 +37,8 @@ using ::filament::math::float3;
 using ::filament::math::mat3f;
 using ::utils::Entity;
 
+Sphere::Sphere() : slices_(20), stacks_(20) {}
+
 Sphere::Sphere(const std::string& flutter_assets_path,
                const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params), stacks_(20), slices_(20) {
@@ -174,6 +176,15 @@ void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/,
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");
+}
+
+void Sphere::CloneToOther(BaseShape& other) const {
+  BaseShape::CloneToOther(other);
+
+  Sphere* otherShape = dynamic_cast<Sphere*>(&other);
+
+  otherShape->slices_ = slices_;
+  otherShape->stacks_ = stacks_;
 }
 
 void Sphere::DebugPrint(const char* tag) const {

@@ -31,6 +31,7 @@ class Plane : public BaseShape {
  public:
   Plane(const std::string& flutter_assets_path,
         const flutter::EncodableMap& params);
+  Plane();
   ~Plane() override = default;
 
   // Disallow copy and assign.

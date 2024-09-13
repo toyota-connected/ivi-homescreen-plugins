@@ -37,14 +37,19 @@
 namespace plugin_filament_view {
 
 class MaterialManager;
+class CollisionManager;
 using ::utils::Entity;
 
 namespace shapes {
 
 class BaseShape : public EntityObject {
+  friend class plugin_filament_view::CollisionManager;
+
  public:
   BaseShape(const std::string& flutter_assets_path,
             const flutter::EncodableMap& params);
+
+  BaseShape();
 
   virtual ~BaseShape();
 
@@ -53,6 +58,10 @@ class BaseShape : public EntityObject {
   // Disallow copy and assign.
   BaseShape(const BaseShape&) = delete;
   BaseShape& operator=(const BaseShape&) = delete;
+
+  // will copy over properties, but not 'create' anything.
+  // similar to a shallow copy.
+  virtual void CloneToOther(BaseShape& other) const;
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                                    std::shared_ptr<Entity> entityObject,
@@ -97,13 +106,13 @@ class BaseShape : public EntityObject {
   //        when building as code currently allocates buffers for UVs
   bool m_bHasTexturedMaterial = true;
 
- friend class CollisionManager;
- // This does NOT come over as a property (currently), only used by CollisionManager
- // when created debug wireframe models for seeing collidable shapes.
- bool m_bIsWireframe = false;
-
  private:
   void vDestroyBuffers();
+
+  // This does NOT come over as a property (currently), only used by
+  // CollisionManager when created debug wireframe models for seeing collidable
+  // shapes.
+  bool m_bIsWireframe = false;
 };
 
 }  // namespace shapes
