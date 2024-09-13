@@ -124,13 +124,13 @@ std::optional<FlutterError> WebviewFlutterPlugin::Clear() {
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::Create(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) Create", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] Create, instance_id: {}", instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::DeleteAllData(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) DeleteAllData", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] DeleteAllData, instance_id: {}", instance_id);
   return std::nullopt;
 }
 
@@ -139,8 +139,10 @@ std::optional<FlutterError> WebviewFlutterPlugin::LoadData(
     const std::string& /* data */,
     const std::string* mime_type,
     const std::string* encoding) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) LoadData, mime_type: {}, encoding: {}",
-               instance_id, *mime_type, *encoding);
+  SPDLOG_DEBUG(
+      "[webview_flutter] LoadData, instance_id: {}, mime_type: {}, encoding: "
+      "{}",
+      instance_id, *mime_type, *encoding);
   return std::nullopt;
 }
 
@@ -152,7 +154,8 @@ std::optional<FlutterError> WebviewFlutterPlugin::LoadDataWithBaseUrl(
     const std::string* encoding,
     const std::string* history_url) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) LoadDataWithBaseUrl, base_url: {}, mime_type: "
+      "[webview_flutter] LoadDataWithBaseUrl, instance_id: {}, base_url: {}, "
+      "mime_type: "
       "{}, encoding: {}, history_url: {}",
       instance_id, *base_url, *mime_type, *encoding, *history_url);
   return std::nullopt;
@@ -162,7 +165,8 @@ std::optional<FlutterError> WebviewFlutterPlugin::LoadUrl(
     int64_t instance_id,
     const std::string& url,
     const flutter::EncodableMap& headers) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) LoadUrl: {}", instance_id, url);
+  SPDLOG_DEBUG("[webview_flutter] LoadUrl, instance_id: {}, url: {}",
+               instance_id, url);
   if (!headers.empty()) {
     plugin_common::Encodable::PrintFlutterEncodableMap("headers", headers);
   }
@@ -173,48 +177,50 @@ std::optional<FlutterError> WebviewFlutterPlugin::PostUrl(
     int64_t instance_id,
     const std::string& url,
     const std::vector<uint8_t>& /* data */) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) PostUrl: {}", instance_id, url);
+  SPDLOG_DEBUG("[webview_flutter] PostUrl: instance_id: {}, url: {}",
+               instance_id, url);
   return std::nullopt;
 }
 
 ErrorOr<std::optional<std::string>> WebviewFlutterPlugin::GetUrl(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetUrl", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetUrl, instance_id: {}", instance_id);
   // TODO - set favorite in test case calls this
   return {"https://www.google.com"};
 }
 
 ErrorOr<bool> WebviewFlutterPlugin::CanGoBack(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) CanGoBack", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] CanGoBack, instance_id: {}", instance_id);
   return {true};
 }
 
 ErrorOr<bool> WebviewFlutterPlugin::CanGoForward(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) CanGoForward", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] CanGoForward, instance_id: {}", instance_id);
   return {true};
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::GoBack(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GoBack", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GoBack, instance_id: {}", instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::GoForward(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GoForward", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GoForward, instance_id: {}", instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::Reload(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) Reload", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] Reload, instance_id: {}", instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::ClearCache(
     int64_t instance_id,
     bool include_disk_files) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) ClearCache, include_disk_files: {}",
-               instance_id, include_disk_files);
+  SPDLOG_DEBUG(
+      "[webview_flutter] ClearCache, instance_id: {}, include_disk_files: {}",
+      instance_id, include_disk_files);
   return std::nullopt;
 }
 
@@ -223,121 +229,139 @@ void WebviewFlutterPlugin::EvaluateJavascript(
     const std::string& javascript_string,
     std::function<
         void(ErrorOr<std::optional<std::string>> reply)> /* result */) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) EvaluateJavascript: {}", instance_id,
-               javascript_string);
+  SPDLOG_DEBUG(
+      "[webview_flutter] EvaluateJavascript, instance_id: {}, "
+      "javascript_string: {}",
+      instance_id, javascript_string);
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::Create(
     int64_t instance_id,
     const std::string& channel_name) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) Create: {}", instance_id, channel_name);
+  SPDLOG_DEBUG("[webview_flutter] Create, instance_id: {}, channel_name: {}",
+               instance_id, channel_name);
   return std::nullopt;
 }
 
 ErrorOr<std::optional<std::string>> WebviewFlutterPlugin::GetTitle(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetTitle", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetTitle, instance_id: {}", instance_id);
   return {std::nullopt};
 }
 std::optional<FlutterError> WebviewFlutterPlugin::ScrollTo(int64_t instance_id,
                                                            int64_t x,
                                                            int64_t y) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) ScrollTo: x: {}, y: {}", instance_id, x,
-               y, y);
+  SPDLOG_DEBUG("[webview_flutter] ScrollTo, instance_id: {}, x: {}, y: {}",
+               instance_id, x, y);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::ScrollBy(int64_t instance_id,
                                                            int64_t x,
                                                            int64_t y) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) ScrollBy: x: {}, y: {}", instance_id, x,
-               y, y);
+  SPDLOG_DEBUG("[webview_flutter] ScrollBy, instance_id: {}, x: {}, y: {}",
+               instance_id, x, y);
   return std::nullopt;
 }
 
 ErrorOr<int64_t> WebviewFlutterPlugin::GetScrollX(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetScrollX", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetScrollX, instance_id: {}", instance_id);
   return {0};
 }
 
 ErrorOr<int64_t> WebviewFlutterPlugin::GetScrollY(int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetScrollY", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetScrollY, instance_id: {}", instance_id);
   return {0};
 }
 
 ErrorOr<WebViewPoint> WebviewFlutterPlugin::GetScrollPosition(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetScrollPosition", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetScrollPosition, instance_id: {}",
+               instance_id);
   return {WebViewPoint{0, 0}};
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetWebContentsDebuggingEnabled(bool enabled) {
-  SPDLOG_DEBUG("[webview_flutter] SetWebContentsDebuggingEnabled: {}", enabled);
+  SPDLOG_DEBUG("[webview_flutter] SetWebContentsDebuggingEnabled, enabled: {}",
+               enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetWebViewClient(
     int64_t instance_id,
     int64_t web_view_client_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetWebViewClient: {}", instance_id,
-               web_view_client_instance_id);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetWebViewClient, instance_id: {}, "
+      "web_view_client_instance_id: {}",
+      instance_id, web_view_client_instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::AddJavaScriptChannel(
     int64_t instance_id,
     int64_t java_script_channel_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) AddJavaScriptChannel: {}", instance_id,
-               java_script_channel_instance_id);
+  SPDLOG_DEBUG(
+      "[webview_flutter] AddJavaScriptChannel, instance_id: {}, "
+      "java_script_channel_instance_id: {}",
+      instance_id, java_script_channel_instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::RemoveJavaScriptChannel(
     int64_t instance_id,
     int64_t java_script_channel_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) RemoveJavaScriptChannel: {}",
-               instance_id, java_script_channel_instance_id);
+  SPDLOG_DEBUG(
+      "[webview_flutter] RemoveJavaScriptChannel, instance_id: {}, "
+      "java_script_channel_instance_id: {}",
+      instance_id, java_script_channel_instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetDownloadListener(
     int64_t instance_id,
     const int64_t* listener_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetDownloadListener: {}", instance_id,
-               fmt::ptr(listener_instance_id));
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetDownloadListener, instance_id: {}, "
+      "listener_instance_id: {}",
+      instance_id, fmt::ptr(listener_instance_id));
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetWebChromeClient(
     int64_t instance_id,
     const int64_t* client_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetWebChromeClient: {}", instance_id,
-               fmt::ptr(client_instance_id));
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetWebChromeClient, instance_id: {}, "
+      "client_instance_id: {}",
+      instance_id, fmt::ptr(client_instance_id));
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetBackgroundColor(
     int64_t instance_id,
     int64_t color) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetWebChromeClient: {}", instance_id,
-               color);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetWebChromeClient, instance_id: {}, color: 0x{:08}",
+      instance_id, color);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::Create(
     int64_t instance_id,
     int64_t web_view_instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) Create: {}", instance_id,
-               web_view_instance_id);
+  SPDLOG_DEBUG(
+      "[webview_flutter] Create, instance_id: {}, web_view_instance_id: {}",
+      instance_id, web_view_instance_id);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetDomStorageEnabled(
     int64_t instance_id,
     bool flag) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetDomStorageEnabled: {}", instance_id,
-               flag);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetDomStorageEnabled, instance_id: {}, flag: {}",
+      instance_id, flag);
   return std::nullopt;
 }
 
@@ -346,7 +370,8 @@ WebviewFlutterPlugin::SetJavaScriptCanOpenWindowsAutomatically(
     int64_t instance_id,
     bool flag) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) SetJavaScriptCanOpenWindowsAutomatically: {}",
+      "[webview_flutter] SetJavaScriptCanOpenWindowsAutomatically, "
+      "instance_id: {}, flag: {}",
       instance_id, flag);
   return std::nullopt;
 }
@@ -354,94 +379,107 @@ WebviewFlutterPlugin::SetJavaScriptCanOpenWindowsAutomatically(
 std::optional<FlutterError> WebviewFlutterPlugin::SetSupportMultipleWindows(
     int64_t instance_id,
     bool support) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetSupportMultipleWindows: {}",
-               instance_id, support);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetSupportMultipleWindows, instance_id: {}. support: "
+      "{}",
+      instance_id, support);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetJavaScriptEnabled(
     int64_t instance_id,
     bool flag) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetJavaScriptEnabled: {}", instance_id,
-               flag);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetJavaScriptEnabled, instance_id: {}, flag: {}",
+      instance_id, flag);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetUserAgentString(
     int64_t instance_id,
     const std::string* user_agent_string) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetUserAgentString: {}", instance_id,
-               *user_agent_string);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetUserAgentString, instance_id: {}, "
+      "user_agent_string: {}",
+      instance_id, *user_agent_string);
   return std::nullopt;
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetMediaPlaybackRequiresUserGesture(int64_t instance_id,
                                                           bool require) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetMediaPlaybackRequiresUserGesture: {}",
-               instance_id, require);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetMediaPlaybackRequiresUserGesture, instance_id: {}, "
+      "require: {}",
+      instance_id, require);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetSupportZoom(
     int64_t instance_id,
     bool support) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetSupportZoom: {}", instance_id,
-               support);
+  SPDLOG_DEBUG("[webview_flutter] SetSupportZoom, instance_id: {}, support: {}",
+               instance_id, support);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetLoadWithOverviewMode(
     int64_t instance_id,
     bool overview) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetLoadWithOverviewMode: {}",
-               instance_id, overview);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetLoadWithOverviewMode, instance_id: {}, overview: "
+      "{}",
+      instance_id, overview);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetUseWideViewPort(
     int64_t instance_id,
     bool use) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetUseWideViewPort: {}", instance_id,
-               use);
+  SPDLOG_DEBUG("[webview_flutter] SetUseWideViewPort, instance_id: {}, use: {}",
+               instance_id, use);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetDisplayZoomControls(
     int64_t instance_id,
     bool enabled) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetDisplayZoomControls: {}", instance_id,
-               enabled);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetDisplayZoomControls, instance_id: {}, enabled: {}",
+      instance_id, enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetBuiltInZoomControls(
     int64_t instance_id,
     bool enabled) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetBuiltInZoomControls: {}", instance_id,
-               enabled);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetBuiltInZoomControls, instance_id: {}, enabled: {}",
+      instance_id, enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetAllowFileAccess(
     int64_t instance_id,
     bool enabled) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetAllowFileAccess: {}", instance_id,
-               enabled);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetAllowFileAccess, instance_id: {}, enabled: {}",
+      instance_id, enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetTextZoom(
     int64_t instance_id,
     int64_t text_zoom) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetTextZoom: {}", instance_id,
-               text_zoom);
+  SPDLOG_DEBUG("[webview_flutter] SetTextZoom, instance_id: {}, text_zoom: {}",
+               instance_id, text_zoom);
   return std::nullopt;
 }
 
 ErrorOr<std::string> WebviewFlutterPlugin::GetUserAgentString(
     int64_t instance_id) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) GetUserAgentString: {}", instance_id);
+  SPDLOG_DEBUG("[webview_flutter] GetUserAgentString, instance_id: {}",
+               instance_id);
   return {""};
 }
 
@@ -450,8 +488,8 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnShowFileChooser(
     int64_t instance_id,
     bool value) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) SetSynchronousReturnValueForOnShowFileChooser: "
-      "{}",
+      "[webview_flutter] SetSynchronousReturnValueForOnShowFileChooser, "
+      "instance_id: {}, value: {}",
       instance_id, value);
   return std::nullopt;
 }
@@ -461,8 +499,8 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnConsoleMessage(
     int64_t instance_id,
     bool value) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) SetSynchronousReturnValueForOnConsoleMessage: "
-      "{}",
+      "[webview_flutter] SetSynchronousReturnValueForOnConsoleMessage, "
+      "instance_id: {}, value: {}",
       instance_id, value);
   return std::nullopt;
 }
@@ -472,9 +510,8 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForShouldOverrideUrlLoading(
     int64_t instance_id,
     bool value) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) "
-      "SetSynchronousReturnValueForShouldOverrideUrlLoading: "
-      "{}",
+      "[webview_flutter] SetSynchronousReturnValueForShouldOverrideUrlLoading, "
+      "instance_id: {}, value: {}",
       instance_id, value);
   return std::nullopt;
 }
@@ -483,9 +520,8 @@ std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsAlert(int64_t instance_id,
                                                             bool value) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) "
-      "SetSynchronousReturnValueForOnJsAlert: "
-      "{}",
+      "[webview_flutter] SetSynchronousReturnValueForOnJsAlert, instance_id: "
+      "{}, value: {}",
       instance_id, value);
   return std::nullopt;
 }
@@ -495,9 +531,8 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsConfirm(
     int64_t instance_id,
     bool value) {
   SPDLOG_DEBUG(
-      "[webview_flutter] ({}) "
-      "SetSynchronousReturnValueForOnJsConfirm: "
-      "{}",
+      "[webview_flutter] SetSynchronousReturnValueForOnJsConfirm, instance_id: "
+      "{}, value: {}",
       instance_id, value);
   return std::nullopt;
 }
@@ -506,14 +541,17 @@ std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsPrompt(
     int64_t instance_id,
     bool value) {
-  SPDLOG_INFO("[webview] ({}) SetSynchronousReturnValueForOnJsPrompt: {}",
-              instance_id, value);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetSynchronousReturnValueForOnJsPrompt: instance_id: "
+      "{}, value: {}",
+      instance_id, value);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::AttachInstance(
     int64_t instance_identifier) {
-  SPDLOG_INFO("[webview] ({}) AttachInstance", instance_identifier);
+  SPDLOG_DEBUG("[webview_flutter] AttachInstance, instance_identifier: {}",
+               instance_identifier);
   return std::nullopt;
 }
 
@@ -521,15 +559,17 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetCookie(
     int64_t identifier,
     const std::string& url,
     const std::string& value) {
-  SPDLOG_INFO("[webview] ({}) SetCookie, url: {}, value: {}", identifier, url,
-              value);
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetCookie, identifier: {}, url: {}, value: {}",
+      identifier, url, value);
   return std::nullopt;
 }
 
 void WebviewFlutterPlugin::RemoveAllCookies(
     int64_t identifier,
-    std::function<void(ErrorOr<bool> reply)> result) {
-  SPDLOG_INFO("[webview] ({}) RemoveAllCookies", identifier);
+    const std::function<void(ErrorOr<bool> reply)> result) {
+  SPDLOG_DEBUG("[webview_flutter] RemoveAllCookies, identifier: {}",
+               identifier);
   result(true);
 }
 
@@ -537,9 +577,9 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetAcceptThirdPartyCookies(
     int64_t identifier,
     int64_t web_view_identifier,
     bool accept) {
-  SPDLOG_INFO(
-      "[webview] ({}) SetAcceptThirdPartyCookies, web_view_identifier: {}, "
-      "accept: {}",
+  SPDLOG_DEBUG(
+      "[webview_flutter] SetAcceptThirdPartyCookies, identifier: {}, "
+      "web_view_identifier: {}, accept: {}",
       identifier, web_view_identifier, accept);
   return std::nullopt;
 }
@@ -550,7 +590,7 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_resize(double width,
   if (const auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->width_ = static_cast<int32_t>(width);
     plugin->height_ = static_cast<int32_t>(height);
-    SPDLOG_TRACE("Resize: {} {}", width, height);
+    SPDLOG_DEBUG("[webview_flutter] Resize: {} {}", width, height);
   }
 }
 
@@ -559,7 +599,7 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_set_direction(
     void* data) {
   if (auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->direction_ = direction;
-    SPDLOG_TRACE("SetDirection: {}", plugin->direction_);
+    SPDLOG_DEBUG("[webview_flutter] SetDirection: {}", plugin->direction_);
   }
 }
 
@@ -570,7 +610,8 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_set_offset(const double left,
     plugin->left_ = static_cast<int32_t>(left);
     plugin->top_ = static_cast<int32_t>(top);
     if (plugin->subsurface_) {
-      SPDLOG_DEBUG("SetOffset: left: {}, top: {}", plugin->left_, plugin->top_);
+      SPDLOG_DEBUG("[webview_flutter] SetOffset: left: {}, top: {}",
+                   plugin->left_, plugin->top_);
       wl_subsurface_set_position(plugin->subsurface_, plugin->left_,
                                  plugin->top_);
       if (!plugin->callback_) {
