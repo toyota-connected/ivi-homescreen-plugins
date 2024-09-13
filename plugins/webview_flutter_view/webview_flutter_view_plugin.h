@@ -39,38 +39,73 @@ class WebviewFlutterPlugin final : public flutter::Plugin,
                                    public WebViewClientHostApi,
                                    public DownloadListenerHostApi,
                                    public JavaScriptChannelHostApi,
-                                   public PlatformView {
+                                   public CookieManagerHostApi {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar,
-                                    int32_t id,
-                                    std::string viewType,
-                                    int32_t direction,
-                                    double top,
-                                    double left,
-                                    double width,
-                                    double height,
-                                    const std::vector<uint8_t>& params,
-                                    std::string assetDirectory,
-                                    FlutterDesktopEngineRef engine,
-                                    PlatformViewAddListener addListener,
-                                    PlatformViewRemoveListener removeListener,
-                                    void* platform_view_context);
+  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar);
 
-  WebviewFlutterPlugin(int32_t id,
-                       std::string viewType,
-                       int32_t direction,
-                       double top,
-                       double left,
-                       double width,
-                       double height,
-                       const std::vector<uint8_t>& params,
-                       std::string assetDirectory,
-                       FlutterDesktopEngineState* state,
-                       PlatformViewAddListener addListener,
-                       PlatformViewRemoveListener removeListener,
-                       void* platform_view_context);
+  static void PlatformViewCreate(int32_t id,
+                                 std::string viewType,
+                                 int32_t direction,
+                                 double top,
+                                 double left,
+                                 double width,
+                                 double height,
+                                 const std::vector<uint8_t>& params,
+                                 std::string assetDirectory,
+                                 FlutterDesktopEngineRef engine,
+                                 PlatformViewAddListener addListener,
+                                 PlatformViewRemoveListener removeListener,
+                                 void* platform_view_context);
+
+  WebviewFlutterPlugin();
 
   ~WebviewFlutterPlugin() override;
+
+  class WebviewPlatformView final : public PlatformView {
+   public:
+    WebviewPlatformView(int32_t id,
+                        std::string viewType,
+                        int32_t direction,
+                        double top,
+                        double left,
+                        double width,
+                        double height,
+                        const std::vector<uint8_t>& params,
+                        std::string assetDirectory,
+                        FlutterDesktopEngineState* state,
+                        PlatformViewAddListener addListener,
+                        PlatformViewRemoveListener removeListener,
+                        void* platform_view_context);
+
+    ~WebviewPlatformView() override = default;
+
+   private:
+    MAYBE_UNUSED int32_t id_;
+    void* platformViewsContext_;
+    MAYBE_UNUSED PlatformViewRemoveListener removeListener_;
+    const std::string flutterAssetsPath_;
+
+    wl_display* display_;
+    wl_surface* surface_;
+    wl_surface* parent_surface_;
+    wl_callback* callback_;
+    wl_subsurface* subsurface_;
+
+    static void on_frame(void* data, wl_callback* callback, uint32_t time);
+    static const wl_callback_listener frame_listener;
+
+    static void on_resize(double width, double height, void* data);
+    static void on_set_direction(int32_t direction, void* data);
+    static void on_set_offset(double left, double top, void* data);
+    static void on_touch(int32_t action,
+                         int32_t point_count,
+                         size_t point_data_size,
+                         const double* point_data,
+                         void* data);
+    static void on_dispose(bool hybrid, void* data);
+
+    static const platform_view_listener platform_view_listener_;
+  };
 
   std::optional<FlutterError> Clear() override;
 
@@ -222,36 +257,25 @@ class WebviewFlutterPlugin final : public flutter::Plugin,
       int64_t instance_id,
       bool value) override;
 
+  std::optional<FlutterError> AttachInstance(
+      int64_t instance_identifier) override;
+
+  std::optional<FlutterError> SetCookie(int64_t identifier,
+                                        const std::string& url,
+                                        const std::string& value) override;
+
+  void RemoveAllCookies(
+      int64_t identifier,
+      std::function<void(ErrorOr<bool> reply)> result) override;
+
+  std::optional<FlutterError> SetAcceptThirdPartyCookies(
+      int64_t identifier,
+      int64_t web_view_identifier,
+      bool accept) override;
+
   // Disallow copy and assign.
   WebviewFlutterPlugin(const WebviewFlutterPlugin&) = delete;
   WebviewFlutterPlugin& operator=(const WebviewFlutterPlugin&) = delete;
-
- private:
-  MAYBE_UNUSED int32_t id_;
-  void* platformViewsContext_;
-  MAYBE_UNUSED PlatformViewRemoveListener removeListener_;
-  const std::string flutterAssetsPath_;
-
-  wl_display* display_;
-  wl_surface* surface_;
-  wl_surface* parent_surface_;
-  wl_callback* callback_;
-  wl_subsurface* subsurface_;
-
-  static void on_frame(void* data, wl_callback* callback, uint32_t time);
-  static const wl_callback_listener frame_listener;
-
-  static void on_resize(double width, double height, void* data);
-  static void on_set_direction(int32_t direction, void* data);
-  static void on_set_offset(double left, double top, void* data);
-  static void on_touch(int32_t action,
-                       int32_t point_count,
-                       const size_t point_data_size,
-                       const double* point_data,
-                       void* data);
-  static void on_dispose(bool hybrid, void* data);
-
-  static const struct platform_view_listener platform_view_listener_;
 };
 
 }  // namespace plugin_webview_flutter

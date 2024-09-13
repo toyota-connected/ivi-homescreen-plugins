@@ -2656,10 +2656,9 @@ EncodableValue WebViewClientHostApi::WrapError(const FlutterError& error) {
                                       error.details()});
 }
 
-WebViewClientFlutterApiCodecSerializer::
-WebViewClientFlutterApiCodecSerializer() {}
+WvcFlutterApiCodecSerializer::WvcFlutterApiCodecSerializer() {}
 
-EncodableValue WebViewClientFlutterApiCodecSerializer::ReadValueOfType(
+EncodableValue WvcFlutterApiCodecSerializer::ReadValueOfType(
     uint8_t type,
     flutter::ByteStreamReader* stream) const {
   switch (type) {
@@ -2677,7 +2676,7 @@ EncodableValue WebViewClientFlutterApiCodecSerializer::ReadValueOfType(
   }
 }
 
-void WebViewClientFlutterApiCodecSerializer::WriteValue(
+void WvcFlutterApiCodecSerializer::WriteValue(
     const EncodableValue& value,
     flutter::ByteStreamWriter* stream) const {
   if (const CustomEncodableValue* custom_value =
@@ -2718,7 +2717,7 @@ WebViewClientFlutterApi::WebViewClientFlutterApi(
 
 const flutter::StandardMessageCodec& WebViewClientFlutterApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(
-      &WebViewClientFlutterApiCodecSerializer::GetInstance());
+      &WvcFlutterApiCodecSerializer::GetInstance());
 }
 
 void WebViewClientFlutterApi::OnPageStarted(
@@ -3403,10 +3402,9 @@ EncodableValue FlutterAssetManagerHostApi::WrapError(
                                       error.details()});
 }
 
-WebChromeClientFlutterApiCodecSerializer::
-WebChromeClientFlutterApiCodecSerializer() {}
+WccFlutterApiCodecSerializer::WccFlutterApiCodecSerializer() {}
 
-EncodableValue WebChromeClientFlutterApiCodecSerializer::ReadValueOfType(
+EncodableValue WccFlutterApiCodecSerializer::ReadValueOfType(
     uint8_t type,
     flutter::ByteStreamReader* stream) const {
   switch (type) {
@@ -3418,7 +3416,7 @@ EncodableValue WebChromeClientFlutterApiCodecSerializer::ReadValueOfType(
   }
 }
 
-void WebChromeClientFlutterApiCodecSerializer::WriteValue(
+void WccFlutterApiCodecSerializer::WriteValue(
     const EncodableValue& value,
     flutter::ByteStreamWriter* stream) const {
   if (const CustomEncodableValue* custom_value =
@@ -3443,7 +3441,7 @@ WebChromeClientFlutterApi::WebChromeClientFlutterApi(
 
 const flutter::StandardMessageCodec& WebChromeClientFlutterApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(
-      &WebChromeClientFlutterApiCodecSerializer::GetInstance());
+      &WccFlutterApiCodecSerializer::GetInstance());
 }
 
 void WebChromeClientFlutterApi::OnProgressChanged(
@@ -4166,18 +4164,17 @@ EncodableValue GeolocationPermissionsCallbackHostApi::WrapError(
 
 // Generated class from Pigeon that represents Flutter messages that can be
 // called from C++.
-GeolocationPermissionsCallbackFlutterApi::
-GeolocationPermissionsCallbackFlutterApi(
+GeoPermissionsCallbackFlutterApi::GeoPermissionsCallbackFlutterApi(
     flutter::BinaryMessenger* binary_messenger)
     : binary_messenger_(binary_messenger) {}
 
 const flutter::StandardMessageCodec&
-GeolocationPermissionsCallbackFlutterApi::GetCodec() {
+GeoPermissionsCallbackFlutterApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(
       &flutter::StandardCodecSerializer::GetInstance());
 }
 
-void GeolocationPermissionsCallbackFlutterApi::Create(
+void GeoPermissionsCallbackFlutterApi::Create(
     int64_t instance_id_arg,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error) {
