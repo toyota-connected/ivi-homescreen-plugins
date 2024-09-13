@@ -47,6 +47,9 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   // this will eventually not be a shape, and be a model as well, for now just
   // shape.
+  if(dynamic_cast<Model*>(collidable)) {
+    // jhjhvb
+  }
 
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;  // new shapes::Cube();
@@ -100,6 +103,18 @@ void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
   if(iter != collidablesDebugDrawingRepresentation_.end()) {
     delete iter->second;
     collidablesDebugDrawingRepresentation_.erase(iter);
+  }
+}
+
+void CollisionManager::vTurnOnRenderingOfCollidables() {
+  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
+    collidable.second->vRemoveEntityFromScene();
+  }
+}
+
+void CollisionManager::vTurnOffRenderingOfCollidables() {
+  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
+    collidable.second->vAddEntityToScene();
   }
 }
 

@@ -18,6 +18,34 @@
 
 namespace plugin_filament_view {
 
+// Messages.cc usage from Dart->C++
+static constexpr char kChangeAnimationByIndex[] =
+           "CHANGE_ANIMATION_BY_INDEX";
+static constexpr char kChangeLightColorByIndex[] =
+    "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX";
+static constexpr char kChangeLightColorByIndexKey[] =
+    "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY";
+static constexpr char kChangeLightColorByIndexColor[] =
+    "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR";
+static constexpr char kChangeLightColorByIndexIntensity[] =
+    "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY";
+static constexpr char kToggleShapesInScene[] =
+    "TOGGLE_SHAPES_IN_SCENE";
+static constexpr char kToggleShapesInSceneValue[] =
+    "TOGGLE_SHAPES_IN_SCENE_VALUE";
+static constexpr char kToggleCollidableVisualsInScene[] =
+    "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE";
+static constexpr char kToggleCollidableVisualsInSceneValue[] =
+    "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE_VALUE";
+static constexpr char kToggleCameraAutoRotate[] =
+    "TOGGLE_CAMERA_AUTO_ROTATE";
+static constexpr char kToggleCameraAutoRotateValue[] =
+    "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
+static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
+static constexpr char kChangeCameraRotationValue[] =
+    "ROTATE_CAMERA_VALUE";
+
+// Deserialization
 static constexpr char kId[] = "id";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";

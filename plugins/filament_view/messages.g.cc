@@ -26,6 +26,8 @@
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
 
+#include "core/include/literals.h"
+
 #include "plugins/common/common.h"
 
 using flutter::EncodableList;
@@ -52,31 +54,6 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           [api](const MethodCall<EncodableValue>& methodCall,
                 std::unique_ptr<MethodResult<EncodableValue>> result) {
             spdlog::trace("[{}]", methodCall.method_name());
-
-            static constexpr char kChangeAnimationByIndex[] =
-                "CHANGE_ANIMATION_BY_INDEX";
-
-            static constexpr char kChangeLightColorByIndex[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX";
-            static constexpr char kChangeLightColorByIndexKey[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY";
-            static constexpr char kChangeLightColorByIndexColor[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR";
-            static constexpr char kChangeLightColorByIndexIntensity[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY";
-
-            static constexpr char kToggleShapesInScene[] =
-                "TOGGLE_SHAPES_IN_SCENE";
-            static constexpr char kToggleShapesInSceneValue[] =
-                "TOGGLE_SHAPES_IN_SCENE_VALUE";
-
-            static constexpr char kToggleCameraAutoRotate[] =
-                "TOGGLE_CAMERA_AUTO_ROTATE";
-            static constexpr char kToggleCameraAutoRotateValue[] =
-                "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
-            static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
-            static constexpr char kChangeCameraRotationValue[] =
-                "ROTATE_CAMERA_VALUE";
 
             if (methodCall.method_name() == kChangeAnimationByIndex) {
               result->Success();
@@ -113,6 +90,17 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                     std::get<std::string>(it.first)) {
                   bool bValue = std::get<bool>(it.second);
                   api->ToggleShapesInScene(bValue, nullptr);
+                }
+              }
+              result->Success();
+            } else if (methodCall.method_name() == kToggleCollidableVisualsInScene) {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
+              for (auto& it : *args) {
+                if (kToggleCollidableVisualsInSceneValue ==
+                    std::get<std::string>(it.first)) {
+                  bool bValue = std::get<bool>(it.second);
+                  api->ToggleDebugCollidableViewsInScene(bValue, nullptr);
                 }
               }
               result->Success();
