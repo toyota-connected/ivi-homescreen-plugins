@@ -203,9 +203,27 @@ void ModelLoader::loadModelGltf(
 void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
+  auto& rcm = modelViewer->getFilamentEngine()->getRenderableManager();
+
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
     asset->popRenderables(readyRenderables_, count);
+
+    utils::Slice<Entity> const listOfRenderables{
+      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+
+    // TODO this needs to be able to callback into the model list; find the asset
+    // containing the entity, and then check and see if we want shadows.
+    for (auto entity : listOfRenderables) {
+      auto ri = rcm.getInstance(entity);
+      rcm.setCastShadows(
+          ri, true);
+      rcm.setReceiveShadows(
+          ri, true);
+      // Investigate this more before making it a property on common renderable
+      // component.
+      rcm.setScreenSpaceContactShadows(ri, false);
+    }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
   }
