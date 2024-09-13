@@ -161,7 +161,8 @@ std::optional<FlutterError> WebviewFlutterPlugin::PostUrl(
 
 ErrorOr<std::optional<std::string>> WebviewFlutterPlugin::GetUrl(
     int64_t /* instance_id */) {
-  return {std::nullopt};
+  //TODO - set favorite in test case calls this
+  return {"https://www.google.com"};
 }
 
 ErrorOr<bool> WebviewFlutterPlugin::CanGoBack(int64_t /* instance_id */) {
@@ -384,6 +385,26 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnConsoleMessage(
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForShouldOverrideUrlLoading(
+    int64_t /* instance_id */,
+    bool /* value */) {
+  return std::nullopt;
+}
+
+std::optional<FlutterError>
+WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsAlert(
+    int64_t /* instance_id */,
+    bool /* value */) {
+  return std::nullopt;
+}
+
+std::optional<FlutterError>
+WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsConfirm(
+    int64_t /* instance_id */,
+    bool /* value */) {
+  return std::nullopt;
+}
+
+std::optional<FlutterError> SetSynchronousReturnValueForOnJsPrompt(
     int64_t /* instance_id */,
     bool /* value */) {
   return std::nullopt;
