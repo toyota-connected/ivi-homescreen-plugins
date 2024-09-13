@@ -93,7 +93,8 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
               result->Success();
-            } else if (methodCall.method_name() == kToggleCollidableVisualsInScene) {
+            } else if (methodCall.method_name() ==
+                       kToggleCollidableVisualsInScene) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {

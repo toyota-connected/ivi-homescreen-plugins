@@ -47,7 +47,7 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   // this will eventually not be a shape, and be a model as well, for now just
   // shape.
-  if(dynamic_cast<Model*>(collidable)) {
+  if (dynamic_cast<Model*>(collidable)) {
     // jhjhvb
   }
 
@@ -59,13 +59,13 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     newShape = new shapes::Cube();
     originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
   } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
-      auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
-      newShape = new shapes::Sphere();
-      originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
+    newShape = new shapes::Sphere();
+    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
   } else if (dynamic_cast<shapes::Plane*>(collidable)) {
-      auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
-      newShape = new shapes::Plane();
-      originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
+    newShape = new shapes::Plane();
+    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
   }
 
   if (newShape == nullptr) {
@@ -74,33 +74,34 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     return;
   }
 
-newShape->m_bIsWireframe = true;
+  newShape->m_bIsWireframe = true;
 
-/*newShape->DebugPrint("NewShape");
-originalObject->DebugPrint("OriginalShape");*/
+  /*newShape->DebugPrint("NewShape");
+  originalObject->DebugPrint("OriginalShape");*/
 
-auto cmv = CustomModelViewer::Instance(__FUNCTION__);
+  auto cmv = CustomModelViewer::Instance(__FUNCTION__);
 
-filament::Engine* poFilamentEngine = cmv->getFilamentEngine();
-filament::Scene* poFilamentScene = cmv->getFilamentScene();
-utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
+  filament::Engine* poFilamentEngine = cmv->getFilamentEngine();
+  filament::Scene* poFilamentScene = cmv->getFilamentScene();
+  utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
 
-auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+  auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-newShape->bInitAndCreateShape(cmv->getFilamentEngine(), oEntity, nullptr);
-poFilamentScene->addEntity(*oEntity);
+  newShape->bInitAndCreateShape(cmv->getFilamentEngine(), oEntity, nullptr);
+  poFilamentScene->addEntity(*oEntity);
 
-// now store in map.
-collidablesDebugDrawingRepresentation_.insert(
-    std::pair(collidable->GetGlobalGuid(), newShape));
+  // now store in map.
+  collidablesDebugDrawingRepresentation_.insert(
+      std::pair(collidable->GetGlobalGuid(), newShape));
 }
 
 void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
 
   // Remove from collidablesDebugDrawingRepresentation_
-  auto iter = collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
-  if(iter != collidablesDebugDrawingRepresentation_.end()) {
+  auto iter =
+      collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
+  if (iter != collidablesDebugDrawingRepresentation_.end()) {
     delete iter->second;
     collidablesDebugDrawingRepresentation_.erase(iter);
   }

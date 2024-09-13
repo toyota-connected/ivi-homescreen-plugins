@@ -122,12 +122,12 @@ void FilamentViewPlugin::ToggleShapesInScene(
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
-  std::function<void(std::optional<FlutterError> reply)> /*result*/){
-      if(!value) {
-          CollisionManager::Instance()->vTurnOffRenderingOfCollidables();
-      } else {
-          CollisionManager::Instance()->vTurnOnRenderingOfCollidables();
-      }
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  if (!value) {
+    CollisionManager::Instance()->vTurnOffRenderingOfCollidables();
+  } else {
+    CollisionManager::Instance()->vTurnOnRenderingOfCollidables();
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
