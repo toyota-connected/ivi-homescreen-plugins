@@ -212,6 +212,16 @@ class WebviewFlutterPlugin final : public flutter::Plugin,
   SetSynchronousReturnValueForShouldOverrideUrlLoading(int64_t instance_id,
                                                        bool value) override;
 
+  std::optional<FlutterError> SetSynchronousReturnValueForOnJsAlert(
+      int64_t instance_id,
+      bool value) override;
+  std::optional<FlutterError> SetSynchronousReturnValueForOnJsConfirm(
+      int64_t instance_id,
+      bool value) override;
+  std::optional<FlutterError> SetSynchronousReturnValueForOnJsPrompt(
+      int64_t instance_id,
+      bool value) override;
+
   // Disallow copy and assign.
   WebviewFlutterPlugin(const WebviewFlutterPlugin&) = delete;
   WebviewFlutterPlugin& operator=(const WebviewFlutterPlugin&) = delete;
