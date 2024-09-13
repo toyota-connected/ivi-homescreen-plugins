@@ -16,6 +16,8 @@
 #include "collision_manager.h"
 
 #include <core/entity/shapes/cube.h>
+#include <core/entity/shapes/plane.h>
+#include <core/entity/shapes/sphere.h>
 #include <viewer/custom_model_viewer.h>
 
 #include "plugins/common/common.h"
@@ -53,49 +55,52 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();
     originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
-    newShape->m_bIsWireframe = true;
-
-    newShape->DebugPrint("NewShape");
-    originalObject->DebugPrint("OriginalShape");
-
-    auto cmv = CustomModelViewer::Instance(__FUNCTION__);
-
-    filament::Engine* poFilamentEngine = cmv->getFilamentEngine();
-    filament::Scene* poFilamentScene = cmv->getFilamentScene();
-    utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
-
-    auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
-
-    newShape->bInitAndCreateShape(cmv->getFilamentEngine(), oEntity, nullptr);
-    poFilamentScene->addEntity(*oEntity);
-
-    // now store in map.
-    collidablesDebugDrawingRepresentation_.insert(
-        std::pair(originalObject->GetGlobalGuid(), newShape));
+  } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
+      auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
+      newShape = new shapes::Sphere();
+      originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+  } else if (dynamic_cast<shapes::Plane*>(collidable)) {
+      auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
+      newShape = new shapes::Plane();
+      originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
   }
 
   if (newShape == nullptr) {
     // log not handled;
+    spdlog::error("Failed to create collidable shape.");
     return;
   }
 
-  /*//new
-  switch (type) {
-      case ShapeType::Plane:
-          return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
-      case ShapeType::Cube:
-          return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
-      case ShapeType::Sphere:
-          return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
-      default:
-          // Handle unknown shape type
-              spdlog::error("Unknown shape type: {}",
-  static_cast<int32_t>(type)); return nullptr;
-  }*/
+newShape->m_bIsWireframe = true;
+
+/*newShape->DebugPrint("NewShape");
+originalObject->DebugPrint("OriginalShape");*/
+
+auto cmv = CustomModelViewer::Instance(__FUNCTION__);
+
+filament::Engine* poFilamentEngine = cmv->getFilamentEngine();
+filament::Scene* poFilamentScene = cmv->getFilamentScene();
+utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
+
+auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+
+newShape->bInitAndCreateShape(cmv->getFilamentEngine(), oEntity, nullptr);
+poFilamentScene->addEntity(*oEntity);
+
+// now store in map.
+collidablesDebugDrawingRepresentation_.insert(
+    std::pair(collidable->GetGlobalGuid(), newShape));
 }
 
 void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
+
+  // Remove from collidablesDebugDrawingRepresentation_
+  auto iter = collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
+  if(iter != collidablesDebugDrawingRepresentation_.end()) {
+    delete iter->second;
+    collidablesDebugDrawingRepresentation_.erase(iter);
+  }
 }
 
 void CollisionManager::DebugPrint() {

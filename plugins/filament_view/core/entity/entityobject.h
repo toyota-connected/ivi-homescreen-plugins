@@ -40,6 +40,8 @@ class EntityObject {
     return false;
   }
 
+  const std::string& GetGlobalGuid() const { return global_guid_; }
+
  protected:
   EntityObject(std::string name);
   virtual ~EntityObject() {
@@ -53,8 +55,6 @@ class EntityObject {
   EntityObject& operator=(const EntityObject&) = delete;
 
   virtual void DebugPrint() const = 0;
-
-  const std::string& GetGlobalGuid() const { return global_guid_; }
 
   const std::string& GetName() const { return name_; }
 
