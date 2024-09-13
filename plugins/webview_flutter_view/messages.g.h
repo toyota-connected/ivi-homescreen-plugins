@@ -76,7 +76,7 @@ class ErrorOr {
   friend class CustomViewCallbackFlutterApi;
   friend class ViewFlutterApi;
   friend class GeolocationPermissionsCallbackHostApi;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerFlutterApi;
   ErrorOr() = default;
@@ -207,7 +207,7 @@ class WebResourceRequestData {
   friend class WebViewClientHostApi;
   friend class WebViewClientHostApiCodecSerializer;
   friend class WebViewClientFlutterApi;
-  friend class WebViewClientFlutterApiCodecSerializer;
+  friend class WvcFlutterApiCodecSerializer;
   friend class DownloadListenerHostApi;
   friend class DownloadListenerHostApiCodecSerializer;
   friend class DownloadListenerFlutterApi;
@@ -217,7 +217,7 @@ class WebResourceRequestData {
   friend class FlutterAssetManagerHostApi;
   friend class FlutterAssetManagerHostApiCodecSerializer;
   friend class WebChromeClientFlutterApi;
-  friend class WebChromeClientFlutterApiCodecSerializer;
+  friend class WccFlutterApiCodecSerializer;
   friend class WebStorageHostApi;
   friend class WebStorageHostApiCodecSerializer;
   friend class FileChooserParamsFlutterApi;
@@ -234,7 +234,7 @@ class WebResourceRequestData {
   friend class ViewFlutterApiCodecSerializer;
   friend class GeolocationPermissionsCallbackHostApi;
   friend class GeolocationPermissionsCallbackHostApiCodecSerializer;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class GeolocationPermissionsCallbackFlutterApiCodecSerializer;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerHostApiCodecSerializer;
@@ -282,7 +282,7 @@ class WebResourceResponseData {
   friend class WebViewClientHostApi;
   friend class WebViewClientHostApiCodecSerializer;
   friend class WebViewClientFlutterApi;
-  friend class WebViewClientFlutterApiCodecSerializer;
+  friend class WvcFlutterApiCodecSerializer;
   friend class DownloadListenerHostApi;
   friend class DownloadListenerHostApiCodecSerializer;
   friend class DownloadListenerFlutterApi;
@@ -292,7 +292,7 @@ class WebResourceResponseData {
   friend class FlutterAssetManagerHostApi;
   friend class FlutterAssetManagerHostApiCodecSerializer;
   friend class WebChromeClientFlutterApi;
-  friend class WebChromeClientFlutterApiCodecSerializer;
+  friend class WccFlutterApiCodecSerializer;
   friend class WebStorageHostApi;
   friend class WebStorageHostApiCodecSerializer;
   friend class FileChooserParamsFlutterApi;
@@ -309,7 +309,7 @@ class WebResourceResponseData {
   friend class ViewFlutterApiCodecSerializer;
   friend class GeolocationPermissionsCallbackHostApi;
   friend class GeolocationPermissionsCallbackHostApiCodecSerializer;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class GeolocationPermissionsCallbackFlutterApiCodecSerializer;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerHostApiCodecSerializer;
@@ -356,7 +356,7 @@ class WebResourceErrorData {
   friend class WebViewClientHostApi;
   friend class WebViewClientHostApiCodecSerializer;
   friend class WebViewClientFlutterApi;
-  friend class WebViewClientFlutterApiCodecSerializer;
+  friend class WvcFlutterApiCodecSerializer;
   friend class DownloadListenerHostApi;
   friend class DownloadListenerHostApiCodecSerializer;
   friend class DownloadListenerFlutterApi;
@@ -366,7 +366,7 @@ class WebResourceErrorData {
   friend class FlutterAssetManagerHostApi;
   friend class FlutterAssetManagerHostApiCodecSerializer;
   friend class WebChromeClientFlutterApi;
-  friend class WebChromeClientFlutterApiCodecSerializer;
+  friend class WccFlutterApiCodecSerializer;
   friend class WebStorageHostApi;
   friend class WebStorageHostApiCodecSerializer;
   friend class FileChooserParamsFlutterApi;
@@ -383,7 +383,7 @@ class WebResourceErrorData {
   friend class ViewFlutterApiCodecSerializer;
   friend class GeolocationPermissionsCallbackHostApi;
   friend class GeolocationPermissionsCallbackHostApiCodecSerializer;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class GeolocationPermissionsCallbackFlutterApiCodecSerializer;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerHostApiCodecSerializer;
@@ -429,7 +429,7 @@ class WebViewPoint {
   friend class WebViewClientHostApi;
   friend class WebViewClientHostApiCodecSerializer;
   friend class WebViewClientFlutterApi;
-  friend class WebViewClientFlutterApiCodecSerializer;
+  friend class WvcFlutterApiCodecSerializer;
   friend class DownloadListenerHostApi;
   friend class DownloadListenerHostApiCodecSerializer;
   friend class DownloadListenerFlutterApi;
@@ -439,7 +439,7 @@ class WebViewPoint {
   friend class FlutterAssetManagerHostApi;
   friend class FlutterAssetManagerHostApiCodecSerializer;
   friend class WebChromeClientFlutterApi;
-  friend class WebChromeClientFlutterApiCodecSerializer;
+  friend class WccFlutterApiCodecSerializer;
   friend class WebStorageHostApi;
   friend class WebStorageHostApiCodecSerializer;
   friend class FileChooserParamsFlutterApi;
@@ -456,7 +456,7 @@ class WebViewPoint {
   friend class ViewFlutterApiCodecSerializer;
   friend class GeolocationPermissionsCallbackHostApi;
   friend class GeolocationPermissionsCallbackHostApiCodecSerializer;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class GeolocationPermissionsCallbackFlutterApiCodecSerializer;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerHostApiCodecSerializer;
@@ -515,7 +515,7 @@ class ConsoleMessage {
   friend class WebViewClientHostApi;
   friend class WebViewClientHostApiCodecSerializer;
   friend class WebViewClientFlutterApi;
-  friend class WebViewClientFlutterApiCodecSerializer;
+  friend class WvcFlutterApiCodecSerializer;
   friend class DownloadListenerHostApi;
   friend class DownloadListenerHostApiCodecSerializer;
   friend class DownloadListenerFlutterApi;
@@ -525,7 +525,7 @@ class ConsoleMessage {
   friend class FlutterAssetManagerHostApi;
   friend class FlutterAssetManagerHostApiCodecSerializer;
   friend class WebChromeClientFlutterApi;
-  friend class WebChromeClientFlutterApiCodecSerializer;
+  friend class WccFlutterApiCodecSerializer;
   friend class WebStorageHostApi;
   friend class WebStorageHostApiCodecSerializer;
   friend class FileChooserParamsFlutterApi;
@@ -542,7 +542,7 @@ class ConsoleMessage {
   friend class ViewFlutterApiCodecSerializer;
   friend class GeolocationPermissionsCallbackHostApi;
   friend class GeolocationPermissionsCallbackHostApiCodecSerializer;
-  friend class GeolocationPermissionsCallbackFlutterApi;
+  friend class GeoPermissionsCallbackFlutterApi;
   friend class GeolocationPermissionsCallbackFlutterApiCodecSerializer;
   friend class HttpAuthHandlerHostApi;
   friend class HttpAuthHandlerHostApiCodecSerializer;
@@ -914,12 +914,11 @@ class WebViewClientHostApi {
  protected:
   WebViewClientHostApi() = default;
 };
-class WebViewClientFlutterApiCodecSerializer
-    : public flutter::StandardCodecSerializer {
+class WvcFlutterApiCodecSerializer : public flutter::StandardCodecSerializer {
  public:
-  WebViewClientFlutterApiCodecSerializer();
-  inline static WebViewClientFlutterApiCodecSerializer& GetInstance() {
-    static WebViewClientFlutterApiCodecSerializer sInstance;
+  WvcFlutterApiCodecSerializer();
+  inline static WvcFlutterApiCodecSerializer& GetInstance() {
+    static WvcFlutterApiCodecSerializer sInstance;
     return sInstance;
   }
 
@@ -1098,12 +1097,11 @@ class FlutterAssetManagerHostApi {
  protected:
   FlutterAssetManagerHostApi() = default;
 };
-class WebChromeClientFlutterApiCodecSerializer
-    : public flutter::StandardCodecSerializer {
+class WccFlutterApiCodecSerializer : public flutter::StandardCodecSerializer {
  public:
-  WebChromeClientFlutterApiCodecSerializer();
-  inline static WebChromeClientFlutterApiCodecSerializer& GetInstance() {
-    static WebChromeClientFlutterApiCodecSerializer sInstance;
+  WccFlutterApiCodecSerializer();
+  inline static WccFlutterApiCodecSerializer& GetInstance() {
+    static WccFlutterApiCodecSerializer sInstance;
     return sInstance;
   }
 
@@ -1418,10 +1416,9 @@ class GeolocationPermissionsCallbackHostApi {
 //
 // Generated class from Pigeon that represents Flutter messages that can be
 // called from C++.
-class GeolocationPermissionsCallbackFlutterApi {
+class GeoPermissionsCallbackFlutterApi {
  public:
-  GeolocationPermissionsCallbackFlutterApi(
-      flutter::BinaryMessenger* binary_messenger);
+  GeoPermissionsCallbackFlutterApi(flutter::BinaryMessenger* binary_messenger);
   static const flutter::StandardMessageCodec& GetCodec();
   // Create a new Dart instance and add it to the `InstanceManager`.
   void Create(int64_t instance_id,

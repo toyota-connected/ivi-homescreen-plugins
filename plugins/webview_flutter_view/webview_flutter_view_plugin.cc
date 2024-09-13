@@ -28,7 +28,25 @@ namespace plugin_webview_flutter {
 
 // static
 void WebviewFlutterPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar* registrar,
+    flutter::PluginRegistrar* registrar) {
+  auto plugin = std::make_unique<WebviewFlutterPlugin>();
+
+  InstanceManagerHostApi::SetUp(registrar->messenger(), plugin.get());
+  WebStorageHostApi::SetUp(registrar->messenger(), plugin.get());
+  WebViewHostApi::SetUp(registrar->messenger(), plugin.get());
+  WebSettingsHostApi::SetUp(registrar->messenger(), plugin.get());
+  WebChromeClientHostApi::SetUp(registrar->messenger(), plugin.get());
+  WebViewClientHostApi::SetUp(registrar->messenger(), plugin.get());
+  DownloadListenerHostApi::SetUp(registrar->messenger(), plugin.get());
+  JavaScriptChannelHostApi::SetUp(registrar->messenger(), plugin.get());
+  CookieManagerHostApi::SetUp(registrar->messenger(), plugin.get());
+
+  registrar->AddPlugin(std::move(plugin));
+}
+
+WebviewFlutterPlugin::WebviewFlutterPlugin() {}
+
+void WebviewFlutterPlugin::PlatformViewCreate(
     int32_t id,
     std::string viewType,
     int32_t direction,
@@ -42,36 +60,25 @@ void WebviewFlutterPlugin::RegisterWithRegistrar(
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
-  auto plugin = std::make_unique<WebviewFlutterPlugin>(
+  auto plugin = std::make_unique<WebviewPlatformView>(
       id, std::move(viewType), direction, top, left, width, height, params,
       std::move(assetDirectory), engine, addListener, removeListener,
       platform_view_context);
-
-  InstanceManagerHostApi::SetUp(registrar->messenger(), plugin.get());
-  WebStorageHostApi::SetUp(registrar->messenger(), plugin.get());
-  WebViewHostApi::SetUp(registrar->messenger(), plugin.get());
-  WebSettingsHostApi::SetUp(registrar->messenger(), plugin.get());
-  WebChromeClientHostApi::SetUp(registrar->messenger(), plugin.get());
-  WebViewClientHostApi::SetUp(registrar->messenger(), plugin.get());
-  DownloadListenerHostApi::SetUp(registrar->messenger(), plugin.get());
-  JavaScriptChannelHostApi::SetUp(registrar->messenger(), plugin.get());
-
-  registrar->AddPlugin(std::move(plugin));
 }
 
-WebviewFlutterPlugin::WebviewFlutterPlugin(
-    int32_t id,
+WebviewFlutterPlugin::WebviewPlatformView::WebviewPlatformView(
+    const int32_t id,
     std::string viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
+    const int32_t direction,
+    const double top,
+    const double left,
+    const double width,
+    const double height,
     const std::vector<uint8_t>& /* params */,
     std::string assetDirectory,
     FlutterDesktopEngineState* state,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
+    const PlatformViewAddListener addListener,
+    const PlatformViewRemoveListener removeListener,
     void* platform_view_context)
     : PlatformView(id,
                    std::move(viewType),
@@ -101,8 +108,8 @@ WebviewFlutterPlugin::WebviewFlutterPlugin(
   wl_subsurface_set_desync(subsurface_);
   wl_subsurface_set_position(subsurface_, static_cast<int32_t>(top),
                              static_cast<int32_t>(left));
-  wl_subsurface_place_above(subsurface_, parent_surface_);
-  // wl_subsurface_place_below(subsurface_, surface_);
+  // wl_subsurface_place_above(subsurface_, parent_surface_);
+  wl_subsurface_place_below(subsurface_, surface_);
   wl_surface_commit(parent_surface_);
 
   addListener(platformViewsContext_, id, &platform_view_listener_, this);
@@ -156,7 +163,9 @@ std::optional<FlutterError> WebviewFlutterPlugin::LoadUrl(
     const std::string& url,
     const flutter::EncodableMap& headers) {
   SPDLOG_DEBUG("[webview_flutter] ({}) LoadUrl: {}", instance_id, url);
-  plugin_common::Encodable::PrintFlutterEncodableMap("headers", headers);
+  if (!headers.empty()) {
+    plugin_common::Encodable::PrintFlutterEncodableMap("headers", headers);
+  }
   return std::nullopt;
 }
 
@@ -294,15 +303,17 @@ std::optional<FlutterError> WebviewFlutterPlugin::RemoveJavaScriptChannel(
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetDownloadListener(
     int64_t instance_id,
-    const int64_t* /* listener_instance_id */) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetDownloadListener", instance_id);
+    const int64_t* listener_instance_id) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetDownloadListener: {}", instance_id,
+               fmt::ptr(listener_instance_id));
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetWebChromeClient(
     int64_t instance_id,
-    const int64_t* /* client_instance_id */) {
-  SPDLOG_DEBUG("[webview_flutter] ({}) SetWebChromeClient", instance_id);
+    const int64_t* client_instance_id) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetWebChromeClient: {}", instance_id,
+               fmt::ptr(client_instance_id));
   return std::nullopt;
 }
 
@@ -365,91 +376,129 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetUserAgentString(
 }
 
 std::optional<FlutterError>
-WebviewFlutterPlugin::SetMediaPlaybackRequiresUserGesture(
-    int64_t /* instance_id */,
-    bool /* require */) {
+WebviewFlutterPlugin::SetMediaPlaybackRequiresUserGesture(int64_t instance_id,
+                                                          bool require) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetMediaPlaybackRequiresUserGesture: {}",
+               instance_id, require);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetSupportZoom(
-    int64_t /* instance_id */,
-    bool /* support */) {
+    int64_t instance_id,
+    bool support) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetSupportZoom: {}", instance_id,
+               support);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetLoadWithOverviewMode(
-    int64_t /* instance_id */,
-    bool /* overview */) {
+    int64_t instance_id,
+    bool overview) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetLoadWithOverviewMode: {}",
+               instance_id, overview);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetUseWideViewPort(
-    int64_t /* instance_id */,
-    bool /* use */) {
+    int64_t instance_id,
+    bool use) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetUseWideViewPort: {}", instance_id,
+               use);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetDisplayZoomControls(
-    int64_t /* instance_id */,
-    bool /* enabled */) {
+    int64_t instance_id,
+    bool enabled) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetDisplayZoomControls: {}", instance_id,
+               enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetBuiltInZoomControls(
-    int64_t /* instance_id */,
-    bool /* enabled */) {
+    int64_t instance_id,
+    bool enabled) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetBuiltInZoomControls: {}", instance_id,
+               enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetAllowFileAccess(
-    int64_t /* instance_id */,
-    bool /* enabled */) {
+    int64_t instance_id,
+    bool enabled) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetAllowFileAccess: {}", instance_id,
+               enabled);
   return std::nullopt;
 }
 
 std::optional<FlutterError> WebviewFlutterPlugin::SetTextZoom(
-    int64_t /* instance_id */,
-    int64_t /* text_zoom */) {
+    int64_t instance_id,
+    int64_t text_zoom) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) SetTextZoom: {}", instance_id,
+               text_zoom);
   return std::nullopt;
 }
 
 ErrorOr<std::string> WebviewFlutterPlugin::GetUserAgentString(
-    int64_t /* instance_id */) {
+    int64_t instance_id) {
+  SPDLOG_DEBUG("[webview_flutter] ({}) GetUserAgentString: {}", instance_id);
   return {""};
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForOnShowFileChooser(
-    int64_t /* instance_id */,
-    bool /* value */) {
+    int64_t instance_id,
+    bool value) {
+  SPDLOG_DEBUG(
+      "[webview_flutter] ({}) SetSynchronousReturnValueForOnShowFileChooser: "
+      "{}",
+      instance_id, value);
   return std::nullopt;
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForOnConsoleMessage(
-    int64_t /* instance_id */,
-    bool /* value */) {
+    int64_t instance_id,
+    bool value) {
+  SPDLOG_DEBUG(
+      "[webview_flutter] ({}) SetSynchronousReturnValueForOnConsoleMessage: "
+      "{}",
+      instance_id, value);
   return std::nullopt;
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForShouldOverrideUrlLoading(
-    int64_t /* instance_id */,
-    bool /* value */) {
+    int64_t instance_id,
+    bool value) {
+  SPDLOG_DEBUG(
+      "[webview_flutter] ({}) "
+      "SetSynchronousReturnValueForShouldOverrideUrlLoading: "
+      "{}",
+      instance_id, value);
   return std::nullopt;
 }
 
 std::optional<FlutterError>
-WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsAlert(
-    int64_t /* instance_id */,
-    bool /* value */) {
+WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsAlert(int64_t instance_id,
+                                                            bool value) {
+  SPDLOG_DEBUG(
+      "[webview_flutter] ({}) "
+      "SetSynchronousReturnValueForOnJsAlert: "
+      "{}",
+      instance_id, value);
   return std::nullopt;
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsConfirm(
-    int64_t /* instance_id */,
-    bool /* value */) {
+    int64_t instance_id,
+    bool value) {
+  SPDLOG_DEBUG(
+      "[webview_flutter] ({}) "
+      "SetSynchronousReturnValueForOnJsConfirm: "
+      "{}",
+      instance_id, value);
   return std::nullopt;
 }
 
@@ -462,25 +511,62 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsPrompt(
   return std::nullopt;
 }
 
-void WebviewFlutterPlugin::on_resize(double width, double height, void* data) {
-  if (auto plugin = static_cast<WebviewFlutterPlugin*>(data)) {
+std::optional<FlutterError> WebviewFlutterPlugin::AttachInstance(
+    int64_t instance_identifier) {
+  SPDLOG_INFO("[webview] ({}) AttachInstance", instance_identifier);
+  return std::nullopt;
+}
+
+std::optional<FlutterError> WebviewFlutterPlugin::SetCookie(
+    int64_t identifier,
+    const std::string& url,
+    const std::string& value) {
+  SPDLOG_INFO("[webview] ({}) SetCookie, url: {}, value: {}", identifier, url,
+              value);
+  return std::nullopt;
+}
+
+void WebviewFlutterPlugin::RemoveAllCookies(
+    int64_t identifier,
+    std::function<void(ErrorOr<bool> reply)> result) {
+  SPDLOG_INFO("[webview] ({}) RemoveAllCookies", identifier);
+  result(true);
+}
+
+std::optional<FlutterError> WebviewFlutterPlugin::SetAcceptThirdPartyCookies(
+    int64_t identifier,
+    int64_t web_view_identifier,
+    bool accept) {
+  SPDLOG_INFO(
+      "[webview] ({}) SetAcceptThirdPartyCookies, web_view_identifier: {}, "
+      "accept: {}",
+      identifier, web_view_identifier, accept);
+  return std::nullopt;
+}
+
+void WebviewFlutterPlugin::WebviewPlatformView::on_resize(double width,
+                                                          double height,
+                                                          void* data) {
+  if (const auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->width_ = static_cast<int32_t>(width);
     plugin->height_ = static_cast<int32_t>(height);
     SPDLOG_TRACE("Resize: {} {}", width, height);
   }
 }
 
-void WebviewFlutterPlugin::on_set_direction(int32_t direction, void* data) {
-  auto plugin = static_cast<WebviewFlutterPlugin*>(data);
-  if (plugin) {
+void WebviewFlutterPlugin::WebviewPlatformView::on_set_direction(
+    const int32_t direction,
+    void* data) {
+  if (auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->direction_ = direction;
     SPDLOG_TRACE("SetDirection: {}", plugin->direction_);
   }
 }
 
-void WebviewFlutterPlugin::on_set_offset(double left, double top, void* data) {
-  auto plugin = static_cast<WebviewFlutterPlugin*>(data);
-  if (plugin) {
+void WebviewFlutterPlugin::WebviewPlatformView::on_set_offset(const double left,
+                                                              const double top,
+                                                              void* data) {
+  if (const auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->left_ = static_cast<int32_t>(left);
     plugin->top_ = static_cast<int32_t>(top);
     if (plugin->subsurface_) {
@@ -494,16 +580,18 @@ void WebviewFlutterPlugin::on_set_offset(double left, double top, void* data) {
   }
 }
 
-void WebviewFlutterPlugin::on_touch(int32_t /* action */,
-                                    int32_t /* point_count */,
-                                    const size_t /* point_data_size */,
-                                    const double* /* point_data */,
-                                    void* /* data */) {
+void WebviewFlutterPlugin::WebviewPlatformView::on_touch(
+    int32_t /* action */,
+    int32_t /* point_count */,
+    const size_t /* point_data_size */,
+    const double* /* point_data */,
+    void* /* data */) {
   // auto plugin = static_cast<WebviewFlutterPlugin*>(data);
 }
 
-void WebviewFlutterPlugin::on_dispose(bool /* hybrid */, void* data) {
-  const auto plugin = static_cast<WebviewFlutterPlugin*>(data);
+void WebviewFlutterPlugin::WebviewPlatformView::on_dispose(bool /* hybrid */,
+                                                           void* data) {
+  const auto plugin = static_cast<WebviewPlatformView*>(data);
   if (plugin->callback_) {
     wl_callback_destroy(plugin->callback_);
     plugin->callback_ = nullptr;
@@ -521,17 +609,18 @@ void WebviewFlutterPlugin::on_dispose(bool /* hybrid */, void* data) {
 }
 
 const struct platform_view_listener
-    WebviewFlutterPlugin::platform_view_listener_ = {
+    WebviewFlutterPlugin::WebviewPlatformView::platform_view_listener_ = {
         .resize = on_resize,
         .set_direction = on_set_direction,
         .set_offset = on_set_offset,
         .on_touch = on_touch,
         .dispose = on_dispose};
 
-void WebviewFlutterPlugin::on_frame(void* data,
-                                    wl_callback* callback,
-                                    const uint32_t /* time */) {
-  const auto obj = static_cast<WebviewFlutterPlugin*>(data);
+void WebviewFlutterPlugin::WebviewPlatformView::on_frame(
+    void* data,
+    wl_callback* callback,
+    const uint32_t /* time */) {
+  const auto obj = static_cast<WebviewPlatformView*>(data);
 
   obj->callback_ = nullptr;
 
@@ -546,15 +635,16 @@ void WebviewFlutterPlugin::on_frame(void* data,
   wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
 
   obj->callback_ = wl_surface_frame(obj->surface_);
-  wl_callback_add_listener(obj->callback_,
-                           &WebviewFlutterPlugin::frame_listener, data);
+  wl_callback_add_listener(obj->callback_, &WebviewPlatformView::frame_listener,
+                           data);
 
   wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
   wl_surface_commit(obj->surface_);
 }
 
-const wl_callback_listener WebviewFlutterPlugin::frame_listener = {
-    .done = on_frame};
+const wl_callback_listener
+    WebviewFlutterPlugin::WebviewPlatformView::frame_listener = {.done =
+                                                                     on_frame};
 
 }  // namespace plugin_webview_flutter
