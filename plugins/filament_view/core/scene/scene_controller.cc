@@ -339,7 +339,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
   } else if (dynamic_cast<GltfModel*>(model)) {
     auto gltf_model = dynamic_cast<GltfModel*>(model);
     if (!gltf_model->assetPath_.empty()) {
-      auto f = plugin_filament_view::ModelLoader::loadGltfFromAsset(
+      auto f = plugin_filament_view::ModelManager::loadGltfFromAsset(
           model, gltf_model->assetPath_, gltf_model->pathPrefix_,
           gltf_model->pathPostfix_);
       f.wait();
@@ -347,7 +347,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
     }
 
     if (!gltf_model->url_.empty()) {
-      auto f = plugin_filament_view::ModelLoader::loadGltfFromUrl(
+      auto f = plugin_filament_view::ModelManager::loadGltfFromUrl(
           model, gltf_model->url_);
       f.wait();
       return f.get();

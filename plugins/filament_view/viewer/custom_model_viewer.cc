@@ -202,7 +202,7 @@ std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
 
     setupView();
 
-    modelLoader_ = std::make_unique<ModelLoader>();
+    modelLoader_ = std::make_unique<ModelManager>();
 
     promise->set_value(true);
   });
@@ -315,7 +315,7 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
     static bool bonce = true;
     if (bonce) {
       bonce = false;
-      modelLoader_->updateScene();
+      modelLoader_->updateAsyncAssetLoading();
 
       // will set the first frame of a cameras features.
       doCameraFeatures(0);

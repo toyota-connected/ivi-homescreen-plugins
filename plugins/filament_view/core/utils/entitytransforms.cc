@@ -15,6 +15,7 @@
  */
 #include "entitytransforms.h"
 #include <filament/math/TMatHelpers.h>
+#include <filament/TransformManager.h>
 
 #include "viewer/custom_model_viewer.h"
 

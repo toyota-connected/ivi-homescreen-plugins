@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "model_loader.h"
+#include "model_manager.h"
 
 #include <algorithm>  // for max
 #include <sstream>
 
-#include <core/utils/entitytransforms.h>
-#include <filament/DebugRegistry.h>
-#include <filament/RenderableManager.h>
-#include <filament/TransformManager.h>
-#include <gltfio/ResourceLoader.h>
-#include <gltfio/TextureProvider.h>
-#include <math/mat4.h>
-#include <utils/Slice.h>
+#include "core/utils/entitytransforms.h"
+#include <filament/filament/DebugRegistry.h>
+#include <filament/filament/RenderableManager.h>
+#include <filament/filament/TransformManager.h>
+#include <filament/gltfio/ResourceLoader.h>
+#include <filament/gltfio/TextureProvider.h>
+#include <filament/math/mat4.h>
+#include <filament/utils/Slice.h>
 #include <asio/post.hpp>
 
-#include "gltfio/materials/uberarchive.h"
+#include "filament/gltfio/materials/uberarchive.h"
 
 #include "core/include/file_utils.h"
-#include "plugins/common/curl_client/curl_client.h"
+#include "../../../common/curl_client/curl_client.h"
 
 namespace plugin_filament_view {
 
@@ -40,7 +40,8 @@ using ::filament::gltfio::AssetLoader;
 using ::filament::gltfio::ResourceConfiguration;
 using ::filament::gltfio::ResourceLoader;
 
-ModelLoader::ModelLoader() {
+////////////////////////////////////////////////////////////////////////////////////
+ModelManager::ModelManager() {
   SPDLOG_TRACE("++ModelLoader::ModelLoader");
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
@@ -69,24 +70,29 @@ ModelLoader::ModelLoader() {
   SPDLOG_TRACE("--ModelLoader::ModelLoader");
 }
 
-ModelLoader::~ModelLoader() {
-  destroyAllModels();
+////////////////////////////////////////////////////////////////////////////////////
+ModelManager::~ModelManager() {
+  destroyAllAssetsOnModels();
   delete resourceLoader_;
   resourceLoader_ = nullptr;
 
   if (assetLoader_) {
     AssetLoader::destroy(&assetLoader_);
+    assetLoader_ = nullptr;
   }
 }
 
-void ModelLoader::destroyAllModels() {
-  for (auto* asset : assets_) {
-    destroyModel(asset);
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::destroyAllAssetsOnModels() {
+  for (auto model : m_mapszpoAssets) {
+    destroyAsset(model.second->getAsset());
+    delete model.second;
   }
-  assets_.clear();
+  m_mapszpoAssets.clear();
 }
 
-void ModelLoader::destroyModel(filament::gltfio::FilamentAsset* asset) {
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::destroyAsset(filament::gltfio::FilamentAsset* asset) {
   if (!asset) {
     return;
   }
@@ -97,13 +103,20 @@ void ModelLoader::destroyModel(filament::gltfio::FilamentAsset* asset) {
   assetLoader_->destroyAsset(asset);
 }
 
-filament::gltfio::FilamentAsset* ModelLoader::poFindAssetByName(
-    const std::string& /*szName*/) {
-  // To be implemented with m_mapszpoAssets
-  return assets_[0];
+////////////////////////////////////////////////////////////////////////////////////
+filament::gltfio::FilamentAsset* ModelManager::poFindAssetByGuid(
+    const std::string& szGUID) {
+
+  auto iter = m_mapszpoAssets.find(szGUID);
+  if(iter == m_mapszpoAssets.end()) {
+    return nullptr;
+  }
+
+  return iter->second->getAsset();
 }
 
-void ModelLoader::loadModelGlb(Model* poOurModel,
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::loadModelGlb(Model* poOurModel,
                                const std::vector<uint8_t>& buffer,
                                const std::string& /*assetName*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
@@ -115,16 +128,12 @@ void ModelLoader::loadModelGlb(Model* poOurModel,
     return;
   }
 
-  assets_.push_back(asset);
   resourceLoader_->asyncBeginLoad(asset);
 
   // This will move to be on the model itself.
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
 
-  // TODO Append names or types / change list, something
-  // for loading the same model IN.
-  // m_mapszpoAssets
-
+  // NOTE if this is a prefab/instance you will NOT Want to do this.
   asset->releaseSourceData();
 
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
@@ -145,9 +154,11 @@ void ModelLoader::loadModelGlb(Model* poOurModel,
   }
 
   poOurModel->setAsset(asset);
+  m_mapszpoAssets.insert(std::pair(poOurModel->GetGlobalGuid(), poOurModel));
 }
 
-void ModelLoader::loadModelGltf(
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::loadModelGltf(
     Model* poOurModel,
     const std::vector<uint8_t>& buffer,
     std::function<const ::filament::backend::BufferDescriptor&(
@@ -161,7 +172,7 @@ void ModelLoader::loadModelGltf(
     return;
   }
 
-  assets_.push_back(asset);
+  //assets_.push_back(asset);
 
   auto uri_data = asset->getResourceUris();
   auto uris = std::vector(uri_data, uri_data + asset->getResourceUriCount());
@@ -198,13 +209,16 @@ void ModelLoader::loadModelGltf(
   }
 
   poOurModel->setAsset(asset);
+  m_mapszpoAssets.insert(std::pair(poOurModel->GetGlobalGuid(), poOurModel));
 }
 
-void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::populateSceneWithAsyncLoadedAssets(Model* model) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto& rcm = modelViewer->getFilamentEngine()->getRenderableManager();
 
+  auto* asset = model->getAsset();
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
     asset->popRenderables(readyRenderables_, count);
@@ -212,18 +226,20 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
     utils::Slice<Entity> const listOfRenderables{
         asset->getRenderableEntities(), asset->getRenderableEntityCount()};
 
-    // TODO this needs to be able to callback into the model list; find the
-    // asset containing the entity, and then check and see if we want shadows.
     for (auto entity : listOfRenderables) {
       auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(ri, true);
-      rcm.setReceiveShadows(ri, true);
+      rcm.setCastShadows(ri, model->GetCommonRenderable()->IsCastShadowsEnabled());
+      rcm.setReceiveShadows(ri, model->GetCommonRenderable()->IsReceiveShadowsEnabled());
       // Investigate this more before making it a property on common renderable
       // component.
       rcm.setScreenSpaceContactShadows(ri, false);
     }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
+
+    // if the count is 0, and its 'done' loading, we need to create our large AABB collision
+    // object if this model it's referencing required one.
+    // asset->
   }
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
@@ -232,47 +248,17 @@ void ModelLoader::populateScene(::filament::gltfio::FilamentAsset* asset) {
   }
 }
 
-void ModelLoader::updateScene() {
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::updateAsyncAssetLoading() {
   resourceLoader_->asyncUpdateLoad();
 
-  for (auto* asset : assets_) {
-    populateScene(asset);
+  for (auto asset : m_mapszpoAssets) {
+    populateSceneWithAsyncLoadedAssets(asset.second);
   }
 }
 
-void ModelLoader::removeAsset(filament::gltfio::FilamentAsset* asset) {
-  if (!asset) {
-    return;
-  }
-
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                  asset->getEntityCount());
-}
-
-std::optional<::filament::math::mat4f> ModelLoader::getModelTransform(
-    filament::gltfio::FilamentAsset* asset) {
-  if (asset) {
-    auto root = asset->getRoot();
-    auto& tm = asset->getEngine()->getTransformManager();
-    auto instance = tm.getInstance(root);
-    return tm.getTransform(instance);
-  }
-  return std::nullopt;
-}
-
-void ModelLoader::clearRootTransform(filament::gltfio::FilamentAsset* asset) {
-  if (!asset) {
-    return;
-  }
-
-  auto root = asset->getRoot();
-  auto& tm = asset->getEngine()->getTransformManager();
-  auto instance = tm.getInstance(root);
-  tm.setTransform(instance, ::filament::mat4f{});
-}
-
-std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
+////////////////////////////////////////////////////////////////////////////////////
+std::future<Resource<std::string_view>> ModelManager::loadGlbFromAsset(
     Model* poOurModel,
     const std::string& path,
     bool isFallback) {
@@ -304,7 +290,8 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromAsset(
   return promise_future;
 }
 
-std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
+////////////////////////////////////////////////////////////////////////////////////
+std::future<Resource<std::string_view>> ModelManager::loadGlbFromUrl(
     Model* poOurModel,
     std::string url,
     bool isFallback) {
@@ -327,7 +314,8 @@ std::future<Resource<std::string_view>> ModelLoader::loadGlbFromUrl(
   return promise_future;
 }
 
-void ModelLoader::handleFile(Model* poOurModel,
+////////////////////////////////////////////////////////////////////////////////////
+void ModelManager::handleFile(Model* poOurModel,
                              const std::vector<uint8_t>& buffer,
                              const std::string& fileSource,
                              bool isFallback,
@@ -346,7 +334,8 @@ void ModelLoader::handleFile(Model* poOurModel,
   }
 }
 
-std::future<Resource<std::string_view>> ModelLoader::loadGltfFromAsset(
+////////////////////////////////////////////////////////////////////////////////////
+std::future<Resource<std::string_view>> ModelManager::loadGltfFromAsset(
     Model* /*poOurModel*/,
     const std::string& /* path */,
     const std::string& /* pre_path */,
@@ -359,7 +348,8 @@ std::future<Resource<std::string_view>> ModelLoader::loadGltfFromAsset(
   return future;
 }
 
-std::future<Resource<std::string_view>> ModelLoader::loadGltfFromUrl(
+////////////////////////////////////////////////////////////////////////////////////
+std::future<Resource<std::string_view>> ModelManager::loadGltfFromUrl(
     Model* /*poOurModel*/,
     const std::string& /* url */,
     bool /* isFallback */) {

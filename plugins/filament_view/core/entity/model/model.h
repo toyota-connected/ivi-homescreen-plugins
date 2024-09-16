@@ -91,8 +91,7 @@ class GlbModel final : public Model {
 
   ~GlbModel() override = default;
 
-  friend class ModelLoader;
-
+  friend class ModelManager;
   friend class SceneController;
 };
 
@@ -109,8 +108,7 @@ class GltfModel final : public Model {
 
   ~GltfModel() override = default;
 
-  friend class ModelLoader;
-
+  friend class ModelManager;
   friend class SceneController;
 
  private:

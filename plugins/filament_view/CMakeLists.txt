@@ -82,7 +82,7 @@ add_library(plugin_filament_view STATIC
         core/components/collidable.cc
         core/entity/model/animation/animation.cc
         core/entity/model/animation/animation_manager.cc
-        core/entity/model/loader/model_loader.cc
+        core/systems/model_manager.cc
         core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
