@@ -102,9 +102,6 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   newShape->m_bIsWireframe = true;
 
-  /*newShape->DebugPrint("NewShape");
-  originalObject->DebugPrint("OriginalShape");*/
-
   auto cmv = CustomModelViewer::Instance(__FUNCTION__);
 
   filament::Engine* poFilamentEngine = cmv->getFilamentEngine();

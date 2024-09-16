@@ -16,6 +16,8 @@
 
 #include "custom_model_viewer.h"
 
+#include <core/systems/collision_manager.h>
+#include <core/systems/debug_lines_manager.h>
 #include <wayland-client.h>
 #include <asio/post.hpp>
 #include <utility>
@@ -29,6 +31,8 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
+
+#include "core/include/literals.h"
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -334,15 +338,6 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
     // - postRenderFrame - Called after we've drawn natively, right after
     // drawing a frame.
 
-    static constexpr char kUpdateFrame[] = "updateFrame";
-    static constexpr char kPreRenderFrame[] = "preRenderFrame";
-    static constexpr char kRenderFrame[] = "renderFrame";
-    static constexpr char kPostRenderFrame[] = "postRenderFrame";
-    static constexpr char kParam_TimeSinceLastRenderedSec[] =
-        "timeSinceLastRenderedSec";
-    static constexpr char kParam_FPS[] = "fps";
-    static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
-
     SendFrameViewCallback(
         kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
                                       flutter::EncodableValue(G_LastTime))});
@@ -356,11 +351,13 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
       // Future tasking for making a more featured timing / frame info class.
       uint32_t deltaTimeMS = time - G_LastTime;
       float timeSinceLastRenderedSec =
-          static_cast<float>(deltaTimeMS) / 100.0f;  // convert to seconds
+          static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
       if (timeSinceLastRenderedSec == 0.0f) {
         timeSinceLastRenderedSec += 1.0f;
       }
       float fps = 1.0f / timeSinceLastRenderedSec;  // calculate FPS
+
+      DebugLinesManager::Instance()->vUpdate(timeSinceLastRenderedSec);
 
       SendFrameViewCallback(
           kPreRenderFrame,

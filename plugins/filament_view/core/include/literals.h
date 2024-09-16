@@ -68,4 +68,15 @@ static constexpr char kCollidableMask[] = "collidable_mask";
 static constexpr char kCollidableShouldMatchAttachedObject[] =
     "collidable_shouldMatchAttachedObject";
 
+// Custom model viewer for sending frames to dart.
+static constexpr char kUpdateFrame[] = "updateFrame";
+static constexpr char kPreRenderFrame[] = "preRenderFrame";
+static constexpr char kRenderFrame[] = "renderFrame";
+static constexpr char kPostRenderFrame[] = "postRenderFrame";
+static constexpr char kParam_TimeSinceLastRenderedSec[] =
+    "timeSinceLastRenderedSec";
+static constexpr char kParam_FPS[] = "fps";
+static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
+
+
 }  // namespace plugin_filament_view

@@ -93,6 +93,7 @@ add_library(plugin_filament_view STATIC
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
         core/systems/collision_manager.cc
+        core/systems/debug_lines_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
         core/utils/entitytransforms.cc
