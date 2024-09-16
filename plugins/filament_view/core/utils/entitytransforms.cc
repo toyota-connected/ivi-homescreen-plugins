@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 #include "entitytransforms.h"
-#include <filament/math/TMatHelpers.h>
 #include <filament/TransformManager.h>
+#include <filament/math/TMatHelpers.h>
 
 #include "viewer/custom_model_viewer.h"
 

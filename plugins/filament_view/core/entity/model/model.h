@@ -36,7 +36,8 @@ class Model : public EntityObject {
         Model* fallback,
         Animation* animation,
         BaseTransform* poTransform,
-        CommonRenderable* poCommonRenderable);
+        CommonRenderable* poCommonRenderable,
+        const flutter::EncodableMap& params);
 
   virtual ~Model() = default;
 
@@ -87,7 +88,8 @@ class GlbModel final : public Model {
            Model* fallback,
            Animation* animation,
            BaseTransform* poTransform,
-           CommonRenderable* poCommonRenderable);
+           CommonRenderable* poCommonRenderable,
+           const flutter::EncodableMap& params);
 
   ~GlbModel() override = default;
 
@@ -104,7 +106,8 @@ class GltfModel final : public Model {
             Model* fallback,
             Animation* animation,
             BaseTransform* poTransform,
-            CommonRenderable* poCommonRenderable);
+            CommonRenderable* poCommonRenderable,
+            const flutter::EncodableMap& params);
 
   ~GltfModel() override = default;
 

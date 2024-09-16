@@ -56,8 +56,8 @@ namespace plugin_filament_view {
       w = std::get<double>(it.second);
     }
   }
-  return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z),
-          static_cast<float>(w)};
+  return {static_cast<float>(w), static_cast<float>(x), static_cast<float>(y),
+          static_cast<float>(z)};
 }
 
 void Deserialize::DecodeParameterWithDefault(

@@ -78,29 +78,29 @@ class ModelManager {
   friend class CustomModelViewer;
 
  private:
-    // sunlight_ needs to be moved, no reason to be on this class
+  // sunlight_ needs to be moved, no reason to be on this class
   utils::Entity sunlight_;
   ::filament::gltfio::AssetLoader* assetLoader_;
   ::filament::gltfio::MaterialProvider* materialProvider_;
   ::filament::gltfio::ResourceLoader* resourceLoader_;
 
-    // This is the EntityObject guids to model instantiated.
-    std::map<std::string, Model*> m_mapszpoAssets;
+  // This is the EntityObject guids to model instantiated.
+  std::map<EntityGUID, Model*> m_mapszpoAssets;
 
-    // This will be needed for a list of prefab instances to load from
-    //std::map<Model*> <name>models_;
+  // This will be needed for a list of prefab instances to load from
+  // std::map<Model*> <name>models_;
 
-    // TODO we shouldnt have indirect lgiht on model loader.
+  // TODO we shouldnt have indirect lgiht on model loader.
   ::filament::IndirectLight* indirectLight_ = nullptr;
 
-    // This is a reusable list of renderables for popping off
-    // async load.
+  // This is a reusable list of renderables for popping off
+  // async load.
   utils::Entity readyRenderables_[128];
 
   // Todo, this needs to be moved; if its not initialized, undefined <results>
   ::filament::viewer::Settings settings_;
 
-    // not actively used, to be moved
+  // not actively used, to be moved
   std::vector<float> morphWeights_;
 
   void populateSceneWithAsyncLoadedAssets(Model* model);

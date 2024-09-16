@@ -44,7 +44,7 @@ void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y,
                 m_f3Scale.z);
   spdlog::debug(tabPrefix + "Rotation: x={}, y={}, z={} w={}", m_quatRotation.x,
-                m_quatRotation.y, m_quatRotation.z);
+                m_quatRotation.y, m_quatRotation.z, m_quatRotation.w);
   spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
                 m_f3ExtentsSize.y, m_f3ExtentsSize.z);
 }

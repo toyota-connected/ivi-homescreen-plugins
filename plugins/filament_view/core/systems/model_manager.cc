@@ -18,7 +18,7 @@
 #include <algorithm>  // for max
 #include <sstream>
 
-#include "core/utils/entitytransforms.h"
+#include <core/components/collidable.h>
 #include <filament/filament/DebugRegistry.h>
 #include <filament/filament/RenderableManager.h>
 #include <filament/filament/TransformManager.h>
@@ -27,11 +27,13 @@
 #include <filament/math/mat4.h>
 #include <filament/utils/Slice.h>
 #include <asio/post.hpp>
+#include "core/utils/entitytransforms.h"
 
+#include "collision_manager.h"
 #include "filament/gltfio/materials/uberarchive.h"
 
-#include "core/include/file_utils.h"
 #include "../../../common/curl_client/curl_client.h"
+#include "core/include/file_utils.h"
 
 namespace plugin_filament_view {
 
@@ -106,9 +108,8 @@ void ModelManager::destroyAsset(filament::gltfio::FilamentAsset* asset) {
 ////////////////////////////////////////////////////////////////////////////////////
 filament::gltfio::FilamentAsset* ModelManager::poFindAssetByGuid(
     const std::string& szGUID) {
-
   auto iter = m_mapszpoAssets.find(szGUID);
-  if(iter == m_mapszpoAssets.end()) {
+  if (iter == m_mapszpoAssets.end()) {
     return nullptr;
   }
 
@@ -117,8 +118,8 @@ filament::gltfio::FilamentAsset* ModelManager::poFindAssetByGuid(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelManager::loadModelGlb(Model* poOurModel,
-                               const std::vector<uint8_t>& buffer,
-                               const std::string& /*assetName*/) {
+                                const std::vector<uint8_t>& buffer,
+                                const std::string& /*assetName*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
@@ -171,8 +172,6 @@ void ModelManager::loadModelGltf(
     spdlog::error("Failed to loadModelGltf->createasset from buffered data.");
     return;
   }
-
-  //assets_.push_back(asset);
 
   auto uri_data = asset->getResourceUris();
   auto uris = std::vector(uri_data, uri_data + asset->getResourceUriCount());
@@ -228,19 +227,18 @@ void ModelManager::populateSceneWithAsyncLoadedAssets(Model* model) {
 
     for (auto entity : listOfRenderables) {
       auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(ri, model->GetCommonRenderable()->IsCastShadowsEnabled());
-      rcm.setReceiveShadows(ri, model->GetCommonRenderable()->IsReceiveShadowsEnabled());
+      rcm.setCastShadows(ri,
+                         model->GetCommonRenderable()->IsCastShadowsEnabled());
+      rcm.setReceiveShadows(
+          ri, model->GetCommonRenderable()->IsReceiveShadowsEnabled());
       // Investigate this more before making it a property on common renderable
       // component.
       rcm.setScreenSpaceContactShadows(ri, false);
     }
     modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
-
-    // if the count is 0, and its 'done' loading, we need to create our large AABB collision
-    // object if this model it's referencing required one.
-    // asset->
   }
+
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
     modelViewer->getFilamentScene()->addEntities(asset->getLightEntities(),
@@ -252,10 +250,32 @@ void ModelManager::populateSceneWithAsyncLoadedAssets(Model* model) {
 void ModelManager::updateAsyncAssetLoading() {
   resourceLoader_->asyncUpdateLoad();
 
+  // This does not specify per resource, but a global, best we can do with this
+  // information is if we're done loading <everything> that was marked as async
+  // load, then load that physics data onto a collidable if required. This gives
+  // us visuals without collidbales in a scene with <tons> of objects; but would
+  // eventually settle
+  float percentComplete = resourceLoader_->asyncGetLoadProgress();
+
   for (auto asset : m_mapszpoAssets) {
     populateSceneWithAsyncLoadedAssets(asset.second);
-  }
-}
+
+    if (percentComplete != 1.0f) {
+      continue;
+    }
+
+    // if its 'done' loading, we need to create our large AABB collision
+    // object if this model it's referencing required one.
+    //
+    // Also need to make sure it hasn't already created one for this model.
+    if (asset.second->HasComponentByStaticTypeID(
+            Collidable::StaticGetTypeID()) &&
+        !CollisionManager::Instance()->bHasEntityObjectRepresentation(
+            asset.first)) {
+      CollisionManager::Instance()->vAddCollidable(asset.second);
+    }  // end make collision
+  }  // end foreach
+}  // end method
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>> ModelManager::loadGlbFromAsset(
@@ -316,10 +336,10 @@ std::future<Resource<std::string_view>> ModelManager::loadGlbFromUrl(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelManager::handleFile(Model* poOurModel,
-                             const std::vector<uint8_t>& buffer,
-                             const std::string& fileSource,
-                             bool isFallback,
-                             const PromisePtr& promise) {
+                              const std::vector<uint8_t>& buffer,
+                              const std::string& fileSource,
+                              bool isFallback,
+                              const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(poOurModel, buffer, fileSource);

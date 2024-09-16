@@ -35,13 +35,13 @@
 #include <wayland-client.h>
 #include <asio/io_context_strand.hpp>
 
-#include "core/systems/model_manager.h"
 #include "core/entity/model/model.h"
 #include "core/entity/model/state/model_state.h"
 #include "core/entity/model/state/scene_state.h"
 #include "core/entity/model/state/shape_state.h"
 #include "core/scene/camera/camera_manager.h"
 #include "core/scene/scene.h"
+#include "core/systems/model_manager.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
 #include "settings.h"

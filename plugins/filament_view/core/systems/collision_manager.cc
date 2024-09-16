@@ -35,6 +35,11 @@ CollisionManager* CollisionManager::Instance() {
   return m_poInstance;
 }
 
+bool CollisionManager::bHasEntityObjectRepresentation(EntityGUID guid) const {
+  return collidablesDebugDrawingRepresentation_.find(guid) !=
+         collidablesDebugDrawingRepresentation_.end();
+}
+
 void CollisionManager::vAddCollidable(EntityObject* collidable) {
   if (!collidable->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
     spdlog::error(
@@ -52,19 +57,28 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
 
     newShape = new shapes::Cube();
-    newShape->m_bDoubleSided= false;
+    newShape->m_bDoubleSided = false;
     newShape->type_ = ShapeType::Cube;
 
-    ourModelObject->vShallowCopyComponentToOther(BaseTransform::StaticGetTypeID(), *newShape);
-    ourModelObject->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
-                                       *newShape);
+    ourModelObject->vShallowCopyComponentToOther(
+        BaseTransform::StaticGetTypeID(), *newShape);
+    ourModelObject->vShallowCopyComponentToOther(
+        CommonRenderable::StaticGetTypeID(), *newShape);
 
-    auto ourTransform = dynamic_cast<BaseTransform*>(newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
+    auto ourTransform = dynamic_cast<BaseTransform*>(
+        newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
+
+    // Note if you exported your model not centered around 0,0,0; you're gonna
+    // have a bad time.
+    // TODO: Documentation note to say that needs to be done.
     ourTransform->SetCenterPosition(ourAABB.center());
     ourTransform->SetExtentsSize(ourAABB.extent());
+    ourTransform->SetScale(ourAABB.extent());
 
     newShape->m_poBaseTransform = ourTransform;
-    newShape->m_poCommonRenderable = dynamic_cast<CommonRenderable*>(newShape->GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID()));
+    newShape->m_poCommonRenderable =
+        dynamic_cast<CommonRenderable*>(newShape->GetComponentByStaticTypeID(
+            CommonRenderable::StaticGetTypeID()));
 
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);

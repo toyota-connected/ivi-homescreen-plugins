@@ -45,6 +45,9 @@ class CollisionManager {
   void vAddCollidable(EntityObject* collidable);
   void vRemoveCollidable(EntityObject* collidable);
 
+  // Checks to see if we already has this guid in our mapping.
+  bool bHasEntityObjectRepresentation(EntityGUID guid) const;
+
   static CollisionManager* Instance();
 
  private:
@@ -56,7 +59,7 @@ class CollisionManager {
   void vMatchCollidablesToDebugDrawingTransforms();
 
   std::list<EntityObject*> collidables_;
-  std::map<std::string, shapes::BaseShape*>
+  std::map<EntityGUID, shapes::BaseShape*>
       collidablesDebugDrawingRepresentation_;
 };
 

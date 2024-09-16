@@ -22,8 +22,11 @@
 
 namespace plugin_filament_view {
 
+using EntityGUID = std::string;
+
 class EntityObject {
   friend class CollisionManager;
+
  public:
   // Overloading the == operator to compare based on global_guid_
   bool operator==(const EntityObject& other) const {
@@ -92,7 +95,7 @@ class EntityObject {
                                     EntityObject& other) const;
 
  private:
-  std::string global_guid_;
+  EntityGUID global_guid_;
   std::string name_;
 
   // Vector for now, we shouldn't be adding and removing

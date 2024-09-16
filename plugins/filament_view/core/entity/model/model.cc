@@ -16,6 +16,8 @@
 
 #include "core/entity/model/model.h"
 
+#include <core/components/collidable.h>
+
 #include "core/include/literals.h"
 #include "core/scene/scene.h"
 #include "core/utils/deserialize.h"
@@ -28,7 +30,8 @@ Model::Model(std::string assetPath,
              Model* fallback,
              Animation* animation,
              BaseTransform* poTransform,
-             CommonRenderable* poCommonRenderable)
+             CommonRenderable* poCommonRenderable,
+             const flutter::EncodableMap& params)
     : EntityObject(assetPath),
       assetPath_(std::move(assetPath)),
       url_(std::move(url)),
@@ -40,6 +43,15 @@ Model::Model(std::string assetPath,
 
   vAddComponent(m_poBaseTransform);
   vAddComponent(m_poCommonRenderable);
+
+  // if we have collidable data request, we need to build that component, as its
+  // optional
+  auto it = params.find(flutter::EncodableValue(kCollidable));
+  if (it != params.end() && !it->second.IsNull()) {
+    // They're requesting a collidable on this object. Make one.
+    auto collidableComp = new Collidable(params);
+    vAddComponent(collidableComp);
+  }
 }
 
 GlbModel::GlbModel(std::string assetPath,
@@ -47,13 +59,15 @@ GlbModel::GlbModel(std::string assetPath,
                    Model* fallback,
                    Animation* animation,
                    BaseTransform* poTransform,
-                   CommonRenderable* poCommonRenderable)
+                   CommonRenderable* poCommonRenderable,
+                   const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
             poTransform,
-            poCommonRenderable) {}
+            poCommonRenderable,
+            params) {}
 
 GltfModel::GltfModel(std::string assetPath,
                      std::string url,
@@ -62,13 +76,15 @@ GltfModel::GltfModel(std::string assetPath,
                      Model* fallback,
                      Animation* animation,
                      BaseTransform* poTransform,
-                     CommonRenderable* poCommonRenderable)
+                     CommonRenderable* poCommonRenderable,
+                     const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
             poTransform,
-            poCommonRenderable),
+            poCommonRenderable,
+            params),
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
@@ -124,7 +140,7 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", nullptr,
         animation ? animation.release() : nullptr, oTransform,
-        oCommonRenderable);
+        oCommonRenderable, params);
   }
 
   return std::make_unique<plugin_filament_view::GltfModel>(
@@ -132,7 +148,8 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
       url.has_value() ? std::move(url.value()) : "",
       pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
       pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
-      animation ? animation.release() : nullptr, oTransform, oCommonRenderable);
+      animation ? animation.release() : nullptr, oTransform, oCommonRenderable,
+      params);
 }
 
 void Model::DebugPrint() const {
