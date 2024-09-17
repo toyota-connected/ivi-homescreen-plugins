@@ -23,6 +23,13 @@
 
 namespace plugin_filament_view {
 
+class HitResult {
+ public:
+ EntityGUID guid_;
+ std::string name_;
+ ::filament::math::float3 hitPosition_;
+};
+
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
@@ -44,6 +51,9 @@ class CollisionManager {
 
   void vAddCollidable(EntityObject* collidable);
   void vRemoveCollidable(EntityObject* collidable);
+
+  // send in your ray, get a list of hit results back, collisionLayer not actively used - future work.
+  std::list<HitResult> lstCheckForCollidable(Ray& rayCast, int64_t collisionLayer = 0) const;
 
   // Checks to see if we already has this guid in our mapping.
   bool bHasEntityObjectRepresentation(EntityGUID guid) const;

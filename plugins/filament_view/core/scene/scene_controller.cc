@@ -397,6 +397,9 @@ void SceneController::onTouch(int32_t action,
           cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
       DebugLinesManager::Instance()->vAddLine(rayInfo.f3GetPosition(),
                                               rayInfo.f3GetDirection()* rayInfo.dGetLength(), 10);
+
+      CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
+
     } break;
   }
 

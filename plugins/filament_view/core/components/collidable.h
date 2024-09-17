@@ -69,7 +69,7 @@ class Collidable : public Component {
   void DebugPrint(const std::string& tabPrefix) const override;
 
   bool bDoesOverlap(const Collidable& other) const;
-  bool bDoesIntersect(const Ray& ray) const;
+  bool bDoesIntersect(const Ray& ray, ::filament::math::float3 &hitPosition) const;
 
   static size_t StaticGetTypeID() { return typeid(Collidable).hash_code(); }
 

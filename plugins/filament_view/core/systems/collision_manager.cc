@@ -48,6 +48,17 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     return;
   }
 
+  auto originalCollidable = dynamic_cast<Collidable*>(collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
+  if(originalCollidable != nullptr && originalCollidable->GetShouldMatchAttachedObject()) {
+    auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
+    SPDLOG_WARN("ORIGINAL SHAPE");
+    if(originalShape != nullptr) {
+      originalCollidable->SetShapeType(originalShape->type_);
+      originalCollidable->SetExtentsSize(originalShape->m_poBaseTransform->GetExtentsSize());
+      originalCollidable->DebugPrint("Collidable push back");
+    }
+  }
+
   collidables_.push_back(collidable);
 
   // make the BaseShape Object
@@ -94,6 +105,7 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
     newShape = new shapes::Plane();
     originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    newShape->DebugPrint("new Plane\t");
   }
 
   if (newShape == nullptr) {
@@ -146,6 +158,58 @@ void CollisionManager::vTurnOffRenderingOfCollidables() {
 
 void CollisionManager::DebugPrint() {
   spdlog::debug("CollisionManager Debug Info:");
+}
+
+inline float fLength2(const filament::math::float3& v) {
+  return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+std::list<HitResult> CollisionManager::lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
+  std::list<HitResult> hitResults;
+
+  // Iterate over all entities.
+  for (const auto& entity : collidables_) {
+    // Make sure collidable is still here....
+    auto collidable = dynamic_cast<Collidable*>(entity->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
+    if (!collidable) {
+      continue; // No collidable component, skip this entity
+    }
+
+    // Check if the collision layer matches (if a specific layer was provided)
+    // if (collisionLayer != 0 && (collidable->GetCollisionLayer() & collisionLayer) == 0) {
+    //    continue; // Skip if layers don't match
+    // }
+
+    // Variable to hold the hit position
+    filament::math::float3 hitLocation;
+
+    // Perform intersection test with the ray
+    if (collidable->bDoesIntersect(rayCast, hitLocation)) {
+      // If there is an intersection, create a HitResult
+      HitResult hitResult;
+      hitResult.guid_ = entity->GetGlobalGuid();
+      hitResult.name_ = entity->GetName();
+      hitResult.hitPosition_ = hitLocation;  // Set the hit location
+
+      SPDLOG_WARN("HIT RESULT: {}", hitResult.guid_);
+
+      // Add to the hit results
+      hitResults.push_back(hitResult);
+    }
+  }
+
+  // Sort hit results by distance from the ray's origin
+  hitResults.sort([&rayCast](const HitResult& a, const HitResult& b) {
+      // Calculate the squared distance to avoid the cost of sqrt
+      auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
+      auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
+
+      // Sort in ascending order (closest hit first)
+      return distanceA < distanceB;
+  });
+
+  // Return the sorted list of hit results
+  return hitResults;
 }
 
 }  // namespace plugin_filament_view
