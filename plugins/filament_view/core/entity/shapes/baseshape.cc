@@ -67,6 +67,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
 
+  DeserializeNameAndGlobalGuid(params);
+
   m_poBaseTransform = new BaseTransform(params);
   m_poCommonRenderable = new CommonRenderable(params);
 

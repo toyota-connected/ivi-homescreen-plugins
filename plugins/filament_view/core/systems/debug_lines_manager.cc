@@ -38,8 +38,8 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
     : m_fRemainingTime(fTimeToLive),
       m_poEntity(entity)  // Create entity
 {
-  vertices_.emplace_back(startingPoint );
-  vertices_.emplace_back(endingPoint );  //,
+  vertices_.emplace_back(startingPoint);
+  vertices_.emplace_back(endingPoint);  //,
   indices_.emplace_back(0);
   indices_.emplace_back(1);
 
@@ -132,11 +132,15 @@ void DebugLinesManager::vUpdate(float fElapsedTime) {
   }
 }
 
-// TODO once 'System' methods are implemented this will need a shutdown method to remove lines
+// TODO once 'System' methods are implemented this will need a shutdown method
+// to remove lines
 
 void DebugLinesManager::vAddLine(::filament::math::float3 startPoint,
                                  ::filament::math::float3 endPoint,
                                  float secondsTimeout) {
+  if (m_bCurrentlyDrawingDebugLines == false)
+    return;
+
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto* engine = modelViewer->getFilamentEngine();
 

@@ -41,6 +41,8 @@ Model::Model(std::string assetPath,
   m_poBaseTransform = poTransform;
   m_poCommonRenderable = poCommonRenderable;
 
+  DeserializeNameAndGlobalGuid(params);
+
   vAddComponent(m_poBaseTransform);
   vAddComponent(m_poCommonRenderable);
 

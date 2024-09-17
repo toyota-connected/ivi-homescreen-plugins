@@ -18,9 +18,9 @@
 
 #include "asio/post.hpp"
 
-#include <filament/math/vec4.h>
-#include <filament/math/mat4.h>
 #include <filament/math/TMatHelpers.h>
+#include <filament/math/mat4.h>
+#include <filament/math/vec4.h>
 
 #include "plugins/common/common.h"
 #include "touch_pair.h"
@@ -417,12 +417,14 @@ bool CameraManager::isZoomGesture() {
   return std::abs(newest - oldest) > kZoomConfidenceDistance;
 }
 
-std::pair<filament::math::float3, filament::math::float3> CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+std::pair<filament::math::float3, filament::math::float3>
+CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+  auto viewport = CustomModelViewer::Instance(__FUNCTION__)
+                      ->getFilamentView()
+                      ->getViewport();
 
-  auto viewport = CustomModelViewer::Instance(__FUNCTION__)->getFilamentView()->getViewport();
-
-  // Note at time of writing on a 800*600 resolution this seems like the 10% edges aren't super accurate
-  // this might need to be looked at more.
+  // Note at time of writing on a 800*600 resolution this seems like the 10%
+  // edges aren't super accurate this might need to be looked at more.
 
   float ndcX = (2.0f * (float)touch.x()) / (float)viewport.width - 1.0f;
   float ndcY = 1.0f - (2.0f * (float)touch.y()) / (float)viewport.height;
@@ -517,7 +519,6 @@ void CameraManager::onAction(int32_t action,
       break;
   }
 }
-
 
 std::string CameraManager::updateLensProjection(
     LensProjection* lensProjection) {

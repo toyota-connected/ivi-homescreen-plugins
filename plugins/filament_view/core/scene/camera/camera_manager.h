@@ -97,7 +97,8 @@ class CameraManager {
 
   CameraManager& operator=(const CameraManager&) = delete;
 
-  std::pair<filament::math::float3, filament::math::float3> aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
+  std::pair<filament::math::float3, filament::math::float3>
+  aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm

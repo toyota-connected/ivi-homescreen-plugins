@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <encodable_value.h>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,10 @@ class EntityObject {
 
  protected:
   EntityObject(std::string name);
+  // Note, global_guid, needs to be unique here; this is mainly here for
+  // creating objects that are GUID created in non-native code.
+  EntityObject(std::string name, std::string global_guid);
+
   virtual ~EntityObject() {
     for (auto it : components_) {
       delete it;
@@ -94,9 +99,20 @@ class EntityObject {
   void vShallowCopyComponentToOther(size_t staticTypeID,
                                     EntityObject& other) const;
 
+  void DeserializeNameAndGlobalGuid(const flutter::EncodableMap& params);
+
  private:
   EntityGUID global_guid_;
   std::string name_;
+
+  // Look, if you're calling this, its expected your name clashing checking
+  // yourself. This isn't done for you. Please dont have 100 'my_sphere'.
+  // You're gonna have a bad time.
+  // This is currently called on objection deserialization from non-native
+  // code where they are in control of the naming of objects for easier
+  // use.
+  void vOverrideName(std::string name);
+  void vOverrideGlobalGuid(std::string global_guid);
 
   // Vector for now, we shouldn't be adding and removing
   // components frequently during runtime.

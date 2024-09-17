@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "entityobject.h"
+#include "core/include/literals.h"
 #include "core/utils/uuidGenerator.h"
 #include "plugins/common/common.h"
 
@@ -21,6 +22,43 @@ namespace plugin_filament_view {
 
 EntityObject::EntityObject(std::string name)
     : global_guid_(generateUUID()), name_(name) {}
+
+EntityObject::EntityObject(std::string name, std::string global_guid)
+    : global_guid_(global_guid), name_(name) {}
+
+void EntityObject::vOverrideName(std::string name) {
+  name_ = name;
+}
+void EntityObject::vOverrideGlobalGuid(std::string global_guid) {
+  global_guid_ = global_guid;
+}
+
+void EntityObject::DeserializeNameAndGlobalGuid(
+    const flutter::EncodableMap& params) {
+  std::string requestedName, requestedGlobalGUID;
+
+  auto itName = params.find(flutter::EncodableValue(kName));
+  if (itName != params.end() && !itName->second.IsNull()) {
+    // they're requesting entity be named what they want.
+    requestedName = std::get<std::string>(itName->second);
+
+    if (requestedName.length() > 0) {
+      vOverrideName(requestedName);
+      SPDLOG_INFO("OVERRIDING NAME: {}", requestedName);
+    }
+  }
+
+  auto itGUID = params.find(flutter::EncodableValue(kGlobalGuid));
+  if (itGUID != params.end() && !itGUID->second.IsNull()) {
+    // they're requesting entity have a guid they desire.
+    // Note! There's no clash checking here.
+    requestedGlobalGUID = std::get<std::string>(itGUID->second);
+    if (requestedGlobalGUID.length() > 0) {
+      vOverrideGlobalGuid(requestedGlobalGUID);
+      SPDLOG_INFO("OVERRIDING GLOBAL GUID: {}", requestedGlobalGUID);
+    }
+  }
+}
 
 void EntityObject::vDebugPrintComponents() const {
   spdlog::debug("EntityObject Name \'{}\' UUID {} ComponentCount {}", name_,

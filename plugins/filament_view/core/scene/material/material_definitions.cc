@@ -188,7 +188,8 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
                                              MagFilter::LINEAR);
 
           if (textureSampler != nullptr) {
-            SPDLOG_INFO("Overloading filtering options with set param values");
+            // SPDLOG_INFO("Overloading filtering options with set param
+            // values");
             sampler.setMinFilter(textureSampler->getMinFilter());
             sampler.setMagFilter(textureSampler->getMagFilter());
             sampler.setAnisotropy(

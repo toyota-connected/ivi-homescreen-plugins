@@ -43,6 +43,10 @@ static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
 
 // Deserialization
 static constexpr char kId[] = "id";
+// for callback / name & object lookups
+static constexpr char kName[] = "name";
+// for callback / name & object lookups
+static constexpr char kGlobalGuid[] = "global_guid";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";
 static constexpr char kCenterPosition[] = "centerPosition";
@@ -77,6 +81,5 @@ static constexpr char kParam_TimeSinceLastRenderedSec[] =
     "timeSinceLastRenderedSec";
 static constexpr char kParam_FPS[] = "fps";
 static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
-
 
 }  // namespace plugin_filament_view
