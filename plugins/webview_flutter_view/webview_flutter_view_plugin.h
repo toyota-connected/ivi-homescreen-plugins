@@ -22,6 +22,10 @@
 
 #include "messages.g.h"
 
+#include <cef_app.h>
+#include <cef_client.h>
+#include <cef_render_handler.h>
+
 #include "flutter_desktop_engine_state.h"
 #include "flutter_homescreen.h"
 #include "platform_views/platform_view.h"
@@ -29,6 +33,93 @@
 #include "wayland/display.h"
 
 namespace plugin_webview_flutter {
+
+class RenderHandler : public CefRenderHandler {
+ public:
+  RenderHandler();
+  ~RenderHandler();
+
+  // CefRenderHandler interface
+ public:
+  void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+
+  void OnPaint(CefRefPtr<CefBrowser> browser,
+               PaintElementType type,
+               const RectList& dirtyRects,
+               const void* buffer,
+               int width,
+               int height) override;
+
+  void OnAcceleratedPaint(CefRefPtr<CefBrowser> browser,
+                          PaintElementType type,
+                          const RectList& dirtyRects,
+                          const CefAcceleratedPaintInfo& info) override;
+  // CefBase interface
+ public:
+  IMPLEMENT_REFCOUNTING(RenderHandler);
+};
+
+// for manual render handler
+class BrowserClient : public CefClient {
+ public:
+  BrowserClient(RenderHandler* renderHandler) : m_renderHandler(renderHandler) {
+    ;
+  }
+
+  CefRefPtr<CefRenderHandler> GetRenderHandler() override {
+    return m_renderHandler;
+  }
+
+  CefRefPtr<CefRenderHandler> m_renderHandler;
+
+  IMPLEMENT_REFCOUNTING(BrowserClient);
+};
+
+class WebviewPlatformView final : public PlatformView {
+ public:
+  WebviewPlatformView(int32_t id,
+                      std::string viewType,
+                      int32_t direction,
+                      double top,
+                      double left,
+                      double width,
+                      double height,
+                      const std::vector<uint8_t>& params,
+                      std::string assetDirectory,
+                      FlutterDesktopEngineState* state,
+                      PlatformViewAddListener addListener,
+                      PlatformViewRemoveListener removeListener,
+                      void* platform_view_context);
+
+  ~WebviewPlatformView() override = default;
+
+ private:
+  MAYBE_UNUSED int32_t id_;
+  void* platformViewsContext_;
+  MAYBE_UNUSED PlatformViewRemoveListener removeListener_;
+  const std::string flutterAssetsPath_;
+
+  wl_display* display_;
+  wl_surface* surface_;
+  wl_surface* parent_surface_;
+  wl_callback* callback_;
+  wl_subsurface* subsurface_;
+
+  static void on_frame(void* data, wl_callback* callback, uint32_t time);
+  static const wl_callback_listener frame_listener;
+
+  static void on_resize(double width, double height, void* data);
+  static void on_set_direction(int32_t direction, void* data);
+  static void on_set_offset(double left, double top, void* data);
+  static void on_touch(int32_t action,
+                       int32_t point_count,
+                       size_t point_data_size,
+                       const double* point_data,
+                       void* data);
+  static void on_dispose(bool hybrid, void* data);
+
+  static const platform_view_listener platform_view_listener_;
+};
 
 class WebviewFlutterPlugin final : public flutter::Plugin,
                                    public InstanceManagerHostApi,
@@ -61,52 +152,12 @@ class WebviewFlutterPlugin final : public flutter::Plugin,
 
   ~WebviewFlutterPlugin() override;
 
-  class WebviewPlatformView final : public PlatformView {
-   public:
-    WebviewPlatformView(int32_t id,
-                        std::string viewType,
-                        int32_t direction,
-                        double top,
-                        double left,
-                        double width,
-                        double height,
-                        const std::vector<uint8_t>& params,
-                        std::string assetDirectory,
-                        FlutterDesktopEngineState* state,
-                        PlatformViewAddListener addListener,
-                        PlatformViewRemoveListener removeListener,
-                        void* platform_view_context);
+ private:
+  CefRefPtr<CefBrowser> browser_;
+  CefRefPtr<BrowserClient> browserClient_;
+  std::unique_ptr<RenderHandler> renderHandler_;
 
-    ~WebviewPlatformView() override = default;
-
-   private:
-    MAYBE_UNUSED int32_t id_;
-    void* platformViewsContext_;
-    MAYBE_UNUSED PlatformViewRemoveListener removeListener_;
-    const std::string flutterAssetsPath_;
-
-    wl_display* display_;
-    wl_surface* surface_;
-    wl_surface* parent_surface_;
-    wl_callback* callback_;
-    wl_subsurface* subsurface_;
-
-    static void on_frame(void* data, wl_callback* callback, uint32_t time);
-    static const wl_callback_listener frame_listener;
-
-    static void on_resize(double width, double height, void* data);
-    static void on_set_direction(int32_t direction, void* data);
-    static void on_set_offset(double left, double top, void* data);
-    static void on_touch(int32_t action,
-                         int32_t point_count,
-                         size_t point_data_size,
-                         const double* point_data,
-                         void* data);
-    static void on_dispose(bool hybrid, void* data);
-
-    static const platform_view_listener platform_view_listener_;
-  };
-
+ public:
   std::optional<FlutterError> Clear() override;
 
   std::optional<FlutterError> Create(int64_t instance_id) override;

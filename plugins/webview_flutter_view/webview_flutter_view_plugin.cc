@@ -44,7 +44,76 @@ void WebviewFlutterPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-WebviewFlutterPlugin::WebviewFlutterPlugin() {}
+RenderHandler::RenderHandler() = default;
+
+RenderHandler::~RenderHandler() = default;
+
+void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> /* browser */,
+                                CefRect& /* rect */) {
+  SPDLOG_DEBUG("[webivew_flutter] GetViewRect");
+}
+
+void RenderHandler::OnPaint(CefRefPtr<CefBrowser> /* browser */,
+                            PaintElementType /* type */,
+                            const RectList& /* dirtyRects */,
+                            const void* /* buffer */,
+                            int width,
+                            int height) {
+  SPDLOG_DEBUG("[webivew_flutter] OnPaint, width: {}, height: {}", width,
+               height);
+}
+
+void RenderHandler::OnAcceleratedPaint(
+    CefRefPtr<CefBrowser> /* browser */,
+    PaintElementType /* type */,
+    const RectList& /* dirtyRects */,
+    const CefAcceleratedPaintInfo& /* info */) {
+  SPDLOG_DEBUG("[webivew_flutter] OnAcceleratedPaint");
+}
+
+WebviewFlutterPlugin::WebviewFlutterPlugin() {
+  std::vector<char*> args;
+  args.reserve(1);
+  args.push_back("homescreen");
+
+  CefMainArgs main_args(static_cast<int>(args.size()), args.data());
+  int exit_code = CefExecuteProcess(main_args, nullptr, nullptr);
+  if (exit_code >= 0) {
+    // The sub-process has completed so return here.
+    spdlog::error(
+        "[webview_flutter] CefExecuteProcess: child proccess has endend: {}",
+        exit_code);
+    exit(EXIT_FAILURE);
+  }
+
+  // Specify CEF global settings here.
+  CefSettings settings;
+
+  settings.no_sandbox = false;
+  settings.windowless_rendering_enabled = true;
+  settings.log_severity = LOGSEVERITY_VERBOSE;
+  settings.command_line_args_disabled = true;
+
+  if (!CefInitialize(main_args, settings, nullptr, nullptr)) {
+    spdlog::error("[webview_flutter] CefInitialize: false");
+    exit(EXIT_FAILURE);
+  }
+
+  CefWindowInfo window_info;
+  window_info.SetAsWindowless(
+      0);  // false means no transparency (site background colour)
+
+  renderHandler_ = std::make_unique<RenderHandler>();
+  browserClient_ = new BrowserClient(renderHandler_.get());
+
+  CefBrowserSettings browserSettings;
+  browserSettings.windowless_frame_rate = 60;  // 30 is default
+
+  browser_ = CefBrowserHost::CreateBrowserSync(
+      window_info, browserClient_.get(),
+      "https://deanm.github.io/pre3d/monster.html", browserSettings, nullptr,
+      nullptr);
+}
 
 void WebviewFlutterPlugin::PlatformViewCreate(
     int32_t id,
@@ -66,7 +135,7 @@ void WebviewFlutterPlugin::PlatformViewCreate(
       platform_view_context);
 }
 
-WebviewFlutterPlugin::WebviewPlatformView::WebviewPlatformView(
+WebviewPlatformView::WebviewPlatformView(
     const int32_t id,
     std::string viewType,
     const int32_t direction,
@@ -116,7 +185,13 @@ WebviewFlutterPlugin::WebviewPlatformView::WebviewPlatformView(
   SPDLOG_TRACE("--WebviewFlutterPlugin::WebviewFlutterPlugin");
 }
 
-WebviewFlutterPlugin::~WebviewFlutterPlugin() = default;
+WebviewFlutterPlugin::~WebviewFlutterPlugin() {
+  browser_ = nullptr;
+  browserClient_ = nullptr;
+  CefShutdown();
+
+  renderHandler_.reset();
+};
 
 std::optional<FlutterError> WebviewFlutterPlugin::Clear() {
   SPDLOG_DEBUG("[webview_flutter] Clear");
@@ -584,9 +659,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetAcceptThirdPartyCookies(
   return std::nullopt;
 }
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_resize(double width,
-                                                          double height,
-                                                          void* data) {
+void WebviewPlatformView::on_resize(double width, double height, void* data) {
   if (const auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->width_ = static_cast<int32_t>(width);
     plugin->height_ = static_cast<int32_t>(height);
@@ -594,18 +667,17 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_resize(double width,
   }
 }
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_set_direction(
-    const int32_t direction,
-    void* data) {
+void WebviewPlatformView::on_set_direction(const int32_t direction,
+                                           void* data) {
   if (auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->direction_ = direction;
     SPDLOG_DEBUG("[webview_flutter] SetDirection: {}", plugin->direction_);
   }
 }
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_set_offset(const double left,
-                                                              const double top,
-                                                              void* data) {
+void WebviewPlatformView::on_set_offset(const double left,
+                                        const double top,
+                                        void* data) {
   if (const auto plugin = static_cast<WebviewPlatformView*>(data)) {
     plugin->left_ = static_cast<int32_t>(left);
     plugin->top_ = static_cast<int32_t>(top);
@@ -621,17 +693,15 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_set_offset(const double left,
   }
 }
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_touch(
-    int32_t /* action */,
-    int32_t /* point_count */,
-    const size_t /* point_data_size */,
-    const double* /* point_data */,
-    void* /* data */) {
+void WebviewPlatformView::on_touch(int32_t /* action */,
+                                   int32_t /* point_count */,
+                                   const size_t /* point_data_size */,
+                                   const double* /* point_data */,
+                                   void* /* data */) {
   // auto plugin = static_cast<WebviewFlutterPlugin*>(data);
 }
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_dispose(bool /* hybrid */,
-                                                           void* data) {
+void WebviewPlatformView::on_dispose(bool /* hybrid */, void* data) {
   const auto plugin = static_cast<WebviewPlatformView*>(data);
   if (plugin->callback_) {
     wl_callback_destroy(plugin->callback_);
@@ -650,17 +720,16 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_dispose(bool /* hybrid */,
 }
 
 const struct platform_view_listener
-    WebviewFlutterPlugin::WebviewPlatformView::platform_view_listener_ = {
+    WebviewPlatformView::platform_view_listener_ = {
         .resize = on_resize,
         .set_direction = on_set_direction,
         .set_offset = on_set_offset,
         .on_touch = on_touch,
         .dispose = on_dispose};
 
-void WebviewFlutterPlugin::WebviewPlatformView::on_frame(
-    void* data,
-    wl_callback* callback,
-    const uint32_t /* time */) {
+void WebviewPlatformView::on_frame(void* data,
+                                   wl_callback* callback,
+                                   const uint32_t /* time */) {
   const auto obj = static_cast<WebviewPlatformView*>(data);
 
   obj->callback_ = nullptr;
@@ -684,8 +753,7 @@ void WebviewFlutterPlugin::WebviewPlatformView::on_frame(
   wl_surface_commit(obj->surface_);
 }
 
-const wl_callback_listener
-    WebviewFlutterPlugin::WebviewPlatformView::frame_listener = {.done =
-                                                                     on_frame};
+const wl_callback_listener WebviewPlatformView::frame_listener = {.done =
+                                                                      on_frame};
 
 }  // namespace plugin_webview_flutter
