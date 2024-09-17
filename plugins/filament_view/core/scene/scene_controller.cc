@@ -19,6 +19,7 @@
 #include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
+#include <core/systems/debug_lines_manager.h>
 
 #include "core/systems//collision_manager.h"
 
@@ -382,6 +383,21 @@ void SceneController::onTouch(int32_t action,
                               int32_t point_count,
                               size_t point_data_size,
                               const double* point_data) {
+
+  // if action is 0, then on 'first' touch, cast ray from camera;
+  auto viewport = modelViewer_->getFilamentView()->getViewport();
+  auto touch =
+      TouchPair(point_count, point_data_size, point_data, viewport.height);
+
+  static constexpr int ACTION_DOWN = 0;
+
+  switch (action) {
+    case ACTION_DOWN: {
+      auto rayInfo = cameraManager_->aGetRayInformationFromOnTouchPosition(touch);
+      DebugLinesManager::Instance()->vAddLine(rayInfo.first, rayInfo.second * 50.0f, 10);
+    } break;
+  }
+
   if (cameraManager_) {
     cameraManager_->onAction(action, point_count, point_data_size, point_data);
   }
