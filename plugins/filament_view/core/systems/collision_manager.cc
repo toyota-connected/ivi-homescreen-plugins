@@ -68,10 +68,12 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     auto ourTransform = dynamic_cast<BaseTransform*>(
         newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
 
-    // Note if you exported your model not centered around 0,0,0; you're gonna
-    // have a bad time.
-    // TODO: Documentation note to say that needs to be done.
-    ourTransform->SetCenterPosition(ourAABB.center());
+    // SPDLOG_WARN("TEMP A {} {} {}", ourAABB.center().x, ourAABB.center().y, ourAABB.center().z);
+    // SPDLOG_WARN("TEMP B {} {} {}", ourTransform->GetCenterPosition().x, ourTransform->GetCenterPosition().y, ourTransform->GetCenterPosition().z);
+
+    // Note i believe this is correct; more thorough testing is needed; there's a concern
+    // around exporting models not centered at 0,0,0 and not being 100% accurate.
+    ourTransform->SetCenterPosition(ourAABB.center() + ourTransform->GetCenterPosition());
     ourTransform->SetExtentsSize(ourAABB.extent());
     ourTransform->SetScale(ourAABB.extent());
 
