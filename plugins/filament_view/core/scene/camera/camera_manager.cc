@@ -417,6 +417,13 @@ bool CameraManager::isZoomGesture() {
   return std::abs(newest - oldest) > kZoomConfidenceDistance;
 }
 
+Ray CameraManager::oGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+  auto castingValues = aGetRayInformationFromOnTouchPosition(touch);
+  constexpr float defaultLength = 1000.0f;
+  Ray returnRay(castingValues.first, castingValues.second, defaultLength);
+  return returnRay;
+}
+
 std::pair<filament::math::float3, filament::math::float3>
 CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
   auto viewport = CustomModelViewer::Instance(__FUNCTION__)

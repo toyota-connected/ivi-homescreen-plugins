@@ -392,10 +392,11 @@ void SceneController::onTouch(int32_t action,
 
   switch (action) {
     case ACTION_DOWN: {
+
       auto rayInfo =
-          cameraManager_->aGetRayInformationFromOnTouchPosition(touch);
-      DebugLinesManager::Instance()->vAddLine(rayInfo.first,
-                                              rayInfo.second * 50.0f, 10);
+          cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+      DebugLinesManager::Instance()->vAddLine(rayInfo.f3GetPosition(),
+                                              rayInfo.f3GetDirection()* rayInfo.dGetLength(), 10);
     } break;
   }
 

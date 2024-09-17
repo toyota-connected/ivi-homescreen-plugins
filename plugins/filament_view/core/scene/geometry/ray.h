@@ -42,10 +42,6 @@ class Ray {
 
   void DebugPrint(const char* tag);
 
-  // Disallow copy and assign.
-  Ray(const Ray&) = delete;
-  Ray& operator=(const Ray&) = delete;
-
  private:
   Direction direction_;
   Position position_;
