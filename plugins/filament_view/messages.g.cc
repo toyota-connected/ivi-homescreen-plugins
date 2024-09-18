@@ -127,6 +127,48 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
               result->Success();
+            } else if (methodCall.method_name() == kCollisionRayRequest) {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
+              float3 origin;
+              float3 direction;
+              float length;
+              std::string guidForReferenceLookup;
+              for (auto& it : *args) {
+                if (kCollisionRayRequestOriginX ==
+                    std::get<std::string>(it.first)) {
+                  origin.x = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestOriginY ==
+                    std::get<std::string>(it.first)) {
+                  origin.y = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestOriginZ ==
+                    std::get<std::string>(it.first)) {
+                  origin.z = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionX ==
+                    std::get<std::string>(it.first)) {
+                  direction.x = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionY ==
+                    std::get<std::string>(it.first)) {
+                  direction.y = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionZ ==
+                    std::get<std::string>(it.first)) {
+                  direction.z = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestLength ==
+                    std::get<std::string>(it.first)) {
+                  length  = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestGUID ==
+                    std::get<std::string>(it.first)) {
+                  guidForReferenceLookup = std::get<std::string>(it.second);
+                }
+              }
+
+              // ideally this is an async call, so we won't return results in-line here.
+              Ray rayInfo(origin, direction, length);
+              auto hitList = CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
+              CollisionManager::Instance()->SendCollisionInformationCallback(hitList, guidForReferenceLookup,
+                                                                             CollisionEventType.eFromNonNative);
+
+              result->Success();
             } else {
               result->NotImplemented();
             }

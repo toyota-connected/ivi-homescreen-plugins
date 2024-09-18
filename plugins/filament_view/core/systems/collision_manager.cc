@@ -24,6 +24,25 @@
 
 namespace plugin_filament_view {
 
+flutter::EncodableValue HitResult::Encode() const {
+   // Convert float3 to a list of floats
+   flutter::EncodableList hitPosition = {
+     flutter::EncodableValue(hitPosition_.x),
+     flutter::EncodableValue(hitPosition_.y),
+     flutter::EncodableValue(hitPosition_.z)
+ };
+
+   // Create a map to represent the HitResult
+   flutter::EncodableMap encodableMap = {
+     { flutter::EncodableValue("guid"), flutter::EncodableValue(guid_)) },
+     { flutter::EncodableValue("name"), flutter::EncodableValue(name_) },
+     { flutter::EncodableValue("hitPosition"), flutter::EncodableValue(hitPosition) }
+   };
+
+   return flutter::EncodableValue(encodableMap);
+  }
+
+
 CollisionManager::CollisionManager() {}
 
 CollisionManager* CollisionManager::m_poInstance = nullptr;
@@ -211,5 +230,45 @@ std::list<HitResult> CollisionManager::lstCheckForCollidable(Ray& rayCast, int64
   // Return the sorted list of hit results
   return hitResults;
 }
+
+void CollisionManager::setupMessageChannels(
+    flutter::PluginRegistrar* plugin_registrar) {
+  const std::string channel_name =
+      std::string("plugin.filament_view.collision_info");
+
+  collisionInfoCallback_ = std::make_unique<flutter::MethodChannel<>>(
+      plugin_registrar->messenger(), channel_name,
+      &flutter::StandardMethodCodec::GetInstance());
+}
+
+void CollisionManager::SendCollisionInformationCallback(
+    std::list<HitResult>& lstHitResults, std::string sourceQuery, CollisionEventType eType) const {
+  if (collisionInfoCallback_ == nullptr) {
+    return;
+  }
+
+  flutter::EncodableMap encodableMap;
+
+  // event type
+  encodableMap[flutter::EncodableValue(kCollisionEventType)] = static_cast<int>(eType);
+  // source guid
+  encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] = sourceQuery;
+  // hit count
+  encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] = lstHitResults.size();
+
+  int iter = 0;
+  for (const auto& arg : lstHitResults) {
+    std::ostringstream oss;
+    oss << kCollisionEventHitResult << iter;
+
+    encodableMap[flutter::EncodableValue(oss.str())] = arg.Encode();
+
+    ++iter;
+  }
+  collisionInfoCallback_->InvokeMethod(methodName,
+                                   std::make_unique<flutter::EncodableValue>(
+                                       flutter::EncodableValue(encodableMap)));
+}
+
 
 }  // namespace plugin_filament_view

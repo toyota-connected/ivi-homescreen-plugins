@@ -59,6 +59,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   CustomModelViewer::Instance("RegisterWithRegistrar")
       ->setupMessageChannels(registrar);
 
+  CollisionManager::Instance()->setupMessageChannels(registrar);
+
   registrar->AddPlugin(std::move(plugin));
 }
 
