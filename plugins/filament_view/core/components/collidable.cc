@@ -32,10 +32,10 @@ Collidable::Collidable(const flutter::EncodableMap& params)
       filament::math::float3(1.0f, 1.0f, 1.0f));
 
   // Deserialize the static flag, defaulting to 'true'
-  Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &isStatic,
+  Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic,
                                           params, true);
 
-  if (isStatic) {
+  if (m_bIsStatic) {
     Deserialize::DecodeParameterWithDefault(kCenterPosition,
                                             &m_f3CenterPosition, params,
                                             filament::math::float3(0, 0, 0));
@@ -43,18 +43,18 @@ Collidable::Collidable(const flutter::EncodableMap& params)
 
   // Deserialize the collision layer, defaulting to 0
   Deserialize::DecodeParameterWithDefaultInt64(kCollidableLayer,
-                                               &collisionLayer, params, 0);
+                                               &m_nCollisionLayer, params, 0);
 
-  // Deserialize the collision mask, defaulting to 0xFFFFFFFF
-  Deserialize::DecodeParameterWithDefaultInt64(kCollidableMask, &collisionMask,
+  // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
+  Deserialize::DecodeParameterWithDefaultInt64(kCollidableMask, &m_nCollisionMask,
                                                params, 0xFFFFFFFFu);
 
   // Deserialize the flag for matching attached objects, defaulting to 'false'
   Deserialize::DecodeParameterWithDefault(kCollidableShouldMatchAttachedObject,
-                                          &shouldMatchAttachedObject, params,
+                                          &m_bShouldMatchAttachedObject, params,
                                           false);
 
-  if (!shouldMatchAttachedObject) {
+  if (!m_bShouldMatchAttachedObject) {
     Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3ExtentsSize,
                                             params,
                                             filament::math::float3(1, 1, 1));
@@ -62,7 +62,7 @@ Collidable::Collidable(const flutter::EncodableMap& params)
     // Deserialize the shape type, defaulting to some default ShapeType (replace
     // ShapeType::Default with your actual default)
     Deserialize::DecodeEnumParameterWithDefault(
-        kCollidableShapeType, &shapeType_, params, ShapeType::Cube);
+        kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube);
   }
 }
 
@@ -70,25 +70,25 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Collidable Debug Info:");
 
   // Log whether the object is static
-  spdlog::debug(tabPrefix + "Is Static: {}", isStatic);
+  spdlog::debug(tabPrefix + "Is Static: {}", m_bIsStatic);
 
-  if (isStatic) {
+  if (m_bIsStatic) {
     spdlog::debug(tabPrefix + "Center Point: x={}, y={}, z={}",
                   m_f3CenterPosition.x, m_f3CenterPosition.y,
                   m_f3CenterPosition.z);
   }
 
   // Log the collision layer and mask
-  spdlog::debug(tabPrefix + "Collision Layer: {}", collisionLayer);
-  spdlog::debug(tabPrefix + "Collision Mask: 0x{:X}", collisionMask);
+  spdlog::debug(tabPrefix + "Collision Layer: {}", m_nCollisionLayer);
+  spdlog::debug(tabPrefix + "Collision Mask: 0x{:X}", m_nCollisionMask);
 
   // Log the flag for whether it should match the attached object
   spdlog::debug(tabPrefix + "Should Match Attached Object: {}",
-                shouldMatchAttachedObject);
+                m_bShouldMatchAttachedObject);
 
   // Log the shape type (you can modify this to log the enum name if needed)
   spdlog::debug(tabPrefix + "Shape Type: {}",
-                static_cast<int>(shapeType_));  // assuming ShapeType is an enum
+                static_cast<int>(m_eShapeType));  // assuming ShapeType is an enum
 
   // Log the extents size (x, y, z)
   spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
@@ -102,7 +102,7 @@ bool Collidable::bDoesIntersect(const Ray& ray, ::filament::math::float3 &hitPos
     const filament::math::float3 rayOrigin = ray.f3GetPosition();
     const filament::math::float3 rayDirection = ray.f3GetDirection();
 
-    switch(shapeType_) {
+    switch(m_eShapeType) {
         case ShapeType::Sphere: {
             // Sphere-ray intersection
             float radius = extents.x;  // Assuming the x component of extents represents the radius

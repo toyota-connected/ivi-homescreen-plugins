@@ -64,6 +64,9 @@ class DebugLinesManager {
                 ::filament::math::float3 endPoint,
                 float secondsTimeout);
 
+  // Will be virtual override from base system.
+  void vCleanup();
+
  private:
   static DebugLinesManager* m_poInstance;
 

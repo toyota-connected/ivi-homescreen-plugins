@@ -48,7 +48,6 @@ class CameraManager;
 class GroundManager;
 class MaterialManager;
 class ShapeManager;
-class CollisionManager;
 
 namespace shapes {
 class BaseShape;
@@ -79,10 +78,6 @@ class SceneController {
 
   [[nodiscard]] CameraManager* getCameraManager() const {
     return cameraManager_.get();
-  }
-
-  [[nodiscard]] CollisionManager* getCollisionManager() const {
-    return collisionManager_.get();
   }
 
   plugin_filament_view::MaterialManager* poGetMaterialManager();
@@ -118,7 +113,6 @@ class SceneController {
   // this should probably be promoted to outside this class TODO
   std::unique_ptr<plugin_filament_view::MaterialManager> materialManager_;
   std::unique_ptr<plugin_filament_view::ShapeManager> shapeManager_;
-  std::unique_ptr<plugin_filament_view::CollisionManager> collisionManager_;
 
   void setUpViewer(PlatformView* platformView,
                    FlutterDesktopEngineState* state);

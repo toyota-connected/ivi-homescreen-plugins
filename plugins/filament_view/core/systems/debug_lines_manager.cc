@@ -111,6 +111,21 @@ DebugLinesManager* DebugLinesManager::Instance() {
 
 void DebugLinesManager::DebugPrint() {}
 
+void DebugLinesManager::vCleanup() {
+  for (auto it = ourLines_.begin(); it != ourLines_.end();) {
+    (*it)->m_fRemainingTime -= fElapsedTime;
+
+      modelViewer->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
+                                                      1);
+
+      // do visual cleanup here
+      (*it)->vCleanup(engine);
+
+      it = ourLines_.erase(it);
+
+  }
+}
+
 void DebugLinesManager::vUpdate(float fElapsedTime) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto* engine = modelViewer->getFilamentEngine();
