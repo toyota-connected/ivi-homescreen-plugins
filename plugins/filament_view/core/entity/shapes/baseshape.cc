@@ -69,11 +69,14 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   DeserializeNameAndGlobalGuid(params);
 
-  m_poBaseTransform = new BaseTransform(params);
-  m_poCommonRenderable = new CommonRenderable(params);
+  auto oTransform = std::make_shared<BaseTransform>(params);
+  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
-  vAddComponent(m_poBaseTransform);
-  vAddComponent(m_poCommonRenderable);
+  vAddComponent(std::move(oTransform));
+  vAddComponent(std::move(oCommonRenderable));
+
+  m_poBaseTransform = oTransform.get();
+  m_poCommonRenderable = oCommonRenderable.get();
 
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
                                               ShapeType::Unset);
@@ -89,8 +92,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   auto it = params.find(flutter::EncodableValue(kCollidable));
   if (it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
-    auto collidableComp = new Collidable(params);
-    vAddComponent(collidableComp);
+    auto collidableComp = std::make_shared<Collidable>(params);
+    vAddComponent(std::move(collidableComp));
   }
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);

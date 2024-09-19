@@ -67,9 +67,9 @@ class EntityObject {
 
   const std::string& GetName() const { return name_; }
 
-  void vAddComponent(Component* component) {
+  void vAddComponent(std::shared_ptr<Component> component) {
     component->entityOwner_ = this;
-    components_.emplace_back(component);
+    components_.emplace_back(std::move(component));
   }
 
   // Pass in the <DerivedClass>::StaticGetTypeID()
@@ -118,6 +118,6 @@ class EntityObject {
   // components frequently during runtime.
   //
   // In the future this is probably a map<type, vector_or_list<Comp*>>
-  std::vector<Component*> components_;
+  std::vector<std::unique_ptr<Component>> components_;
 };
 }  // namespace plugin_filament_view

@@ -35,8 +35,8 @@ class Model : public EntityObject {
         std::string url,
         Model* fallback,
         Animation* animation,
-        BaseTransform* poTransform,
-        CommonRenderable* poCommonRenderable,
+        std::shared_ptr<BaseTransform> poTransform,
+             std::shared_ptr<CommonRenderable> poCommonRenderable,
         const flutter::EncodableMap& params);
 
   virtual ~Model() = default;
@@ -87,8 +87,8 @@ class GlbModel final : public Model {
            std::string url,
            Model* fallback,
            Animation* animation,
-           BaseTransform* poTransform,
-           CommonRenderable* poCommonRenderable,
+           std::shared_ptr<BaseTransform> poTransform,
+            std::shared_ptr<CommonRenderable> poCommonRenderable,
            const flutter::EncodableMap& params);
 
   ~GlbModel() override = default;
@@ -105,8 +105,8 @@ class GltfModel final : public Model {
             std::string pathPostfix,
             Model* fallback,
             Animation* animation,
-            BaseTransform* poTransform,
-            CommonRenderable* poCommonRenderable,
+            std::shared_ptr<BaseTransform> poTransform,
+            std::shared_ptr<CommonRenderable> poCommonRenderable,
             const flutter::EncodableMap& params);
 
   ~GltfModel() override = default;

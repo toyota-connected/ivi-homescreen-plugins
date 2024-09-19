@@ -29,8 +29,8 @@ Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
              Animation* animation,
-             BaseTransform* poTransform,
-             CommonRenderable* poCommonRenderable,
+             std::shared_ptr<BaseTransform> poTransform,
+             std::shared_ptr<CommonRenderable> poCommonRenderable,
              const flutter::EncodableMap& params)
     : EntityObject(assetPath),
       assetPath_(std::move(assetPath)),
@@ -38,21 +38,21 @@ Model::Model(std::string assetPath,
       fallback_(fallback),
       animation_(animation),
       m_poAsset(nullptr) {
-  m_poBaseTransform = poTransform;
-  m_poCommonRenderable = poCommonRenderable;
+  m_poBaseTransform = poTransform.get();
+  m_poCommonRenderable = poCommonRenderable.get();
 
   DeserializeNameAndGlobalGuid(params);
 
-  vAddComponent(m_poBaseTransform);
-  vAddComponent(m_poCommonRenderable);
+  vAddComponent(std::move(poTransform));
+  vAddComponent(std::move(poCommonRenderable));
 
   // if we have collidable data request, we need to build that component, as its
   // optional
   auto it = params.find(flutter::EncodableValue(kCollidable));
   if (it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
-    auto collidableComp = new Collidable(params);
-    vAddComponent(collidableComp);
+    auto collidableComp = std::make_shared<Collidable>(params);
+    vAddComponent(std::move(collidableComp));
   }
 }
 
@@ -60,8 +60,8 @@ GlbModel::GlbModel(std::string assetPath,
                    std::string url,
                    Model* fallback,
                    Animation* animation,
-                   BaseTransform* poTransform,
-                   CommonRenderable* poCommonRenderable,
+                   std::shared_ptr<BaseTransform> poTransform,
+                   std::shared_ptr<CommonRenderable> poCommonRenderable,
                    const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
@@ -77,8 +77,8 @@ GltfModel::GltfModel(std::string assetPath,
                      std::string pathPostfix,
                      Model* fallback,
                      Animation* animation,
-                     BaseTransform* poTransform,
-                     CommonRenderable* poCommonRenderable,
+                     std::shared_ptr<BaseTransform> poTransform,
+                     std::shared_ptr<CommonRenderable> poCommonRenderable,
                      const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
@@ -102,8 +102,8 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  auto oTransform = new BaseTransform(params);
-  auto oCommonRenderable = new CommonRenderable(params);
+  auto oTransform = std::make_shared<BaseTransform>(params);
+  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
   for (const auto& it : params) {
     if (it.second.IsNull())
