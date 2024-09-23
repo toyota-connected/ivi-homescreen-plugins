@@ -185,15 +185,15 @@ void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
     collidablesDebugDrawingRepresentation_.erase(iter);
   }
 }
-/////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::vTurnOnRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
     collidable.second->vRemoveEntityFromScene();
   }
 }
-/////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::vTurnOffRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
     collidable.second->vAddEntityToScene();
