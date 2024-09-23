@@ -81,7 +81,7 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
     return;
   }
 
-  other.vAddComponent(std::unique_ptr<Component>(component->Clone()));
+  other.vAddComponent(std::shared_ptr<Component>(component->Clone()));
 }
 
 }  // namespace plugin_filament_view
