@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <filament/Box.h>
 #include <filament/Engine.h>
 #include <math/vec3.h>
 #include <utils/EntityManager.h>
@@ -44,6 +45,7 @@ class DebugLine {
 
   std::vector<::filament::math::float3> vertices_;
   std::vector<unsigned short> indices_;
+  filament::Aabb boundingBox_;
 };
 
 class DebugLinesManager {
@@ -72,7 +74,7 @@ class DebugLinesManager {
 
   bool m_bCurrentlyDrawingDebugLines = false;
 
-  std::list<DebugLine*> ourLines_;
+  std::list<std::unique_ptr<DebugLine>> ourLines_;
 };
 
 }  // namespace plugin_filament_view

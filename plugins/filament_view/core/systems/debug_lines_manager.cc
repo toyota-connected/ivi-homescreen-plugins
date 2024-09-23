@@ -72,13 +72,12 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       *engine, filament::IndexBuffer::BufferDescriptor(
                    indices_.data(), indices_.size() * sizeof(unsigned short)));
 
-  filament::Aabb boundingBox;
-  boundingBox.min = startingPoint;
-  boundingBox.max = endingPoint;
+  boundingBox_.min = startingPoint;
+  boundingBox_.max = endingPoint;
 
   // Build the Renderable with the vertex and index buffers
   filament::RenderableManager::Builder(1)
-      .boundingBox({{}, boundingBox.extent()})
+      .boundingBox({{}, boundingBox_.extent()})
       .geometry(0, filament::RenderableManager::PrimitiveType::LINES,
                 m_poVertexBuffer, m_poIndexBuffer)
       .culling(false)
@@ -161,12 +160,12 @@ void DebugLinesManager::vAddLine(::filament::math::float3 startPoint,
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
   auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-  auto newDebugLine =
-      new DebugLine(startPoint, endPoint, engine, oEntity, secondsTimeout);
+  auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
+                                                  oEntity, secondsTimeout);
 
   modelViewer->getFilamentScene()->addEntity(*oEntity);
 
-  ourLines_.emplace_back(newDebugLine);
+  ourLines_.emplace_back(std::move(newDebugLine));
 }
 
 }  // namespace plugin_filament_view
