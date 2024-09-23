@@ -27,13 +27,53 @@ namespace plugin_filament_view {
 
 Collidable::Collidable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)) {
-  Deserialize::DecodeParameterWithDefault(
-      kCollidableExtents, &m_f3ExtentsSize, params,
-      filament::math::float3(1.0f, 1.0f, 1.0f));
+  auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
 
-  // Deserialize the static flag, defaulting to 'true'
-  Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic,
-                                          params, true);
+  // Check if the key exists and if the value is an EncodableMap
+  if (itCollidableSpecific != params.end()) {
+    try {
+      auto collidableSpecificParams =
+          std::get<flutter::EncodableMap>(itCollidableSpecific->second);
+
+      // Deserialize the collision layer, defaulting to 0
+      Deserialize::DecodeParameterWithDefaultInt64(
+          kCollidableLayer, &m_nCollisionLayer, collidableSpecificParams, 0);
+
+      // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
+      Deserialize::DecodeParameterWithDefaultInt64(
+          kCollidableMask, &m_nCollisionMask, collidableSpecificParams,
+          0xFFFFFFFFu);
+
+      // Deserialize the flag for matching attached objects, defaulting to
+      // 'false'
+      Deserialize::DecodeParameterWithDefault(
+          kCollidableShouldMatchAttachedObject, &m_bShouldMatchAttachedObject,
+          collidableSpecificParams, false);
+
+      Deserialize::DecodeParameterWithDefault(
+          kCollidableExtents, &m_f3ExtentsSize, params,
+          filament::math::float3(1.0f, 1.0f, 1.0f));
+
+      // Deserialize the static flag, defaulting to 'true'
+      Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic,
+                                              params, true);
+
+      if (!m_bShouldMatchAttachedObject) {
+        // Deserialize the shape type, defaulting to some default ShapeType
+        // (replace ShapeType::Default with your actual default)
+        Deserialize::DecodeEnumParameterWithDefault(
+            kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube);
+      }
+
+    } catch (const std::bad_variant_access&) {
+      // Handle the case where the cast to EncodableMap fails
+      // Log error, throw an exception, or handle gracefully
+      spdlog::error("Failed to get EncodableMap from collidable parameter.");
+    }
+  } else {
+    // Handle the missing or invalid type scenario
+    spdlog::error("Collidable parameter not found or is of incorrect type.");
+  }
 
   if (m_bIsStatic) {
     Deserialize::DecodeParameterWithDefault(kCenterPosition,
@@ -41,28 +81,10 @@ Collidable::Collidable(const flutter::EncodableMap& params)
                                             filament::math::float3(0, 0, 0));
   }
 
-  // Deserialize the collision layer, defaulting to 0
-  Deserialize::DecodeParameterWithDefaultInt64(kCollidableLayer,
-                                               &m_nCollisionLayer, params, 0);
-
-  // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
-  Deserialize::DecodeParameterWithDefaultInt64(
-      kCollidableMask, &m_nCollisionMask, params, 0xFFFFFFFFu);
-
-  // Deserialize the flag for matching attached objects, defaulting to 'false'
-  Deserialize::DecodeParameterWithDefault(kCollidableShouldMatchAttachedObject,
-                                          &m_bShouldMatchAttachedObject, params,
-                                          false);
-
   if (!m_bShouldMatchAttachedObject) {
     Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3ExtentsSize,
                                             params,
                                             filament::math::float3(1, 1, 1));
-
-    // Deserialize the shape type, defaulting to some default ShapeType (replace
-    // ShapeType::Default with your actual default)
-    Deserialize::DecodeEnumParameterWithDefault(
-        kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube);
   }
 }
 
@@ -173,18 +195,27 @@ bool Collidable::bDoesIntersect(const Ray& ray,
     }
 
     case ShapeType::Plane: {
-      // Plane-ray intersection
-      // Assuming the plane is defined by its normal (we'll assume it's aligned
-      // with the Y-axis) and a point (the center)
-      filament::math::float3 planeNormal = {0.0f, 1.0f,
-                                            0.0f};  // Y-axis aligned plane
+      // Quad-ray intersection
+      filament::math::float3 planeNormal = {
+          0.0f, 1.0f, 0.0f};  // Assuming quad is aligned with the Y-axis
       float denom = dot(rayDirection, planeNormal);
-      if (fabs(denom) > 1e-6) {  // If denom is not close to zero
+      if (fabs(denom) > 1e-6) {
+        // Check if ray is not parallel to the plane
         float t = dot(center - rayOrigin, planeNormal) / denom;
         if (t >= 0) {
+          // Compute the intersection point
           hitPosition = rayOrigin + t * rayDirection;
-          SPDLOG_INFO("Collided with plane {}", GetOwner()->GetGlobalGuid());
-          return true;  // Ray hits the plane
+
+          // Check if the intersection point is within the quad bounds
+          filament::math::float3 localHit = hitPosition - center;
+
+          // Assuming the quad is axis-aligned and centered at `center` with
+          // extents `extents`
+          if (fabs(localHit.x) <= extents.x * 0.5f &&
+              fabs(localHit.z) <= extents.z * 0.5f) {
+            SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGlobalGuid());
+            return true;  // Ray hits the quad
+          }
         }
       }
       break;

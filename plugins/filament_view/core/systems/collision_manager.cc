@@ -24,6 +24,7 @@
 
 namespace plugin_filament_view {
 
+/////////////////////////////////////////////////////////////////////////////////////////
 flutter::EncodableValue HitResult::Encode() const {
   // Convert float3 to a list of floats
   flutter::EncodableList hitPosition = {
@@ -43,6 +44,7 @@ flutter::EncodableValue HitResult::Encode() const {
 
 CollisionManager::CollisionManager() {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 CollisionManager* CollisionManager::m_poInstance = nullptr;
 CollisionManager* CollisionManager::Instance() {
   if (m_poInstance == nullptr) {
@@ -52,11 +54,13 @@ CollisionManager* CollisionManager::Instance() {
   return m_poInstance;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 bool CollisionManager::bHasEntityObjectRepresentation(EntityGUID guid) const {
   return collidablesDebugDrawingRepresentation_.find(guid) !=
          collidablesDebugDrawingRepresentation_.end();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::vAddCollidable(EntityObject* collidable) {
   if (!collidable->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
     spdlog::error(
@@ -68,6 +72,9 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
   auto originalCollidable = dynamic_cast<Collidable*>(
       collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
           .get());
+
+  originalCollidable->DebugPrint("Original collidable");
+
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
     auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
@@ -140,7 +147,6 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
     newShape = new shapes::Plane();
     originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
-    newShape->DebugPrint("new Plane\t");
   }
 
   if (newShape == nullptr) {
@@ -167,6 +173,7 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
       std::pair(collidable->GetGlobalGuid(), newShape));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
 
@@ -178,12 +185,14 @@ void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
     collidablesDebugDrawingRepresentation_.erase(iter);
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void CollisionManager::vTurnOnRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
     collidable.second->vRemoveEntityFromScene();
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void CollisionManager::vTurnOffRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
@@ -191,14 +200,17 @@ void CollisionManager::vTurnOffRenderingOfCollidables() {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::DebugPrint() {
   spdlog::debug("CollisionManager Debug Info:");
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 inline float fLength2(const filament::math::float3& v) {
   return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 std::list<HitResult> CollisionManager::lstCheckForCollidable(
     Ray& rayCast,
     int64_t /*collisionLayer*/) const {
@@ -251,6 +263,7 @@ std::list<HitResult> CollisionManager::lstCheckForCollidable(
   return hitResults;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
   const std::string channel_name =
@@ -261,6 +274,7 @@ void CollisionManager::setupMessageChannels(
       &flutter::StandardMethodCodec::GetInstance());
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::SendCollisionInformationCallback(
     std::list<HitResult>& lstHitResults,
     std::string sourceQuery,
