@@ -35,7 +35,9 @@ extern "C" {
 #endif
 
 FLUTTER_PLUGIN_EXPORT void WebviewFlutterPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrar* registrar,
+    FlutterDesktopPluginRegistrar* registrar);
+
+FLUTTER_PLUGIN_EXPORT void WebviewFlutterPluginCApiPlatformViewCreate(
     int32_t id,
     std::string viewType,
     int32_t direction,

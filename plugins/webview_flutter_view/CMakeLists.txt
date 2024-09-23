@@ -14,15 +14,38 @@
 # limitations under the License.
 #
 
+include_guard()
+
+if (NOT EXISTS ${CEF_ROOT})
+    message(FATAL_ERROR "CEF_ROOT: \"${CEF_ROOT}\" does not exist")
+endif ()
+
+message(STATUS "CEF_ROOT: ${CEF_ROOT}")
+
+if (NOT CEF_BUILD_TYPE)
+    set(CEF_BUILD_TYPE "Release")
+endif ()
+
 add_library(plugin_webview_flutter_view STATIC
         webview_flutter_view_plugin_c_api.cc
         webview_flutter_view_plugin.cc
         messages.g.cc
 )
 
-target_include_directories(plugin_webview_flutter_view PRIVATE include)
+add_subdirectory(${CEF_ROOT})
 
-target_link_libraries(plugin_webview_flutter_view PUBLIC
+target_include_directories(plugin_webview_flutter_view PRIVATE
+        include
+        ${CEF_ROOT}
+)
+
+target_link_directories(plugin_webview_flutter_view PUBLIC
+        ${CEF_ROOT}/${CEF_BUILD_TYPE}
+)
+
+target_link_libraries(plugin_webview_flutter_view PRIVATE
         flutter
         platform_homescreen
+        cef
+        libcef_dll_wrapper
 )
