@@ -94,12 +94,6 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
     vAddComponent(std::move(collidableComp));
   }
 
-  auto transform = m_poBaseTransform.lock();
-  auto getCheck = transform.get();
-  if (getCheck == nullptr) {
-    SPDLOG_ERROR("GET CHECK IS NULL FIRST");
-  }
-
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
@@ -180,12 +174,6 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
     // the material param list
     m_poMaterialInstance =
         material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
-
-    auto transform = m_poBaseTransform.lock();
-    auto getCheck = transform.get();
-    if (getCheck == nullptr) {
-      SPDLOG_ERROR("GET CHECK IS NULL");
-    }
 
     RenderableManager::Builder(1)
         .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
