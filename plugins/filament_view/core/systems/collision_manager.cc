@@ -74,7 +74,6 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
-
     // if its a shape
     auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
     if (originalShape != nullptr) {
@@ -83,9 +82,8 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
           originalShape->m_poBaseTransform.lock()->GetExtentsSize());
     }
 
-      // modeled handled below
+    // modeled handled below
   }
-
 
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;
@@ -129,17 +127,12 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     ourTransform->SetScale(ourAABB.extent());
 
     if (originalCollidable != nullptr &&
-     originalCollidable->GetShouldMatchAttachedObject()) {
-        originalCollidable->SetCenterPoint( ourTransform->GetCenterPosition() );
+        originalCollidable->GetShouldMatchAttachedObject()) {
+      originalCollidable->SetCenterPoint(ourTransform->GetCenterPosition());
 
-        originalCollidable->SetShapeType(ShapeType::Cube);
-        originalCollidable->SetExtentsSize(ourAABB.extent());
-
-        originalCollidable->DebugPrint("\t");
-      }
-
-    ourTransform->DebugPrint("From setup");
-
+      originalCollidable->SetShapeType(ShapeType::Cube);
+      originalCollidable->SetExtentsSize(ourAABB.extent());
+    }
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();

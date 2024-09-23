@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <utility>
 
 namespace plugin_filament_view {
 class EntityObject;
@@ -47,15 +48,18 @@ class Component {
   virtual ~Component() = default;
 
  protected:
-  Component(const std::string& name) : name_(name), entityOwner_(nullptr) {}
+  explicit Component(std::string name)
+      : name_(std::move(name)), entityOwner_(nullptr) {}
 
-  virtual const std::type_info& GetType() const { return typeid(*this); }
+  [[nodiscard]] virtual const std::type_info& GetType() const {
+    return typeid(*this);
+  }
 
   virtual void DebugPrint(const std::string& tabPrefix) const = 0;
 
-  const EntityObject* GetOwner() const { return entityOwner_; }
+  [[nodiscard]] const EntityObject* GetOwner() const { return entityOwner_; }
 
-  virtual Component* Clone() const = 0;
+  [[nodiscard]] virtual Component* Clone() const = 0;
 
  private:
   std::string rttiTypeName_;
