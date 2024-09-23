@@ -25,23 +25,21 @@
 namespace plugin_filament_view {
 
 flutter::EncodableValue HitResult::Encode() const {
-   // Convert float3 to a list of floats
-   flutter::EncodableList hitPosition = {
-     flutter::EncodableValue(hitPosition_.x),
-     flutter::EncodableValue(hitPosition_.y),
-     flutter::EncodableValue(hitPosition_.z)
- };
+  // Convert float3 to a list of floats
+  flutter::EncodableList hitPosition = {
+      flutter::EncodableValue(hitPosition_.x),
+      flutter::EncodableValue(hitPosition_.y),
+      flutter::EncodableValue(hitPosition_.z)};
 
-   // Create a map to represent the HitResult
-   flutter::EncodableMap encodableMap = {
-     { flutter::EncodableValue("guid"), flutter::EncodableValue(guid_)) },
-     { flutter::EncodableValue("name"), flutter::EncodableValue(name_) },
-     { flutter::EncodableValue("hitPosition"), flutter::EncodableValue(hitPosition) }
-   };
+  // Create a map to represent the HitResult
+  flutter::EncodableMap encodableMap = {
+      {flutter::EncodableValue("guid"), flutter::EncodableValue(guid_)},
+      {flutter::EncodableValue("name"), flutter::EncodableValue(name_)},
+      {flutter::EncodableValue("hitPosition"),
+       flutter::EncodableValue(hitPosition)}};
 
-   return flutter::EncodableValue(encodableMap);
-  }
-
+  return flutter::EncodableValue(encodableMap);
+}
 
 CollisionManager::CollisionManager() {}
 
@@ -67,13 +65,17 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     return;
   }
 
-  auto originalCollidable = dynamic_cast<Collidable*>(collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
-  if(originalCollidable != nullptr && originalCollidable->GetShouldMatchAttachedObject()) {
+  auto originalCollidable = dynamic_cast<Collidable*>(
+      collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
+          .get());
+  if (originalCollidable != nullptr &&
+      originalCollidable->GetShouldMatchAttachedObject()) {
     auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
     SPDLOG_WARN("ORIGINAL SHAPE");
-    if(originalShape != nullptr) {
+    if (originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
-      originalCollidable->SetExtentsSize(originalShape->m_poBaseTransform->GetExtentsSize());
+      originalCollidable->SetExtentsSize(
+          originalShape->m_poBaseTransform.lock()->GetExtentsSize());
       originalCollidable->DebugPrint("Collidable push back");
     }
   }
@@ -95,22 +97,36 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     ourModelObject->vShallowCopyComponentToOther(
         CommonRenderable::StaticGetTypeID(), *newShape);
 
-    auto ourTransform = dynamic_cast<BaseTransform*>(
-        newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
+    std::shared_ptr<Component> componentBT =
+        newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
+    std::shared_ptr<BaseTransform> baseTransformPtr =
+        std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
-    // SPDLOG_WARN("TEMP A {} {} {}", ourAABB.center().x, ourAABB.center().y, ourAABB.center().z);
-    // SPDLOG_WARN("TEMP B {} {} {}", ourTransform->GetCenterPosition().x, ourTransform->GetCenterPosition().y, ourTransform->GetCenterPosition().z);
+    std::shared_ptr<Component> componentCR =
+        newShape->GetComponentByStaticTypeID(
+            CommonRenderable::StaticGetTypeID());
+    std::shared_ptr<CommonRenderable> commonRenderablePtr =
+        std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
-    // Note i believe this is correct; more thorough testing is needed; there's a concern
-    // around exporting models not centered at 0,0,0 and not being 100% accurate.
-    ourTransform->SetCenterPosition(ourAABB.center() + ourTransform->GetCenterPosition());
+    newShape->m_poBaseTransform =
+        std::weak_ptr<BaseTransform>(baseTransformPtr);
+    newShape->m_poCommonRenderable =
+        std::weak_ptr<CommonRenderable>(commonRenderablePtr);
+
+    auto ourTransform = baseTransformPtr;
+
+    // SPDLOG_WARN("TEMP A {} {} {}", ourAABB.center().x, ourAABB.center().y,
+    // ourAABB.center().z); SPDLOG_WARN("TEMP B {} {} {}",
+    // ourTransform->GetCenterPosition().x, ourTransform->GetCenterPosition().y,
+    // ourTransform->GetCenterPosition().z);
+
+    // Note i believe this is correct; more thorough testing is needed; there's
+    // a concern around exporting models not centered at 0,0,0 and not being
+    // 100% accurate.
+    ourTransform->SetCenterPosition(ourAABB.center() +
+                                    ourTransform->GetCenterPosition());
     ourTransform->SetExtentsSize(ourAABB.extent());
     ourTransform->SetScale(ourAABB.extent());
-
-    newShape->m_poBaseTransform = ourTransform;
-    newShape->m_poCommonRenderable =
-        dynamic_cast<CommonRenderable*>(newShape->GetComponentByStaticTypeID(
-            CommonRenderable::StaticGetTypeID()));
 
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
@@ -183,19 +199,23 @@ inline float fLength2(const filament::math::float3& v) {
   return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
-std::list<HitResult> CollisionManager::lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
+std::list<HitResult> CollisionManager::lstCheckForCollidable(
+    Ray& rayCast,
+    int64_t /*collisionLayer*/) const {
   std::list<HitResult> hitResults;
 
   // Iterate over all entities.
   for (const auto& entity : collidables_) {
     // Make sure collidable is still here....
-    auto collidable = dynamic_cast<Collidable*>(entity->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
+    auto collidable = std::dynamic_pointer_cast<Collidable>(
+        entity->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
     if (!collidable) {
-      continue; // No collidable component, skip this entity
+      continue;  // No collidable component, skip this entity
     }
 
     // Check if the collision layer matches (if a specific layer was provided)
-    // if (collisionLayer != 0 && (collidable->GetCollisionLayer() & collisionLayer) == 0) {
+    // if (collisionLayer != 0 && (collidable->GetCollisionLayer() &
+    // collisionLayer) == 0) {
     //    continue; // Skip if layers don't match
     // }
 
@@ -219,12 +239,12 @@ std::list<HitResult> CollisionManager::lstCheckForCollidable(Ray& rayCast, int64
 
   // Sort hit results by distance from the ray's origin
   hitResults.sort([&rayCast](const HitResult& a, const HitResult& b) {
-      // Calculate the squared distance to avoid the cost of sqrt
-      auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
-      auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
+    // Calculate the squared distance to avoid the cost of sqrt
+    auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
+    auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
 
-      // Sort in ascending order (closest hit first)
-      return distanceA < distanceB;
+    // Sort in ascending order (closest hit first)
+    return distanceA < distanceB;
   });
 
   // Return the sorted list of hit results
@@ -242,7 +262,9 @@ void CollisionManager::setupMessageChannels(
 }
 
 void CollisionManager::SendCollisionInformationCallback(
-    std::list<HitResult>& lstHitResults, std::string sourceQuery, CollisionEventType eType) const {
+    std::list<HitResult>& lstHitResults,
+    std::string sourceQuery,
+    CollisionEventType eType) const {
   if (collisionInfoCallback_ == nullptr) {
     return;
   }
@@ -250,11 +272,14 @@ void CollisionManager::SendCollisionInformationCallback(
   flutter::EncodableMap encodableMap;
 
   // event type
-  encodableMap[flutter::EncodableValue(kCollisionEventType)] = static_cast<int>(eType);
+  encodableMap[flutter::EncodableValue(kCollisionEventType)] =
+      static_cast<int>(eType);
   // source guid
-  encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] = sourceQuery;
+  encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] =
+      sourceQuery;
   // hit count
-  encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] = lstHitResults.size();
+  encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] =
+      static_cast<int>(lstHitResults.size());
 
   int iter = 0;
   for (const auto& arg : lstHitResults) {
@@ -265,10 +290,9 @@ void CollisionManager::SendCollisionInformationCallback(
 
     ++iter;
   }
-  collisionInfoCallback_->InvokeMethod(methodName,
-                                   std::make_unique<flutter::EncodableValue>(
-                                       flutter::EncodableValue(encodableMap)));
+  collisionInfoCallback_->InvokeMethod(
+      kCollisionEvent, std::make_unique<flutter::EncodableValue>(
+                           flutter::EncodableValue(encodableMap)));
 }
-
 
 }  // namespace plugin_filament_view

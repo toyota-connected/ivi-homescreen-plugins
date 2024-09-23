@@ -38,8 +38,8 @@ Model::Model(std::string assetPath,
       fallback_(fallback),
       animation_(animation),
       m_poAsset(nullptr) {
-  m_poBaseTransform = poTransform.get();
-  m_poCommonRenderable = poCommonRenderable.get();
+  m_poBaseTransform = std::weak_ptr<BaseTransform>(poTransform);
+  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(poCommonRenderable);
 
   DeserializeNameAndGlobalGuid(params);
 

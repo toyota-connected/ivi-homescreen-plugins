@@ -42,13 +42,20 @@ static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
 static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
 // Collision Requests
 static constexpr char kCollisionRayRequest[] = "COLLISION_RAY_REQUEST";
-static constexpr char kCollisionRayRequestOriginX[] = "COLLISION_RAY_REQUEST_ORIGIN_X";
-static constexpr char kCollisionRayRequestOriginY[] = "COLLISION_RAY_REQUEST_ORIGIN_Y";
-static constexpr char kCollisionRayRequestOriginZ[] = "COLLISION_RAY_REQUEST_ORIGIN_Z";
-static constexpr char kCollisionRayRequestDirectionX[] = "COLLISION_RAY_REQUEST_DIRECTION_X";
-static constexpr char kCollisionRayRequestDirectionY[] = "COLLISION_RAY_REQUEST_DIRECTION_Y";
-static constexpr char kCollisionRayRequestDirectionZ[] = "COLLISION_RAY_REQUEST_DIRECTION_Z";
-static constexpr char kCollisionRayRequestLength[] = "COLLISION_RAY_REQUEST_LENGTH";
+static constexpr char kCollisionRayRequestOriginX[] =
+    "COLLISION_RAY_REQUEST_ORIGIN_X";
+static constexpr char kCollisionRayRequestOriginY[] =
+    "COLLISION_RAY_REQUEST_ORIGIN_Y";
+static constexpr char kCollisionRayRequestOriginZ[] =
+    "COLLISION_RAY_REQUEST_ORIGIN_Z";
+static constexpr char kCollisionRayRequestDirectionX[] =
+    "COLLISION_RAY_REQUEST_DIRECTION_X";
+static constexpr char kCollisionRayRequestDirectionY[] =
+    "COLLISION_RAY_REQUEST_DIRECTION_Y";
+static constexpr char kCollisionRayRequestDirectionZ[] =
+    "COLLISION_RAY_REQUEST_DIRECTION_Z";
+static constexpr char kCollisionRayRequestLength[] =
+    "COLLISION_RAY_REQUEST_LENGTH";
 static constexpr char kCollisionRayRequestGUID[] = "COLLISION_RAY_REQUEST_GUID";
 
 // Deserialization
@@ -96,10 +103,14 @@ static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
 static constexpr char kCollisionEvent[] = "collision_event";
 static constexpr char kCollisionEventSourceGuid[] = "collision_event_source";
 static constexpr char kCollisionEventHitCount[] = "collision_event_hit_count";
-static constexpr char kCollisionEventHitResult[] = "collision_event_hit_result_";
+static constexpr char kCollisionEventHitResult[] =
+    "collision_event_hit_result_";
 static constexpr char kCollisionEventType[] = "collision_event_type";
-enum CollisionEventType { eFromNonNative, eNativeOnTouchBegin
-                        , eNativeOnTouchHeld, eNativeOnTouchEnd };
-
+enum CollisionEventType {
+  eFromNonNative,
+  eNativeOnTouchBegin,
+  eNativeOnTouchHeld,
+  eNativeOnTouchEnd
+};
 
 }  // namespace plugin_filament_view

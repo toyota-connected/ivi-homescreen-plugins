@@ -16,20 +16,23 @@
 
 #pragma once
 
+#include <core/include/literals.h>
 #include <list>
+
 #include "core/components/basetransform.h"
 #include "core/components/collidable.h"
 #include "core/entity/shapes/baseshape.h"
+#include "flutter_desktop_plugin_registrar.h"
 
 namespace plugin_filament_view {
 
 class HitResult {
-public:
- EntityGUID guid_;
- std::string name_;
- ::filament::math::float3 hitPosition_;
+ public:
+  EntityGUID guid_;
+  std::string name_;
+  ::filament::math::float3 hitPosition_;
 
- flutter::EncodableValue Encode() const;
+  flutter::EncodableValue Encode() const;
 };
 
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
@@ -56,12 +59,15 @@ class CollisionManager {
 
   void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
-  // send in your ray, get a list of hit results back, collisionLayer not actively used - future work.
-  std::list<HitResult> lstCheckForCollidable(Ray& rayCast, int64_t collisionLayer = 0) const;
+  // send in your ray, get a list of hit results back, collisionLayer not
+  // actively used - future work.
+  std::list<HitResult> lstCheckForCollidable(Ray& rayCast,
+                                             int64_t collisionLayer = 0) const;
 
   // this will send the hit information sent in to non-native (Dart) code.
   void SendCollisionInformationCallback(std::list<HitResult>& lstHitResults,
-                                        std::string sourceQuery, CollisionEventType eType) const;
+                                        std::string sourceQuery,
+                                        CollisionEventType eType) const;
 
   // Checks to see if we already has this guid in our mapping.
   bool bHasEntityObjectRepresentation(EntityGUID guid) const;

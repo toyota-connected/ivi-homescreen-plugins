@@ -15,9 +15,9 @@
  */
 #include "collidable.h"
 
-#include <list>
-#include <algorithm>
 #include <core/systems/collision_manager.h>
+#include <algorithm>
+#include <list>
 
 #include "core/include/literals.h"
 #include "core/utils/deserialize.h"
@@ -46,8 +46,8 @@ Collidable::Collidable(const flutter::EncodableMap& params)
                                                &m_nCollisionLayer, params, 0);
 
   // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
-  Deserialize::DecodeParameterWithDefaultInt64(kCollidableMask, &m_nCollisionMask,
-                                               params, 0xFFFFFFFFu);
+  Deserialize::DecodeParameterWithDefaultInt64(
+      kCollidableMask, &m_nCollisionMask, params, 0xFFFFFFFFu);
 
   // Deserialize the flag for matching attached objects, defaulting to 'false'
   Deserialize::DecodeParameterWithDefault(kCollidableShouldMatchAttachedObject,
@@ -87,107 +87,115 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
                 m_bShouldMatchAttachedObject);
 
   // Log the shape type (you can modify this to log the enum name if needed)
-  spdlog::debug(tabPrefix + "Shape Type: {}",
-                static_cast<int>(m_eShapeType));  // assuming ShapeType is an enum
+  spdlog::debug(
+      tabPrefix + "Shape Type: {}",
+      static_cast<int>(m_eShapeType));  // assuming ShapeType is an enum
 
   // Log the extents size (x, y, z)
   spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
                 m_f3ExtentsSize.y, m_f3ExtentsSize.z);
 }
 
-bool Collidable::bDoesIntersect(const Ray& ray, ::filament::math::float3 &hitPosition) const {
-    // Extract relevant data
-    const filament::math::float3& center = m_f3CenterPosition;
-    const filament::math::float3& extents = m_f3ExtentsSize;
-    const filament::math::float3 rayOrigin = ray.f3GetPosition();
-    const filament::math::float3 rayDirection = ray.f3GetDirection();
+bool Collidable::bDoesIntersect(const Ray& ray,
+                                ::filament::math::float3& hitPosition) const {
+  // Extract relevant data
+  const filament::math::float3& center = m_f3CenterPosition;
+  const filament::math::float3& extents = m_f3ExtentsSize;
+  const filament::math::float3 rayOrigin = ray.f3GetPosition();
+  const filament::math::float3 rayDirection = ray.f3GetDirection();
 
-    switch(m_eShapeType) {
-        case ShapeType::Sphere: {
-            // Sphere-ray intersection
-            float radius = extents.x;  // Assuming the x component of extents represents the radius
-            filament::math::float3 oc = rayOrigin - center; // Vector from ray origin to sphere center
-            float a = dot(rayDirection, rayDirection);
-            float b = 2.0f * dot(oc, rayDirection);
-            float c = dot(oc, oc) - radius * radius;
-            float discriminant = b * b - 4 * a * c;
+  switch (m_eShapeType) {
+    case ShapeType::Sphere: {
+      // Sphere-ray intersection
+      float radius =
+          extents
+              .x;  // Assuming the x component of extents represents the radius
+      filament::math::float3 oc =
+          rayOrigin - center;  // Vector from ray origin to sphere center
+      float a = dot(rayDirection, rayDirection);
+      float b = 2.0f * dot(oc, rayDirection);
+      float c = dot(oc, oc) - radius * radius;
+      float discriminant = b * b - 4 * a * c;
 
-            if (discriminant > 0) {
-                float t = (-b - sqrt(discriminant)) / (2.0f * a);
-                if (t > 0) {
-                    hitPosition = rayOrigin + t * rayDirection;
-                    SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGlobalGuid());
-                    return true;  // Ray hits the sphere
-                }
-            }
-            break;
+      if (discriminant > 0) {
+        float t = (-b - sqrt(discriminant)) / (2.0f * a);
+        if (t > 0) {
+          hitPosition = rayOrigin + t * rayDirection;
+          SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGlobalGuid());
+          return true;  // Ray hits the sphere
         }
-
-        case ShapeType::Cube: {
-            // Cube-ray intersection (Axis-Aligned Bounding Box, AABB)
-            filament::math::float3 minBound = center - extents * 0.5f;
-            filament::math::float3 maxBound = center + extents * 0.5f;
-
-            float tmin = (minBound.x - rayOrigin.x) / rayDirection.x;
-            float tmax = (maxBound.x - rayOrigin.x) / rayDirection.x;
-            if (tmin > tmax) std::swap(tmin, tmax);
-
-            float tymin = (minBound.y - rayOrigin.y) / rayDirection.y;
-            float tymax = (maxBound.y - rayOrigin.y) / rayDirection.y;
-            if (tymin > tymax) std::swap(tymin, tymax);
-
-            if ((tmin > tymax) || (tymin > tmax))
-                return false;
-
-            if (tymin > tmin)
-                tmin = tymin;
-            if (tymax < tmax)
-                tmax = tymax;
-
-            float tzmin = (minBound.z - rayOrigin.z) / rayDirection.z;
-            float tzmax = (maxBound.z - rayOrigin.z) / rayDirection.z;
-            if (tzmin > tzmax) std::swap(tzmin, tzmax);
-
-            if ((tmin > tzmax) || (tzmin > tmax))
-                return false;
-
-            if (tzmin > tmin)
-                tmin = tzmin;
-            if (tzmax < tmax)
-                tmax = tzmax;
-
-            if (tmin > 0) {
-                hitPosition = rayOrigin + tmin * rayDirection;
-                SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGlobalGuid());
-                return true;  // Ray hits the cube
-            }
-            break;
-        }
-
-        case ShapeType::Plane: {
-            // Plane-ray intersection
-            // Assuming the plane is defined by its normal (we'll assume it's aligned with the Y-axis) and a point (the center)
-            filament::math::float3 planeNormal = {0.0f, 1.0f, 0.0f};  // Y-axis aligned plane
-            float denom = dot(rayDirection, planeNormal);
-            if (fabs(denom) > 1e-6) { // If denom is not close to zero
-                float t = dot(center - rayOrigin, planeNormal) / denom;
-                if (t >= 0) {
-                    hitPosition = rayOrigin + t * rayDirection;
-                    SPDLOG_INFO("Collided with plane {}", GetOwner()->GetGlobalGuid());
-                    return true;  // Ray hits the plane
-                }
-            }
-            break;
-        }
-
-        // Additional cases like Capsule, etc., can be handled here
-        default:
-            break;
+      }
+      break;
     }
 
-    return false;  // No intersection
+    case ShapeType::Cube: {
+      // Cube-ray intersection (Axis-Aligned Bounding Box, AABB)
+      filament::math::float3 minBound = center - extents * 0.5f;
+      filament::math::float3 maxBound = center + extents * 0.5f;
+
+      float tmin = (minBound.x - rayOrigin.x) / rayDirection.x;
+      float tmax = (maxBound.x - rayOrigin.x) / rayDirection.x;
+      if (tmin > tmax)
+        std::swap(tmin, tmax);
+
+      float tymin = (minBound.y - rayOrigin.y) / rayDirection.y;
+      float tymax = (maxBound.y - rayOrigin.y) / rayDirection.y;
+      if (tymin > tymax)
+        std::swap(tymin, tymax);
+
+      if ((tmin > tymax) || (tymin > tmax))
+        return false;
+
+      if (tymin > tmin)
+        tmin = tymin;
+      if (tymax < tmax)
+        tmax = tymax;
+
+      float tzmin = (minBound.z - rayOrigin.z) / rayDirection.z;
+      float tzmax = (maxBound.z - rayOrigin.z) / rayDirection.z;
+      if (tzmin > tzmax)
+        std::swap(tzmin, tzmax);
+
+      if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+
+      if (tzmin > tmin)
+        tmin = tzmin;
+      if (tzmax < tmax)
+        tmax = tzmax;
+
+      if (tmin > 0) {
+        hitPosition = rayOrigin + tmin * rayDirection;
+        SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGlobalGuid());
+        return true;  // Ray hits the cube
+      }
+      break;
+    }
+
+    case ShapeType::Plane: {
+      // Plane-ray intersection
+      // Assuming the plane is defined by its normal (we'll assume it's aligned
+      // with the Y-axis) and a point (the center)
+      filament::math::float3 planeNormal = {0.0f, 1.0f,
+                                            0.0f};  // Y-axis aligned plane
+      float denom = dot(rayDirection, planeNormal);
+      if (fabs(denom) > 1e-6) {  // If denom is not close to zero
+        float t = dot(center - rayOrigin, planeNormal) / denom;
+        if (t >= 0) {
+          hitPosition = rayOrigin + t * rayDirection;
+          SPDLOG_INFO("Collided with plane {}", GetOwner()->GetGlobalGuid());
+          return true;  // Ray hits the plane
+        }
+      }
+      break;
+    }
+
+    // Additional cases like Capsule, etc., can be handled here
+    default:
+      break;
+  }
+
+  return false;  // No intersection
 }
-
-
 
 }  // namespace plugin_filament_view

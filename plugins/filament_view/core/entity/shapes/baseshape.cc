@@ -48,8 +48,6 @@ BaseShape::BaseShape()
       m_poVertexBuffer(nullptr),
       m_poIndexBuffer(nullptr),
       type_(ShapeType::Unset),
-      m_poBaseTransform(nullptr),
-      m_poCommonRenderable(nullptr),
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
           Resource<::filament::MaterialInstance*>::Error("Unset")) {}
@@ -72,11 +70,11 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   auto oTransform = std::make_shared<BaseTransform>(params);
   auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
+  m_poBaseTransform = std::weak_ptr<BaseTransform>(oTransform);
+  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(oCommonRenderable);
+
   vAddComponent(std::move(oTransform));
   vAddComponent(std::move(oCommonRenderable));
-
-  m_poBaseTransform = oTransform.get();
-  m_poCommonRenderable = oCommonRenderable.get();
 
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
                                               ShapeType::Unset);
@@ -94,6 +92,12 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
+  }
+
+  auto transform = m_poBaseTransform.lock();
+  auto getCheck = transform.get();
+  if (getCheck == nullptr) {
+    SPDLOG_ERROR("GET CHECK IS NULL FIRST");
   }
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
@@ -139,10 +143,19 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
                                      other);
 
-  other.m_poBaseTransform = dynamic_cast<BaseTransform*>(
-      GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID()));
-  other.m_poCommonRenderable = dynamic_cast<CommonRenderable*>(
-      GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID()));
+  std::shared_ptr<Component> componentBT =
+      GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
+  std::shared_ptr<BaseTransform> baseTransformPtr =
+      std::dynamic_pointer_cast<BaseTransform>(componentBT);
+
+  std::shared_ptr<Component> componentCR =
+      GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
+  std::shared_ptr<CommonRenderable> commonRenderablePtr =
+      std::dynamic_pointer_cast<CommonRenderable>(componentCR);
+
+  other.m_poBaseTransform = std::weak_ptr<BaseTransform>(baseTransformPtr);
+  other.m_poCommonRenderable =
+      std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 }
 
 void BaseShape::vBuildRenderable(::filament::Engine* engine_,
@@ -154,11 +167,11 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
+        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
         //.material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
                   m_poIndexBuffer)
-        .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
+        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
         .receiveShadows(false)
         .castShadows(false)
         .build(*engine_, *m_poEntity);
@@ -168,20 +181,27 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
     m_poMaterialInstance =
         material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
 
+    auto transform = m_poBaseTransform.lock();
+    auto getCheck = transform.get();
+    if (getCheck == nullptr) {
+      SPDLOG_ERROR("GET CHECK IS NULL");
+    }
+
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform->GetExtentsSize()})
+        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
         .material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
                   m_poVertexBuffer, m_poIndexBuffer)
-        .culling(m_poCommonRenderable->IsCullingOfObjectEnabled())
-        .receiveShadows(m_poCommonRenderable->IsReceiveShadowsEnabled())
-        .castShadows(m_poCommonRenderable->IsCastShadowsEnabled())
+        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
+        .receiveShadows(m_poCommonRenderable.lock()->IsReceiveShadowsEnabled())
+        .castShadows(m_poCommonRenderable.lock()->IsCastShadowsEnabled())
         .build(*engine_, *m_poEntity);
   }
 
   EntityTransforms::vApplyTransform(
-      m_poEntity, m_poBaseTransform->GetRotation(),
-      m_poBaseTransform->GetScale(), m_poBaseTransform->GetCenterPosition());
+      m_poEntity, m_poBaseTransform.lock()->GetRotation(),
+      m_poBaseTransform.lock()->GetScale(),
+      m_poBaseTransform.lock()->GetCenterPosition());
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal

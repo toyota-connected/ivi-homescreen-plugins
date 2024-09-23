@@ -59,9 +59,11 @@ class Model : public EntityObject {
 
   filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
 
-  const BaseTransform* GetBaseTransform() const { return m_poBaseTransform.get(); }
-  const CommonRenderable* GetCommonRenderable() const {
-    return m_poCommonRenderable.get();
+  const std::shared_ptr<BaseTransform> GetBaseTransform() const {
+    return m_poBaseTransform.lock();
+  }
+  const std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
+    return m_poCommonRenderable.lock();
   }
 
  protected:
@@ -76,8 +78,8 @@ class Model : public EntityObject {
 
   // Components - saved off here for faster
   // lookup, but they're not owned here, but on EntityObject's list.
-  std::shared_ptr<BaseTransform> m_poBaseTransform;
-  std::shared_ptr<CommonRenderable> m_poCommonRenderable;
+  std::weak_ptr<BaseTransform> m_poBaseTransform;
+  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
 };
 
 class GlbModel final : public Model {
@@ -87,7 +89,7 @@ class GlbModel final : public Model {
            Model* fallback,
            Animation* animation,
            std::shared_ptr<BaseTransform> poTransform,
-            std::shared_ptr<CommonRenderable> poCommonRenderable,
+           std::shared_ptr<CommonRenderable> poCommonRenderable,
            const flutter::EncodableMap& params);
 
   ~GlbModel() override = default;

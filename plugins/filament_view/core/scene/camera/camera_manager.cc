@@ -417,7 +417,8 @@ bool CameraManager::isZoomGesture() {
   return std::abs(newest - oldest) > kZoomConfidenceDistance;
 }
 
-Ray CameraManager::oGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+Ray CameraManager::oGetRayInformationFromOnTouchPosition(
+    TouchPair touch) const {
   auto castingValues = aGetRayInformationFromOnTouchPosition(touch);
   constexpr float defaultLength = 1000.0f;
   Ray returnRay(castingValues.first, castingValues.second, defaultLength);

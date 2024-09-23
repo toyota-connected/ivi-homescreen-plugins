@@ -32,7 +32,7 @@
 #include "collision_manager.h"
 #include "filament/gltfio/materials/uberarchive.h"
 
-#include "common/curl_client/curl_client.h"
+#include <curl_client/curl_client.h>
 #include "core/include/file_utils.h"
 
 namespace plugin_filament_view {

@@ -54,9 +54,7 @@ class EntityObject {
   EntityObject(std::string name, std::string global_guid);
 
   virtual ~EntityObject() {
-    for (auto it : components_) {
-      delete it;
-    }
+    // smart ptrs in components deleted on clear.
     components_.clear();
   }
 
@@ -65,7 +63,7 @@ class EntityObject {
 
   virtual void DebugPrint() const = 0;
 
-  const std::string& GetName() const { return name_; }
+  [[nodiscard]] const std::string& GetName() const { return name_; }
 
   void vAddComponent(std::shared_ptr<Component> component) {
     component->entityOwner_ = this;
@@ -74,7 +72,8 @@ class EntityObject {
 
   // Pass in the <DerivedClass>::StaticGetTypeID()
   // Returns component if valid, nullptr if not found.
-  Component* GetComponentByStaticTypeID(size_t staticTypeID) {
+  [[nodiscard]] std::shared_ptr<Component> GetComponentByStaticTypeID(
+      size_t staticTypeID) {
     for (const auto& item : components_) {
       if (item->GetTypeID() == staticTypeID) {
         return item;
@@ -83,7 +82,8 @@ class EntityObject {
     return nullptr;
   }
 
-  Component* GetComponentByStaticTypeID(size_t staticTypeID) const {
+  [[nodiscard]] std::shared_ptr<Component> GetComponentByStaticTypeID(
+      size_t staticTypeID) const {
     for (const auto& item : components_) {
       if (item->GetTypeID() == staticTypeID) {
         return item;
@@ -118,6 +118,6 @@ class EntityObject {
   // components frequently during runtime.
   //
   // In the future this is probably a map<type, vector_or_list<Comp*>>
-  std::vector<std::unique_ptr<Component>> components_;
+  std::vector<std::shared_ptr<Component>> components_;
 };
 }  // namespace plugin_filament_view

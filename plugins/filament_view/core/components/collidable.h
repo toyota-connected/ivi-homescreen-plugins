@@ -58,7 +58,7 @@ class Collidable : public Component {
   void SetShouldMatchAttachedObject(bool value) {
     m_bShouldMatchAttachedObject = value;
   }
-  void SetShapeType(ShapeType value) { shapeType_ = value; }
+  void SetShapeType(ShapeType value) { m_eShapeType = value; }
   void SetExtentsSize(const filament::math::float3& value) {
     m_f3ExtentsSize = value;
   }
@@ -69,7 +69,8 @@ class Collidable : public Component {
   void DebugPrint(const std::string& tabPrefix) const override;
 
   bool bDoesOverlap(const Collidable& other) const;
-  bool bDoesIntersect(const Ray& ray, ::filament::math::float3 &hitPosition) const;
+  bool bDoesIntersect(const Ray& ray,
+                      ::filament::math::float3& hitPosition) const;
 
   static size_t StaticGetTypeID() { return typeid(Collidable).hash_code(); }
 

@@ -86,8 +86,8 @@ class BaseShape : public EntityObject {
 
   // Components - saved off here for faster
   // lookup, but they're not owned here, but on EntityObject's list.
-  std::shared_ptr<BaseTransform> m_poBaseTransform;
-  std::shared_ptr<CommonRenderable> m_poCommonRenderable;
+  std::weak_ptr<BaseTransform> m_poBaseTransform;
+  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;

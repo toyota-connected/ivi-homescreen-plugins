@@ -44,9 +44,10 @@ class Component {
     return typeid(Component).hash_code();
   }
 
+  virtual ~Component() = default;
+
  protected:
   Component(const std::string& name) : name_(name) {}
-  virtual ~Component() = default;
 
   virtual const std::type_info& GetType() const { return typeid(*this); }
 
