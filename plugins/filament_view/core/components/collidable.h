@@ -22,6 +22,11 @@
 
 namespace plugin_filament_view {
 
+// At the time of checkin - m_bShouldMatchAttachedObject is expected to be
+// true at all times, and the IsStatic is not used in the false sense of updating
+// geometry. First pass is only static collidables spawning using data from
+// the base transform with on overrides. Expected work TBD for future improvements.
+
 class Collidable : public Component {
  public:
   Collidable()

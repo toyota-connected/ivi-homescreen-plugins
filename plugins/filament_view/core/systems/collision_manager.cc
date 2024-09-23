@@ -74,15 +74,18 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
+
+    // if its a shape
     auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
     if (originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
       originalCollidable->SetExtentsSize(
           originalShape->m_poBaseTransform.lock()->GetExtentsSize());
     }
+
+      // modeled handled below
   }
 
-  collidables_.push_back(collidable);
 
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;
@@ -117,11 +120,6 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 
     const auto& ourTransform = baseTransformPtr;
 
-    // SPDLOG_WARN("TEMP A {} {} {}", ourAABB.center().x, ourAABB.center().y,
-    // ourAABB.center().z); SPDLOG_WARN("TEMP B {} {} {}",
-    // ourTransform->GetCenterPosition().x, ourTransform->GetCenterPosition().y,
-    // ourTransform->GetCenterPosition().z);
-
     // Note i believe this is correct; more thorough testing is needed; there's
     // a concern around exporting models not centered at 0,0,0 and not being
     // 100% accurate.
@@ -129,6 +127,18 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
                                     ourTransform->GetCenterPosition());
     ourTransform->SetExtentsSize(ourAABB.extent());
     ourTransform->SetScale(ourAABB.extent());
+
+    if (originalCollidable != nullptr &&
+     originalCollidable->GetShouldMatchAttachedObject()) {
+        originalCollidable->SetCenterPoint( ourTransform->GetCenterPosition() );
+
+        originalCollidable->SetShapeType(ShapeType::Cube);
+        originalCollidable->SetExtentsSize(ourAABB.extent());
+
+        originalCollidable->DebugPrint("\t");
+      }
+
+    ourTransform->DebugPrint("From setup");
 
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
@@ -149,6 +159,8 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     spdlog::error("Failed to create collidable shape.");
     return;
   }
+
+  collidables_.push_back(collidable);
 
   newShape->m_bIsWireframe = true;
 
