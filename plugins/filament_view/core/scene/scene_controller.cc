@@ -390,20 +390,16 @@ void SceneController::onTouch(int32_t action,
 
   static constexpr int ACTION_DOWN = 0;
 
-  switch (action) {
-    case ACTION_DOWN: {
-      auto rayInfo =
-          cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
-      DebugLinesManager::Instance()->vAddLine(
-          rayInfo.f3GetPosition(),
-          rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+  if (action == ACTION_DOWN) {
+    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    DebugLinesManager::Instance()->vAddLine(
+        rayInfo.f3GetPosition(),
+        rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
 
-      auto hitList =
-          CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
-      CollisionManager::Instance()->SendCollisionInformationCallback(
-          hitList, "?TODO?", CollisionEventType::eNativeOnTouchBegin);
-
-    } break;
+    auto hitList =
+        CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
+    CollisionManager::Instance()->SendCollisionInformationCallback(
+        hitList, "?TODO?", CollisionEventType::eNativeOnTouchBegin);
   }
 
   if (cameraManager_) {

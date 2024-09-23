@@ -26,7 +26,10 @@
 namespace plugin_filament_view {
 
 Collidable::Collidable(const flutter::EncodableMap& params)
-    : Component(std::string(__FUNCTION__)) {
+    : Component(std::string(__FUNCTION__)),
+      m_f3CenterPosition({0}),
+      m_eShapeType(ShapeType::Cube),
+      m_f3ExtentsSize({1}) {
   auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
 
   // Check if the key exists and if the value is an EncodableMap

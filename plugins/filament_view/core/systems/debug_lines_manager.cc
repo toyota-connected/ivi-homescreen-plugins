@@ -19,6 +19,8 @@
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
+
+#include <utility>
 #include "core/utils/entitytransforms.h"
 #include "plugins/common/common.h"
 #include "viewer/custom_model_viewer.h"
@@ -36,7 +38,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
                      std::shared_ptr<utils::Entity> entity,
                      float fTimeToLive)
     : m_fRemainingTime(fTimeToLive),
-      m_poEntity(entity)  // Create entity
+      m_poEntity(std::move(entity))  // Create entity
 {
   vertices_.emplace_back(startingPoint);
   vertices_.emplace_back(endingPoint);  //,
@@ -84,8 +86,6 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       .castShadows(false)
       .build(*engine, *m_poEntity);
 }
-
-DebugLine::~DebugLine() {}
 
 void DebugLine::vCleanup(filament::Engine* engine) {
   if (m_poVertexBuffer) {
@@ -161,11 +161,12 @@ void DebugLinesManager::vAddLine(::filament::math::float3 startPoint,
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
   auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-  DebugLine* newDebugLine =
+  auto newDebugLine =
       new DebugLine(startPoint, endPoint, engine, oEntity, secondsTimeout);
-  ourLines_.emplace_back(newDebugLine);
 
   modelViewer->getFilamentScene()->addEntity(*oEntity);
+
+  ourLines_.emplace_back(newDebugLine);
 }
 
 }  // namespace plugin_filament_view

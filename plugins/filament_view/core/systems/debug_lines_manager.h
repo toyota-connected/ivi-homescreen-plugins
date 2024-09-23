@@ -33,7 +33,7 @@ class DebugLine {
             filament::Engine* engine,
             std::shared_ptr<utils::Entity> entity,
             float fTimeToLive);
-  virtual ~DebugLine();
+  virtual ~DebugLine() = default;
   void vCleanup(filament::Engine* engine);
 
   float m_fRemainingTime;

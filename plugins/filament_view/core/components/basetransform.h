@@ -70,7 +70,9 @@ class BaseTransform : public Component {
 
   [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  Component* Clone() const override { return new BaseTransform(*this); }
+  [[nodiscard]] Component* Clone() const override {
+    return new BaseTransform(*this);
+  }
 
  private:
   filament::math::float3 m_f3CenterPosition;

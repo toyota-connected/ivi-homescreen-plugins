@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "entityobject.h"
+
+#include <utility>
 #include "core/include/literals.h"
 #include "core/utils/uuidGenerator.h"
 #include "plugins/common/common.h"
@@ -21,15 +23,15 @@
 namespace plugin_filament_view {
 
 EntityObject::EntityObject(std::string name)
-    : global_guid_(generateUUID()), name_(name) {}
+    : global_guid_(generateUUID()), name_(std::move(name)) {}
 
 EntityObject::EntityObject(std::string name, std::string global_guid)
-    : global_guid_(global_guid), name_(name) {}
+    : global_guid_(std::move(global_guid)), name_(std::move(name)) {}
 
-void EntityObject::vOverrideName(std::string name) {
+void EntityObject::vOverrideName(const std::string& name) {
   name_ = name;
 }
-void EntityObject::vOverrideGlobalGuid(std::string global_guid) {
+void EntityObject::vOverrideGlobalGuid(const std::string& global_guid) {
   global_guid_ = global_guid;
 }
 
@@ -42,7 +44,7 @@ void EntityObject::DeserializeNameAndGlobalGuid(
     // they're requesting entity be named what they want.
     requestedName = std::get<std::string>(itName->second);
 
-    if (requestedName.length() > 0) {
+    if (!requestedName.empty()) {
       vOverrideName(requestedName);
       SPDLOG_INFO("OVERRIDING NAME: {}", requestedName);
     }
@@ -53,7 +55,7 @@ void EntityObject::DeserializeNameAndGlobalGuid(
     // they're requesting entity have a guid they desire.
     // Note! There's no clash checking here.
     requestedGlobalGUID = std::get<std::string>(itGUID->second);
-    if (requestedGlobalGUID.length() > 0) {
+    if (!requestedGlobalGUID.empty()) {
       vOverrideGlobalGuid(requestedGlobalGUID);
       SPDLOG_INFO("OVERRIDING GLOBAL GUID: {}", requestedGlobalGUID);
     }

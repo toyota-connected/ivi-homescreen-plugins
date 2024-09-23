@@ -18,6 +18,8 @@
 
 #include <core/components/collidable.h>
 
+#include <utility>
+
 #include "core/include/literals.h"
 #include "core/scene/scene.h"
 #include "core/utils/deserialize.h"
@@ -67,8 +69,8 @@ GlbModel::GlbModel(std::string assetPath,
             std::move(url),
             fallback,
             animation,
-            poTransform,
-            poCommonRenderable,
+            std::move(poTransform),
+            std::move(poCommonRenderable),
             params) {}
 
 GltfModel::GltfModel(std::string assetPath,
@@ -84,8 +86,8 @@ GltfModel::GltfModel(std::string assetPath,
             std::move(url),
             fallback,
             animation,
-            poTransform,
-            poCommonRenderable,
+            std::move(poTransform),
+            std::move(poCommonRenderable),
             params),
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}

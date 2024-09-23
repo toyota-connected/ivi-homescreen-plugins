@@ -42,8 +42,6 @@ flutter::EncodableValue HitResult::Encode() const {
   return flutter::EncodableValue(encodableMap);
 }
 
-CollisionManager::CollisionManager() {}
-
 /////////////////////////////////////////////////////////////////////////////////////////
 CollisionManager* CollisionManager::m_poInstance = nullptr;
 CollisionManager* CollisionManager::Instance() {
@@ -55,7 +53,8 @@ CollisionManager* CollisionManager::Instance() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CollisionManager::bHasEntityObjectRepresentation(EntityGUID guid) const {
+bool CollisionManager::bHasEntityObjectRepresentation(
+    const EntityGUID& guid) const {
   return collidablesDebugDrawingRepresentation_.find(guid) !=
          collidablesDebugDrawingRepresentation_.end();
 }
@@ -73,17 +72,13 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
       collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
           .get());
 
-  originalCollidable->DebugPrint("Original collidable");
-
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
     auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
-    SPDLOG_WARN("ORIGINAL SHAPE");
     if (originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
       originalCollidable->SetExtentsSize(
           originalShape->m_poBaseTransform.lock()->GetExtentsSize());
-      originalCollidable->DebugPrint("Collidable push back");
     }
   }
 
@@ -120,7 +115,7 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
     newShape->m_poCommonRenderable =
         std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 
-    auto ourTransform = baseTransformPtr;
+    const auto& ourTransform = baseTransformPtr;
 
     // SPDLOG_WARN("TEMP A {} {} {}", ourAABB.center().x, ourAABB.center().y,
     // ourAABB.center().z); SPDLOG_WARN("TEMP B {} {} {}",
@@ -203,6 +198,10 @@ void CollisionManager::vTurnOffRenderingOfCollidables() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::DebugPrint() {
   spdlog::debug("CollisionManager Debug Info:");
+
+  for (auto& collidable : collidables_) {
+    collidable->DebugPrint();
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -266,8 +265,7 @@ std::list<HitResult> CollisionManager::lstCheckForCollidable(
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionManager::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
-  const std::string channel_name =
-      std::string("plugin.filament_view.collision_info");
+  auto channel_name = std::string("plugin.filament_view.collision_info");
 
   collisionInfoCallback_ = std::make_unique<flutter::MethodChannel<>>(
       plugin_registrar->messenger(), channel_name,

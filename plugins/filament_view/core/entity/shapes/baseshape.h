@@ -51,7 +51,7 @@ class BaseShape : public EntityObject {
 
   BaseShape();
 
-  virtual ~BaseShape();
+  ~BaseShape() override;
 
   virtual void DebugPrint(const char* tag) const;
 

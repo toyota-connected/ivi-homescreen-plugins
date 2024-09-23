@@ -32,7 +32,7 @@ class HitResult {
   std::string name_;
   ::filament::math::float3 hitPosition_;
 
-  flutter::EncodableValue Encode() const;
+  [[nodiscard]] flutter::EncodableValue Encode() const;
 };
 
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
@@ -40,8 +40,6 @@ class HitResult {
 // efficient.
 class CollisionManager {
  public:
-  CollisionManager();
-
   void vCleanup();
   void DebugPrint();
 
@@ -70,11 +68,14 @@ class CollisionManager {
                                         CollisionEventType eType) const;
 
   // Checks to see if we already has this guid in our mapping.
-  bool bHasEntityObjectRepresentation(EntityGUID guid) const;
+  [[nodiscard]] bool bHasEntityObjectRepresentation(
+      const EntityGUID& guid) const;
 
   static CollisionManager* Instance();
 
  private:
+  CollisionManager() = default;
+
   static CollisionManager* m_poInstance;
 
   bool currentlyDrawingDebugCollidables = false;

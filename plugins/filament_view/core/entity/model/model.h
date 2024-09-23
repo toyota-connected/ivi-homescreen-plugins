@@ -39,7 +39,7 @@ class Model : public EntityObject {
         std::shared_ptr<CommonRenderable> poCommonRenderable,
         const flutter::EncodableMap& params);
 
-  virtual ~Model() = default;
+  ~Model() override = default;
 
   static std::unique_ptr<Model> Deserialize(
       const std::string& flutterAssetsPath,
@@ -57,12 +57,14 @@ class Model : public EntityObject {
     m_poAsset = poAsset;
   }
 
-  filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
+  [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const {
+    return m_poAsset;
+  }
 
-  const std::shared_ptr<BaseTransform> GetBaseTransform() const {
+  [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
     return m_poBaseTransform.lock();
   }
-  const std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
+  [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
     return m_poCommonRenderable.lock();
   }
 

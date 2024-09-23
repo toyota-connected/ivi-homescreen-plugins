@@ -68,7 +68,7 @@ class Collidable : public Component {
 
   void DebugPrint(const std::string& tabPrefix) const override;
 
-  bool bDoesOverlap(const Collidable& other) const;
+  [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
   bool bDoesIntersect(const Ray& ray,
                       ::filament::math::float3& hitPosition) const;
 
@@ -76,7 +76,7 @@ class Collidable : public Component {
 
   [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  Component* Clone() const override {
+  [[nodiscard]] Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
   }
 

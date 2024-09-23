@@ -36,19 +36,22 @@ class EntityObject {
 
   // Pass in the <DerivedClass>::StaticGetTypeID()
   // Returns true if valid, false if not found.
-  bool HasComponentByStaticTypeID(size_t staticTypeID) const {
-    for (const auto& item : components_) {
-      if (item->GetTypeID() == staticTypeID) {
-        return true;
-      }
-    }
-    return false;
+  [[nodiscard]] bool HasComponentByStaticTypeID(size_t staticTypeID) const {
+    return std::any_of(components_.begin(), components_.end(),
+                       [staticTypeID](const auto& item) {
+                         return item->GetTypeID() == staticTypeID;
+                       });
   }
 
-  const std::string& GetGlobalGuid() const { return global_guid_; }
+  [[nodiscard]] const std::string& GetGlobalGuid() const {
+    return global_guid_;
+  }
+
+  EntityObject(const EntityObject&) = delete;
+  EntityObject& operator=(const EntityObject&) = delete;
 
  protected:
-  EntityObject(std::string name);
+  explicit EntityObject(std::string name);
   // Note, global_guid, needs to be unique here; this is mainly here for
   // creating objects that are GUID created in non-native code.
   EntityObject(std::string name, std::string global_guid);
@@ -57,9 +60,6 @@ class EntityObject {
     // smart ptrs in components deleted on clear.
     components_.clear();
   }
-
-  EntityObject(const EntityObject&) = delete;
-  EntityObject& operator=(const EntityObject&) = delete;
 
   virtual void DebugPrint() const = 0;
 
@@ -111,8 +111,8 @@ class EntityObject {
   // This is currently called on objection deserialization from non-native
   // code where they are in control of the naming of objects for easier
   // use.
-  void vOverrideName(std::string name);
-  void vOverrideGlobalGuid(std::string global_guid);
+  void vOverrideName(const std::string& name);
+  void vOverrideGlobalGuid(const std::string& global_guid);
 
   // Vector for now, we shouldn't be adding and removing
   // components frequently during runtime.

@@ -58,7 +58,7 @@ class CommonRenderable : public Component {
 
   [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  Component* Clone() const override {
+  [[nodiscard]] Component* Clone() const override {
     return new CommonRenderable(*this);  // Copy constructor is called here
   }
 

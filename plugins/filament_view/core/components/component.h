@@ -38,7 +38,7 @@ class Component {
 
   [[nodiscard]] std::string GetName() { return name_; }
 
-  virtual size_t GetTypeID() const = 0;
+  [[nodiscard]] virtual size_t GetTypeID() const = 0;
 
   [[nodiscard]] static size_t StaticGetTypeID() {
     return typeid(Component).hash_code();
@@ -47,7 +47,7 @@ class Component {
   virtual ~Component() = default;
 
  protected:
-  Component(const std::string& name) : name_(name) {}
+  Component(const std::string& name) : name_(name), entityOwner_(nullptr) {}
 
   virtual const std::type_info& GetType() const { return typeid(*this); }
 

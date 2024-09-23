@@ -86,7 +86,7 @@ ModelManager::~ModelManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelManager::destroyAllAssetsOnModels() {
-  for (auto model : m_mapszpoAssets) {
+  for (const auto& model : m_mapszpoAssets) {
     destroyAsset(model.second->getAsset());
     delete model.second;
   }
@@ -257,7 +257,7 @@ void ModelManager::updateAsyncAssetLoading() {
   // eventually settle
   float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
-  for (auto asset : m_mapszpoAssets) {
+  for (const auto& asset : m_mapszpoAssets) {
     populateSceneWithAsyncLoadedAssets(asset.second);
 
     if (percentComplete != 1.0f) {

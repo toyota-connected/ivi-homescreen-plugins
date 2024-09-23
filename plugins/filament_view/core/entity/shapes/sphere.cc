@@ -181,7 +181,7 @@ void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/,
 void Sphere::CloneToOther(BaseShape& other) const {
   BaseShape::CloneToOther(other);
 
-  Sphere* otherShape = dynamic_cast<Sphere*>(&other);
+  auto otherShape = dynamic_cast<Sphere*>(&other);
 
   otherShape->slices_ = slices_;
   otherShape->stacks_ = stacks_;

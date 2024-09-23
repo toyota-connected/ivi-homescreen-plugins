@@ -122,8 +122,7 @@ CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
 
 void CustomModelViewer::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
-  const std::string channel_name =
-      std::string("plugin.filament_view.frame_view");
+  auto channel_name = std::string("plugin.filament_view.frame_view");
 
   frameViewCallback_ = std::make_unique<flutter::MethodChannel<>>(
       plugin_registrar->messenger(), channel_name,
