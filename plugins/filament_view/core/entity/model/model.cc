@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-#include "core/model/model.h"
+#include "core/entity/model/model.h"
+
+#include <core/components/collidable.h>
+
+#include <utility>
 
 #include "core/include/literals.h"
+#include "core/scene/scene.h"
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
@@ -26,28 +31,47 @@ Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
              Animation* animation,
-             BaseTransform& oTransform,
-             CommonRenderable& oCommonRenderable)
-    : assetPath_(std::move(assetPath)),
+             std::shared_ptr<BaseTransform> poTransform,
+             std::shared_ptr<CommonRenderable> poCommonRenderable,
+             const flutter::EncodableMap& params)
+    : EntityObject(assetPath),
+      assetPath_(std::move(assetPath)),
       url_(std::move(url)),
       fallback_(fallback),
       animation_(animation),
-      m_oBaseTransform(oTransform),
-      m_oCommonRenderable(oCommonRenderable),
-      m_poAsset(nullptr) {}
+      m_poAsset(nullptr) {
+  m_poBaseTransform = std::weak_ptr<BaseTransform>(poTransform);
+  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(poCommonRenderable);
+
+  DeserializeNameAndGlobalGuid(params);
+
+  vAddComponent(std::move(poTransform));
+  vAddComponent(std::move(poCommonRenderable));
+
+  // if we have collidable data request, we need to build that component, as its
+  // optional
+  auto it = params.find(flutter::EncodableValue(kCollidable));
+  if (it != params.end() && !it->second.IsNull()) {
+    // They're requesting a collidable on this object. Make one.
+    auto collidableComp = std::make_shared<Collidable>(params);
+    vAddComponent(std::move(collidableComp));
+  }
+}
 
 GlbModel::GlbModel(std::string assetPath,
                    std::string url,
                    Model* fallback,
                    Animation* animation,
-                   BaseTransform& oTransform,
-                   CommonRenderable& oCommonRenderable)
+                   std::shared_ptr<BaseTransform> poTransform,
+                   std::shared_ptr<CommonRenderable> poCommonRenderable,
+                   const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
-            oTransform,
-            oCommonRenderable) {}
+            std::move(poTransform),
+            std::move(poCommonRenderable),
+            params) {}
 
 GltfModel::GltfModel(std::string assetPath,
                      std::string url,
@@ -55,14 +79,16 @@ GltfModel::GltfModel(std::string assetPath,
                      std::string pathPostfix,
                      Model* fallback,
                      Animation* animation,
-                     BaseTransform& oTransform,
-                     CommonRenderable& oCommonRenderable)
+                     std::shared_ptr<BaseTransform> poTransform,
+                     std::shared_ptr<CommonRenderable> poCommonRenderable,
+                     const flutter::EncodableMap& params)
     : Model(std::move(assetPath),
             std::move(url),
             fallback,
             animation,
-            oTransform,
-            oCommonRenderable),
+            std::move(poTransform),
+            std::move(poCommonRenderable),
+            params),
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
@@ -78,8 +104,8 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
-  BaseTransform oTransform(params);
-  CommonRenderable oCommonRenderable(params);
+  auto oTransform = std::make_shared<BaseTransform>(params);
+  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
   for (const auto& it : params) {
     if (it.second.IsNull())
@@ -118,7 +144,7 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", nullptr,
         animation ? animation.release() : nullptr, oTransform,
-        oCommonRenderable);
+        oCommonRenderable, params);
   }
 
   return std::make_unique<plugin_filament_view::GltfModel>(
@@ -126,6 +152,12 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
       url.has_value() ? std::move(url.value()) : "",
       pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
       pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", nullptr,
-      animation ? animation.release() : nullptr, oTransform, oCommonRenderable);
+      animation ? animation.release() : nullptr, oTransform, oCommonRenderable,
+      params);
 }
+
+void Model::DebugPrint() const {
+  vDebugPrintComponents();
+}
+
 }  // namespace plugin_filament_view

@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#pragma once
-
-#include <math/vec3.h>
-
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
+#include "ray.h"
+#include "core/include/literals.h"
+#include "core/utils/deserialize.h"
+#include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 
-typedef ::filament::math::float3 Direction;
+Ray::Ray(const flutter::EncodableMap& params)
+    : direction_({0, 0, -1}), position_({0, 0, 0}), length_(1.0f) {
+  Deserialize::DecodeParameterWithDefault(kDirection, &direction_, params,
+                                          filament::math::float3(0, 0, -1));
+  Deserialize::DecodeParameterWithDefault(kStartingPosition, &position_, params,
+                                          filament::math::float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kLength, &length_, params, 1.0f);
+}
 
 }  // namespace plugin_filament_view

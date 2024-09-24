@@ -83,6 +83,10 @@ class FilamentViewPlugin : public flutter::Plugin,
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
+  void ToggleDebugCollidableViewsInScene(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
   void ToggleCameraAutoRotate(
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) override;

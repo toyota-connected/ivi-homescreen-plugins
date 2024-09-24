@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/shapes/baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 
@@ -31,6 +31,7 @@ class Plane : public BaseShape {
  public:
   Plane(const std::string& flutter_assets_path,
         const flutter::EncodableMap& params);
+  Plane() = default;
   ~Plane() override = default;
 
   // Disallow copy and assign.

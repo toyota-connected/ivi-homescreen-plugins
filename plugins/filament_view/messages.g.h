@@ -115,6 +115,10 @@ class FilamentViewApi {
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
+  virtual void ToggleDebugCollidableViewsInScene(
+      bool value,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
   virtual void ToggleCameraAutoRotate(
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;

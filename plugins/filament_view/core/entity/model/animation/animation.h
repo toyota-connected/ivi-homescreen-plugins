@@ -23,7 +23,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/model/model.h"
+#include "core/entity/model/model.h"
 #include "core/scene/geometry/position.h"
 #include "math/vec3.h"
 

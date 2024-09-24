@@ -17,29 +17,41 @@
 #pragma once
 
 #include <filament/math/quat.h>
+#include <utils/EntityManager.h>
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
 #include "core/scene/material/material_definitions.h"
 
 #include "core/components/basetransform.h"
 #include "core/components/commonrenderable.h"
 
+#include "core/include/shapetypes.h"
+
+#include "core/entity/entityobject.h"
+
+#include <filament/IndexBuffer.h>
+#include <filament/VertexBuffer.h>
+
 namespace plugin_filament_view {
 
 class MaterialManager;
+class CollisionManager;
 using ::utils::Entity;
 
 namespace shapes {
 
-class BaseShape {
+class BaseShape : public EntityObject {
+  friend class plugin_filament_view::CollisionManager;
+
  public:
   BaseShape(const std::string& flutter_assets_path,
             const flutter::EncodableMap& params);
 
-  virtual ~BaseShape();
+  BaseShape();
+
+  ~BaseShape() override;
 
   virtual void DebugPrint(const char* tag) const;
 
@@ -47,7 +59,9 @@ class BaseShape {
   BaseShape(const BaseShape&) = delete;
   BaseShape& operator=(const BaseShape&) = delete;
 
-  //[[nodiscard]] Material* getMaterial() const { return m_poMaterial->get(); }
+  // will copy over properties, but not 'create' anything.
+  // similar to a shallow copy.
+  virtual void CloneToOther(BaseShape& other) const;
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                                    std::shared_ptr<Entity> entityObject,
@@ -56,12 +70,11 @@ class BaseShape {
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
 
-  // futures to create - capsule, cylinder
-  enum class ShapeType { Unset = 0, Plane = 1, Cube = 2, Sphere = 3, Max };
-
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer;
   ::filament::IndexBuffer* m_poIndexBuffer;
+
+  void DebugPrint() const override;
 
   // uses Vertex and Index buffer to create the material and geometry
   // using all the internal variables.
@@ -71,9 +84,10 @@ class BaseShape {
   int id{};
   ShapeType type_{};
 
-  // Components
-  BaseTransform m_oBaseTransform;
-  CommonRenderable m_oCommonRenderable;
+  // Components - saved off here for faster
+  // lookup, but they're not owned here, but on EntityObject's list.
+  std::weak_ptr<BaseTransform> m_poBaseTransform;
+  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;
@@ -93,6 +107,11 @@ class BaseShape {
 
  private:
   void vDestroyBuffers();
+
+  // This does NOT come over as a property (currently), only used by
+  // CollisionManager when created debug wireframe models for seeing collidable
+  // shapes.
+  bool m_bIsWireframe = false;
 };
 
 }  // namespace shapes

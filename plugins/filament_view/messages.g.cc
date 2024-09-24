@@ -16,6 +16,8 @@
 
 #include "messages.g.h"
 
+#include <core/scene/geometry/ray.h>
+#include <core/systems/collision_manager.h>
 #include <map>
 #include <sstream>
 #include <string>
@@ -25,6 +27,10 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
+#include <math/mathfwd.h>
+#include <math/vec3.h>
+
+#include "core/include/literals.h"
 
 #include "plugins/common/common.h"
 
@@ -52,31 +58,6 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           [api](const MethodCall<EncodableValue>& methodCall,
                 std::unique_ptr<MethodResult<EncodableValue>> result) {
             spdlog::trace("[{}]", methodCall.method_name());
-
-            static constexpr char kChangeAnimationByIndex[] =
-                "CHANGE_ANIMATION_BY_INDEX";
-
-            static constexpr char kChangeLightColorByIndex[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX";
-            static constexpr char kChangeLightColorByIndexKey[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_KEY";
-            static constexpr char kChangeLightColorByIndexColor[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_COLOR";
-            static constexpr char kChangeLightColorByIndexIntensity[] =
-                "CHANGE_DIRECT_LIGHT_COLOR_BY_INDEX_INTENSITY";
-
-            static constexpr char kToggleShapesInScene[] =
-                "TOGGLE_SHAPES_IN_SCENE";
-            static constexpr char kToggleShapesInSceneValue[] =
-                "TOGGLE_SHAPES_IN_SCENE_VALUE";
-
-            static constexpr char kToggleCameraAutoRotate[] =
-                "TOGGLE_CAMERA_AUTO_ROTATE";
-            static constexpr char kToggleCameraAutoRotateValue[] =
-                "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
-            static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
-            static constexpr char kChangeCameraRotationValue[] =
-                "ROTATE_CAMERA_VALUE";
 
             if (methodCall.method_name() == kChangeAnimationByIndex) {
               result->Success();
@@ -116,6 +97,18 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
               result->Success();
+            } else if (methodCall.method_name() ==
+                       kToggleCollidableVisualsInScene) {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
+              for (auto& it : *args) {
+                if (kToggleCollidableVisualsInSceneValue ==
+                    std::get<std::string>(it.first)) {
+                  bool bValue = std::get<bool>(it.second);
+                  api->ToggleDebugCollidableViewsInScene(bValue, nullptr);
+                }
+              }
+              result->Success();
             } else if (methodCall.method_name() == kToggleCameraAutoRotate) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
@@ -137,6 +130,52 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                   api->SetCameraRotation(fValue, nullptr);
                 }
               }
+              result->Success();
+            } else if (methodCall.method_name() == kCollisionRayRequest) {
+              const auto& args =
+                  std::get_if<EncodableMap>(methodCall.arguments());
+              filament::math::float3 origin;
+              filament::math::float3 direction;
+              float length;
+              std::string guidForReferenceLookup;
+              for (auto& it : *args) {
+                if (kCollisionRayRequestOriginX ==
+                    std::get<std::string>(it.first)) {
+                  origin.x = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestOriginY ==
+                           std::get<std::string>(it.first)) {
+                  origin.y = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestOriginZ ==
+                           std::get<std::string>(it.first)) {
+                  origin.z = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionX ==
+                           std::get<std::string>(it.first)) {
+                  direction.x = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionY ==
+                           std::get<std::string>(it.first)) {
+                  direction.y = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestDirectionZ ==
+                           std::get<std::string>(it.first)) {
+                  direction.z = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestLength ==
+                           std::get<std::string>(it.first)) {
+                  length = static_cast<float>(std::get<double>(it.second));
+                } else if (kCollisionRayRequestGUID ==
+                           std::get<std::string>(it.first)) {
+                  guidForReferenceLookup = std::get<std::string>(it.second);
+                }
+              }
+
+              // ideally this is an async call, so we won't return results
+              // in-line here.
+              Ray rayInfo(origin, direction, length);
+              auto hitList =
+                  CollisionManager::Instance()->lstCheckForCollidable(rayInfo,
+                                                                      0);
+              CollisionManager::Instance()->SendCollisionInformationCallback(
+                  hitList, guidForReferenceLookup,
+                  CollisionEventType::eFromNonNative);
+
               result->Success();
             } else {
               result->NotImplemented();

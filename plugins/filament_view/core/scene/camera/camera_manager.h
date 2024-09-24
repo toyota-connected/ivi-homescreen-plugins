@@ -19,6 +19,7 @@
 #include "camera.h"
 
 #include <camutils/Manipulator.h>
+#include <core/scene/geometry/ray.h>
 #include <filament/Camera.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
@@ -96,6 +97,11 @@ class CameraManager {
   CameraManager(const CameraManager&) = delete;
 
   CameraManager& operator=(const CameraManager&) = delete;
+
+  std::pair<filament::math::float3, filament::math::float3>
+  aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
+
+  Ray oGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm

@@ -56,8 +56,8 @@ namespace plugin_filament_view {
       w = std::get<double>(it.second);
     }
   }
-  return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z),
-          static_cast<float>(w)};
+  return {static_cast<float>(w), static_cast<float>(x), static_cast<float>(y),
+          static_cast<float>(z)};
 }
 
 void Deserialize::DecodeParameterWithDefault(
@@ -100,6 +100,32 @@ void Deserialize::DecodeParameterWithDefault(
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value =
         Deserialize::Format4(std::get<flutter::EncodableMap>(it->second));
+  } else {
+    *out_value = default_value;
+  }
+}
+
+void Deserialize::DecodeParameterWithDefault(
+    const char* key,
+    double* out_value,
+    const flutter::EncodableMap& params,
+    const double& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() && std::holds_alternative<double>(it->second)) {
+    *out_value = std::get<double>(it->second);
+  } else {
+    *out_value = default_value;
+  }
+}
+
+void Deserialize::DecodeParameterWithDefaultInt64(
+    const char* key,
+    int64_t* out_value,
+    const flutter::EncodableMap& params,
+    const int64_t& default_value) {
+  auto it = params.find(flutter::EncodableValue(key));
+  if (it != params.end() && std::holds_alternative<int64_t>(it->second)) {
+    *out_value = std::get<int64_t>(it->second);
   } else {
     *out_value = default_value;
   }

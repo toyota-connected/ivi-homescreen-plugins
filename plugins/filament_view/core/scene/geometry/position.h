@@ -18,60 +18,8 @@
 
 #include <math/vec3.h>
 
-#include "core/scene/camera/camera_manager.h"
-#include "core/scene/light/light.h"
-#include "core/scene/light/light_manager.h"
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
-
 namespace plugin_filament_view {
 
-class CameraManager;
-class LightManager;
-class Light;
-
-class Position {
- public:
-  explicit Position(float x = 0.0f, float y = 0.0f, float z = 0.0f)
-      : x_(x), y_(y), z_(z) {}
-
-  static std::unique_ptr<Position> Deserialize(
-      const flutter::EncodableMap& params);
-
-  // getter methods
-  [[nodiscard]] float getX() const { return x_; }
-
-  [[nodiscard]] float getY() const { return y_; }
-
-  [[nodiscard]] float getZ() const { return z_; }
-
-  // setter methods
-  void setX(float newX) { x_ = newX; }
-
-  void setY(float newY) { y_ = newY; }
-
-  void setZ(float newZ) { z_ = newZ; }
-
-  [[nodiscard]] filament::math::float3 toFloatArray() const {
-    return {x_, y_, z_};
-  }
-
-  void Print(const char* tag) const;
-
-  // Disallow copy and assign.
-  Position(const Position&) = delete;
-
-  Position& operator=(const Position&) = delete;
-
-  friend class CameraManager;
-
-  friend class LightManager;
-
-  friend class Light;
-
- private:
-  float x_, y_, z_;
-};
+typedef ::filament::math::float3 Position;
 
 }  // namespace plugin_filament_view

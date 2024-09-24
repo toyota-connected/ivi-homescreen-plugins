@@ -20,15 +20,15 @@
 #include <gltfio/AssetLoader.h>
 #include <gltfio/ResourceLoader.h>
 
+#include "core/entity/model/animation/animation_manager.h"
+#include "core/entity/model/model.h"
+#include "core/entity/shapes/baseshape.h"
 #include "core/include/resource.h"
-#include "core/model/animation/animation_manager.h"
-#include "core/model/model.h"
 #include "core/scene/indirect_light/indirect_light_manager.h"
 #include "core/scene/light/light_manager.h"
 #include "core/scene/material/material_manager.h"
 #include "core/scene/skybox/skybox_manager.h"
-#include "core/shapes/baseshape.h"
-#include "core/shapes/shape_manager.h"
+#include "core/systems/shape_manager.h"
 #include "core/utils/ibl_profiler.h"
 #include "flutter_desktop_engine_state.h"
 #include "platform_views/platform_view.h"
@@ -38,25 +38,15 @@
 namespace plugin_filament_view {
 
 class Model;
-
 class Scene;
-
 class LightManager;
-
 class IndirectLightManager;
-
 class SkyboxManager;
-
 class Animation;
-
 class AnimationManager;
-
 class CameraManager;
-
 class GroundManager;
-
 class MaterialManager;
-
 class ShapeManager;
 
 namespace shapes {

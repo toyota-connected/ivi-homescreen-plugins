@@ -20,7 +20,7 @@
 
 #include <list>
 
-#include "baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 #include "core/scene/material/material_manager.h"
 #include "viewer/custom_model_viewer.h"
 

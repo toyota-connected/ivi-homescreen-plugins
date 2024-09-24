@@ -16,9 +16,12 @@
 
 #include "scene_controller.h"
 
+#include <core/systems/debug_lines_manager.h>
 #include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
+
+#include "core/systems//collision_manager.h"
 
 #include "plugins/common/common.h"
 
@@ -277,7 +280,7 @@ void SceneController::setUpLoadingModels() {
     } else {
       // use the entities transform(s) data.
       EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
-                                        poCurrModel->GetBaseTransform());
+                                        *poCurrModel->GetBaseTransform());
 
       setUpAnimation(poCurrModel->GetAnimation());
     }
@@ -294,6 +297,14 @@ void SceneController::setUpShapes(
     std::vector<std::unique_ptr<shapes::BaseShape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
+
+  for (const auto& shape : *shapes) {
+    if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
+      CollisionManager::Instance()->vAddCollidable(shape.get());
+    }
+  }
+
+  // This method releases shapes,
   shapeManager_->addShapesToScene(shapes);
 }
 
@@ -329,7 +340,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
   } else if (dynamic_cast<GltfModel*>(model)) {
     auto gltf_model = dynamic_cast<GltfModel*>(model);
     if (!gltf_model->assetPath_.empty()) {
-      auto f = plugin_filament_view::ModelLoader::loadGltfFromAsset(
+      auto f = plugin_filament_view::ModelManager::loadGltfFromAsset(
           model, gltf_model->assetPath_, gltf_model->pathPrefix_,
           gltf_model->pathPostfix_);
       f.wait();
@@ -337,7 +348,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
     }
 
     if (!gltf_model->url_.empty()) {
-      auto f = plugin_filament_view::ModelLoader::loadGltfFromUrl(
+      auto f = plugin_filament_view::ModelManager::loadGltfFromUrl(
           model, gltf_model->url_);
       f.wait();
       return f.get();
@@ -372,6 +383,25 @@ void SceneController::onTouch(int32_t action,
                               int32_t point_count,
                               size_t point_data_size,
                               const double* point_data) {
+  // if action is 0, then on 'first' touch, cast ray from camera;
+  auto viewport = modelViewer_->getFilamentView()->getViewport();
+  auto touch =
+      TouchPair(point_count, point_data_size, point_data, viewport.height);
+
+  static constexpr int ACTION_DOWN = 0;
+
+  if (action == ACTION_DOWN) {
+    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    DebugLinesManager::Instance()->vAddLine(
+        rayInfo.f3GetPosition(),
+        rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+
+    auto hitList =
+        CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
+    CollisionManager::Instance()->SendCollisionInformationCallback(
+        hitList, "?TODO?", CollisionEventType::eNativeOnTouchBegin);
+  }
+
   if (cameraManager_) {
     cameraManager_->onAction(action, point_count, point_data_size, point_data);
   }

@@ -15,16 +15,17 @@
  */
 #pragma once
 
-#include <filament/math/quat.h>
+#include "component.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 namespace plugin_filament_view {
 
-class CommonRenderable {
+class CommonRenderable : public Component {
  public:
   // Constructor
   CommonRenderable()
-      : m_bCullingOfObjectEnabled(true),
+      : Component(std::string(__FUNCTION__)),
+        m_bCullingOfObjectEnabled(true),
         m_bCastShadows(false),
         m_bReceiveShadows(false) {}
   explicit CommonRenderable(const flutter::EncodableMap& params);
@@ -49,7 +50,17 @@ class CommonRenderable {
 
   void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-  void DebugPrint() const;
+  void DebugPrint(const std::string& tabPrefix) const override;
+
+  static size_t StaticGetTypeID() {
+    return typeid(CommonRenderable).hash_code();
+  }
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] Component* Clone() const override {
+    return new CommonRenderable(*this);  // Copy constructor is called here
+  }
 
  private:
   bool m_bCullingOfObjectEnabled;

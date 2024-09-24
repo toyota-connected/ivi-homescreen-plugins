@@ -18,6 +18,10 @@
 
 #include "asio/post.hpp"
 
+#include <filament/math/TMatHelpers.h>
+#include <filament/math/mat4.h>
+#include <filament/math/vec4.h>
+
 #include "plugins/common/common.h"
 #include "touch_pair.h"
 
@@ -353,7 +357,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
   // Note these TODOs are marked for a next iteration tasking.
 
   // TODO this should be moved to a property on camera
-  constexpr float speed = 0.05f;  // Rotation speed
+  constexpr float speed = 0.5f;  // Rotation speed
   // TODO this should be moved to a property on camera
   constexpr float radius = 8.0f;  // Distance from the camera to the object
 
@@ -411,6 +415,44 @@ bool CameraManager::isZoomGesture() {
   auto oldest = tentativeZoomEvents_.front().separation();
   auto newest = tentativeZoomEvents_.back().separation();
   return std::abs(newest - oldest) > kZoomConfidenceDistance;
+}
+
+Ray CameraManager::oGetRayInformationFromOnTouchPosition(
+    TouchPair touch) const {
+  auto castingValues = aGetRayInformationFromOnTouchPosition(touch);
+  constexpr float defaultLength = 1000.0f;
+  Ray returnRay(castingValues.first, castingValues.second, defaultLength);
+  return returnRay;
+}
+
+std::pair<filament::math::float3, filament::math::float3>
+CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+  auto viewport = CustomModelViewer::Instance(__FUNCTION__)
+                      ->getFilamentView()
+                      ->getViewport();
+
+  // Note at time of writing on a 800*600 resolution this seems like the 10%
+  // edges aren't super accurate this might need to be looked at more.
+
+  float ndcX = (2.0f * (float)touch.x()) / (float)viewport.width - 1.0f;
+  float ndcY = 1.0f - (2.0f * (float)touch.y()) / (float)viewport.height;
+  ndcY = -ndcY;
+
+  filament::math::vec4<float> rayClip(ndcX, ndcY, -1.0f, 1.0f);
+
+  // Get inverse projection and view matrices
+  filament::math::mat4 invProj = inverse(camera_->getProjectionMatrix());
+  filament::math::vec4<double> rayView = invProj * rayClip;
+  rayView = filament::math::vec4<double>(rayView.x, rayView.y, -1.0f, 0.0f);
+
+  filament::math::mat4 invView = inverse(camera_->getViewMatrix());
+  filament::math::vec3<double> rayDirection = (invView * rayView).xyz;
+  rayDirection = normalize(rayDirection);
+
+  // Camera position
+  filament::math::vec3<double> rayOrigin = invView[3].xyz;
+
+  return {rayOrigin, rayDirection};
 }
 
 void CameraManager::onAction(int32_t action,

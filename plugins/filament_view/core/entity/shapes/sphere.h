@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/shapes/baseshape.h"
+#include "core/entity/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 
@@ -27,28 +27,38 @@ using ::utils::Entity;
 
 namespace shapes {
 
-class Cube : public BaseShape {
+class Sphere : public BaseShape {
  public:
-  Cube(const std::string& flutter_assets_path,
-       const flutter::EncodableMap& params);
-  ~Cube() override = default;
+  Sphere(const std::string& flutter_assets_path,
+         const flutter::EncodableMap& params);
+  Sphere();
+  ~Sphere() override = default;
 
   // Disallow copy and assign.
-  Cube(const Cube&) = delete;
-  Cube& operator=(const Cube&) = delete;
+  Sphere(const Sphere&) = delete;
+  Sphere& operator=(const Sphere&) = delete;
 
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
                            std::shared_ptr<Entity> entityObject,
                            MaterialManager* material_manager) override;
+  void CloneToOther(BaseShape& other) const override;
 
  private:
-  void createDoubleSidedCube(::filament::Engine* engine_,
-                             MaterialManager* material_manager);
+  static void createDoubleSidedSphere(::filament::Engine* engine_,
+                                      MaterialManager* material_manager);
 
-  void createSingleSidedCube(::filament::Engine* engine_,
-                             MaterialManager* material_manager);
+  void createSingleSidedSphere(::filament::Engine* engine_,
+                               MaterialManager* material_manager);
+
+  int stacks_;
+  int slices_;
+
+  std::vector<::filament::math::float3> vertices_;
+  std::vector<::filament::math::float3> normals_;
+  std::vector<unsigned short> indices_;
+  std::vector<::filament::math::float2> uvs_;
 };
 
 }  // namespace shapes

@@ -16,6 +16,7 @@
 
 #include "filament_view_plugin.h"
 
+#include <core/systems/collision_manager.h>
 #include <flutter/standard_message_codec.h>
 
 #include "filament_scene.h"
@@ -57,6 +58,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
   CustomModelViewer::Instance("RegisterWithRegistrar")
       ->setupMessageChannels(registrar);
+
+  CollisionManager::Instance()->setupMessageChannels(registrar);
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -116,6 +119,17 @@ void FilamentViewPlugin::ToggleShapesInScene(
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
   const auto sceneController = filamentScene_->getSceneController();
   sceneController->vToggleAllShapesInScene(value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
+    bool value,
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  if (!value) {
+    CollisionManager::Instance()->vTurnOffRenderingOfCollidables();
+  } else {
+    CollisionManager::Instance()->vTurnOnRenderingOfCollidables();
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

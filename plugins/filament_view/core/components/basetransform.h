@@ -16,15 +16,17 @@
 #pragma once
 
 #include <filament/math/quat.h>
+#include "component.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 namespace plugin_filament_view {
 
-class BaseTransform {
+class BaseTransform : public Component {
  public:
   // Constructor
   BaseTransform()
-      : m_f3CenterPosition(0, 0, 0),
+      : Component(std::string(__FUNCTION__)),
+        m_f3CenterPosition(0, 0, 0),
         m_f3ExtentsSize(0, 0, 0),
         m_f3Scale(1, 1, 1),
         m_quatRotation(0, 0, 0, 1) {}
@@ -62,7 +64,15 @@ class BaseTransform {
     m_quatRotation = rotation;
   }
 
-  void DebugPrint() const;
+  void DebugPrint(const std::string& tabPrefix) const override;
+
+  static size_t StaticGetTypeID() { return typeid(BaseTransform).hash_code(); }
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] Component* Clone() const override {
+    return new BaseTransform(*this);
+  }
 
  private:
   filament::math::float3 m_f3CenterPosition;

@@ -26,7 +26,8 @@ endif ()
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
 
-add_library(filament INTERFACE)
+add_library(filament INTERFACE
+        core/include/shapetypes.h)
 target_compile_options(filament INTERFACE -isystem${FILAMENT_INCLUDE_DIR} -isystem${FILAMENT_INCLUDE_DIR}/filament)
 target_link_directories(filament INTERFACE ${FILAMENT_LINK_LIBRARIES_DIR})
 target_link_libraries(filament INTERFACE
@@ -78,18 +79,21 @@ add_library(plugin_filament_view STATIC
         core/scene/scene_controller.cc
         core/components/basetransform.cc
         core/components/commonrenderable.cc
-        core/model/animation/animation.cc
-        core/model/animation/animation_manager.cc
-        core/model/loader/model_loader.cc
-        core/model/model.cc
+        core/components/collidable.cc
+        core/entity/model/animation/animation.cc
+        core/entity/model/animation/animation_manager.cc
+        core/systems/model_manager.cc
+        core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc
-        core/scene/geometry/direction.cc
-        core/scene/geometry/position.cc
+        core/entity/entityobject.cc
+        core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
+        core/systems/collision_manager.cc
+        core/systems/debug_lines_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
         core/utils/entitytransforms.cc
@@ -106,11 +110,11 @@ add_library(plugin_filament_view STATIC
         core/scene/skybox/skybox.cc
         core/scene/skybox/skybox_manager.cc
         core/scene/scene.cc
-        core/shapes/baseshape.cc
-        core/shapes/cube.cc
-        core/shapes/sphere.cc
-        core/shapes/plane.cc
-        core/shapes/shape_manager.cc
+        core/entity/shapes/baseshape.cc
+        core/entity/shapes/cube.cc
+        core/entity/shapes/sphere.cc
+        core/entity/shapes/plane.cc
+        core/systems/shape_manager.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
 )

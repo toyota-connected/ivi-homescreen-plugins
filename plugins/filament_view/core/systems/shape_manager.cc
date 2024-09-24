@@ -18,11 +18,12 @@
 
 #include <filament/Engine.h>
 
-#include "baseshape.h"
-#include "cube.h"
-#include "plane.h"
+#include "core/entity/shapes/baseshape.h"
+#include "core/entity/shapes/cube.h"
+#include "core/entity/shapes/plane.h"
+#include "core/entity/shapes/sphere.h"
+
 #include "plugins/common/common.h"
-#include "sphere.h"
 
 namespace plugin_filament_view {
 
@@ -60,7 +61,7 @@ void ShapeManager::vRemoveAllShapesInScene() {
 std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
     const std::string& flutter_assets_path,
     const flutter::EncodableMap& mapData) {
-  shapes::BaseShape::ShapeType type;
+  ShapeType type;
 
   // Find the "shapeType" key in the mapData
   auto it = mapData.find(flutter::EncodableValue("shapeType"));
@@ -68,9 +69,9 @@ std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
     int32_t typeValue = std::get<int32_t>(it->second);
 
     // Check if the value is within the valid range of the ShapeType enum
-    if (typeValue > static_cast<int32_t>(shapes::BaseShape::ShapeType::Unset) &&
-        typeValue < static_cast<int32_t>(shapes::BaseShape::ShapeType::Max)) {
-      type = static_cast<shapes::BaseShape::ShapeType>(typeValue);
+    if (typeValue > static_cast<int32_t>(ShapeType::Unset) &&
+        typeValue < static_cast<int32_t>(ShapeType::Max)) {
+      type = static_cast<ShapeType>(typeValue);
     } else {
       spdlog::error("Invalid shape type value: {}", typeValue);
       return nullptr;
@@ -82,11 +83,11 @@ std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
 
   // Based on the type_, create the corresponding shape
   switch (type) {
-    case shapes::BaseShape::ShapeType::Plane:
+    case ShapeType::Plane:
       return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
-    case shapes::BaseShape::ShapeType::Cube:
+    case ShapeType::Cube:
       return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
-    case shapes::BaseShape::ShapeType::Sphere:
+    case ShapeType::Sphere:
       return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
     default:
       // Handle unknown shape type
@@ -98,6 +99,11 @@ std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
 void ShapeManager::addShapesToScene(
     std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+
+  // TODO remove this, just debug info print for now;
+  /*for (auto& shape : *shapes) {
+    shape->DebugPrint("Add shapes to scene");
+  }*/
 
   filament::Engine* poFilamentEngine =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();

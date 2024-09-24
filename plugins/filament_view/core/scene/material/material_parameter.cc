@@ -113,23 +113,21 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
 MaterialParameter::~MaterialParameter() = default;
 
 void MaterialParameter::DebugPrint(const char* tag) {
-  spdlog::debug("++++++++");
-  spdlog::debug("{} (MaterialParameter)", tag);
-  spdlog::debug("\tname: {}", name_);
-  spdlog::debug("\ttype: {}", getTextForType(type_));
+  spdlog::debug("++++++++ (MaterialParameter) ++++++++");
+  spdlog::debug("tag {} name {} type {} ", tag, name_, getTextForType(type_));
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
       auto texture =
           std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value())
               .get();
       if (texture) {
-        texture->DebugPrint("\ttexture");
+        texture->DebugPrint("texture");
       } else {
         spdlog::debug("[MaterialParameter] Texture Empty");
       }
     }
   }
-  spdlog::debug("++++++++");
+  spdlog::debug("-------- (MaterialParameter) --------");
 }
 
 const char* MaterialParameter::getTextForType(

@@ -96,14 +96,42 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
                                          // Back face (inverted winding)
                                          4, 6, 5, 4, 7, 6};
 
-  // Packed normal for the plane (same for both sides)
-  short4 const tbn =
+  const static short4 normals[] = {
+      // Front face normals (Z+)
       packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
                                                 float3{0.0f, 1.0f, 0.0f},
                                                 float3{0.0f, 0.0f, 1.0f}})
-                      .xyzw);
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw),
 
-  const static short4 normals[] = {tbn, tbn, tbn, tbn, tbn, tbn, tbn, tbn};
+      // Back face normals (Z-)
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, -1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, -1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, -1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, -1.0f}})
+                      .xyzw)};
 
   m_poVertexBuffer = VertexBuffer::Builder()
                          .vertexCount(8)  // 4 vertices for each side
@@ -162,14 +190,24 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
       0, 2, 3   // Triangle 2
   };
 
-  // Packed normal for the plane
-  short4 const tbn =
+  const static short4 normals[] = {
+      // Normals for the front face (Z+)
       packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
                                                 float3{0.0f, 1.0f, 0.0f},
                                                 float3{0.0f, 0.0f, 1.0f}})
-                      .xyzw);
-
-  const static short4 normals[] = {tbn, tbn, tbn, tbn};
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw),
+      packSnorm16(mat3f::packTangentFrame(mat3f{float3{1.0f, 0.0f, 0.0f},
+                                                float3{0.0f, 1.0f, 0.0f},
+                                                float3{0.0f, 0.0f, 1.0f}})
+                      .xyzw)};
 
   m_poVertexBuffer = VertexBuffer::Builder()
                          .vertexCount(4)

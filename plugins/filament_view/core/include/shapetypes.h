@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #pragma once
-
-#include <math/vec3.h>
-
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
 
 namespace plugin_filament_view {
 
-typedef ::filament::math::float3 Direction;
+// futures to create - capsule, cylinder
+enum class ShapeType { Unset = 0, Plane = 1, Cube = 2, Sphere = 3, Max };
 
 }  // namespace plugin_filament_view

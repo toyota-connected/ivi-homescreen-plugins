@@ -81,15 +81,28 @@ class Deserialize {
       std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
       const flutter::EncodableMap& params,
       const std::string& flutter_assets_path);
+
   static void DecodeParameterWithDefault(
       const char* key,
       filament::math::float3* out_value,
       const flutter::EncodableMap& params,
       const filament::math::float3& default_value);
+
   static void DecodeParameterWithDefault(
       const char* key,
       filament::math::quatf* out_value,
       const flutter::EncodableMap& params,
       const filament::math::quatf& default_value);
+
+  static void DecodeParameterWithDefault(const char* key,
+                                         double* out_value,
+                                         const flutter::EncodableMap& params,
+                                         const double& default_value);
+
+  static void DecodeParameterWithDefaultInt64(
+      const char* key,
+      int64_t* out_value,
+      const flutter::EncodableMap& params,
+      const int64_t& default_value);
 };
 }  // namespace plugin_filament_view
