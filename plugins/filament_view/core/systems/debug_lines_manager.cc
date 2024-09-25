@@ -97,7 +97,7 @@ void DebugLine::vCleanup(filament::Engine* engine) {
   }
 }
 
-DebugLinesManager::DebugLinesManager() : m_bCurrentlyDrawingDebugLines(true) {}
+DebugLinesManager::DebugLinesManager() : m_bCurrentlyDrawingDebugLines(false) {}
 
 DebugLinesManager* DebugLinesManager::m_poInstance = nullptr;
 DebugLinesManager* DebugLinesManager::Instance() {
