@@ -27,7 +27,6 @@
 #include "projection.h"
 
 namespace plugin_filament_view {
-
 class Exposure;
 
 class Projection;
@@ -67,7 +66,10 @@ class Camera {
   /// Auto orbit is a 'camera feature', where it will auto orbit around
   /// a targetPosition_ Camera features are updated from camera_manager.cc:
   /// updateCamerasFeatures() currently.
-  static constexpr char kModeAutoOrbit[] = "AUTOORBIT";
+  static constexpr char kModeAutoOrbit[] = "AUTO_ORBIT";
+  static constexpr char kModeInertiaAndGestures[] = "INERTIA_AND_GESTURES";
+
+  enum CustomCameraMode { Unset, AutoOrbit, InertiaAndGestures };
 
   /// An object that control camera Exposure.
   std::unique_ptr<Exposure> exposure_;
@@ -102,7 +104,7 @@ class Camera {
   /// Mode of the camera that operates on.
   ::filament::camutils::Mode mode_;
   /// if we have a mode specified not in filament - auto orbit, to texture, PiP
-  bool customMode_;
+  CustomCameraMode eCustomCameraMode_;
   bool forceSingleFrameUpdate_;
 
   /// The world-space position of interest, which defaults to (x:0,y:0,z:-4).
