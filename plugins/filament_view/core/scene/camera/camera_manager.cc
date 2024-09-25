@@ -404,7 +404,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
     constexpr float radius = 8.0f;  // Adjust radius as needed
     filament::math::float3 eye;
     eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
-    eye.y += angleY;  // Adjust vertical movement with Y-axis velocity
+    eye.y = primaryCamera_->orbitHomePosition_->y;
     eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
 
     // Keep the center and up vectors fixed
@@ -503,7 +503,8 @@ void CameraManager::onAction(int32_t action,
                              const double* point_data) {
   // We only care about updating the camera on action if we're set to use those
   // values.
-  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures) {
+  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures
+    || cameraManipulator_ == nullptr) {
     return;
   }
 
@@ -515,6 +516,7 @@ void CameraManager::onAction(int32_t action,
   switch (action) {
     case ACTION_DOWN: {
       if (point_count == 1) {
+        cameraManipulator_->grabBegin(touch.x(), touch.y(), false);
         initialTouchPosition_ = {touch.x(), touch.y()};
         currentVelocity_ = {0.0f, 0.0f};
       }
@@ -534,20 +536,20 @@ void CameraManager::onAction(int32_t action,
       if (currentGesture_ == Gesture::ZOOM) {
         auto d0 = previousTouch_.separation();
         auto d1 = touch.separation();
-        /*cameraManipulator_->scroll(touch.x(), touch.y(),
-                                   (d0 - d1) * kZoomSpeed);*/
+        cameraManipulator_->scroll(touch.x(), touch.y(),
+                                   (d0 - d1) * kZoomSpeed);
         previousTouch_ = touch;
         return;
       }
 
-      /*if (currentGesture_ != Gesture::NONE) {
-        SPDLOG_INFO("Grab update");
-        //cameraManipulator_->grabUpdate(touch.x(), touch.y());
-        return;
-      }*/
+      if (currentGesture_ != Gesture::NONE) {
+        cameraManipulator_->grabUpdate(touch.x(), touch.y());
+        if(isPanGesture()) {
+          return;
+        }
+      }
 
       // DETECT NEW GESTURE
-
       if (point_count == 1) {
         tentativeOrbitEvents_.push_back(touch);
       }
@@ -558,7 +560,7 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isOrbitGesture()) {
-        // cameraManipulator_->grabBegin(touch.x(), touch.y(), false);
+        // cameraManipulator_->grabUpdate(touch.x(), touch.y());
         currentGesture_ = Gesture::ORBIT;
 
         // Calculate the delta movement
@@ -587,9 +589,8 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isPanGesture()) {
-        // cameraManipulator_->grabBegin(touch.x(), touch.y(), true);
+        cameraManipulator_->grabBegin(touch.x(), touch.y(), true);
         currentGesture_ = Gesture::PAN;
-        return;
       }
       break;
     case ACTION_CANCEL:
