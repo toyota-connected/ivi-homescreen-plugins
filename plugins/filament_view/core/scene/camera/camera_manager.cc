@@ -32,12 +32,11 @@ CameraManager::CameraManager() {
   SPDLOG_TRACE("--CameraManager::CameraManager: {}");
 }
 
-void CameraManager::setDefaultCamera() {
-  SPDLOG_TRACE("++CameraManager::setDefaultCamera");
+filament::math::float2 currentVelocity_;
+filament::math::float2 initialTouchPosition_;
 
-  // const auto promise(std::make_shared<std::promise<void>>());
-  // auto future(promise->get_future());
-  // asio::post(modelViewer->getStrandContext(), [&, promise] {
+void CameraManager::setDefaultCamera() {
+  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   ::filament::Engine* engine = modelViewer->getFilamentEngine();
@@ -56,16 +55,12 @@ void CameraManager::setDefaultCamera() {
   cameraManipulator_ = CameraManipulator::Builder()
                            .viewport(static_cast<int>(viewport.width),
                                      static_cast<int>(viewport.height))
-                           .build(::filament::camutils::Mode::FREE_FLIGHT);
+                           .build(::filament::camutils::Mode::ORBIT);
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
   fview->setCamera(camera_);
-  SPDLOG_TRACE("--CameraManager::setDefaultCamera");
-  // promise->set_value();
-
-  //});
-  // return future;
+  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
 void CameraManager::setCameraLookat(filament::math::float3 eye,
@@ -330,52 +325,99 @@ std::future<Resource<std::string_view>> CameraManager::updateCamera(
 
 void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
   primaryCamera_ = std::shared_ptr<Camera>(std::move(camera));
+
+  // We'll want to set the 'defaults' depending on camera mode here.
+  if (primaryCamera_->eCustomCameraMode_ == Camera::InertiaAndGestures) {
+    filament::math::float3 eye, center, up;
+    cameraManipulator_->getLookAt(&eye, &center, &up);
+
+    setCameraLookat(*primaryCamera_->flightStartPosition_,
+                    *primaryCamera_->targetPosition_,
+                    *primaryCamera_->upVector_);
+  }
 }
 
 void CameraManager::lookAtDefaultPosition() {
-  // SPDLOG_TRACE("++CameraManager::lookAtDefaultPosition");
-
-  // SPDLOG_DEBUG("++CameraManager::lookAtDefaultPosition");
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
-  // SPDLOG_TRACE("--CameraManager::lookAtDefaultPosition");
 }
 
 void CameraManager::togglePrimaryCameraFeatureMode(bool bValue) {
-  primaryCamera_->customMode_ = bValue;
+  // todo change to parameterized type
+  if (bValue) {
+    primaryCamera_->eCustomCameraMode_ = Camera::AutoOrbit;
+  } else {
+    primaryCamera_->eCustomCameraMode_ = Camera::Unset;
+  }
 }
 
 void CameraManager::updateCamerasFeatures(float fElapsedTime) {
-  if (!primaryCamera_ || (!primaryCamera_->customMode_ &&
+  if (!primaryCamera_ || (primaryCamera_->eCustomCameraMode_ == Camera::Unset &&
                           !primaryCamera_->forceSingleFrameUpdate_)) {
     return;
   }
 
-  primaryCamera_->forceSingleFrameUpdate_ = false;
+  if (primaryCamera_->eCustomCameraMode_ == Camera::AutoOrbit) {
+    primaryCamera_->forceSingleFrameUpdate_ = false;
 
-  // Note these TODOs are marked for a next iteration tasking.
+    // Note these TODOs are marked for a next iteration tasking.
 
-  // TODO this should be moved to a property on camera
-  constexpr float speed = 0.5f;  // Rotation speed
-  // TODO this should be moved to a property on camera
-  constexpr float radius = 8.0f;  // Distance from the camera to the object
+    // TODO this should be moved to a property on camera
+    constexpr float speed = 0.5f;  // Rotation speed
+    // TODO this should be moved to a property on camera
+    constexpr float radius = 8.0f;  // Distance from the camera to the object
 
-  // camera needs angle
-  primaryCamera_->fCurrentOrbitAngle_ += fElapsedTime * speed;
+    // camera needs angle
+    primaryCamera_->fCurrentOrbitAngle_ += fElapsedTime * speed;
 
-  filament::math::float3 eye;
-  eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
-  eye.y = primaryCamera_->orbitHomePosition_->y;
-  eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
+    filament::math::float3 eye;
+    eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
+    eye.y = primaryCamera_->orbitHomePosition_->y;
+    eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
 
-  // Center of the rotation (object position)
-  filament::math::float3 center = *primaryCamera_->targetPosition_;
+    // Center of the rotation (object position)
+    filament::math::float3 center = *primaryCamera_->targetPosition_;
 
-  // Up vector
-  filament::math::float3 up = *primaryCamera_->upVector_;
+    // Up vector
+    filament::math::float3 up = *primaryCamera_->upVector_;
 
-  setCameraLookat(eye, center, up);
+    setCameraLookat(eye, center, up);
+  } else if (primaryCamera_->eCustomCameraMode_ == Camera::InertiaAndGestures) {
+    currentVelocity_.y = 0.0f;
+
+    // Update camera position around the center
+    if (currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f) {
+      return;
+    }
+
+    constexpr float rotationSpeed_ = 0.05f;
+
+    // Calculate rotation angles from velocity
+    float angleX = currentVelocity_.x * rotationSpeed_;
+    float angleY = currentVelocity_.y * rotationSpeed_;
+
+    // Update the orbit angle of the camera
+    primaryCamera_->fCurrentOrbitAngle_ += angleX;
+
+    // Calculate the new camera eye position based on the orbit angle
+    constexpr float radius = 8.0f;  // Adjust radius as needed
+    filament::math::float3 eye;
+    eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
+    eye.y += angleY;  // Adjust vertical movement with Y-axis velocity
+    eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
+
+    // Keep the center and up vectors fixed
+    filament::math::float3 center = *primaryCamera_->targetPosition_;
+    filament::math::float3 up = {0.0f, 1.0f, 0.0f};
+
+    // Update the camera look-at based on new eye position
+    setCameraLookat(eye, center, up);
+
+    // Apply inertia decay to gradually reduce velocity
+    constexpr float inertiaDecayFactor_ = 0.86f;
+    currentVelocity_ *= inertiaDecayFactor_;
+  }
 }
 
 void CameraManager::destroyCamera() {
@@ -459,15 +501,27 @@ void CameraManager::onAction(int32_t action,
                              int32_t point_count,
                              const size_t point_data_size,
                              const double* point_data) {
+  // We only care about updating the camera on action if we're set to use those
+  // values.
+  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures) {
+    return;
+  }
+
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto viewport = modelViewer->getFilamentView()->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
   switch (action) {
+    case ACTION_DOWN: {
+      if (point_count == 1) {
+        initialTouchPosition_ = {touch.x(), touch.y()};
+        currentVelocity_ = {0.0f, 0.0f};
+      }
+    } break;
+
     case ACTION_MOVE:
       // CANCEL GESTURE DUE TO UNEXPECTED POINTER COUNT
-
       if ((point_count != 1 && currentGesture_ == Gesture::ORBIT) ||
           (point_count != 2 && currentGesture_ == Gesture::PAN) ||
           (point_count != 2 && currentGesture_ == Gesture::ZOOM)) {
@@ -480,16 +534,17 @@ void CameraManager::onAction(int32_t action,
       if (currentGesture_ == Gesture::ZOOM) {
         auto d0 = previousTouch_.separation();
         auto d1 = touch.separation();
-        cameraManipulator_->scroll(touch.x(), touch.y(),
-                                   (d0 - d1) * kZoomSpeed);
+        /*cameraManipulator_->scroll(touch.x(), touch.y(),
+                                   (d0 - d1) * kZoomSpeed);*/
         previousTouch_ = touch;
         return;
       }
 
-      if (currentGesture_ != Gesture::NONE) {
-        cameraManipulator_->grabUpdate(touch.x(), touch.y());
+      /*if (currentGesture_ != Gesture::NONE) {
+        SPDLOG_INFO("Grab update");
+        //cameraManipulator_->grabUpdate(touch.x(), touch.y());
         return;
-      }
+      }*/
 
       // DETECT NEW GESTURE
 
@@ -503,8 +558,25 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isOrbitGesture()) {
-        cameraManipulator_->grabBegin(touch.x(), touch.y(), false);
+        // cameraManipulator_->grabBegin(touch.x(), touch.y(), false);
         currentGesture_ = Gesture::ORBIT;
+
+        // Calculate the delta movement
+        filament::math::float2 currentPosition = {touch.x(), touch.y()};
+        filament::math::float2 delta = currentPosition - initialTouchPosition_;
+
+        /*SPDLOG_INFO("initialTouchPosition_ is {} {}", currentPosition.x ,
+        currentPosition.y); SPDLOG_INFO("currentPosition is {} {}",
+        currentPosition.x , currentPosition.y); SPDLOG_INFO("delta is {} {}",
+        delta.x , delta.y);*/
+
+        constexpr float velocityFactor_ = 0.2f;
+        // Update velocity based on movement
+        currentVelocity_ += delta * velocityFactor_;
+
+        // Update touch position for the next move
+        initialTouchPosition_ = currentPosition;
+
         return;
       }
 
@@ -515,7 +587,7 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isPanGesture()) {
-        cameraManipulator_->grabBegin(touch.x(), touch.y(), true);
+        // cameraManipulator_->grabBegin(touch.x(), touch.y(), true);
         currentGesture_ = Gesture::PAN;
         return;
       }
