@@ -37,11 +37,8 @@ namespace plugin_filament_view {
 using CameraManipulator = ::filament::camutils::Manipulator<float>;
 
 class Camera;
-
 class CustomModelViewer;
-
 class Exposure;
-
 class Projection;
 
 class CameraManager {
@@ -174,6 +171,10 @@ class CameraManager {
   std::vector<TouchPair> tentativeZoomEvents_;
 
   std::shared_ptr<Camera> primaryCamera_;
+
+  // Used with Camera Inertia.
+  filament::math::float2 currentVelocity_;
+  filament::math::float2 initialTouchPosition_;
 
   void endGesture();
   bool isOrbitGesture();

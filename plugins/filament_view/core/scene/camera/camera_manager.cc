@@ -25,15 +25,14 @@
 #include "plugins/common/common.h"
 #include "touch_pair.h"
 
+#define USING_CAM_MANIPULATOR 0
+
 namespace plugin_filament_view {
 CameraManager::CameraManager() {
   SPDLOG_TRACE("++CameraManager::CameraManager");
   setDefaultCamera();
   SPDLOG_TRACE("--CameraManager::CameraManager: {}");
 }
-
-filament::math::float2 currentVelocity_;
-filament::math::float2 initialTouchPosition_;
 
 void CameraManager::setDefaultCamera() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
@@ -391,20 +390,22 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
       return;
     }
 
-    constexpr float rotationSpeed_ = 0.05f;
+#if USING_CAM_MANIPULATOR == 0  // Not using camera manipulator
+    auto rotationSpeed =
+        static_cast<float>(primaryCamera_->inertia_rotationSpeed_);
 
     // Calculate rotation angles from velocity
-    float angleX = currentVelocity_.x * rotationSpeed_;
-    float angleY = currentVelocity_.y * rotationSpeed_;
+    float angleX = currentVelocity_.x * rotationSpeed;
+    // float angleY = currentVelocity_.y * rotationSpeed;
 
     // Update the orbit angle of the camera
     primaryCamera_->fCurrentOrbitAngle_ += angleX;
 
     // Calculate the new camera eye position based on the orbit angle
-    constexpr float radius = 8.0f;  // Adjust radius as needed
+    float radius = primaryCamera_->flightStartPosition_->x;
     filament::math::float3 eye;
     eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
-    eye.y = primaryCamera_->orbitHomePosition_->y;
+    eye.y = primaryCamera_->flightStartPosition_->y;
     eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
 
     // Keep the center and up vectors fixed
@@ -413,9 +414,19 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 
     // Update the camera look-at based on new eye position
     setCameraLookat(eye, center, up);
+#else  // using camera manipulator
+    // At this time, this does not use velocity/inertia and doesn't cap Y
+    // meaning you can get a full up/down view and around.
+    cameraManipulator_->update(fElapsedTime);
+
+    filament::math::float3 eye, center, up;
+    cameraManipulator_->getLookAt(&eye, &center, &up);
+    setCameraLookat(eye, center, up);
+#endif
 
     // Apply inertia decay to gradually reduce velocity
-    constexpr float inertiaDecayFactor_ = 0.86f;
+    auto inertiaDecayFactor_ =
+        static_cast<float>(primaryCamera_->inertia_decayFactor_);
     currentVelocity_ *= inertiaDecayFactor_;
   }
 }
@@ -503,8 +514,8 @@ void CameraManager::onAction(int32_t action,
                              const double* point_data) {
   // We only care about updating the camera on action if we're set to use those
   // values.
-  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures
-    || cameraManipulator_ == nullptr) {
+  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures ||
+      cameraManipulator_ == nullptr) {
     return;
   }
 
@@ -544,7 +555,7 @@ void CameraManager::onAction(int32_t action,
 
       if (currentGesture_ != Gesture::NONE) {
         cameraManipulator_->grabUpdate(touch.x(), touch.y());
-        if(isPanGesture()) {
+        if (isPanGesture()) {
           return;
         }
       }
@@ -560,21 +571,17 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isOrbitGesture()) {
-        // cameraManipulator_->grabUpdate(touch.x(), touch.y());
+        cameraManipulator_->grabUpdate(touch.x(), touch.y());
         currentGesture_ = Gesture::ORBIT;
 
         // Calculate the delta movement
         filament::math::float2 currentPosition = {touch.x(), touch.y()};
         filament::math::float2 delta = currentPosition - initialTouchPosition_;
 
-        /*SPDLOG_INFO("initialTouchPosition_ is {} {}", currentPosition.x ,
-        currentPosition.y); SPDLOG_INFO("currentPosition is {} {}",
-        currentPosition.x , currentPosition.y); SPDLOG_INFO("delta is {} {}",
-        delta.x , delta.y);*/
-
-        constexpr float velocityFactor_ = 0.2f;
+        auto velocityFactor =
+            static_cast<float>(primaryCamera_->inertia_velocityFactor_);
         // Update velocity based on movement
-        currentVelocity_ += delta * velocityFactor_;
+        currentVelocity_ += delta * velocityFactor;
 
         // Update touch position for the next move
         initialTouchPosition_ = currentPosition;

@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "core/include/literals.h"
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
@@ -30,6 +31,15 @@ Camera::Camera(const flutter::EncodableMap& params) {
   fCurrentOrbitAngle_ = 0;
   orbitHomePosition_ = std::make_unique<::filament::math::float3>(0, 3, 0);
   forceSingleFrameUpdate_ = false;
+
+  Deserialize::DecodeParameterWithDefault(
+      kCamera_Inertia_RotationSpeed, &inertia_rotationSpeed_, params, 0.05f);
+
+  Deserialize::DecodeParameterWithDefault(
+      kCamera_Inertia_VelocityFactor, &inertia_velocityFactor_, params, 0.2f);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Inertia_DecayFactor,
+                                          &inertia_decayFactor_, params, 0.86f);
 
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);

@@ -170,5 +170,14 @@ class Camera {
   /// The ground plane equation used for ray casts. This is a plane equation as
   /// in Ax + By + Cz + D = 0. Defaults to (0, 0, 1, 0).
   std::unique_ptr<std::vector<float>> groundPlane_;
+
+  // how much ongoing rotation velocity effects, default 0.05
+  double inertia_rotationSpeed_;
+
+  // 0-1 how much of a flick distance / delta gets multiplied, default 0.2
+  double inertia_velocityFactor_;
+
+  // 0-1 larger number means it takes longer for it to decay, default 0.86
+  double inertia_decayFactor_;
 };
 }  // namespace plugin_filament_view

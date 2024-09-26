@@ -113,4 +113,9 @@ enum CollisionEventType {
   eNativeOnTouchEnd
 };
 
+static constexpr char kCamera_Inertia_RotationSpeed[] = "inertia_rotationSpeed";
+static constexpr char kCamera_Inertia_VelocityFactor[] =
+    "inertia_velocityFactor";
+static constexpr char kCamera_Inertia_DecayFactor[] = "inertia_decayFactor";
+
 }  // namespace plugin_filament_view
