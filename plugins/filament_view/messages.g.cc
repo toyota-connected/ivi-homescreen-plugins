@@ -109,14 +109,13 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
               result->Success();
-            } else if (methodCall.method_name() == kToggleCameraAutoRotate) {
+            } else if (methodCall.method_name() == kChangeCameraMode) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());
               for (auto& it : *args) {
-                if (kToggleCameraAutoRotateValue ==
-                    std::get<std::string>(it.first)) {
-                  bool bValue = std::get<bool>(it.second);
-                  api->ToggleCameraAutoRotate(bValue, nullptr);
+                if (kChangeCameraModeValue == std::get<std::string>(it.first)) {
+                  std::string szValue = std::get<std::string>(it.second);
+                  api->ChangeCameraMode(szValue, nullptr);
                 }
               }
               result->Success();

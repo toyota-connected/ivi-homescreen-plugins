@@ -28,7 +28,7 @@
 #define USING_CAM_MANIPULATOR 0
 
 namespace plugin_filament_view {
-CameraManager::CameraManager() {
+CameraManager::CameraManager() : currentVelocity_(0), initialTouchPosition_(0) {
   SPDLOG_TRACE("++CameraManager::CameraManager");
   setDefaultCamera();
   SPDLOG_TRACE("--CameraManager::CameraManager: {}");
@@ -342,11 +342,16 @@ void CameraManager::lookAtDefaultPosition() {
   setCameraLookat(eye, center, up);
 }
 
-void CameraManager::togglePrimaryCameraFeatureMode(bool bValue) {
-  // todo change to parameterized type
-  if (bValue) {
+void CameraManager::ChangePrimaryCameraMode(const std::string& szValue) {
+  if (szValue == Camera::kModeAutoOrbit) {
     primaryCamera_->eCustomCameraMode_ = Camera::AutoOrbit;
+  } else if (szValue == Camera::kModeInertiaAndGestures) {
+    primaryCamera_->eCustomCameraMode_ = Camera::InertiaAndGestures;
   } else {
+    spdlog::warn(
+        "Camera mode unset, you tried to set to {} , but that's not "
+        "implemented.",
+        szValue);
     primaryCamera_->eCustomCameraMode_ = Camera::Unset;
   }
 }

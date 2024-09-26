@@ -86,7 +86,7 @@ class CameraManager {
   std::string updateCameraScaling(std::vector<double>* scaling);
 
   void setPrimaryCamera(std::unique_ptr<Camera> camera);
-  void togglePrimaryCameraFeatureMode(bool bValue);
+  void ChangePrimaryCameraMode(const std::string& szValue);
   // Passes weak ptr, dont keep a copy of this.
   Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
@@ -95,10 +95,11 @@ class CameraManager {
 
   CameraManager& operator=(const CameraManager&) = delete;
 
-  std::pair<filament::math::float3, filament::math::float3>
+  [[nodiscard]] std::pair<filament::math::float3, filament::math::float3>
   aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
-  Ray oGetRayInformationFromOnTouchPosition(TouchPair touch) const;
+  [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(
+      TouchPair touch) const;
 
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm

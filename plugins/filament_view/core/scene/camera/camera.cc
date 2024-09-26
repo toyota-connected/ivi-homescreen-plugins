@@ -23,7 +23,10 @@
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
-Camera::Camera(const flutter::EncodableMap& params) {
+Camera::Camera(const flutter::EncodableMap& params)
+    : inertia_rotationSpeed_(0.05f),
+      inertia_velocityFactor_(0.2f),
+      inertia_decayFactor_(0.86f) {
   SPDLOG_TRACE("++Camera::Camera");
 
   // Currently variables not coming over from dart, Backlogged.
