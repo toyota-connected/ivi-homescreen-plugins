@@ -35,9 +35,8 @@ static constexpr char kToggleCollidableVisualsInScene[] =
     "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE";
 static constexpr char kToggleCollidableVisualsInSceneValue[] =
     "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE_VALUE";
-static constexpr char kToggleCameraAutoRotate[] = "TOGGLE_CAMERA_AUTO_ROTATE";
-static constexpr char kToggleCameraAutoRotateValue[] =
-    "TOGGLE_CAMERA_AUTO_ROTATE_VALUE";
+static constexpr char kChangeCameraMode[] = "CHANGE_CAMERA_MODE";
+static constexpr char kChangeCameraModeValue[] = "CHANGE_CAMERA_MODE_VALUE";
 static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
 static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
 // Collision Requests
@@ -112,5 +111,10 @@ enum CollisionEventType {
   eNativeOnTouchHeld,
   eNativeOnTouchEnd
 };
+
+static constexpr char kCamera_Inertia_RotationSpeed[] = "inertia_rotationSpeed";
+static constexpr char kCamera_Inertia_VelocityFactor[] =
+    "inertia_velocityFactor";
+static constexpr char kCamera_Inertia_DecayFactor[] = "inertia_decayFactor";
 
 }  // namespace plugin_filament_view

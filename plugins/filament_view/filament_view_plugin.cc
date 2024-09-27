@@ -133,11 +133,11 @@ void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void FilamentViewPlugin::ToggleCameraAutoRotate(
-    bool value,
+void FilamentViewPlugin::ChangeCameraMode(
+    std::string value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
   const auto sceneController = filamentScene_->getSceneController();
-  sceneController->getCameraManager()->togglePrimaryCameraFeatureMode(value);
+  sceneController->getCameraManager()->ChangePrimaryCameraMode(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

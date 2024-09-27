@@ -37,11 +37,8 @@ namespace plugin_filament_view {
 using CameraManipulator = ::filament::camutils::Manipulator<float>;
 
 class Camera;
-
 class CustomModelViewer;
-
 class Exposure;
-
 class Projection;
 
 class CameraManager {
@@ -89,7 +86,7 @@ class CameraManager {
   std::string updateCameraScaling(std::vector<double>* scaling);
 
   void setPrimaryCamera(std::unique_ptr<Camera> camera);
-  void togglePrimaryCameraFeatureMode(bool bValue);
+  void ChangePrimaryCameraMode(const std::string& szValue);
   // Passes weak ptr, dont keep a copy of this.
   Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
@@ -98,10 +95,11 @@ class CameraManager {
 
   CameraManager& operator=(const CameraManager&) = delete;
 
-  std::pair<filament::math::float3, filament::math::float3>
+  [[nodiscard]] std::pair<filament::math::float3, filament::math::float3>
   aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
-  Ray oGetRayInformationFromOnTouchPosition(TouchPair touch) const;
+  [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(
+      TouchPair touch) const;
 
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm
@@ -174,6 +172,10 @@ class CameraManager {
   std::vector<TouchPair> tentativeZoomEvents_;
 
   std::shared_ptr<Camera> primaryCamera_;
+
+  // Used with Camera Inertia.
+  filament::math::float2 currentVelocity_;
+  filament::math::float2 initialTouchPosition_;
 
   void endGesture();
   bool isOrbitGesture();

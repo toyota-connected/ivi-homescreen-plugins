@@ -90,6 +90,9 @@ void SceneController::setUpCamera() {
     return;
   }
 
+  // Note right now cameraManager creates a default camera on startup; if we're
+  // immediately setting it to a different one; that's extra work that shouldn't
+  // be done. Backlogged
   auto t = cameraManager_->updateCamera(scene_->camera_.get());
   t.wait();
 

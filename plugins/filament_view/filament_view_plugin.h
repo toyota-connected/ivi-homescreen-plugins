@@ -87,8 +87,8 @@ class FilamentViewPlugin : public flutter::Plugin,
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
-  void ToggleCameraAutoRotate(
-      bool value,
+  void ChangeCameraMode(
+      std::string value,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void SetCameraRotation(

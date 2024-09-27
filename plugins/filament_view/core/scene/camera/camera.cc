@@ -18,19 +18,31 @@
 
 #include <memory>
 
+#include "core/include/literals.h"
 #include "core/utils/deserialize.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
-
-Camera::Camera(const flutter::EncodableMap& params) {
+Camera::Camera(const flutter::EncodableMap& params)
+    : inertia_rotationSpeed_(0.05f),
+      inertia_velocityFactor_(0.2f),
+      inertia_decayFactor_(0.86f) {
   SPDLOG_TRACE("++Camera::Camera");
 
   // Currently variables not coming over from dart, Backlogged.
-  customMode_ = true;
+  eCustomCameraMode_ = CustomCameraMode::Unset;
   fCurrentOrbitAngle_ = 0;
   orbitHomePosition_ = std::make_unique<::filament::math::float3>(0, 3, 0);
   forceSingleFrameUpdate_ = false;
+
+  Deserialize::DecodeParameterWithDefault(
+      kCamera_Inertia_RotationSpeed, &inertia_rotationSpeed_, params, 0.05f);
+
+  Deserialize::DecodeParameterWithDefault(
+      kCamera_Inertia_VelocityFactor, &inertia_velocityFactor_, params, 0.2f);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Inertia_DecayFactor,
+                                          &inertia_decayFactor_, params, 0.86f);
 
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);
@@ -156,7 +168,9 @@ Camera::Camera(const flutter::EncodableMap& params) {
       if (std::holds_alternative<std::string>(it.second)) {
         auto modeType = std::get<std::string>(it.second);
         if (modeType == kModeAutoOrbit) {
-          customMode_ = true;
+          eCustomCameraMode_ = CustomCameraMode::AutoOrbit;
+        } else if (modeType == kModeInertiaAndGestures) {
+          eCustomCameraMode_ = CustomCameraMode::InertiaAndGestures;
         } else {
           mode_ = getModeForText(modeType);
         }
@@ -350,5 +364,4 @@ const char* Camera::getTextForFov(::filament::camutils::Fov fov) {
   }
   return ::filament::camutils::Fov::HORIZONTAL;
 }
-
 }  // namespace plugin_filament_view

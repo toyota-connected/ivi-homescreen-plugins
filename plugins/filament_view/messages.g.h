@@ -119,8 +119,8 @@ class FilamentViewApi {
       bool value,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
-  virtual void ToggleCameraAutoRotate(
-      bool value,
+  virtual void ChangeCameraMode(
+      std::string value,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void SetCameraRotation(
