@@ -173,8 +173,8 @@ class CameraManager {
 
   std::shared_ptr<Camera> primaryCamera_;
 
-  // Used with Camera Inertia.
-  filament::math::float2 currentVelocity_;
+  // Used with Camera Inertia / zoom
+  filament::math::float3 currentVelocity_;
   filament::math::float2 initialTouchPosition_;
 
   void endGesture();

@@ -26,7 +26,14 @@ namespace plugin_filament_view {
 Camera::Camera(const flutter::EncodableMap& params)
     : inertia_rotationSpeed_(0.05f),
       inertia_velocityFactor_(0.2f),
-      inertia_decayFactor_(0.86f) {
+      inertia_decayFactor_(0.86f),
+      pan_angleCapX_(15),
+      pan_angleCapY_(20),
+      zoom_minCap_(3),
+      zoom_maxCap_(10),
+      current_zoom_radius_(5),
+      current_pitch_addition_(0),
+      current_yaw_addition_(0) {
   SPDLOG_TRACE("++Camera::Camera");
 
   // Currently variables not coming over from dart, Backlogged.
@@ -43,6 +50,18 @@ Camera::Camera(const flutter::EncodableMap& params)
 
   Deserialize::DecodeParameterWithDefault(kCamera_Inertia_DecayFactor,
                                           &inertia_decayFactor_, params, 0.86f);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Pan_angleCapX,
+                                          &pan_angleCapX_, params, 15);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Pan_angleCapY,
+                                          &pan_angleCapY_, params, 20);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Zoom_minCap, &zoom_minCap_,
+                                          params, 3.0f);
+
+  Deserialize::DecodeParameterWithDefault(kCamera_Zoom_maxCap, &zoom_maxCap_,
+                                          params, 10.0f);
 
   for (const auto& it : params) {
     auto key = std::get<std::string>(it.first);
@@ -112,6 +131,8 @@ Camera::Camera(const flutter::EncodableMap& params)
       if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
         flightStartPosition_ = std::make_unique<::filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
+
+        current_zoom_radius_ = flightStartPosition_->x;
       } else if (std::holds_alternative<std::monostate>(it.second)) {
         flightStartPosition_ =
             std::make_unique<::filament::math::float3>(0, 0, 0);
@@ -146,23 +167,6 @@ Camera::Camera(const flutter::EncodableMap& params)
         groundPlane_->push_back(0);
         groundPlane_->push_back(1);
         groundPlane_->push_back(0);
-      }
-    } else if (key == "mapExtent") {
-      mapExtent_ = std::make_unique<std::vector<float>>();
-      if (std::holds_alternative<flutter::EncodableList>(it.second)) {
-        auto list = std::get<flutter::EncodableList>(it.second);
-        for (const auto& item : list) {
-          mapExtent_->emplace_back(std::get<double>(item));
-        }
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
-        mapExtent_->push_back(512);
-        mapExtent_->push_back(512);
-      }
-    } else if (key == "mapMinDistance") {
-      if (std::holds_alternative<double>(it.second)) {
-        mapMinDistance_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
-        mapMinDistance_ = 0;
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(it.second)) {
@@ -285,14 +289,7 @@ void Camera::Print(const char* tag) {
       spdlog::debug("\tgroundPlane: {}", it_);
     }
   }
-  if (mapExtent_) {
-    for (const auto& it_ : *mapExtent_) {
-      spdlog::debug("\tmapExtent: {}", it_);
-    }
-  }
-  if (mapExtent_) {
-    spdlog::debug("\tmapMinDistance: {}", mapMinDistance_.value());
-  }
+
   spdlog::debug("\tmode: [{}]", getTextForMode(mode_));
 #if 0
   if (orbitHomePosition_) {

@@ -117,4 +117,9 @@ static constexpr char kCamera_Inertia_VelocityFactor[] =
     "inertia_velocityFactor";
 static constexpr char kCamera_Inertia_DecayFactor[] = "inertia_decayFactor";
 
+static constexpr char kCamera_Pan_angleCapX[] = "pan_angleCapX";
+static constexpr char kCamera_Pan_angleCapY[] = "pan_angleCapY";
+static constexpr char kCamera_Zoom_minCap[] = "zoom_minCap";
+static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
+
 }  // namespace plugin_filament_view
