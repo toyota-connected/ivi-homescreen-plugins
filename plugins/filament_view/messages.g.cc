@@ -119,6 +119,10 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
               result->Success();
+            } else if (methodCall.method_name() ==
+                       kResetInertiaCameraToDefaultValues) {
+              api->vResetInertiaCameraToDefaultValues(nullptr);
+              result->Success();
             } else if (methodCall.method_name() == kChangeCameraRotation) {
               const auto& args =
                   std::get_if<EncodableMap>(methodCall.arguments());

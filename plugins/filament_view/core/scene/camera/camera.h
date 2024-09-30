@@ -57,6 +57,14 @@ class Camera {
     forceSingleFrameUpdate_ = true;
   }
 
+  void vResetInertiaCameraToDefaultValues() {
+    current_zoom_radius_ = flightStartPosition_->x;
+    current_pitch_addition_ = 0;
+    current_yaw_addition_ = 0;
+
+    vSetCurrentCameraOrbitAngle(0.0f);
+  }
+
  private:
   static constexpr char kModeOrbit[] = "ORBIT";
   static constexpr char kModeMap[] = "MAP";
@@ -187,9 +195,12 @@ class Camera {
   // go any further out
   double zoom_maxCap_;
 
+  // used by camera manager to go between zoom min and max cap.
   float current_zoom_radius_;
+
   // used with pan angle caps
   float current_pitch_addition_;
+
   // used with pan angle caps
   float current_yaw_addition_;
 };

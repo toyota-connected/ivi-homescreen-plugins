@@ -332,6 +332,18 @@ void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
   }
 }
 
+void CameraManager::vResetInertiaCameraToDefaultValues() {
+  if (primaryCamera_->eCustomCameraMode_ == Camera::InertiaAndGestures) {
+    primaryCamera_->vResetInertiaCameraToDefaultValues();
+
+    currentVelocity_ = {0};
+
+    setCameraLookat(*primaryCamera_->flightStartPosition_,
+                    *primaryCamera_->targetPosition_,
+                    *primaryCamera_->upVector_);
+  }
+}
+
 void CameraManager::lookAtDefaultPosition() {
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
@@ -388,7 +400,8 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 
     // Update camera position around the center
     if ((currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f &&
-         currentVelocity_.z == 0.0f) && !isPanGesture()) {
+         currentVelocity_.z == 0.0f) &&
+        !isPanGesture()) {
       return;
     }
 

@@ -101,6 +101,8 @@ class CameraManager {
   [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(
       TouchPair touch) const;
 
+  void vResetInertiaCameraToDefaultValues();
+
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm
   static constexpr float kFarPlane = 1000.0f;  // 1 km

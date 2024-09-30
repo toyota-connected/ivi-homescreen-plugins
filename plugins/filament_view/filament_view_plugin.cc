@@ -141,6 +141,13 @@ void FilamentViewPlugin::ChangeCameraMode(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
+    std::function<void(std::optional<FlutterError> reply)> result) {
+  const auto sceneController = filamentScene_->getSceneController();
+  sceneController->getCameraManager()->vResetInertiaCameraToDefaultValues();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::SetCameraRotation(
     float fValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
