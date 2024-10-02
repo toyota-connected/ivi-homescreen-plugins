@@ -82,7 +82,8 @@ add_library(plugin_filament_view STATIC
         core/components/collidable.cc
         core/entity/model/animation/animation.cc
         core/entity/model/animation/animation_manager.cc
-        core/systems/model_manager.cc
+        core/systems/ecsystems_manager.cc
+        core/systems/derived/model_manager.cc
         core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
@@ -92,8 +93,8 @@ add_library(plugin_filament_view STATIC
         core/entity/entityobject.cc
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
-        core/systems/collision_manager.cc
-        core/systems/debug_lines_manager.cc
+        core/systems/derived/collision_manager.cc
+        core/systems/derived/debug_lines_manager.cc
         core/scene/indirect_light/indirect_light.cc
         core/scene/indirect_light/indirect_light_manager.cc
         core/utils/entitytransforms.cc
@@ -114,7 +115,7 @@ add_library(plugin_filament_view STATIC
         core/entity/shapes/cube.cc
         core/entity/shapes/sphere.cc
         core/entity/shapes/plane.cc
-        core/systems/shape_manager.cc
+        core/systems/derived/shape_manager.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
 )

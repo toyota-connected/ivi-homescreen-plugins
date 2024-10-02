@@ -16,12 +16,14 @@
 
 #include "filament_view_plugin.h"
 
-#include <core/systems/collision_manager.h>
+#include <core/systems/derived/collision_manager.h>
 #include <flutter/standard_message_codec.h>
 
 #include "filament_scene.h"
 #include "messages.g.h"
 #include "plugins/common/common.h"
+
+#include "core/systems/ecsystems_manager.h"
 
 class FlutterView;
 
@@ -50,6 +52,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
       std::move(assetDirectory), engine, addListener, removeListener,
       platform_view_context);
 
+    ECSystemManager::GetInstance()->vInitSystems();
+
   FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
   ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
   SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
@@ -62,6 +66,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   CollisionManager::Instance()->setupMessageChannels(registrar);
 
   registrar->AddPlugin(std::move(plugin));
+
+    ECSystemManager::GetInstance()->StartRunLoop();
 }
 
 FilamentViewPlugin::FilamentViewPlugin(
@@ -98,6 +104,12 @@ FilamentViewPlugin::FilamentViewPlugin(
 
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
+
+  ECSystemManager::GetInstance()->vShutdownSystems();
+  ECSystemManager::GetInstance()->vRemoveAllSystems();
+    // wait for thread to stop running. (Should be relatively quick)
+  while(ECSystemManager::GetInstance()->bIsCompletedStopping() == false) {}
+
 }
 
 void FilamentViewPlugin::ChangeAnimationByIndex(
@@ -142,7 +154,7 @@ void FilamentViewPlugin::ChangeCameraMode(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
-    std::function<void(std::optional<FlutterError> reply)> result) {
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
   const auto sceneController = filamentScene_->getSceneController();
   sceneController->getCameraManager()->vResetInertiaCameraToDefaultValues();
 }

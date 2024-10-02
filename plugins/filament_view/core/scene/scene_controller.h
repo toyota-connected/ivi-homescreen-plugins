@@ -28,7 +28,7 @@
 #include "core/scene/light/light_manager.h"
 #include "core/scene/material/material_manager.h"
 #include "core/scene/skybox/skybox_manager.h"
-#include "core/systems/shape_manager.h"
+#include "core/systems/derived/shape_manager.h"
 #include "core/utils/ibl_profiler.h"
 #include "flutter_desktop_engine_state.h"
 #include "platform_views/platform_view.h"

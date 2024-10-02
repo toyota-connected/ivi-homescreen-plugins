@@ -17,7 +17,7 @@
 #include "messages.g.h"
 
 #include <core/scene/geometry/ray.h>
-#include <core/systems/collision_manager.h>
+#include <core/systems/derived/collision_manager.h>
 #include <map>
 #include <sstream>
 #include <string>

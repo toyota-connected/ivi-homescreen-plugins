@@ -16,12 +16,12 @@
 
 #include "scene_controller.h"
 
-#include <core/systems/debug_lines_manager.h>
+#include <core/systems/derived/debug_lines_manager.h>
 #include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
 
-#include "core/systems//collision_manager.h"
+#include "core/systems/derived/collision_manager.h"
 
 #include "plugins/common/common.h"
 

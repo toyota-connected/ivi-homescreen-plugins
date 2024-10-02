@@ -16,8 +16,8 @@
 
 #include "custom_model_viewer.h"
 
-#include <core/systems/collision_manager.h>
-#include <core/systems/debug_lines_manager.h>
+#include <core/systems/derived/collision_manager.h>
+#include <core/systems/derived/debug_lines_manager.h>
 #include <wayland-client.h>
 #include <asio/post.hpp>
 #include <utility>
