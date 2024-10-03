@@ -15,7 +15,7 @@
  */
 #include "collidable.h"
 
-#include <core/systems/derived/collision_manager.h>
+#include <core/systems/derived/collision_system.h>
 #include <algorithm>
 #include <list>
 

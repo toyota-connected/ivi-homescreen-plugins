@@ -37,13 +37,13 @@
 namespace plugin_filament_view {
 
 class MaterialManager;
-class CollisionManager;
+class CollisionSystem;
 using ::utils::Entity;
 
 namespace shapes {
 
 class BaseShape : public EntityObject {
-  friend class plugin_filament_view::CollisionManager;
+  friend class plugin_filament_view::CollisionSystem;
 
  public:
   BaseShape(const std::string& flutter_assets_path,

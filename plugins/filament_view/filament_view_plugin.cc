@@ -16,7 +16,8 @@
 
 #include "filament_view_plugin.h"
 
-#include <core/systems/derived/collision_manager.h>
+#include <core/systems/derived/collision_system.h>
+#include <core/systems/derived/debug_lines_system.h>
 #include <flutter/standard_message_codec.h>
 
 #include "filament_scene.h"
@@ -47,12 +48,17 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
+
+    // This will need to be done before anything else.
+    auto ecsManager = ECSystemManager::GetInstance();
+    ecsManager->vAddSystem(std::move(std::make_shared<DebugLinesSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_shared<CollisionSystem>()));
+    ecsManager->vInitSystems();
+
   auto plugin = std::make_unique<FilamentViewPlugin>(
       id, std::move(viewType), direction, top, left, width, height, params,
       std::move(assetDirectory), engine, addListener, removeListener,
       platform_view_context);
-
-    ECSystemManager::GetInstance()->vInitSystems();
 
   FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
   ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
@@ -63,7 +69,10 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   CustomModelViewer::Instance("RegisterWithRegistrar")
       ->setupMessageChannels(registrar);
 
-  CollisionManager::Instance()->setupMessageChannels(registrar);
+    auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+    if (collisionSystem != nullptr) {
+        collisionSystem->setupMessageChannels(registrar);
+    }
 
   registrar->AddPlugin(std::move(plugin));
 
@@ -137,10 +146,18 @@ void FilamentViewPlugin::ToggleShapesInScene(
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+
+    auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+    if (collisionSystem == nullptr) {
+        spdlog::warn("Unable to toggle collision on/off, system is null");
+        return;
+    }
+
+    // Note this can probably become a message in the future, backlogged.
   if (!value) {
-    CollisionManager::Instance()->vTurnOffRenderingOfCollidables();
+    collisionSystem->vTurnOffRenderingOfCollidables();
   } else {
-    CollisionManager::Instance()->vTurnOnRenderingOfCollidables();
+    collisionSystem->vTurnOnRenderingOfCollidables();
   }
 }
 

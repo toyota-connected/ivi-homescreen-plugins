@@ -18,6 +18,7 @@
 
 #include <core/include/literals.h>
 #include <list>
+#include <core/systems/base/ecsystem.h>
 
 #include "core/components/basetransform.h"
 #include "core/components/collidable.h"
@@ -38,19 +39,30 @@ class HitResult {
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
-class CollisionManager {
+class CollisionSystem : public ECSystem {
  public:
+  CollisionSystem() = default;
+
   void vCleanup();
-  void DebugPrint();
+  void DebugPrint() override;
 
   // Disallow copy and assign.
-  CollisionManager(const CollisionManager&) = delete;
-  CollisionManager& operator=(const CollisionManager&) = delete;
+  CollisionSystem(const CollisionSystem&) = delete;
+  CollisionSystem& operator=(const CollisionSystem&) = delete;
 
   void vTurnOnRenderingOfCollidables();
   void vTurnOffRenderingOfCollidables();
 
-  void vUpdate();
+ void vUpdate(float fElapsedTime) override;
+
+ void vInitSystem() override;
+ void vShutdownSystem() override;
+
+ [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+ [[nodiscard]] static size_t StaticGetTypeID() {
+  return typeid(CollisionSystem).hash_code();
+ }
 
   void vAddCollidable(EntityObject* collidable);
   void vRemoveCollidable(EntityObject* collidable);
@@ -71,12 +83,7 @@ class CollisionManager {
   [[nodiscard]] bool bHasEntityObjectRepresentation(
       const EntityGUID& guid) const;
 
-  static CollisionManager* Instance();
-
  private:
-  CollisionManager() = default;
-
-  static CollisionManager* m_poInstance;
 
   bool currentlyDrawingDebugCollidables = false;
 

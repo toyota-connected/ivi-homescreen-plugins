@@ -16,12 +16,12 @@
 
 #include "scene_controller.h"
 
-#include <core/systems/derived/debug_lines_manager.h>
 #include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
+#include <core/systems/ecsystems_manager.h>
 
-#include "core/systems/derived/collision_manager.h"
+#include <core/systems/derived/collision_system.h>
 
 #include "plugins/common/common.h"
 
@@ -301,9 +301,13 @@ void SceneController::setUpShapes(
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
   shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
 
+  auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+
   for (const auto& shape : *shapes) {
     if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
-      CollisionManager::Instance()->vAddCollidable(shape.get());
+      if (collisionSystem != nullptr) {
+        collisionSystem->vAddCollidable(shape.get());
+      }
     }
   }
 
@@ -395,14 +399,16 @@ void SceneController::onTouch(int32_t action,
 
   if (action == ACTION_DOWN) {
     auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
-    DebugLinesManager::Instance()->vAddLine(
-        rayInfo.f3GetPosition(),
-        rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
 
-    auto hitList =
-        CollisionManager::Instance()->lstCheckForCollidable(rayInfo, 0);
-    CollisionManager::Instance()->SendCollisionInformationCallback(
-        hitList, "?TODO?", CollisionEventType::eNativeOnTouchBegin);
+    ECSMessage rayInformation;
+    rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
+    ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
+
+    ECSMessage collisionRequest;
+    collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
+    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
+    collisionRequest.addData(ECSMessageType::CollisionRequestType, CollisionEventType::eNativeOnTouchBegin);
+    ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 
   if (cameraManager_) {

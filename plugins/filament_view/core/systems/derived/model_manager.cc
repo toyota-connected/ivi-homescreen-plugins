@@ -27,9 +27,11 @@
 #include <filament/math/mat4.h>
 #include <filament/utils/Slice.h>
 #include <asio/post.hpp>
+#include <core/systems/ecsystems_manager.h>
+
 #include "core/utils/entitytransforms.h"
 
-#include "collision_manager.h"
+#include "collision_system.h"
 #include "filament/gltfio/materials/uberarchive.h"
 
 #include <curl_client/curl_client.h>
@@ -257,10 +259,18 @@ void ModelManager::updateAsyncAssetLoading() {
   // eventually settle
   float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
+
+
   for (const auto& asset : m_mapszpoAssets) {
     populateSceneWithAsyncLoadedAssets(asset.second);
 
     if (percentComplete != 1.0f) {
+      continue;
+    }
+
+    auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+    if (collisionSystem == nullptr) {
+      spdlog::warn("Failed to get collision system when loading model");
       continue;
     }
 
@@ -270,9 +280,12 @@ void ModelManager::updateAsyncAssetLoading() {
     // Also need to make sure it hasn't already created one for this model.
     if (asset.second->HasComponentByStaticTypeID(
             Collidable::StaticGetTypeID()) &&
-        !CollisionManager::Instance()->bHasEntityObjectRepresentation(
+        !collisionSystem->bHasEntityObjectRepresentation(
             asset.first)) {
-      CollisionManager::Instance()->vAddCollidable(asset.second);
+      // I don't think this needs to become a message; as an async load
+      // gives us un-deterministic throughput; it can't be replicated with a
+      // messaging structure, and we have to wait till the load is done.
+      collisionSystem->vAddCollidable(asset.second);
     }  // end make collision
   }  // end foreach
 }  // end method

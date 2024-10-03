@@ -16,8 +16,6 @@
 
 #include "custom_model_viewer.h"
 
-#include <core/systems/derived/collision_manager.h>
-#include <core/systems/derived/debug_lines_manager.h>
 #include <wayland-client.h>
 #include <asio/post.hpp>
 #include <utility>
@@ -355,8 +353,6 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
         timeSinceLastRenderedSec += 1.0f;
       }
       float fps = 1.0f / timeSinceLastRenderedSec;  // calculate FPS
-
-      DebugLinesManager::Instance()->vUpdate(timeSinceLastRenderedSec);
 
       SendFrameViewCallback(
           kPreRenderFrame,

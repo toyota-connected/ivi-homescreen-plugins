@@ -69,8 +69,6 @@ void ECSystemManager::StopRunLoop() {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::ExecuteOnMainThread(float elapsedTime) {
-    SPDLOG_INFO("execute main thread {}", elapsedTime);
-
     vUpdate(elapsedTime);
 }
 
@@ -84,6 +82,8 @@ void ECSystemManager::vInitSystems(){
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vUpdate(float deltaTime){
     for (const auto& system : m_vecSystems) {
+        // These two might get merged in the future. Thinking on it more.
+        system->vProcessMessages();
         system->vUpdate(deltaTime);
     }
 }

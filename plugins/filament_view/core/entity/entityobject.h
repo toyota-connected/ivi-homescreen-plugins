@@ -26,7 +26,7 @@ namespace plugin_filament_view {
 using EntityGUID = std::string;
 
 class EntityObject {
-  friend class CollisionManager;
+  friend class CollisionSystem;
 
  public:
   // Overloading the == operator to compare based on global_guid_

@@ -20,10 +20,10 @@ public:
     ECSystemManager& operator=(const ECSystemManager&) = delete;
 
     void vAddSystem(std::shared_ptr<ECSystem> system) {
-        m_vecSystems.push_back(system);
+        m_vecSystems.push_back(std::move(system));
     }
 
-    void vRemoveSystem(std::shared_ptr<ECSystem> system) {
+    void vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
         m_vecSystems.erase(std::remove(m_vecSystems.begin(), m_vecSystems.end(), system), m_vecSystems.end());
     }
 
@@ -34,14 +34,7 @@ public:
         }
     }
 
-    // Process messages for all systems
-    void vProcessMessages() {
-        for (const auto& system : m_vecSystems) {
-            system->vProcessMessages();
-        }
-    }
-
-    // Clear all systems (if needed)
+    // Clear all systems
     void vRemoveAllSystems() {
         m_vecSystems.clear();
     }
@@ -54,6 +47,15 @@ public:
         }
         return nullptr;  // If no matching system found
     }
+
+    template <typename Target>
+    std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID) {
+        // Retrieve the system from the manager using its type ID
+        auto system = poGetSystem(systemTypeID);  // Assuming poGetSystem is a member function of SystemManager
+        // Perform dynamic pointer cast to the desired type
+        return std::dynamic_pointer_cast<Target>(system);
+    }
+
 
     void vInitSystems();
     void vUpdate(float deltaTime);

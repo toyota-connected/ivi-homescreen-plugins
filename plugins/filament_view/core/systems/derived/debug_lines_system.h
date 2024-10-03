@@ -22,6 +22,7 @@
 #include <utils/EntityManager.h>
 #include <list>
 #include <vector>
+#include <core/systems/base/ecsystem.h>
 
 using ::utils::Entity;
 
@@ -48,19 +49,20 @@ class DebugLine {
   filament::Aabb boundingBox_;
 };
 
-class DebugLinesManager {
+class DebugLinesSystem : public ECSystem {
  public:
-  DebugLinesManager();
+  DebugLinesSystem();
 
-  void DebugPrint();
+  void DebugPrint() override;
 
   // Disallow copy and assign.
-  DebugLinesManager(const DebugLinesManager&) = delete;
-  DebugLinesManager& operator=(const DebugLinesManager&) = delete;
+  DebugLinesSystem(const DebugLinesSystem&) = delete;
+  DebugLinesSystem& operator=(const DebugLinesSystem&) = delete;
 
-  void vUpdate(float fElapsedTime);
+  void vUpdate(float fElapsedTime) override;
 
-  static DebugLinesManager* Instance();
+ void vInitSystem() override;
+ void vShutdownSystem() override;
 
   void vAddLine(::filament::math::float3 startPoint,
                 ::filament::math::float3 endPoint,
@@ -69,9 +71,13 @@ class DebugLinesManager {
   // Will be virtual override from base system.
   void vCleanup();
 
- private:
-  static DebugLinesManager* m_poInstance;
+ [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
+ [[nodiscard]] static size_t StaticGetTypeID() {
+  return typeid(DebugLinesSystem).hash_code();
+ }
+
+ private:
   bool m_bCurrentlyDrawingDebugLines = false;
 
   std::list<std::unique_ptr<DebugLine>> ourLines_;

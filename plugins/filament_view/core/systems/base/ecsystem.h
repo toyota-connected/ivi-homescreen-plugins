@@ -57,6 +57,8 @@ public:
         return typeid(ECSystem).hash_code();
     }
 
+    virtual void DebugPrint() = 0;
+
 protected:
     // Handle a specific message type by invoking the registered handlers
     virtual void vHandleMessage(const ECSMessage& msg) {

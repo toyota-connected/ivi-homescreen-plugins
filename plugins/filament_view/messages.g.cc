@@ -17,10 +17,12 @@
 #include "messages.g.h"
 
 #include <core/scene/geometry/ray.h>
-#include <core/systems/derived/collision_manager.h>
+#include <core/systems/derived/collision_system.h>
 #include <map>
 #include <sstream>
 #include <string>
+#include <core/systems/ecsystems_manager.h>
+#include <core/systems/messages/ecs_message.h>
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/binary_messenger.h>
@@ -169,15 +171,19 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 }
               }
 
-              // ideally this is an async call, so we won't return results
+              // this is an async call,  we won't return results
               // in-line here.
               Ray rayInfo(origin, direction, length);
-              auto hitList =
-                  CollisionManager::Instance()->lstCheckForCollidable(rayInfo,
-                                                                      0);
-              CollisionManager::Instance()->SendCollisionInformationCallback(
-                  hitList, guidForReferenceLookup,
-                  CollisionEventType::eFromNonNative);
+
+              ECSMessage rayInformation;
+              rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
+              ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
+
+              ECSMessage collisionRequest;
+              collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
+              collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, guidForReferenceLookup);
+              collisionRequest.addData(ECSMessageType::CollisionRequestType, CollisionEventType::eFromNonNative);
+              ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
 
               result->Success();
             } else {

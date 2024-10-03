@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "debug_lines_manager.h"
+#include "debug_lines_system.h"
 #include <filament/Engine.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
@@ -97,20 +97,11 @@ void DebugLine::vCleanup(filament::Engine* engine) {
   }
 }
 
-DebugLinesManager::DebugLinesManager() : m_bCurrentlyDrawingDebugLines(false) {}
+DebugLinesSystem::DebugLinesSystem() : m_bCurrentlyDrawingDebugLines(false) {}
 
-DebugLinesManager* DebugLinesManager::m_poInstance = nullptr;
-DebugLinesManager* DebugLinesManager::Instance() {
-  if (m_poInstance == nullptr) {
-    m_poInstance = new DebugLinesManager();
-  }
+void DebugLinesSystem::DebugPrint() {}
 
-  return m_poInstance;
-}
-
-void DebugLinesManager::DebugPrint() {}
-
-void DebugLinesManager::vCleanup() {
+void DebugLinesSystem::vCleanup() {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto* engine = modelViewer->getFilamentEngine();
 
@@ -124,7 +115,7 @@ void DebugLinesManager::vCleanup() {
   }
 }
 
-void DebugLinesManager::vUpdate(float fElapsedTime) {
+void DebugLinesSystem::vUpdate(float fElapsedTime) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto* engine = modelViewer->getFilamentEngine();
 
@@ -145,10 +136,19 @@ void DebugLinesManager::vUpdate(float fElapsedTime) {
   }
 }
 
-// TODO once 'System' methods are implemented this will need a shutdown method
-// to remove lines
+void DebugLinesSystem::vInitSystem() {
+  vRegisterMessageHandler(ECSMessageType::DebugLine,  [this](const ECSMessage& msg ) {
+    Ray rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
+    vAddLine(rayInfo.f3GetPosition(),
+        rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+  });
+}
 
-void DebugLinesManager::vAddLine(::filament::math::float3 startPoint,
+void DebugLinesSystem::vShutdownSystem() {
+  vCleanup();
+}
+
+void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
                                  ::filament::math::float3 endPoint,
                                  float secondsTimeout) {
   if (m_bCurrentlyDrawingDebugLines == false)

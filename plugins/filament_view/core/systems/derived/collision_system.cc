@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "collision_manager.h"
+#include "collision_system.h"
 
 #include <core/entity/shapes/cube.h>
 #include <core/entity/shapes/plane.h>
@@ -43,24 +43,14 @@ flutter::EncodableValue HitResult::Encode() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-CollisionManager* CollisionManager::m_poInstance = nullptr;
-CollisionManager* CollisionManager::Instance() {
-  if (m_poInstance == nullptr) {
-    m_poInstance = new CollisionManager();
-  }
-
-  return m_poInstance;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-bool CollisionManager::bHasEntityObjectRepresentation(
+bool CollisionSystem::bHasEntityObjectRepresentation(
     const EntityGUID& guid) const {
   return collidablesDebugDrawingRepresentation_.find(guid) !=
          collidablesDebugDrawingRepresentation_.end();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::vAddCollidable(EntityObject* collidable) {
+void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   if (!collidable->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
     spdlog::error(
         "You tried to add an entityObject that didnt have a collidable on it, "
@@ -174,7 +164,7 @@ void CollisionManager::vAddCollidable(EntityObject* collidable) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
+void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
 
   // Remove from collidablesDebugDrawingRepresentation_
@@ -187,21 +177,21 @@ void CollisionManager::vRemoveCollidable(EntityObject* collidable) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::vTurnOnRenderingOfCollidables() {
+void CollisionSystem::vTurnOnRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
     collidable.second->vRemoveEntityFromScene();
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::vTurnOffRenderingOfCollidables() {
+void CollisionSystem::vTurnOffRenderingOfCollidables() {
   for (auto& collidable : collidablesDebugDrawingRepresentation_) {
     collidable.second->vAddEntityToScene();
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::DebugPrint() {
+void CollisionSystem::DebugPrint() {
   spdlog::debug("CollisionManager Debug Info:");
 
   for (auto& collidable : collidables_) {
@@ -215,7 +205,7 @@ inline float fLength2(const filament::math::float3& v) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::list<HitResult> CollisionManager::lstCheckForCollidable(
+std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     Ray& rayCast,
     int64_t /*collisionLayer*/) const {
   std::list<HitResult> hitResults;
@@ -268,7 +258,7 @@ std::list<HitResult> CollisionManager::lstCheckForCollidable(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::setupMessageChannels(
+void CollisionSystem::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
   auto channel_name = std::string("plugin.filament_view.collision_info");
 
@@ -278,7 +268,7 @@ void CollisionManager::setupMessageChannels(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionManager::SendCollisionInformationCallback(
+void CollisionSystem::SendCollisionInformationCallback(
     std::list<HitResult>& lstHitResults,
     std::string sourceQuery,
     CollisionEventType eType) const {
@@ -310,6 +300,26 @@ void CollisionManager::SendCollisionInformationCallback(
   collisionInfoCallback_->InvokeMethod(
       kCollisionEvent, std::make_unique<flutter::EncodableValue>(
                            flutter::EncodableValue(encodableMap)));
+}
+
+void CollisionSystem::vInitSystem() {
+vRegisterMessageHandler(ECSMessageType::CollisionRequest,  [this](const ECSMessage& msg ) {
+    Ray rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
+    auto requestor = msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
+    auto type = msg.getData<CollisionEventType>(ECSMessageType::CollisionRequestType);
+
+    auto hitList = lstCheckForCollidable(rayInfo, 0);
+
+    SendCollisionInformationCallback(hitList, requestor, type);
+  });
+}
+
+void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
+
+}
+
+void CollisionSystem::vShutdownSystem() {
+
 }
 
 }  // namespace plugin_filament_view
