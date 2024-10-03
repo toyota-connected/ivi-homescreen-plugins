@@ -101,6 +101,8 @@ class CameraManager {
   [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(
       TouchPair touch) const;
 
+  void vResetInertiaCameraToDefaultValues();
+
  private:
   static constexpr float kNearPlane = 0.05f;   // 5 cm
   static constexpr float kFarPlane = 1000.0f;  // 1 km
@@ -173,8 +175,8 @@ class CameraManager {
 
   std::shared_ptr<Camera> primaryCamera_;
 
-  // Used with Camera Inertia.
-  filament::math::float2 currentVelocity_;
+  // Used with Camera Inertia / zoom
+  filament::math::float3 currentVelocity_;
   filament::math::float2 initialTouchPosition_;
 
   void endGesture();

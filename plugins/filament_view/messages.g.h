@@ -123,6 +123,9 @@ class FilamentViewApi {
       std::string value,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
+  virtual void vResetInertiaCameraToDefaultValues(
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
+
   virtual void SetCameraRotation(
       float fValue,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;

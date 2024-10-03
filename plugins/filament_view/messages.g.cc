@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,10 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                   api->ChangeCameraMode(szValue, nullptr);
                 }
               }
+              result->Success();
+            } else if (methodCall.method_name() ==
+                       kResetInertiaCameraToDefaultValues) {
+              api->vResetInertiaCameraToDefaultValues(nullptr);
               result->Success();
             } else if (methodCall.method_name() == kChangeCameraRotation) {
               const auto& args =

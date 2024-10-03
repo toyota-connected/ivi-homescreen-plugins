@@ -39,6 +39,9 @@ static constexpr char kChangeCameraMode[] = "CHANGE_CAMERA_MODE";
 static constexpr char kChangeCameraModeValue[] = "CHANGE_CAMERA_MODE_VALUE";
 static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
 static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
+static constexpr char kResetInertiaCameraToDefaultValues[] =
+    "RESET_INERTIA_TO_DEFAULTS";
+
 // Collision Requests
 static constexpr char kCollisionRayRequest[] = "COLLISION_RAY_REQUEST";
 static constexpr char kCollisionRayRequestOriginX[] =
@@ -116,5 +119,10 @@ static constexpr char kCamera_Inertia_RotationSpeed[] = "inertia_rotationSpeed";
 static constexpr char kCamera_Inertia_VelocityFactor[] =
     "inertia_velocityFactor";
 static constexpr char kCamera_Inertia_DecayFactor[] = "inertia_decayFactor";
+
+static constexpr char kCamera_Pan_angleCapX[] = "pan_angleCapX";
+static constexpr char kCamera_Pan_angleCapY[] = "pan_angleCapY";
+static constexpr char kCamera_Zoom_minCap[] = "zoom_minCap";
+static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
 
 }  // namespace plugin_filament_view

@@ -16,12 +16,15 @@
 
 #include "camera_manager.h"
 
+#include <core/utils/entitytransforms.h>
+
 #include "asio/post.hpp"
 
 #include <filament/math/TMatHelpers.h>
 #include <filament/math/mat4.h>
 #include <filament/math/vec4.h>
 
+#include "core/include/additionalmath.h"
 #include "plugins/common/common.h"
 #include "touch_pair.h"
 
@@ -229,13 +232,6 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
                  cameraInfo->farPlane_.value());
   }
 
-  if (cameraInfo->mapExtent_) {
-    const auto mapExtent = cameraInfo->mapExtent_.get();
-    manipulatorBuilder.mapExtent(mapExtent->at(0), mapExtent->at(1));
-    SPDLOG_DEBUG("[CameraManipulator] mapExtent: {}, {}", mapExtent->at(0),
-                 mapExtent->at(1));
-  }
-
   if (cameraInfo->flightStartPosition_) {
     const auto flightStartPosition = cameraInfo->flightStartPosition_.get();
     manipulatorBuilder.flightStartPosition(
@@ -336,6 +332,18 @@ void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
   }
 }
 
+void CameraManager::vResetInertiaCameraToDefaultValues() {
+  if (primaryCamera_->eCustomCameraMode_ == Camera::InertiaAndGestures) {
+    primaryCamera_->vResetInertiaCameraToDefaultValues();
+
+    currentVelocity_ = {0};
+
+    setCameraLookat(*primaryCamera_->flightStartPosition_,
+                    *primaryCamera_->targetPosition_,
+                    *primaryCamera_->upVector_);
+  }
+}
+
 void CameraManager::lookAtDefaultPosition() {
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
@@ -391,7 +399,9 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
     currentVelocity_.y = 0.0f;
 
     // Update camera position around the center
-    if (currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f) {
+    if ((currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f &&
+         currentVelocity_.z == 0.0f) &&
+        !isPanGesture()) {
       return;
     }
 
@@ -407,18 +417,44 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
     primaryCamera_->fCurrentOrbitAngle_ += angleX;
 
     // Calculate the new camera eye position based on the orbit angle
-    float radius = primaryCamera_->flightStartPosition_->x;
+    float zoomSpeed = primaryCamera_->zoomSpeed_.value_or(0.1f);
+    float radius =
+        primaryCamera_->current_zoom_radius_ - currentVelocity_.z * zoomSpeed;
+
+    // Clamp the radius between zoom_minCap_ and zoom_maxCap_
+    radius =
+        std::clamp(radius, static_cast<float>(primaryCamera_->zoom_minCap_),
+                   static_cast<float>(primaryCamera_->zoom_maxCap_));
+
     filament::math::float3 eye;
     eye.x = radius * std::cos(primaryCamera_->fCurrentOrbitAngle_);
     eye.y = primaryCamera_->flightStartPosition_->y;
     eye.z = radius * std::sin(primaryCamera_->fCurrentOrbitAngle_);
 
-    // Keep the center and up vectors fixed
     filament::math::float3 center = *primaryCamera_->targetPosition_;
     filament::math::float3 up = {0.0f, 1.0f, 0.0f};
 
-    // Update the camera look-at based on new eye position
     setCameraLookat(eye, center, up);
+
+    // Now we're going to add on pan
+    auto modelMatrix = camera_->getModelMatrix();
+
+    auto pitchQuat = filament::math::quatf::fromAxisAngle(
+        filament::float3{1.0f, 0.0f, 0.0f},
+        primaryCamera_->current_pitch_addition_);
+
+    auto yawQuat = filament::math::quatf::fromAxisAngle(
+        filament::float3{0.0f, 1.0f, 0.0f},
+        primaryCamera_->current_yaw_addition_);
+
+    filament::math::mat4f pitchMatrix =
+        EntityTransforms::QuaternionToMat4f(pitchQuat);
+    filament::math::mat4f yawMatrix =
+        EntityTransforms::QuaternionToMat4f(yawQuat);
+
+    modelMatrix = modelMatrix * yawMatrix * pitchMatrix;
+    camera_->setModelMatrix(modelMatrix);
+
 #else  // using camera manipulator
     // At this time, this does not use velocity/inertia and doesn't cap Y
     // meaning you can get a full up/down view and around.
@@ -433,6 +469,8 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
     auto inertiaDecayFactor_ =
         static_cast<float>(primaryCamera_->inertia_decayFactor_);
     currentVelocity_ *= inertiaDecayFactor_;
+
+    primaryCamera_->current_zoom_radius_ = radius;
   }
 }
 
@@ -526,6 +564,16 @@ void CameraManager::onAction(int32_t action,
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
+#if 0  // Hack testing code - for testing camera controls on PC
+  if ( action == ACTION_DOWN || action == ACTION_MOVE) {
+    currentVelocity_.z += 1.0f;
+    return;
+  } else if (action == ACTION_UP) {
+    currentVelocity_.z -= 1.0f;
+    return;
+  }
+#endif
+
   auto viewport = modelViewer->getFilamentView()->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
@@ -534,11 +582,11 @@ void CameraManager::onAction(int32_t action,
       if (point_count == 1) {
         cameraManipulator_->grabBegin(touch.x(), touch.y(), false);
         initialTouchPosition_ = {touch.x(), touch.y()};
-        currentVelocity_ = {0.0f, 0.0f};
+        currentVelocity_ = {0.0f};
       }
     } break;
 
-    case ACTION_MOVE:
+    case ACTION_MOVE: {
       // CANCEL GESTURE DUE TO UNEXPECTED POINTER COUNT
       if ((point_count != 1 && currentGesture_ == Gesture::ORBIT) ||
           (point_count != 2 && currentGesture_ == Gesture::PAN) ||
@@ -554,6 +602,9 @@ void CameraManager::onAction(int32_t action,
         auto d1 = touch.separation();
         cameraManipulator_->scroll(touch.x(), touch.y(),
                                    (d0 - d1) * kZoomSpeed);
+
+        currentVelocity_.z = (d0 - d1) * kZoomSpeed;
+
         previousTouch_ = touch;
         return;
       }
@@ -575,18 +626,19 @@ void CameraManager::onAction(int32_t action,
         tentativeZoomEvents_.push_back(touch);
       }
 
+      // Calculate the delta movement
+      filament::math::float2 currentPosition = {touch.x(), touch.y()};
+      filament::math::float2 delta = currentPosition - initialTouchPosition_;
+
+      auto velocityFactor =
+          static_cast<float>(primaryCamera_->inertia_velocityFactor_);
+
       if (isOrbitGesture()) {
         cameraManipulator_->grabUpdate(touch.x(), touch.y());
         currentGesture_ = Gesture::ORBIT;
 
-        // Calculate the delta movement
-        filament::math::float2 currentPosition = {touch.x(), touch.y()};
-        filament::math::float2 delta = currentPosition - initialTouchPosition_;
-
-        auto velocityFactor =
-            static_cast<float>(primaryCamera_->inertia_velocityFactor_);
         // Update velocity based on movement
-        currentVelocity_ += delta * velocityFactor;
+        currentVelocity_.xy += delta * velocityFactor;
 
         // Update touch position for the next move
         initialTouchPosition_ = currentPosition;
@@ -601,10 +653,31 @@ void CameraManager::onAction(int32_t action,
       }
 
       if (isPanGesture()) {
+        primaryCamera_->current_pitch_addition_ +=
+            delta.y * velocityFactor * .01f;
+        primaryCamera_->current_yaw_addition_ -=
+            delta.x * velocityFactor * .01f;
+
+        // Convert your angle caps from degrees to radians
+        float pitchCapRadians =
+            static_cast<float>(primaryCamera_->pan_angleCapX_) *
+            degreesToRadians;
+        float yawCapRadians =
+            static_cast<float>(primaryCamera_->pan_angleCapY_) *
+            degreesToRadians;
+
+        primaryCamera_->current_pitch_addition_ =
+            std::clamp(primaryCamera_->current_pitch_addition_,
+                       -pitchCapRadians, pitchCapRadians);
+
+        primaryCamera_->current_yaw_addition_ =
+            std::clamp(primaryCamera_->current_yaw_addition_, -yawCapRadians,
+                       yawCapRadians);
+
         cameraManipulator_->grabBegin(touch.x(), touch.y(), true);
         currentGesture_ = Gesture::PAN;
       }
-      break;
+    } break;
     case ACTION_CANCEL:
     case ACTION_UP:
     default:

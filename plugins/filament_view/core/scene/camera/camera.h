@@ -57,6 +57,14 @@ class Camera {
     forceSingleFrameUpdate_ = true;
   }
 
+  void vResetInertiaCameraToDefaultValues() {
+    current_zoom_radius_ = flightStartPosition_->x;
+    current_pitch_addition_ = 0;
+    current_yaw_addition_ = 0;
+
+    vSetCurrentCameraOrbitAngle(0.0f);
+  }
+
  private:
   static constexpr char kModeOrbit[] = "ORBIT";
   static constexpr char kModeMap[] = "MAP";
@@ -138,13 +146,6 @@ class Camera {
   /// The distance to the far plane, which defaults to 5000.
   std::optional<float> farPlane_;
 
-  /// The ground plane size used to compute the home position for MAP mode.
-  /// This defaults to 512 x 512
-  std::unique_ptr<std::vector<float>> mapExtent_;
-
-  /// Constrains the zoom-in level. Defaults to 0.
-  std::optional<double> mapMinDistance_;
-
   /// The initial eye position in world space for FREE_FLIGHT mode.
   /// Defaults to (x:0,y:0,z:0).
   std::unique_ptr<::filament::math::float3> flightStartPosition_;
@@ -179,5 +180,28 @@ class Camera {
 
   // 0-1 larger number means it takes longer for it to decay, default 0.86
   double inertia_decayFactor_;
+
+  // when panning the max angle we let them go to the edge L/R
+  double pan_angleCapX_;
+
+  // when panning the max angle we let them go to the edge U/D
+  double pan_angleCapY_;
+
+  // when zooming the limit they're able to go 'into' the object before unable
+  // to go any further in
+  double zoom_minCap_;
+
+  // when zooming the limit they're able to go from the object before unable to
+  // go any further out
+  double zoom_maxCap_;
+
+  // used by camera manager to go between zoom min and max cap.
+  float current_zoom_radius_;
+
+  // used with pan angle caps
+  float current_pitch_addition_;
+
+  // used with pan angle caps
+  float current_yaw_addition_;
 };
 }  // namespace plugin_filament_view
