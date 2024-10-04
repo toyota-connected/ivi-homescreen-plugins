@@ -15,6 +15,10 @@
  */
 
 #include "light_manager.h"
+
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
+
 #include "core/include/color.h"
 
 #include <filament/Color.h>
@@ -47,11 +51,19 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
     Light* light) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
 
   if (entityLight_.isNull()) {
-    entityLight_ =
-        modelViewer->getFilamentEngine()->getEntityManager().create();
+    asio::post(strand_, [&] {
+      auto filamentSystem =
+          ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+              FilamentSystem::StaticGetTypeID());
+      const auto engine = filamentSystem->getFilamentEngine();
+
+      spdlog::debug("LightManage Filament API thread: 0x{:x}", pthread_self());
+      entityLight_ = engine->getEntityManager().create();
+    });
   }
 
   const auto promise(
@@ -64,8 +76,6 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
     SPDLOG_TRACE("--LightManager::changeLight");
     return future;
   }
-
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
 
   asio::post(strand_, [&, promise, light] {
     auto builder = ::filament::LightManager::Builder(light->type_);
@@ -122,14 +132,21 @@ std::future<Resource<std::string_view>> LightManager::changeLight(
       builder.sunHaloSize(light->sunHaloFalloff_.value());
     }
 
+    auto filamentSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+            FilamentSystem::StaticGetTypeID());
+    const auto engine = filamentSystem->getFilamentEngine();
+
+    builder.build(*engine, entityLight_);
+
     CustomModelViewer* modelViewer =
-        CustomModelViewer::Instance("changeLight::Lambda");
-    builder.build(*modelViewer->getFilamentEngine(), entityLight_);
+        CustomModelViewer::Instance("Light creation lambda");
     auto scene = modelViewer->getFilamentScene();
 
     // this remove looks sus; seems like it should be the first thing
     // in the function, todo investigate.
     scene->removeEntities(&entityLight_, 1);
+
     scene->addEntity(entityLight_);
     promise->set_value(
         Resource<std::string_view>::Success("Light created Successfully"));

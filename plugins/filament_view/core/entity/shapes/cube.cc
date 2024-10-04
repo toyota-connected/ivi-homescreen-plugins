@@ -46,19 +46,17 @@ Cube::Cube(const std::string& flutter_assets_path,
 }
 
 bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
-                               std::shared_ptr<Entity> entityObject,
-                               MaterialManager* material_manager) {
+                               std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
   if (m_bDoubleSided)
-    createDoubleSidedCube(engine_, material_manager);
+    createDoubleSidedCube(engine_);
   else
-    createSingleSidedCube(engine_, material_manager);
+    createSingleSidedCube(engine_);
   return true;
 }
 
-void Cube::createDoubleSidedCube(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
+void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices for outside, 24 for inside)
   static const float vertices[] = {
       // Outside Front face
@@ -430,11 +428,10 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_, material_manager);
+  vBuildRenderable(engine_);
 }
 
-void Cube::createSingleSidedCube(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
+void Cube::createSingleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices, 4 per face)
   static const float vertices[] = {
       // Front face
@@ -671,7 +668,7 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_, material_manager);
+  vBuildRenderable(engine_);
 }
 
 void Cube::DebugPrint(const char* tag) const {

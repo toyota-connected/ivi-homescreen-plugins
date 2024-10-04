@@ -1,89 +1,113 @@
 #pragma once
 
-#include <vector>
-#include <memory>
 #include <asio/io_context_strand.hpp>
+#include <memory>
+#include <vector>
 
 #include <future>
+#include <shared_mutex>
+
 #include "core/systems/base/ecsystem.h"
 
 namespace plugin_filament_view {
 
 class ECSystemManager {
-public:
-    static ECSystemManager* GetInstance() {
-        static ECSystemManager instance;
-        return &instance;
+ public:
+  static ECSystemManager* GetInstance();
+
+  ECSystemManager(const ECSystemManager&) = delete;
+  ECSystemManager& operator=(const ECSystemManager&) = delete;
+
+  void vAddSystem(std::shared_ptr<ECSystem> system);
+
+  void vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
+    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    m_vecSystems.erase(
+        std::remove(m_vecSystems.begin(), m_vecSystems.end(), system),
+        m_vecSystems.end());
+  }
+
+  // Send a message to all registered systems
+  void vRouteMessage(const ECSMessage& msg) {
+    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    for (const auto& system : m_vecSystems) {
+      system->vSendMessage(msg);
     }
+  }
 
-    ECSystemManager(const ECSystemManager&) = delete;
-    ECSystemManager& operator=(const ECSystemManager&) = delete;
+  // Clear all systems
+  void vRemoveAllSystems() {
+    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    m_vecSystems.clear();
+  }
 
-    void vAddSystem(std::shared_ptr<ECSystem> system) {
-        m_vecSystems.push_back(std::move(system));
+  std::shared_ptr<ECSystem> poGetSystem(size_t systemTypeID) {
+    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    for (const auto& system : m_vecSystems) {
+      if (system->GetTypeID() == systemTypeID) {
+        return system;
+      }
     }
+    return nullptr;  // If no matching system found
+  }
 
-    void vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
-        m_vecSystems.erase(std::remove(m_vecSystems.begin(), m_vecSystems.end(), system), m_vecSystems.end());
-    }
+  template <typename Target>
+  std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID) {
+    // Retrieve the system from the manager using its type ID
+    auto system = poGetSystem(systemTypeID);
+    // Perform dynamic pointer cast to the desired type
+    return std::dynamic_pointer_cast<Target>(system);
+  }
 
-    // Send a message to all registered systems
-    void vRouteMessage(const ECSMessage& msg) {
-        for (const auto& system : m_vecSystems) {
-            system->vSendMessage(msg);
-        }
-    }
+  void vInitSystems();
+  void vUpdate(float deltaTime);
+  void vShutdownSystems();
 
-    // Clear all systems
-    void vRemoveAllSystems() {
-        m_vecSystems.clear();
-    }
+  void DebugPrint();
 
-    std::shared_ptr<ECSystem> poGetSystem(size_t systemTypeID) {
-        for (const auto& system : m_vecSystems) {
-            if (system->GetTypeID() == systemTypeID) {
-                return system;
-            }
-        }
-        return nullptr;  // If no matching system found
-    }
+  void StartRunLoop();
+  void StopRunLoop();
 
-    template <typename Target>
-    std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID) {
-        // Retrieve the system from the manager using its type ID
-        auto system = poGetSystem(systemTypeID);  // Assuming poGetSystem is a member function of SystemManager
-        // Perform dynamic pointer cast to the desired type
-        return std::dynamic_pointer_cast<Target>(system);
-    }
+  [[nodiscard]] bool bIsCompletedStopping() const {
+    return m_bSpawnedThreadFinished;
+  }
 
+  [[nodiscard]] pthread_t GetFilamentAPIThreadID() const {
+    return filament_api_thread_id_;
+  }
 
-    void vInitSystems();
-    void vUpdate(float deltaTime);
-    void vShutdownSystems();
+  [[nodiscard]] const std::thread& GetFilamentAPIThread() const {
+    return filament_api_thread_;
+  }
 
-    void StartRunLoop();
-    void StopRunLoop();
+  [[nodiscard]] std::unique_ptr<asio::io_context::strand>& GetStrand() {
+    return strand_;
+  }
 
-    [[nodiscard]] bool bIsCompletedStopping() const {return m_bSpawnedThreadFinished;}
+ private:
+  ECSystemManager();
+  ~ECSystemManager();
 
-private:
-    ECSystemManager()
-        : io_context_(std::make_unique<asio::io_context>()),
-          work_(asio::make_work_guard(io_context_->get_executor())),
-          strand_(std::make_unique<asio::io_context::strand>(*io_context_)) {
-    }
+  static ECSystemManager* m_poInstance;
 
-    void RunLoop();
-    bool m_bIsRunning = false;
-    bool m_bSpawnedThreadFinished = false;
-    void ExecuteOnMainThread(float elapsedTime);
+  void vSetupThreadingInternals();
 
-    std::thread filament_api_thread_;
-    pthread_t filament_api_thread_id_{};
-    std::unique_ptr<asio::io_context> io_context_;
-    asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
-    std::unique_ptr<asio::io_context::strand> strand_;
+  void RunLoop();
+  std::atomic<bool> m_bIsRunning{false};
+  std::atomic<bool> m_bSpawnedThreadFinished{false};
+  void ExecuteOnMainThread(float elapsedTime);
 
-    std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
+  std::thread filament_api_thread_;
+  pthread_t filament_api_thread_id_{};
+  std::unique_ptr<asio::io_context> io_context_;
+  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
+  std::unique_ptr<asio::io_context::strand> strand_;
+  std::thread loopThread_;
+
+  std::atomic<bool> isHandlerExecuting{false};
+
+  std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
+
+  std::mutex vecSystemsMutex;
 };
-}
+}  // namespace plugin_filament_view

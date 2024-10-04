@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-#include "shape_manager.h"
+#include "shape_system.h"
 
+#include <core/systems/ecsystems_manager.h>
 #include <filament/Engine.h>
 
 #include "core/entity/shapes/baseshape.h"
 #include "core/entity/shapes/cube.h"
 #include "core/entity/shapes/plane.h"
 #include "core/entity/shapes/sphere.h"
+#include "filament_system.h"
 
 #include "plugins/common/common.h"
 
@@ -30,18 +32,9 @@ namespace plugin_filament_view {
 using shapes::BaseShape;
 using ::utils::Entity;
 
-ShapeManager::ShapeManager(MaterialManager* material_manager)
-    : material_manager_(material_manager) {
-  SPDLOG_TRACE("++ShapeManager::ShapeManager");
-  SPDLOG_TRACE("--ShapeManager::ShapeManager");
-}
+ShapeSystem::ShapeSystem() {}
 
-ShapeManager::~ShapeManager() {
-  // remove all filament entities.
-  vRemoveAllShapesInScene();
-}
-
-void ShapeManager::vToggleAllShapesInScene(bool bValue) {
+void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
   if (bValue) {
     for (const auto& shape : shapes_) {
       shape->vAddEntityToScene();
@@ -53,12 +46,12 @@ void ShapeManager::vToggleAllShapesInScene(bool bValue) {
   }
 }
 
-void ShapeManager::vRemoveAllShapesInScene() {
+void ShapeSystem::vRemoveAllShapesInScene() {
   vToggleAllShapesInScene(false);
   shapes_.clear();
 }
 
-std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
+std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
     const std::string& flutter_assets_path,
     const flutter::EncodableMap& mapData) {
   ShapeType type;
@@ -96,7 +89,7 @@ std::unique_ptr<BaseShape> ShapeManager::poDeserializeShapeFromData(
   }
 }
 
-void ShapeManager::addShapesToScene(
+void ShapeSystem::addShapesToScene(
     std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
@@ -105,8 +98,12 @@ void ShapeManager::addShapesToScene(
     shape->DebugPrint("Add shapes to scene");
   }*/
 
-  filament::Engine* poFilamentEngine =
-      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
+
+  filament::Engine* poFilamentEngine = engine;
   filament::Scene* poFilamentScene =
       CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
@@ -118,7 +115,7 @@ void ShapeManager::addShapesToScene(
   for (auto& shape : *shapes) {
     auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-    shape->bInitAndCreateShape(poFilamentEngine, oEntity, material_manager_);
+    shape->bInitAndCreateShape(poFilamentEngine, oEntity);
 
     poFilamentScene->addEntity(*oEntity);
 
@@ -135,4 +132,13 @@ void ShapeManager::addShapesToScene(
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
+void ShapeSystem::vInitSystem() {}
+void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}
+void ShapeSystem::vShutdownSystem() {
+  // remove all filament entities.
+  vRemoveAllShapesInScene();
+}
+void ShapeSystem::DebugPrint() {
+  SPDLOG_DEBUG("--{} {}", __FILE__, __FUNCTION__);
+}
 }  // namespace plugin_filament_view

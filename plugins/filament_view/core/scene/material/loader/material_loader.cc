@@ -1,6 +1,9 @@
 
 #include "core/scene/material/loader/material_loader.h"
 
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
+
 #include "core/include/file_utils.h"
 #include "plugins/common/curl_client/curl_client.h"
 
@@ -15,11 +18,15 @@ MaterialLoader::MaterialLoader() = default;
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
 
   auto buffer = readBinaryFile(path, modelViewer->getAssetPath());
 
   if (!buffer.empty()) {
+    auto filamentSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+            FilamentSystem::StaticGetTypeID());
+    const auto engine = filamentSystem->getFilamentEngine();
+
     auto material = ::filament::Material::Builder()
                         .package(buffer.data(), buffer.size())
                         .build(*engine);
@@ -42,8 +49,10 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
         "Failed to load material from " + url);
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   if (!buffer.empty()) {
     auto material = ::filament::Material::Builder()

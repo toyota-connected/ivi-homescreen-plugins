@@ -83,7 +83,8 @@ add_library(plugin_filament_view STATIC
         core/entity/model/animation/animation.cc
         core/entity/model/animation/animation_manager.cc
         core/systems/ecsystems_manager.cc
-        core/systems/derived/model_manager.cc
+        core/systems/derived/filament_system.cc
+        core/systems/derived/model_system.cc
         core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
@@ -103,7 +104,7 @@ add_library(plugin_filament_view STATIC
         core/scene/light/light_manager.cc
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
-        core/scene/material/material_manager.cc
+        core/systems/derived/material_system.cc
         core/scene/material/material_definitions.cc
         core/scene/material/material_parameter.cc
         core/scene/material/texture/texture_definitions.cc
@@ -115,7 +116,7 @@ add_library(plugin_filament_view STATIC
         core/entity/shapes/cube.cc
         core/entity/shapes/sphere.cc
         core/entity/shapes/plane.cc
-        core/systems/derived/shape_manager.cc
+        core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
 )

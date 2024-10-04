@@ -17,6 +17,8 @@
 #include "baseshape.h"
 
 #include <core/components/collidable.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <filament/RenderableManager.h>
 #include <math/mat3.h>
 #include <math/norm.h>
@@ -103,8 +105,10 @@ BaseShape::~BaseShape() {
 }
 
 void BaseShape::vDestroyBuffers() {
-  const auto filamentEngine =
-      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto filamentEngine = filamentSystem->getFilamentEngine();
 
   if (m_poMaterialInstance.getStatus() == Status::Success &&
       m_poMaterialInstance.getData() != nullptr) {
@@ -152,8 +156,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
       std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 }
 
-void BaseShape::vBuildRenderable(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
+void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   if (m_bIsWireframe) {
@@ -170,10 +173,21 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
         .castShadows(false)
         .build(*engine_, *m_poEntity);
   } else {
-    // this will also set all the default values of the material instance from
-    // the material param list
-    m_poMaterialInstance =
-        material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
+    auto materialSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
+            MaterialSystem::StaticGetTypeID());
+    spdlog::debug("Processing system at address {}, use_count={}",
+                  static_cast<void*>(materialSystem.get()),
+                  materialSystem.use_count());
+
+    if (materialSystem == nullptr) {
+      spdlog::error("Failed to get material system.");
+    } else {
+      // this will also set all the default values of the material instance from
+      // the material param list
+      m_poMaterialInstance =
+          materialSystem->getMaterialInstance(m_poMaterialDefinitions->get());
+    }
 
     RenderableManager::Builder(1)
         .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})

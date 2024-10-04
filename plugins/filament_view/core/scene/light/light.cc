@@ -85,11 +85,11 @@ Light::Light(const flutter::EncodableMap& params) {
     } else if (key == "sunHaloFalloff" && !it.second.IsNull() &&
                std::holds_alternative<double>(it.second)) {
       sunHaloFalloff_ = std::get<double>(it.second);
-    } else if (!it.second.IsNull()) {
+    } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Light] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
-    }
+    }*/
   }
 
   // Print("Setup Light");

@@ -16,6 +16,8 @@
 
 #include "camera_manager.h"
 
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <core/utils/entitytransforms.h>
 
 #include "asio/post.hpp"
@@ -41,7 +43,11 @@ void CameraManager::setDefaultCamera() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   auto fview = modelViewer->getFilamentView();
   assert(fview);
@@ -177,68 +183,46 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   if (cameraInfo->targetPosition_) {
     const auto tp = cameraInfo->targetPosition_.get();
     manipulatorBuilder.targetPosition(tp->x, tp->y, tp->z);
-    SPDLOG_DEBUG("[CameraManipulator] targetPosition: {}, {}, {}", tp->x, tp->y,
-                 tp->z);
+
   } else {
     manipulatorBuilder.targetPosition(kDefaultObjectPosition.x,
                                       kDefaultObjectPosition.y,
                                       kDefaultObjectPosition.z);
-    SPDLOG_DEBUG("[CameraManipulator] targetPosition: {}, {}, {}",
-                 kDefaultObjectPosition.x, kDefaultObjectPosition.y,
-                 kDefaultObjectPosition.z);
   }
 
   if (cameraInfo->upVector_) {
     const auto upVector = cameraInfo->upVector_.get();
     manipulatorBuilder.upVector(upVector->x, upVector->y, upVector->z);
-    SPDLOG_DEBUG("[CameraManipulator] upVector: {}, {}, {}", upVector->x,
-                 upVector->y, upVector->z);
   }
   if (cameraInfo->zoomSpeed_.has_value()) {
     manipulatorBuilder.zoomSpeed(cameraInfo->zoomSpeed_.value());
-    SPDLOG_DEBUG("[CameraManipulator] zoomSpeed: {}",
-                 cameraInfo->zoomSpeed_.value());
   }
 
   if (cameraInfo->orbitHomePosition_) {
     const auto orbitHomePosition = cameraInfo->orbitHomePosition_.get();
     manipulatorBuilder.orbitHomePosition(
         orbitHomePosition->x, orbitHomePosition->y, orbitHomePosition->z);
-    SPDLOG_DEBUG("[CameraManipulator] orbitHomePosition: {}, {}, {}",
-                 orbitHomePosition->x, orbitHomePosition->y,
-                 orbitHomePosition->z);
   }
 
   if (cameraInfo->orbitSpeed_) {
     const auto orbitSpeed = cameraInfo->orbitSpeed_.get();
     manipulatorBuilder.orbitSpeed(orbitSpeed->at(0), orbitSpeed->at(1));
-    SPDLOG_DEBUG("[CameraManipulator] orbitSpeed: {}, {}", orbitSpeed->at(0),
-                 orbitSpeed->at(1));
   }
 
   manipulatorBuilder.fovDirection(cameraInfo->fovDirection_);
-  SPDLOG_DEBUG("[CameraManipulator] fovDirection: {}",
-               static_cast<int>(cameraInfo->fovDirection_));
 
   if (cameraInfo->fovDegrees_.has_value()) {
     manipulatorBuilder.fovDegrees(cameraInfo->fovDegrees_.value());
-    SPDLOG_DEBUG("[CameraManipulator] fovDegrees: {}",
-                 cameraInfo->fovDegrees_.value());
   }
 
   if (cameraInfo->farPlane_.has_value()) {
     manipulatorBuilder.farPlane(cameraInfo->farPlane_.value());
-    SPDLOG_DEBUG("[CameraManipulator] farPlane: {}",
-                 cameraInfo->farPlane_.value());
   }
 
   if (cameraInfo->flightStartPosition_) {
     const auto flightStartPosition = cameraInfo->flightStartPosition_.get();
     manipulatorBuilder.flightStartPosition(
         flightStartPosition->x, flightStartPosition->y, flightStartPosition->z);
-    SPDLOG_DEBUG("[CameraManipulator] flightStartPosition: {}, {}, {}",
-                 flightStartPosition->x, flightStartPosition->y,
-                 flightStartPosition->z);
   }
 
   if (cameraInfo->flightStartOrientation_) {
@@ -247,28 +231,20 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
     auto pitch = flightStartOrientation->at(0);  // 0f;
     auto yaw = flightStartOrientation->at(1);    // 0f;
     manipulatorBuilder.flightStartOrientation(pitch, yaw);
-    SPDLOG_DEBUG("[CameraManipulator] flightStartOrientation: {}, {}", pitch,
-                 yaw);
   }
 
   if (cameraInfo->flightMoveDamping_.has_value()) {
     manipulatorBuilder.flightMoveDamping(
         cameraInfo->flightMoveDamping_.value());
-    SPDLOG_DEBUG("[CameraManipulator] flightMoveDamping: {}",
-                 cameraInfo->flightMoveDamping_.value());
   }
 
   if (cameraInfo->flightSpeedSteps_.has_value()) {
     manipulatorBuilder.flightSpeedSteps(cameraInfo->flightSpeedSteps_.value());
-    SPDLOG_DEBUG("[CameraManipulator] flightSpeedSteps: {}",
-                 cameraInfo->flightSpeedSteps_.value());
   }
 
   if (cameraInfo->flightMaxMoveSpeed_.has_value()) {
     manipulatorBuilder.flightMaxMoveSpeed(
         cameraInfo->flightMaxMoveSpeed_.value());
-    SPDLOG_DEBUG("[CameraManipulator] flightMaxMoveSpeed: {}",
-                 cameraInfo->flightMaxMoveSpeed_.value());
   }
 
   if (cameraInfo->groundPlane_) {
@@ -278,8 +254,6 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
     auto c = groundPlane->at(2);
     auto d = groundPlane->at(3);
     manipulatorBuilder.groundPlane(a, b, c, d);
-    SPDLOG_DEBUG("[CameraManipulator] flightMaxMoveSpeed: {}, {}, {}, {}", a, b,
-                 c, d);
   }
 
   const auto modelViewer = CustomModelViewer::Instance(__FUNCTION__);
@@ -293,8 +267,6 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
 std::future<Resource<std::string_view>> CameraManager::updateCamera(
     Camera* cameraInfo) {
   SPDLOG_DEBUG("++CameraManager::updateCamera");
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -302,16 +274,17 @@ std::future<Resource<std::string_view>> CameraManager::updateCamera(
   if (!cameraInfo) {
     promise->set_value(Resource<std::string_view>::Error("Camera not found"));
   } else {
-    asio::post(modelViewer->getStrandContext(), [&, promise, cameraInfo] {
-      updateExposure(cameraInfo->exposure_.get());
-      updateProjection(cameraInfo->projection_.get());
-      updateLensProjection(cameraInfo->lensProjection_.get());
-      updateCameraShift(cameraInfo->shift_.get());
-      updateCameraScaling(cameraInfo->scaling_.get());
-      updateCameraManipulator(cameraInfo);
-      promise->set_value(
-          Resource<std::string_view>::Success("Camera updated successfully"));
-    });
+    asio::post(*ECSystemManager::GetInstance()->GetStrand(),
+               [&, promise, cameraInfo] {
+                 updateExposure(cameraInfo->exposure_.get());
+                 updateProjection(cameraInfo->projection_.get());
+                 updateLensProjection(cameraInfo->lensProjection_.get());
+                 updateCameraShift(cameraInfo->shift_.get());
+                 updateCameraScaling(cameraInfo->scaling_.get());
+                 updateCameraManipulator(cameraInfo);
+                 promise->set_value(Resource<std::string_view>::Success(
+                     "Camera updated successfully"));
+               });
   }
 
   SPDLOG_DEBUG("--CameraManager::updateCamera");
@@ -476,8 +449,10 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 
 void CameraManager::destroyCamera() {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroyCameraComponent(cameraEntity_);
   SPDLOG_DEBUG("--CameraManager::destroyCamera");

@@ -14,39 +14,44 @@
  * limitations under the License.
  */
 
-#include "core/scene/material/material_manager.h"
+#include "core/systems/derived/material_system.h"
 
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 
-MaterialManager::MaterialManager() {
-  SPDLOG_TRACE("++MaterialManager::MaterialManager");
+MaterialSystem::MaterialSystem() {
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   materialLoader_ = std::make_unique<MaterialLoader>();
   textureLoader_ = std::make_unique<TextureLoader>();
 
-  SPDLOG_TRACE("--MaterialManager::MaterialManager");
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
-Resource<::filament::Material*> MaterialManager::loadMaterialFromResource(
+MaterialSystem::~MaterialSystem() {
+  SPDLOG_DEBUG("--{}", __FUNCTION__);
+}
+
+Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
     MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
-  if (!materialDefinition->assetPath_.empty()) {
+  if (!materialDefinition->szGetMaterialAssetPath().empty()) {
     // THIS does NOT set default a parameter values
     return MaterialLoader::loadMaterialFromAsset(
-        materialDefinition->assetPath_);
+        materialDefinition->szGetMaterialAssetPath());
   }
 
-  if (!materialDefinition->url_.empty()) {
-    return MaterialLoader::loadMaterialFromUrl(materialDefinition->url_);
+  if (!materialDefinition->szGetMaterialURLPath().empty()) {
+    return MaterialLoader::loadMaterialFromUrl(
+        materialDefinition->szGetMaterialURLPath());
   }
 
   return Resource<::filament::Material*>::Error(
       "You must provide material asset path or url");
 }
 
-Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
+Resource<::filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
     ::filament::Material* materialResult,
     const MaterialDefinitions* materialDefinitions) {
   if (!materialResult) {
@@ -61,7 +66,7 @@ Resource<::filament::MaterialInstance*> MaterialManager::setupMaterialInstance(
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }
 
-Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
+Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
 
@@ -151,6 +156,13 @@ Resource<::filament::MaterialInstance*> MaterialManager::getMaterialInstance(
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;
+}
+
+void MaterialSystem::vInitSystem() {}
+void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
+void MaterialSystem::vShutdownSystem() {}
+void MaterialSystem::DebugPrint() {
+  SPDLOG_DEBUG("MaterialSystem::DebugPrint");
 }
 
 }  // namespace plugin_filament_view

@@ -57,24 +57,22 @@ Sphere::Sphere(const std::string& flutter_assets_path,
 }
 
 bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
-                                 std::shared_ptr<Entity> entityObject,
-                                 MaterialManager* material_manager) {
+                                 std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
   m_poVertexBuffer = nullptr;
   m_poIndexBuffer = nullptr;
 
   if (m_bDoubleSided) {
-    createDoubleSidedSphere(engine_, material_manager);
+    createDoubleSidedSphere(engine_);
   } else {
-    createSingleSidedSphere(engine_, material_manager);
+    createSingleSidedSphere(engine_);
   }
 
   return true;
 }
 
-void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
-                                     MaterialManager* material_manager) {
+void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
@@ -168,11 +166,10 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_,
       *engine_, IndexBuffer::BufferDescriptor(
                     indices_.data(), indices_.size() * sizeof(unsigned short)));
 
-  vBuildRenderable(engine_, material_manager);
+  vBuildRenderable(engine_);
 }
 
-void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/,
-                                     MaterialManager* /*material_manager*/) {
+void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");

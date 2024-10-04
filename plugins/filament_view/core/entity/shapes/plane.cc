@@ -46,20 +46,18 @@ Plane::Plane(const std::string& flutter_assets_path,
 }
 
 bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
-                                std::shared_ptr<Entity> entityObject,
-                                MaterialManager* material_manager) {
+                                std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
   if (m_bDoubleSided)
-    createDoubleSidedPlane(engine_, material_manager);
+    createDoubleSidedPlane(engine_);
   else
-    createSingleSidedPlane(engine_, material_manager);
+    createSingleSidedPlane(engine_);
 
   return true;
 }
 
-void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
-                                   MaterialManager* material_manager) {
+void Plane::createDoubleSidedPlane(::filament::Engine* engine_) {
   // Vertices for a plane (4 vertices for each side, 8 in total)
   static constexpr float vertices[] = {
       // Front face
@@ -163,11 +161,10 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_, material_manager);
+  vBuildRenderable(engine_);
 }
 
-void Plane::createSingleSidedPlane(::filament::Engine* engine_,
-                                   MaterialManager* material_manager) {
+void Plane::createSingleSidedPlane(::filament::Engine* engine_) {
   // Vertices for a single-sided plane (4 vertices)
   static constexpr float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // Vertex 0
@@ -239,7 +236,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_,
   m_poIndexBuffer->setBuffer(
       *engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_, material_manager);
+  vBuildRenderable(engine_);
 }
 
 void Plane::DebugPrint(const char* tag) const {

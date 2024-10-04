@@ -16,12 +16,13 @@
 
 #include "scene_controller.h"
 
+#include <core/systems/ecsystems_manager.h>
 #include <core/utils/entitytransforms.h>
 #include <asio/post.hpp>
 #include <utility>
-#include <core/systems/ecsystems_manager.h>
 
 #include <core/systems/derived/collision_system.h>
+#include "core/systems/derived/filament_system.h"
 
 #include "plugins/common/common.h"
 
@@ -31,29 +32,64 @@ SceneController::SceneController(
     PlatformView* platformView,
     FlutterDesktopEngineState* state,
     std::string flutterAssetsPath,
-    std::vector<std::unique_ptr<Model>>* models,
+    std::unique_ptr<std::vector<std::unique_ptr<Model>>> models,
     Scene* scene,
-    std::vector<std::unique_ptr<shapes::BaseShape>>* shapes,
+    std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes,
     int32_t id)
     : id_(id),
       flutterAssetsPath_(std::move(flutterAssetsPath)),
-      models_(models),
-      scene_(scene) {
+      models_(std::move(models)),
+      scene_(scene),
+      shapes_(std::move(shapes)) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   spdlog::info("SceneController {} setup", id_);
 
-  setUpViewer(platformView, state);
-  setUpLoadingModels();
-  setUpCamera();
-  setUpSkybox();
-  setUpLight();
-  setUpIndirectLight();
-  setUpShapes(shapes);
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
-  modelViewer_->setInitialized();
+  setUpViewer(platformView, state);
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
+}
+
+void SceneController::vRunPostSetupLoad() {
+
+  auto view = modelViewer_->getFilamentView();
+  auto scene = modelViewer_->getFilamentScene();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  //auto size = platformView->GetSize();
+  // todo.
+  view->setViewport({0, 0, 800,
+                     600});
+
+  view->setScene(scene);
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  // TODO this may need to be turned off for target
+  view->setPostProcessingEnabled(true);
+
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpLoadingModels();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpCamera();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpSkybox();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpLight();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpIndirectLight();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  setUpShapes(shapes_.get());
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
+  modelViewer_->setInitialized();
 }
 
 SceneController::~SceneController() {
@@ -62,24 +98,18 @@ SceneController::~SceneController() {
 
 void SceneController::setUpViewer(PlatformView* platformView,
                                   FlutterDesktopEngineState* state) {
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
   modelViewer_ = std::make_unique<CustomModelViewer>(platformView, state,
                                                      flutterAssetsPath_);
-  materialManager_ = std::make_unique<MaterialManager>();
+
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   // TODO surfaceView.setOnTouchListener(modelViewer)
   //  surfaceView.setZOrderOnTop(true) // necessary
 
-  auto view = modelViewer_->getFilamentView();
-  auto scene = modelViewer_->getFilamentScene();
 
-  auto size = platformView->GetSize();
-  view->setViewport({0, 0, static_cast<uint32_t>(size.first),
-                     static_cast<uint32_t>(size.second)});
-
-  view->setScene(scene);
-
-  // TODO this may need to be turned off for target
-  view->setPostProcessingEnabled(true);
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 }
 
 void SceneController::setUpCamera() {
@@ -102,9 +132,14 @@ void SceneController::setUpCamera() {
 std::future<void> SceneController::setUpIblProfiler() {
   const auto promise(std::make_shared<std::promise<void>>());
   auto future(promise->get_future());
-  asio::post(modelViewer_->getStrandContext(), [&/*, promise*/] {
+
+  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&/*, promise*/] {
+    auto filamentSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+            FilamentSystem::StaticGetTypeID());
+
     iblProfiler_ = std::make_unique<plugin_filament_view::IBLProfiler>(
-        modelViewer_->getFilamentEngine());
+        filamentSystem->getFilamentEngine());
   });
   return future;
 }
@@ -292,16 +327,21 @@ void SceneController::setUpLoadingModels() {
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
-plugin_filament_view::MaterialManager* SceneController::poGetMaterialManager() {
-  return materialManager_.get();
-}
-
 void SceneController::setUpShapes(
     std::vector<std::unique_ptr<shapes::BaseShape>>* shapes) {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
-  shapeManager_ = std::make_unique<ShapeManager>(materialManager_.get());
 
-  auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+  auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
+      ShapeSystem::StaticGetTypeID());
+  auto collisionSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+          CollisionSystem::StaticGetTypeID());
+
+  if (shapeSystem == nullptr || collisionSystem == nullptr) {
+    spdlog::error(
+        "[SceneController] Error.ShapeSystem or collisionSystem is null");
+    return;
+  }
 
   for (const auto& shape : *shapes) {
     if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
@@ -312,16 +352,19 @@ void SceneController::setUpShapes(
   }
 
   // This method releases shapes,
-  shapeManager_->addShapesToScene(shapes);
+  shapeSystem->addShapesToScene(shapes);
 }
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
-  if (shapeManager_ == nullptr) {
+  auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
+      ShapeSystem::StaticGetTypeID());
+  if (shapeSystem == nullptr) {
     SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
     return;
   }
 
-  shapeManager_->vToggleAllShapesInScene(bValue);
+  // Could become a message
+  shapeSystem->vToggleAllShapesInScene(bValue);
 }
 
 std::string SceneController::setDefaultCamera() {
@@ -330,7 +373,13 @@ std::string SceneController::setDefaultCamera() {
 }
 
 Resource<std::string_view> SceneController::loadModel(Model* model) {
-  auto loader = modelViewer_->getModelLoader();
+  auto modelSystem = ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
+      ModelSystem::StaticGetTypeID());
+  if (modelSystem == nullptr) {
+    return Resource<std::string_view>::Error(
+        "Unable to find the model system.");
+  }
+  const auto& loader = modelSystem;
   if (dynamic_cast<GlbModel*>(model)) {
     auto glb_model = dynamic_cast<GlbModel*>(model);
     if (!glb_model->assetPath_.empty()) {
@@ -347,7 +396,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
   } else if (dynamic_cast<GltfModel*>(model)) {
     auto gltf_model = dynamic_cast<GltfModel*>(model);
     if (!gltf_model->assetPath_.empty()) {
-      auto f = plugin_filament_view::ModelManager::loadGltfFromAsset(
+      auto f = plugin_filament_view::ModelSystem::loadGltfFromAsset(
           model, gltf_model->assetPath_, gltf_model->pathPrefix_,
           gltf_model->pathPostfix_);
       f.wait();
@@ -355,7 +404,7 @@ Resource<std::string_view> SceneController::loadModel(Model* model) {
     }
 
     if (!gltf_model->url_.empty()) {
-      auto f = plugin_filament_view::ModelManager::loadGltfFromUrl(
+      auto f = plugin_filament_view::ModelSystem::loadGltfFromUrl(
           model, gltf_model->url_);
       f.wait();
       return f.get();
@@ -406,8 +455,10 @@ void SceneController::onTouch(int32_t action,
 
     ECSMessage collisionRequest;
     collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
-    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
-    collisionRequest.addData(ECSMessageType::CollisionRequestType, CollisionEventType::eNativeOnTouchBegin);
+    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
+                             std::string(__FUNCTION__));
+    collisionRequest.addData(ECSMessageType::CollisionRequestType,
+                             CollisionEventType::eNativeOnTouchBegin);
     ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 

@@ -132,11 +132,11 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
     } else if (key == "scene" &&
                std::holds_alternative<flutter::EncodableMap>(it.second)) {
       scene = std::make_unique<Scene>(flutterAssetsPath, it.second);
-    } else if (!it.second.IsNull()) {
+    } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Model] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
-    }
+    }*/
   }
 
   if (is_glb) {

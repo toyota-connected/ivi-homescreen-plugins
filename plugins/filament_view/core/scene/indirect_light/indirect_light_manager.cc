@@ -19,6 +19,8 @@
 #include <filesystem>
 #include <memory>
 
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <filament/Texture.h>
 #include <asio/post.hpp>
 #include <utility>
@@ -57,7 +59,8 @@ std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
     return future;
   }
 
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
 
   asio::post(strand_, [&, promise, indirectLight] {
     auto builder = ::filament::IndirectLight::Builder();
@@ -72,7 +75,12 @@ std::future<Resource<std::string_view>> IndirectLightManager::setIndirectLight(
     CustomModelViewer* modelViewer =
         CustomModelViewer::Instance("setIndirectLight::Lambda");
 
-    builder.build(*modelViewer->getFilamentEngine());
+    auto filamentSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+            FilamentSystem::StaticGetTypeID());
+    const auto engine = filamentSystem->getFilamentEngine();
+
+    builder.build(*engine);
 
     modelViewer->setLightState(SceneState::LOADED);
     promise->set_value(
@@ -88,8 +96,8 @@ IndirectLightManager::setIndirectLightFromKtxAsset(std::string path,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
 
   asio::post(strand_, [&, promise, path = std::move(path) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -104,8 +112,8 @@ IndirectLightManager::setIndirectLightFromKtxUrl(std::string url,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
 
   asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -117,26 +125,28 @@ Resource<std::string_view> IndirectLightManager::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
     double intensity) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
   modelViewer->setLightState(SceneState::LOADING);
 
   ::filament::Texture* texture;
   try {
-    texture =
-        HDRLoader::createTexture(modelViewer->getFilamentEngine(), asset_path);
+    texture = HDRLoader::createTexture(engine, asset_path);
   } catch (...) {
     modelViewer->setLightState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR file");
   }
   auto skyboxTexture = ibl_prefilter_->createCubeMapTexture(texture);
-  modelViewer->getFilamentEngine()->destroy(texture);
+  engine->destroy(texture);
 
   auto reflections = ibl_prefilter_->getLightReflection(skyboxTexture);
 
   auto ibl = ::filament::IndirectLight::Builder()
                  .reflections(reflections)
                  .intensity(static_cast<float>(intensity))
-                 .build(*modelViewer->getFilamentEngine());
+                 .build(*engine);
 
   // destroy the previous IBl
   modelViewer->destroyIndirectLight();
@@ -156,7 +166,8 @@ IndirectLightManager::setIndirectLightFromHdrAsset(std::string path,
   auto future(promise->get_future());
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
   const std::string assetPath = modelViewer->getAssetPath();
   modelViewer->setLightState(SceneState::LOADING);
   asio::post(
@@ -189,8 +200,8 @@ IndirectLightManager::setIndirectLightFromHdrUrl(std::string url,
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+  const asio::io_context::strand& strand_(
+      *ECSystemManager::GetInstance()->GetStrand());
 
   auto future(promise->get_future());
   asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {

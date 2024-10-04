@@ -31,6 +31,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
                              const std::vector<uint8_t>& params,
                              const std::string& flutterAssetsPath) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes{};
 
@@ -113,7 +114,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeManager::poDeserializeShapeFromData(
+        auto shape = ShapeSystem::poDeserializeShapeFromData(
             flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
 
         shapes->emplace_back(shape.release());
@@ -124,9 +125,12 @@ FilamentScene::FilamentScene(PlatformView* platformView,
                                                            it.second);
     }
   }
+
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+
   sceneController_ = std::make_unique<SceneController>(
-      platformView, state, flutterAssetsPath, models_.get(), scene_.get(),
-      shapes.get(), id);
+      platformView, state, flutterAssetsPath, std::move(models_), scene_.get(),
+      std::move(shapes), id);
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }

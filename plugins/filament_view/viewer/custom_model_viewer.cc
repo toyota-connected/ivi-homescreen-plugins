@@ -16,6 +16,8 @@
 
 #include "custom_model_viewer.h"
 
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <wayland-client.h>
 #include <asio/post.hpp>
 #include <utility>
@@ -40,9 +42,7 @@ using flutter::MethodCall;
 using flutter::MethodResult;
 
 class Display;
-
 class FlutterView;
-
 class FilamentViewPlugin;
 
 namespace plugin_filament_view {
@@ -54,9 +54,9 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       flutterAssetsPath_(std::move(flutterAssetsPath)),
       left_(platformView->GetOffset().first),
       top_(platformView->GetOffset().second),
-      io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
+      /*io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
       work_(io_context_->get_executor()),
-      strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
+      strand_(std::make_unique<asio::io_context::strand>(*io_context_)),*/
       callback_(nullptr),
       fanimator_(nullptr),
       cameraManager_(nullptr),
@@ -65,18 +65,19 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentLightState_(SceneState::NONE),
       currentShapesState_(ShapeState::NONE) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
-  filament_api_thread_ = std::thread([&]() { io_context_->run(); });
-  asio::post(*strand_, [&] {
-    filament_api_thread_id_ = pthread_self();
-    spdlog::debug("Filament API thread: 0x{:x}", filament_api_thread_id_);
-  });
+
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 
-  const auto f = Initialize(platformView);
-  f.wait();
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
+  /*auto t = Initialize(platformView);
+  t.wait();*/
+  m_poInstance = this;
+
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
@@ -90,14 +91,16 @@ CustomModelViewer::~CustomModelViewer() {
 
   cameraManager_->destroyCamera();
 
-  fengine_->destroy(fscene_);
-  fengine_->destroy(fview_);
-  fengine_->destroy(fskybox_);
-  fengine_->destroy(frenderer_);
-  fengine_->destroy(fswapChain_);
-  ::filament::Engine::destroy(&fengine_);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
-  modelLoader_.reset();
+  engine->destroy(fscene_);
+  engine->destroy(fview_);
+  engine->destroy(fskybox_);
+  engine->destroy(frenderer_);
+  engine->destroy(fswapChain_);
 
   if (subsurface_) {
     wl_subsurface_destroy(subsurface_);
@@ -178,34 +181,50 @@ void CustomModelViewer::setupWaylandSubsurface() {
   wl_subsurface_set_desync(subsurface_);
 }
 
-std::future<bool> CustomModelViewer::Initialize(PlatformView* platformView) {
+std::future<bool> CustomModelViewer::Initialize() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  m_poInstance = this;
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
-  auto promise(std::make_shared<std::promise<bool>>());
-  auto future(promise->get_future());
+   auto promise(std::make_shared<std::promise<bool>>());
+   auto future(promise->get_future());
 
-  asio::post(*strand_, [&, promise, platformView] {
-    auto platform_view_size = platformView->GetSize();
-    native_window_ = {
-        .display = display_,
-        .surface = surface_,
-        .width = static_cast<uint32_t>(platform_view_size.first),
-        .height = static_cast<uint32_t>(platform_view_size.second)};
+  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
+  spdlog::debug("Platform init 1 Initialize Filament API thread: 0x{:x}",
+                pthread_self());
 
-    fengine_ = ::filament::Engine::create(::filament::Engine::Backend::VULKAN);
-    fswapChain_ = fengine_->createSwapChain(&native_window_);
-    frenderer_ = fengine_->createRenderer();
+  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, promise] {
 
-    fscene_ = fengine_->createScene();
-    fview_ = fengine_->createView();
+  SPDLOG_INFO("ALLEN DELETE: lambda internal 1");
 
-    setupView();
+  spdlog::debug("Platform init Initialize Filament API thread: 0x{:x}",
+                pthread_self());
 
-    modelLoader_ = std::make_unique<ModelManager>();
+  //auto platform_view_size = platformView->GetSize();
+  native_window_ = {.display = display_,
+                    .surface = surface_,
+                    // TODO as params
+                    .width = 800,
+                    .height = 600};
 
-    promise->set_value(true);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
+  SPDLOG_INFO("ALLEN DELETE: lambda internal 2");
+
+  fswapChain_ = engine->createSwapChain(&native_window_);
+  frenderer_ = engine->createRenderer();
+  SPDLOG_INFO("ALLEN DELETE: lambda internal 3");
+
+  fscene_ = engine->createScene();
+  fview_ = engine->createView();
+
+  SPDLOG_INFO("ALLEN DELETE: lambda internal 4");
+
+  setupView();
+
+   promise->set_value(true);
   });
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
   return future;
@@ -232,16 +251,28 @@ void CustomModelViewer::setSkyboxState(SceneState sceneState) {
 void CustomModelViewer::destroyIndirectLight() {
   const auto scene = fview_->getScene();
   auto indirectLight = scene->getIndirectLight();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
+
   if (indirectLight) {
-    fengine_->destroy(indirectLight);
+    engine->destroy(indirectLight);
   }
 }
 
 void CustomModelViewer::destroySkybox() {
   auto scene = fview_->getScene();
   auto skybox = scene->getSkybox();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
+
   if (skybox) {
-    fengine_->destroy(skybox);
+    engine->destroy(skybox);
   }
 }
 
@@ -292,6 +323,9 @@ void CustomModelViewer::SendFrameViewCallback(
     const std::string& methodName,
     std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
         args) {
+
+  spdlog::debug("SendFrameViewCallback Filament API thread: 0x{:x}", pthread_self());
+
   if (frameViewCallback_ == nullptr) {
     return;
   }
@@ -312,11 +346,10 @@ void CustomModelViewer::SendFrameViewCallback(
  * rendered
  */
 void CustomModelViewer::DrawFrame(uint32_t time) {
-  asio::post(*strand_, [&, time]() {
+  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time]() {
     static bool bonce = true;
     if (bonce) {
       bonce = false;
-      modelLoader_->updateAsyncAssetLoading();
 
       // will set the first frame of a cameras features.
       doCameraFeatures(0);
@@ -362,14 +395,21 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
 
       doCameraFeatures(timeSinceLastRenderedSec);
 
+      spdlog::debug("A DrawFrame Filament API thread: 0x{:x}", pthread_self());
+
       SendFrameViewCallback(
           kRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
            std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
+      spdlog::debug("B DrawFrame Filament API thread: 0x{:x}", pthread_self());
+
       frenderer_->render(fview_);
+      spdlog::debug("C DrawFrame Filament API thread: 0x{:x}", pthread_self());
+
       frenderer_->endFrame();
+      spdlog::debug("D DrawFrame Filament API thread: 0x{:x}", pthread_self());
 
       SendFrameViewCallback(
           kPostRenderFrame,
@@ -385,6 +425,9 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
 void CustomModelViewer::OnFrame(void* data,
                                 wl_callback* callback,
                                 const uint32_t time) {
+
+  spdlog::debug("OnFrame Filament API thread: 0x{:x}", pthread_self());
+
   const auto obj = static_cast<CustomModelViewer*>(data);
 
   obj->callback_ = nullptr;

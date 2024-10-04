@@ -16,13 +16,13 @@
 
 #pragma once
 
+#include <core/systems/base/ecsystem.h>
 #include <filament/Box.h>
 #include <filament/Engine.h>
 #include <math/vec3.h>
 #include <utils/EntityManager.h>
 #include <list>
 #include <vector>
-#include <core/systems/base/ecsystem.h>
 
 using ::utils::Entity;
 
@@ -61,21 +61,21 @@ class DebugLinesSystem : public ECSystem {
 
   void vUpdate(float fElapsedTime) override;
 
- void vInitSystem() override;
- void vShutdownSystem() override;
+  void vInitSystem() override;
+  void vShutdownSystem() override;
 
   void vAddLine(::filament::math::float3 startPoint,
                 ::filament::math::float3 endPoint,
                 float secondsTimeout);
 
-  // Will be virtual override from base system.
+  // called from vShutdownSystem during the systems shutdown routine.
   void vCleanup();
 
- [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- [[nodiscard]] static size_t StaticGetTypeID() {
-  return typeid(DebugLinesSystem).hash_code();
- }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(DebugLinesSystem).hash_code();
+  }
 
  private:
   bool m_bCurrentlyDrawingDebugLines = false;

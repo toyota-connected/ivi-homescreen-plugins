@@ -18,11 +18,11 @@
 
 #include <core/scene/geometry/ray.h>
 #include <core/systems/derived/collision_system.h>
+#include <core/systems/ecsystems_manager.h>
+#include <core/systems/messages/ecs_message.h>
 #include <map>
 #include <sstream>
 #include <string>
-#include <core/systems/ecsystems_manager.h>
-#include <core/systems/messages/ecs_message.h>
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/binary_messenger.h>
@@ -180,9 +180,13 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
 
               ECSMessage collisionRequest;
-              collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
-              collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, guidForReferenceLookup);
-              collisionRequest.addData(ECSMessageType::CollisionRequestType, CollisionEventType::eFromNonNative);
+              collisionRequest.addData(ECSMessageType::CollisionRequest,
+                                       rayInfo);
+              collisionRequest.addData(
+                  ECSMessageType::CollisionRequestRequestor,
+                  guidForReferenceLookup);
+              collisionRequest.addData(ECSMessageType::CollisionRequestType,
+                                       CollisionEventType::eFromNonNative);
               ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
 
               result->Success();

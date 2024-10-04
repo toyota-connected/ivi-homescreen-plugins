@@ -20,8 +20,11 @@
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
 
+#include <core/systems/ecsystems_manager.h>
 #include <utility>
+
 #include "core/utils/entitytransforms.h"
+#include "filament_system.h"
 #include "plugins/common/common.h"
 #include "viewer/custom_model_viewer.h"
 
@@ -99,11 +102,17 @@ void DebugLine::vCleanup(filament::Engine* engine) {
 
 DebugLinesSystem::DebugLinesSystem() : m_bCurrentlyDrawingDebugLines(false) {}
 
-void DebugLinesSystem::DebugPrint() {}
+void DebugLinesSystem::DebugPrint() {
+  spdlog::debug("DebugLinesSystem");
+}
 
 void DebugLinesSystem::vCleanup() {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  auto* engine = modelViewer->getFilamentEngine();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
     modelViewer->getFilamentScene()->removeEntities((*it)->m_poEntity.get(), 1);
@@ -117,7 +126,10 @@ void DebugLinesSystem::vCleanup() {
 
 void DebugLinesSystem::vUpdate(float fElapsedTime) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  auto* engine = modelViewer->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
     (*it)->m_fRemainingTime -= fElapsedTime;
@@ -137,11 +149,17 @@ void DebugLinesSystem::vUpdate(float fElapsedTime) {
 }
 
 void DebugLinesSystem::vInitSystem() {
-  vRegisterMessageHandler(ECSMessageType::DebugLine,  [this](const ECSMessage& msg ) {
-    Ray rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
-    vAddLine(rayInfo.f3GetPosition(),
-        rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
-  });
+  vRegisterMessageHandler(
+      ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
+        spdlog::debug("DebugLine message received.");
+        Ray rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
+        spdlog::debug("Adding debug line: ");
+
+        vAddLine(rayInfo.f3GetPosition(),
+                 rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+
+        spdlog::debug("Debug line added.");
+      });
 }
 
 void DebugLinesSystem::vShutdownSystem() {
@@ -149,13 +167,17 @@ void DebugLinesSystem::vShutdownSystem() {
 }
 
 void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
-                                 ::filament::math::float3 endPoint,
-                                 float secondsTimeout) {
+                                ::filament::math::float3 endPoint,
+                                float secondsTimeout) {
   if (m_bCurrentlyDrawingDebugLines == false)
     return;
 
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  auto* engine = modelViewer->getFilamentEngine();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID());
+  const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
   auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());

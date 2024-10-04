@@ -22,7 +22,6 @@
 
 namespace plugin_filament_view {
 
-class MaterialManager;
 using ::utils::Entity;
 
 namespace shapes {
@@ -41,15 +40,12 @@ class Cube : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject,
-                           MaterialManager* material_manager) override;
+                           std::shared_ptr<Entity> entityObject) override;
 
  private:
-  void createDoubleSidedCube(::filament::Engine* engine_,
-                             MaterialManager* material_manager);
+  void createDoubleSidedCube(::filament::Engine* engine_);
 
-  void createSingleSidedCube(::filament::Engine* engine_,
-                             MaterialManager* material_manager);
+  void createSingleSidedCube(::filament::Engine* engine_);
 };
 
 }  // namespace shapes
