@@ -22,19 +22,25 @@
 
 namespace plugin_filament_view {
 
+/////////////////////////////////////////////////////////////////////////////////////////
 EntityObject::EntityObject(std::string name)
     : global_guid_(generateUUID()), name_(std::move(name)) {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 EntityObject::EntityObject(std::string name, std::string global_guid)
     : global_guid_(std::move(global_guid)), name_(std::move(name)) {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vOverrideName(const std::string& name) {
   name_ = name;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vOverrideGlobalGuid(const std::string& global_guid) {
   global_guid_ = global_guid;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::DeserializeNameAndGlobalGuid(
     const flutter::EncodableMap& params) {
   std::string requestedName, requestedGlobalGUID;
@@ -62,6 +68,7 @@ void EntityObject::DeserializeNameAndGlobalGuid(
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
   spdlog::debug("EntityObject Name \'{}\' UUID {} ComponentCount {}", name_,
                 global_guid_, components_.size());
@@ -73,6 +80,7 @@ void EntityObject::vDebugPrintComponents() const {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
                                                 EntityObject& other) const {
   const auto component = GetComponentByStaticTypeID(staticTypeID);

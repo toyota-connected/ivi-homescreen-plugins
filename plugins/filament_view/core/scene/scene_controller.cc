@@ -314,22 +314,6 @@ void SceneController::setUpLoadingModels() {
     // TODO loadModel needs to save the model internally in the map that's
     // there. backlogged.
     loadModel(poCurrModel);
-    /*if (result.getStatus() != Status::Success && poCurrModel->GetFallback()) {
-      auto fallback = poCurrModel->GetFallback();
-      if (fallback) {
-        result = loadModel(fallback);
-        SPDLOG_DEBUG("Fallback loadModel: {}", result.getMessage());
-        setUpAnimation(fallback->GetAnimation());
-      } else {
-        spdlog::error("[SceneController] Error.FallbackLoadFailed");
-      }*/
-    //} else {
-      // use the entities transform(s) data.
-      //EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
-      //                                  *poCurrModel->GetBaseTransform());
-
-      //setUpAnimation(poCurrModel->GetAnimation());
-    //}
   }
 
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);

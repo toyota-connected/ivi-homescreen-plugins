@@ -184,12 +184,12 @@ void ECSystemManager::vUpdate(float deltaTime) {
   }  // Mutex is unlocked here
 
   // Iterate over the copy without holding the mutex
-  for (const auto& system : m_vecSystems) {
+  for (const auto& system : systemsCopy) {
     if (system) {
       //spdlog::debug("Processing system at address {}, use_count={}",
       //              static_cast<void*>(system.get()), system.use_count());
       //spdlog::debug("Before DebugPrint");
-      system->DebugPrint();
+      // system->DebugPrint();
       //spdlog::debug("After DebugPrint");
 
       // spdlog::debug("Before vProcessMessages");

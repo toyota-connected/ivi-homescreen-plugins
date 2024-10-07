@@ -308,9 +308,6 @@ void CustomModelViewer::SendFrameViewCallback(
     const std::string& methodName,
     std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
         args) {
-  spdlog::debug("SendFrameViewCallback Filament API thread: 0x{:x}",
-                pthread_self());
-
   if (frameViewCallback_ == nullptr) {
     return;
   }
@@ -384,22 +381,15 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
 
       doCameraFeatures(timeSinceLastRenderedSec);
 
-      spdlog::debug("A DrawFrame Filament API thread: 0x{:x}", pthread_self());
-
       SendFrameViewCallback(
           kRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
            std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
-      spdlog::debug("B DrawFrame Filament API thread: 0x{:x}", pthread_self());
-
       filamentSystem->getFilamentRenderer()->render(filamentSystem->getFilamentView());
 
-      spdlog::debug("C DrawFrame Filament API thread: 0x{:x}", pthread_self());
-
       filamentSystem->getFilamentRenderer()->endFrame();
-      spdlog::debug("D DrawFrame Filament API thread: 0x{:x}", pthread_self());
 
       SendFrameViewCallback(
           kPostRenderFrame,
@@ -415,8 +405,6 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
 void CustomModelViewer::OnFrame(void* data,
                                 wl_callback* callback,
                                 const uint32_t time) {
-  spdlog::debug("OnFrame Filament API thread: 0x{:x}", pthread_self());
-
   const auto obj = static_cast<CustomModelViewer*>(data);
 
   obj->callback_ = nullptr;

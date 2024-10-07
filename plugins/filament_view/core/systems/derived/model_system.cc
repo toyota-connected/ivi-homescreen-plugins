@@ -101,11 +101,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
           FilamentSystem::StaticGetTypeID(), "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  // Adopt the current thread into Filament's JobSystem
-  // auto jobSystem = engine->getJobSystem();
   resourceLoader_->asyncBeginLoad(asset);
-  // spdlog::debug("Load Resources Filament API thread: 0x{:x}",
-  // pthread_self());
 
   // This will move to be on the model itself.
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
@@ -130,6 +126,13 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
   }
 
   poOurModel->setAsset(asset);
+
+  EntityTransforms::vApplyTransform(poOurModel->getAsset(),
+                                   *poOurModel->GetBaseTransform());
+
+  // todo
+  //setUpAnimation(poCurrModel->GetAnimation());
+
   m_mapszpoAssets.insert(std::pair(poOurModel->GetGlobalGuid(), poOurModel));
 }
 
@@ -252,8 +255,6 @@ void ModelSystem::updateAsyncAssetLoading() {
     if (percentComplete != 1.0f) {
       continue;
     }
-
-    continue;
 
     auto collisionSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
