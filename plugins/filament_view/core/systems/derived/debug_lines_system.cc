@@ -21,7 +21,6 @@
 #include <filament/VertexBuffer.h>
 
 #include <core/systems/ecsystems_manager.h>
-#include <utility>
 
 #include "core/utils/entitytransforms.h"
 #include "filament_system.h"

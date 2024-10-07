@@ -65,8 +65,9 @@ class CustomModelViewer {
   void setModelState(ModelState modelState);
   void setLightState(SceneState sceneState);
   void setSkyboxState(SceneState sceneState);
-  void destroyIndirectLight();
-  void destroySkybox();
+  static void destroyIndirectLight();
+
+  static void destroySkybox();
 
   // Disallow copy and assign.
   CustomModelViewer(const CustomModelViewer&) = delete;
@@ -168,7 +169,7 @@ class CustomModelViewer {
 
   void DrawFrame(uint32_t time);
 
-  void setupView();
+  static void setupView();
 
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.

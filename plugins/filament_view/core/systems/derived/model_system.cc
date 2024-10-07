@@ -18,12 +18,10 @@
 #include <core/components/collidable.h>
 #include <core/systems/ecsystems_manager.h>
 #include <curl_client/curl_client.h>
-#include <filament/filament/DebugRegistry.h>
 #include <filament/filament/RenderableManager.h>
 #include <filament/filament/TransformManager.h>
 #include <filament/gltfio/ResourceLoader.h>
 #include <filament/gltfio/TextureProvider.h>
-#include <filament/math/mat4.h>
 #include <filament/utils/Slice.h>
 #include <algorithm>  // for max
 #include <asio/post.hpp>

@@ -20,7 +20,6 @@
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <filament/RenderableManager.h>
-#include <math/mat3.h>
 #include <math/norm.h>
 #include <math/vec3.h>
 

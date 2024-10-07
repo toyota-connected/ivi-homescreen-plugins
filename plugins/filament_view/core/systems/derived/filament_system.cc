@@ -16,7 +16,6 @@
 #include "filament_system.h"
 #include <filament/Renderer.h>
 #include <filament/View.h>
-#include <asio/post.hpp>
 
 #include "core/systems/ecsystems_manager.h"
 #include "plugins/common/common.h"

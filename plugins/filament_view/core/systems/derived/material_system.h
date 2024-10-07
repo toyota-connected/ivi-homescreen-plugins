@@ -63,7 +63,7 @@ class MaterialSystem : public ECSystem {
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  Resource<::filament::Material*> loadMaterialFromResource(
+  static Resource<::filament::Material*> loadMaterialFromResource(
       MaterialDefinitions* materialDefinition);
   Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,

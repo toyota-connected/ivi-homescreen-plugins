@@ -55,8 +55,6 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
-  spdlog::debug("1 Global Filament API thread: 0x{:x}", pthread_self());
-
   pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
 
   // Create the ECSystemManager instance
@@ -80,9 +78,6 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
   // Post the initialization code to the strand
   asio::post(strand, [=, &initPromise]() mutable {
-    spdlog::debug("Initialization on Filament API thread: 0x{:x}",
-                  pthread_self());
-
     // Add systems to the ECSystemManager
     ecsManager->vAddSystem(std::move(std::make_unique<FilamentSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<DebugLinesSystem>()));

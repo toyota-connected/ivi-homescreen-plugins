@@ -19,7 +19,6 @@
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
-#include <math/mat3.h>
 #include <math/norm.h>
 #include <math/vec3.h>
 #include <vector>

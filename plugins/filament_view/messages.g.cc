@@ -29,8 +29,6 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
-#include <math/mathfwd.h>
-#include <math/vec3.h>
 
 #include "core/include/literals.h"
 

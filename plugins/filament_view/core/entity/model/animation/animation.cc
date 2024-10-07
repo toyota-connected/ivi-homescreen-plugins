@@ -18,7 +18,6 @@
 
 #include <filesystem>
 
-#include "core/scene/geometry/position.h"
 #include "core/utils/deserialize.h"
 
 #include "plugins/common/common.h"

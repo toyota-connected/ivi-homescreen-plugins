@@ -57,7 +57,6 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
               FilamentSystem::StaticGetTypeID(), "changeLight");
       const auto engine = filamentSystem->getFilamentEngine();
 
-      spdlog::debug("LightManage Filament API thread: 0x{:x}", pthread_self());
       entityLight_ = engine->getEntityManager().create();
     });
   }

@@ -16,7 +16,6 @@
 #include "ray.h"
 #include "core/include/literals.h"
 #include "core/utils/deserialize.h"
-#include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 

@@ -80,7 +80,7 @@ class SceneController {
 
   void ChangeIndirectLightProperties(int32_t intensity);
 
-  void vToggleAllShapesInScene(bool bValue);
+  static void vToggleAllShapesInScene(bool bValue);
 
   void vRunPostSetupLoad();
 
@@ -114,11 +114,11 @@ class SceneController {
 
   void setUpIndirectLight();
 
-  void setUpShapes(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
+  static void setUpShapes(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   std::string setDefaultCamera();
 
-  void loadModel(Model* model);
+  static void loadModel(Model* model);
 
   void setUpAnimation(std::optional<Animation*> animation);
 };

@@ -27,7 +27,6 @@
 #include "wayland/display.h"
 
 #include <flutter/basic_message_channel.h>
-#include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
@@ -340,7 +339,7 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
 
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+            FilamentSystem::StaticGetTypeID(), "DrawFrame");
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (filamentSystem->getFilamentRenderer()->beginFrame(fswapChain_, time)) {

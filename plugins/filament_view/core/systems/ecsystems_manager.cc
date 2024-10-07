@@ -11,9 +11,6 @@ namespace plugin_filament_view {
 ECSystemManager* ECSystemManager::m_poInstance = nullptr;
 ECSystemManager* ECSystemManager::GetInstance() {
   if (m_poInstance == nullptr) {
-    spdlog::debug("Singleotn init 1 Initialize Filament API thread: 0x{:x}",
-                  pthread_self());
-
     m_poInstance = new ECSystemManager();
   }
 
