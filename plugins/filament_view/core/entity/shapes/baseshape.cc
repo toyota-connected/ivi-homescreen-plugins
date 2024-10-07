@@ -107,7 +107,7 @@ BaseShape::~BaseShape() {
 void BaseShape::vDestroyBuffers() {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
   if (m_poMaterialInstance.getStatus() == Status::Success &&
@@ -175,8 +175,8 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
   } else {
     auto materialSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
-            MaterialSystem::StaticGetTypeID());
-    spdlog::debug("Processing system at address {}, use_count={}",
+            MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+    spdlog::debug("BaseShape calling to create object Processing system at address {}, use_count={}",
                   static_cast<void*>(materialSystem.get()),
                   materialSystem.use_count());
 
@@ -187,6 +187,11 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
       // the material param list
       m_poMaterialInstance =
           materialSystem->getMaterialInstance(m_poMaterialDefinitions->get());
+
+        if(m_poMaterialInstance.getStatus() != Status::Success) {
+            spdlog::error("Failed to get material instance.");
+            return;
+        }
     }
 
     RenderableManager::Builder(1)
@@ -216,8 +221,12 @@ void BaseShape::vRemoveEntityFromScene() {
                 __FILE__, __FUNCTION__);
     return;
   }
-  CustomModelViewer::Instance("Shape")->getFilamentScene()->removeEntities(
-      m_poEntity.get(), 1);
+
+ auto filamentSystem =
+   ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+       FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene");
+
+  filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
 }
 
 void BaseShape::vAddEntityToScene() {
@@ -227,7 +236,10 @@ void BaseShape::vAddEntityToScene() {
     return;
   }
 
-  CustomModelViewer::Instance("Shape")->getFilamentScene()->addEntity(
+auto filamentSystem =
+  ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene");
+    filamentSystem->getFilamentScene()->addEntity(
       *m_poEntity);
 }
 

@@ -49,19 +49,23 @@ SceneController::SceneController(
 
   setUpViewer(platformView, state);
 
+  setUpIblProfiler();
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
 void SceneController::vRunPostSetupLoad() {
 
-  auto view = modelViewer_->getFilamentView();
-  auto scene = modelViewer_->getFilamentScene();
+  auto filamentSystem =
+       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+
+  auto view = filamentSystem->getFilamentView();
+  auto scene = filamentSystem->getFilamentScene();
   SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
-  //auto size = platformView->GetSize();
-  // todo.
-  view->setViewport({0, 0, 800,
-                     600});
+  // auto size = platformView->GetSize();
+  //  todo.
+  view->setViewport({0, 0, 800, 600});
 
   view->setScene(scene);
   SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
@@ -89,6 +93,7 @@ void SceneController::vRunPostSetupLoad() {
   setUpShapes(shapes_.get());
   SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
+  // This kicks off the first frame. Should probably be moved.
   modelViewer_->setInitialized();
 }
 
@@ -108,7 +113,6 @@ void SceneController::setUpViewer(PlatformView* platformView,
   // TODO surfaceView.setOnTouchListener(modelViewer)
   //  surfaceView.setZOrderOnTop(true) // necessary
 
-
   SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 }
 
@@ -123,8 +127,7 @@ void SceneController::setUpCamera() {
   // Note right now cameraManager creates a default camera on startup; if we're
   // immediately setting it to a different one; that's extra work that shouldn't
   // be done. Backlogged
-  auto t = cameraManager_->updateCamera(scene_->camera_.get());
-  t.wait();
+  cameraManager_->updateCamera(scene_->camera_.get());
 
   cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
 }
@@ -136,19 +139,18 @@ std::future<void> SceneController::setUpIblProfiler() {
   asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&/*, promise*/] {
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID());
+            FilamentSystem::StaticGetTypeID(), "setUpIblProfiler");
 
-    iblProfiler_ = std::make_unique<plugin_filament_view::IBLProfiler>(
-        filamentSystem->getFilamentEngine());
+
   });
   return future;
 }
 
 void SceneController::setUpSkybox() {
-  auto f = setUpIblProfiler();
-  f.wait();
-  skyboxManager_ =
-      std::make_unique<plugin_filament_view::SkyboxManager>(iblProfiler_.get());
+  // TODO
+  /*skyboxManager_ =
+      std::make_unique<plugin_filament_view::SkyboxManager>();
+  return;
 
   if (!scene_->skybox_) {
     plugin_filament_view::SkyboxManager::setDefaultSkybox();
@@ -186,11 +188,11 @@ void SceneController::setUpSkybox() {
             color_skybox->color_);
       }
     }
-  }
+  }*/
 }
 
 void SceneController::setUpLight() {
-  lightManager_ = std::make_unique<LightManager>();
+  /*lightManager_ = std::make_unique<LightSystem>();
 
   if (scene_) {
     if (scene_->light_) {
@@ -200,7 +202,7 @@ void SceneController::setUpLight() {
     }
   } else {
     lightManager_->setDefaultLight();
-  }
+  }*/
 }
 
 void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
@@ -213,7 +215,8 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
       scene_->light_->ChangeColor(colorValue);
       scene_->light_->ChangeIntensity(static_cast<float>(intensity));
 
-      lightManager_->changeLight(scene_->light_.get());
+      // TODO
+      //lightManager_->changeLight(scene_->light_.get());
       return;
     }
   }
@@ -224,30 +227,34 @@ void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
 void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
   auto indirectLight = scene_->indirect_light_.get();
   indirectLight->setIntensity(static_cast<float>(intensity));
-
   indirectLight->Print("SceneController ChangeIndirectLightProperties");
 
-  if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
+  // TODO
+
+  /*if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
     SPDLOG_WARN("setIndirectLight  {} {}", __FILE__, __FUNCTION__);
-    plugin_filament_view::IndirectLightManager::setIndirectLight(
+    plugin_filament_view::IndirectLightSystem::setIndirectLight(
         dynamic_cast<DefaultIndirectLight*>(indirectLight));
-  }
+  }*/
 }
 
 void SceneController::setUpIndirectLight() {
-  indirectLightManager_ =
-      std::make_unique<IndirectLightManager>(iblProfiler_.get());
+  // TODO
+
+  /*indirectLightManager_ =
+      std::make_unique<IndirectLightSystem>();
   if (!scene_->indirect_light_) {
-    plugin_filament_view::IndirectLightManager::setDefaultIndirectLight();
+    // This was called in the constructor of indirectLightManager_ anyway.
+    // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
   } else {
     auto indirectLight = scene_->indirect_light_.get();
     if (dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
-        plugin_filament_view::IndirectLightManager::
+        plugin_filament_view::IndirectLightSystem::
             setIndirectLightFromKtxAsset(indirectLight->getAssetPath(),
                                          indirectLight->getIntensity());
       } else if (!indirectLight->getUrl().empty()) {
-        plugin_filament_view::IndirectLightManager::setIndirectLightFromKtxUrl(
+        plugin_filament_view::IndirectLightSystem::setIndirectLightFromKtxUrl(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
@@ -262,17 +269,18 @@ void SceneController::setUpIndirectLight() {
         // auto shouldUpdateLight = indirectLight->getUrl() !=
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
-        plugin_filament_view::IndirectLightManager::setIndirectLightFromHdrUrl(
+        plugin_filament_view::IndirectLightSystem::setIndirectLightFromHdrUrl(
             indirectLight->getUrl(), indirectLight->getIntensity());
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      plugin_filament_view::IndirectLightManager::setIndirectLight(
+      plugin_filament_view::IndirectLightSystem::setIndirectLight(
           dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
-      plugin_filament_view::IndirectLightManager::setDefaultIndirectLight();
+      // Already called in the default constructor.
+      //plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
     }
-  }
+  }*/
 }
 
 void SceneController::setUpAnimation(std::optional<Animation*> animation) {
@@ -305,8 +313,8 @@ void SceneController::setUpLoadingModels() {
     plugin_filament_view::Model* poCurrModel = iter.get();
     // TODO loadModel needs to save the model internally in the map that's
     // there. backlogged.
-    auto result = loadModel(poCurrModel);
-    if (result.getStatus() != Status::Success && poCurrModel->GetFallback()) {
+    loadModel(poCurrModel);
+    /*if (result.getStatus() != Status::Success && poCurrModel->GetFallback()) {
       auto fallback = poCurrModel->GetFallback();
       if (fallback) {
         result = loadModel(fallback);
@@ -314,14 +322,14 @@ void SceneController::setUpLoadingModels() {
         setUpAnimation(fallback->GetAnimation());
       } else {
         spdlog::error("[SceneController] Error.FallbackLoadFailed");
-      }
-    } else {
+      }*/
+    //} else {
       // use the entities transform(s) data.
-      EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
-                                        *poCurrModel->GetBaseTransform());
+      //EntityTransforms::vApplyTransform(poCurrModel->getAsset(),
+      //                                  *poCurrModel->GetBaseTransform());
 
-      setUpAnimation(poCurrModel->GetAnimation());
-    }
+      //setUpAnimation(poCurrModel->GetAnimation());
+    //}
   }
 
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
@@ -332,10 +340,10 @@ void SceneController::setUpShapes(
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
 
   auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-      ShapeSystem::StaticGetTypeID());
+      ShapeSystem::StaticGetTypeID(), "setUpShapes");
   auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID());
+          CollisionSystem::StaticGetTypeID(), "setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
     spdlog::error(
@@ -357,7 +365,7 @@ void SceneController::setUpShapes(
 
 void SceneController::vToggleAllShapesInScene(bool bValue) {
   auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-      ShapeSystem::StaticGetTypeID());
+      ShapeSystem::StaticGetTypeID(), "setUpShapes");
   if (shapeSystem == nullptr) {
     SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
     return;
@@ -372,75 +380,57 @@ std::string SceneController::setDefaultCamera() {
   return "Default camera updated successfully";
 }
 
-Resource<std::string_view> SceneController::loadModel(Model* model) {
-  auto modelSystem = ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
-      ModelSystem::StaticGetTypeID());
-  if (modelSystem == nullptr) {
-    return Resource<std::string_view>::Error(
-        "Unable to find the model system.");
-  }
-  const auto& loader = modelSystem;
-  if (dynamic_cast<GlbModel*>(model)) {
-    auto glb_model = dynamic_cast<GlbModel*>(model);
-    if (!glb_model->assetPath_.empty()) {
-      auto f = loader->loadGlbFromAsset(model, glb_model->assetPath_, false);
-      f.wait();
-      return f.get();
+void SceneController::loadModel(Model* model) {
+  auto ecsManager = ECSystemManager::GetInstance();
+  const auto& strand = *ecsManager->GetStrand();
+
+  asio::post(strand, [=]() {
+    auto modelSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
+            ModelSystem::StaticGetTypeID(), "loadModel");
+
+    if (modelSystem == nullptr) {
+      spdlog::error("Unable to find the model system.");
+      /*return Resource<std::string_view>::Error(
+          "Unable to find the model system.");*/
     }
 
-    if (!glb_model->url_.empty()) {
-      auto f = loader->loadGlbFromUrl(model, glb_model->url_);
-      f.wait();
-      return f.get();
+    const auto& loader = modelSystem;
+    if (dynamic_cast<GlbModel*>(model)) {
+      auto glb_model = dynamic_cast<GlbModel*>(model);
+      if (!glb_model->assetPath_.empty()) {
+        loader->loadGlbFromAsset(model, glb_model->assetPath_, false);
+      }
+
+      if (!glb_model->url_.empty()) {
+        loader->loadGlbFromUrl(model, glb_model->url_);
+      }
+    } else if (dynamic_cast<GltfModel*>(model)) {
+      auto gltf_model = dynamic_cast<GltfModel*>(model);
+      if (!gltf_model->assetPath_.empty()) {
+        plugin_filament_view::ModelSystem::loadGltfFromAsset(
+            model, gltf_model->assetPath_, gltf_model->pathPrefix_,
+            gltf_model->pathPostfix_);
+      }
+
+      if (!gltf_model->url_.empty()) {
+        plugin_filament_view::ModelSystem::loadGltfFromUrl(model,
+                                                           gltf_model->url_);
+      }
     }
-  } else if (dynamic_cast<GltfModel*>(model)) {
-    auto gltf_model = dynamic_cast<GltfModel*>(model);
-    if (!gltf_model->assetPath_.empty()) {
-      auto f = plugin_filament_view::ModelSystem::loadGltfFromAsset(
-          model, gltf_model->assetPath_, gltf_model->pathPrefix_,
-          gltf_model->pathPostfix_);
-      f.wait();
-      return f.get();
-    }
-
-    if (!gltf_model->url_.empty()) {
-      auto f = plugin_filament_view::ModelSystem::loadGltfFromUrl(
-          model, gltf_model->url_);
-      f.wait();
-      return f.get();
-    }
-  }
-  return Resource<std::string_view>::Error("Unknown");
-}
-
-// TODO Move to model viewer
-void SceneController::makeSurfaceViewTransparent() {
-  modelViewer_->getFilamentView()->setBlendMode(
-      ::filament::View::BlendMode::TRANSLUCENT);
-
-  // TODO - not sure if needed.
-  // surfaceView.holder.setFormat(PixelFormat.TRANSLUCENT)
-
-  auto clearOptions = modelViewer_->getFilamentRenderer()->getClearOptions();
-  clearOptions.clear = true;
-  modelViewer_->getFilamentRenderer()->setClearOptions(clearOptions);
-}
-
-// TODO Move to model viewer - if still needed.
-void SceneController::makeSurfaceViewNotTransparent() {
-  modelViewer_->getFilamentView()->setBlendMode(
-      ::filament::View::BlendMode::OPAQUE);
-
-  // TODO surfaceView.setZOrderOnTop(true) // necessary
-  // TODO surfaceView.holder.setFormat(PixelFormat.OPAQUE)
+  });
 }
 
 void SceneController::onTouch(int32_t action,
                               int32_t point_count,
                               size_t point_data_size,
                               const double* point_data) {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+
   // if action is 0, then on 'first' touch, cast ray from camera;
-  auto viewport = modelViewer_->getFilamentView()->getViewport();
+  auto viewport = filamentSystem->getFilamentView()->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
 

@@ -57,8 +57,11 @@ void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
     return;
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
+  auto filamentSystem =
+    ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+        FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+
+  filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
                                                   asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
@@ -95,7 +98,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
 
   // Adopt the current thread into Filament's JobSystem
@@ -164,7 +167,7 @@ void ModelSystem::loadModelGltf(
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "loadModelGltf");
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
@@ -189,18 +192,24 @@ void ModelSystem::loadModelGltf(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
 
   auto* asset = model->getAsset();
+
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
-    asset->popRenderables(readyRenderables_, count);
+
+    constexpr size_t maxToPopAtOnce = 128;
+    auto maxToPop = std::min(count, maxToPopAtOnce);
+
+    SPDLOG_DEBUG("Popping model count at once {} {}", count, maxToPop);
+
+    asset->popRenderables(readyRenderables_, maxToPop);
 
     utils::Slice<Entity> const listOfRenderables{
         asset->getRenderableEntities(), asset->getRenderableEntityCount()};
@@ -215,13 +224,13 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
       // component.
       rcm.setScreenSpaceContactShadows(ri, false);
     }
-    modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
+    filamentSystem->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
   }
 
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
-    modelViewer->getFilamentScene()->addEntities(asset->getLightEntities(),
+    filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
                                                  sizeof(*lightEntities));
   }
 }
@@ -248,7 +257,7 @@ void ModelSystem::updateAsyncAssetLoading() {
 
     auto collisionSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-            CollisionSystem::StaticGetTypeID());
+            CollisionSystem::StaticGetTypeID(), "updateAsyncAssetLoading");
     if (collisionSystem == nullptr) {
       spdlog::warn("Failed to get collision system when loading model");
       continue;
@@ -277,6 +286,7 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
+
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
 
@@ -379,10 +389,11 @@ std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
   return future;
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vInitSystem() {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (engine == nullptr) {
@@ -412,10 +423,12 @@ void ModelSystem::vInitSystem() {
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vUpdate(float /*fElapsedTime*/) {
   updateAsyncAssetLoading();
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vShutdownSystem() {
   destroyAllAssetsOnModels();
   delete resourceLoader_;
@@ -427,8 +440,9 @@ void ModelSystem::vShutdownSystem() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::DebugPrint() {
-  SPDLOG_DEBUG("--{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_DEBUG("{} {}", __FILE__, __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

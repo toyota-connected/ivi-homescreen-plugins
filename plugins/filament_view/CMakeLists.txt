@@ -97,11 +97,11 @@ add_library(plugin_filament_view STATIC
         core/systems/derived/collision_system.cc
         core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
-        core/scene/indirect_light/indirect_light_manager.cc
+        core/systems/derived/indirect_light_system.cc
         core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
-        core/scene/light/light_manager.cc
+        core/systems/derived/light_system.cc
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
         core/systems/derived/material_system.cc
@@ -110,7 +110,7 @@ add_library(plugin_filament_view STATIC
         core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc
         core/scene/skybox/skybox.cc
-        core/scene/skybox/skybox_manager.cc
+        core/systems/derived/skybox_system.cc
         core/scene/scene.cc
         core/entity/shapes/baseshape.cc
         core/entity/shapes/cube.cc

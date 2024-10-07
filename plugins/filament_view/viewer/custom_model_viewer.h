@@ -72,16 +72,10 @@ class CustomModelViewer {
   CustomModelViewer(const CustomModelViewer&) = delete;
   CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
-  [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
 
-  [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
 
   [[nodiscard]] ::filament::Skybox* getFilamentSkybox() const {
     return fskybox_;
-  }
-
-  [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
-    return frenderer_;
   }
 
   [[nodiscard]] plugin_filament_view::Scene* getScene() const { return scene_; }
@@ -104,7 +98,6 @@ class CustomModelViewer {
 
   void setInitialized() {
     initialized_ = true;
-    fview_->setVisibleLayers(0x4, 0x4);
     OnFrame(this, nullptr, 0);
   }
 
@@ -138,12 +131,6 @@ class CustomModelViewer {
 
   std::unique_ptr<flutter::MethodChannel<>> frameViewCallback_;
 
-  // std::thread filament_api_thread_;
-  // pthread_t filament_api_thread_id_{};
-  // std::unique_ptr<asio::io_context> io_context_;
-  // asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
-  // std::unique_ptr<asio::io_context::strand> strand_;
-
   wl_display* display_{};
   wl_surface* surface_{};
   wl_surface* parent_surface_{};
@@ -159,10 +146,7 @@ class CustomModelViewer {
 
   plugin_filament_view::Scene* scene_{};
 
-  ::filament::Scene* fscene_{};
-  ::filament::View* fview_{};
   filament::Skybox* fskybox_ = nullptr;
-  ::filament::Renderer* frenderer_{};
   ::filament::SwapChain* fswapChain_{};
 
   ::filament::gltfio::Animator* fanimator_;

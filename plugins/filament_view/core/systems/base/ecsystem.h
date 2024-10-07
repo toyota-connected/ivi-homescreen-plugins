@@ -65,29 +65,29 @@ class ECSystem {
 
   // Process incoming messages
   virtual void vProcessMessages() {
-    spdlog::debug("[vProcessMessages] Attempting to acquire messagesMutex");
+    //spdlog::debug("[vProcessMessages] Attempting to acquire messagesMutex");
     std::queue<ECSMessage> messagesToProcess;
 
     {
       std::unique_lock<std::mutex> lock(messagesMutex);
-      spdlog::debug("[vProcessMessages] messagesMutex acquired");
+      //spdlog::debug("[vProcessMessages] messagesMutex acquired");
       std::swap(messageQueue_, messagesToProcess);
-      spdlog::debug(
+      /*spdlog::debug(
           "[vProcessMessages] Swapped message queues. Messages to process: {}",
-          messagesToProcess.size());
+          messagesToProcess.size());*/
     }  // messagesMutex is unlocked here
 
     while (!messagesToProcess.empty()) {
       const ECSMessage& msg = messagesToProcess.front();
-      spdlog::debug("[vProcessMessages] Processing message");
+      //spdlog::debug("[vProcessMessages] Processing message");
       vHandleMessage(msg);
       messagesToProcess.pop();
-      spdlog::debug(
+      /*spdlog::debug(
           "[vProcessMessages] Message processed. Remaining messages: {}",
-          messagesToProcess.size());
+          messagesToProcess.size());*/
     }
 
-    spdlog::debug("[vProcessMessages] done");
+    //spdlog::debug("[vProcessMessages] done");
   }
 
   virtual void vInitSystem() = 0;

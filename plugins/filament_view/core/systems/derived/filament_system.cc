@@ -15,6 +15,9 @@
  */
 #include "filament_system.h"
 #include <asio/post.hpp>
+#include <filament/Renderer.h>
+#include <filament/View.h>
+
 #include "core/systems/ecsystems_manager.h"
 #include "plugins/common/common.h"
 
@@ -24,7 +27,23 @@ namespace plugin_filament_view {
 void FilamentSystem::vInitSystem() {
   spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
 
-  fengine_ = ::filament::Engine::create(::filament::Engine::Backend::VULKAN);
+fengine_ = ::filament::Engine::create(::filament::Engine::Backend::VULKAN);
+iblProfiler_ = std::make_unique<plugin_filament_view::IBLProfiler>(fengine_);
+frenderer_ = fengine_->createRenderer();
+fscene_ = fengine_->createScene();
+
+    // fview will go back to 'viewtarget' / render path.
+fview_ = fengine_->createView();
+
+    // this probably needs to change
+    fview_->setVisibleLayers(0x4, 0x4);
+
+    fview_->setBlendMode(
+      ::filament::View::BlendMode::TRANSLUCENT);
+
+    auto clearOptions = frenderer_->getClearOptions();
+    clearOptions.clear = true;
+    frenderer_->setClearOptions(clearOptions);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -32,10 +51,17 @@ void FilamentSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void FilamentSystem::vShutdownSystem() {
+    fengine_->destroy(fview_);
+    fengine_->destroy(fscene_);
+    fengine_->destroy(frenderer_);
+
+    iblProfiler_.reset();
   ::filament::Engine::destroy(&fengine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::DebugPrint() {}
+void FilamentSystem::DebugPrint() {
+    spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+}
 
 }  // namespace plugin_filament_view

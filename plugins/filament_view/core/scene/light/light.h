@@ -20,8 +20,6 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
-#include "core/scene/light/light_manager.h"
 
 namespace plugin_filament_view {
 class Light {
@@ -44,7 +42,7 @@ class Light {
   Light(const Light&) = delete;
   Light& operator=(const Light&) = delete;
 
-  friend class LightManager;
+  friend class LightSystem;
 
   void ChangeColor(const std::string& color) { color_ = color; }
 

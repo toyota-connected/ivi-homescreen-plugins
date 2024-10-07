@@ -50,6 +50,9 @@ void ECSystemManager::vSetupThreadingInternals() {
   filament_api_thread_ = std::thread([&]() { io_context_->run(); });
   asio::post(*strand_, [&] {
     filament_api_thread_id_ = pthread_self();
+
+    pthread_setname_np(pthread_self(), "ECSystemManagerThreadRunner");
+
     spdlog::debug("ECSystemManager Filament API thread: 0x{:x}",
                   filament_api_thread_id_);
   });
@@ -131,6 +134,27 @@ void ECSystemManager::vInitSystems() {
   });
 }
 
+////////////////////////////////////////////////////////////////////////////
+std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(size_t systemTypeID, const std::string& where) {
+  auto callingThread = pthread_self();
+  if (callingThread != filament_api_thread_id_) {
+    spdlog::error( "From {}"
+        "You're calling to get a system from an off thread, undefined "
+        "experience!"
+        " Use a message to do your work or grab the ecsystemmanager strand and "
+        "do your work.", where);
+  }
+
+  std::unique_lock<std::mutex> lock(vecSystemsMutex);
+  for (const auto& system : m_vecSystems) {
+    if (system->GetTypeID() == systemTypeID) {
+      return system;
+    }
+  }
+  return nullptr;  // If no matching system found
+}
+
+////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   std::unique_lock<std::mutex> lock(vecSystemsMutex);
   spdlog::debug("Adding system at address {}",
@@ -141,18 +165,18 @@ void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vUpdate(float deltaTime) {
-  //spdlog::debug("Update Filament API thread: 0x{:x}", pthread_self());
+  // spdlog::debug("Update Filament API thread: 0x{:x}", pthread_self());
 
   // Copy systems under mutex and log details
   std::vector<std::shared_ptr<ECSystem>> systemsCopy;
   {
     std::unique_lock<std::mutex> lock(vecSystemsMutex);
-    //spdlog::debug("m_vecSystems size: {}", m_vecSystems.size());
+    // spdlog::debug("m_vecSystems size: {}", m_vecSystems.size());
 
     for (size_t i = 0; i < m_vecSystems.size(); ++i) {
-      //spdlog::debug("System {} at address {}", i,
-      //              static_cast<void*>(m_vecSystems[i].get()));
-      //m_vecSystems[i]->DebugPrint();
+      // spdlog::debug("System {} at address {}", i,
+      //               static_cast<void*>(m_vecSystems[i].get()));
+      // m_vecSystems[i]->DebugPrint();
     }
 
     // Copy the systems vector
@@ -160,23 +184,23 @@ void ECSystemManager::vUpdate(float deltaTime) {
   }  // Mutex is unlocked here
 
   // Iterate over the copy without holding the mutex
-  for (const auto& system : systemsCopy) {
+  for (const auto& system : m_vecSystems) {
     if (system) {
-      spdlog::debug("Processing system at address {}, use_count={}",
-                    static_cast<void*>(system.get()), system.use_count());
-      spdlog::debug("Before DebugPrint");
+      //spdlog::debug("Processing system at address {}, use_count={}",
+      //              static_cast<void*>(system.get()), system.use_count());
+      //spdlog::debug("Before DebugPrint");
       system->DebugPrint();
-      spdlog::debug("After DebugPrint");
+      //spdlog::debug("After DebugPrint");
 
-      //spdlog::debug("Before vProcessMessages");
+      // spdlog::debug("Before vProcessMessages");
       system->vProcessMessages();
-      //spdlog::debug("After vProcessMessages");
+      // spdlog::debug("After vProcessMessages");
 
-      //spdlog::debug("vUpdate system at address {}",
-      //              static_cast<void*>(system.get()));
-      //spdlog::debug("Before vUpdate");
+      // spdlog::debug("vUpdate system at address {}",
+      //               static_cast<void*>(system.get()));
+      // spdlog::debug("Before vUpdate");
       system->vUpdate(deltaTime);
-      //spdlog::debug("After vUpdate");
+      // spdlog::debug("After vUpdate");
     } else {
       spdlog::error("Encountered null system pointer!");
     }
@@ -186,7 +210,7 @@ void ECSystemManager::vUpdate(float deltaTime) {
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::DebugPrint() {
   for (const auto& system : m_vecSystems) {
-    spdlog::debug("Processing system at address {}, use_count={}",
+    spdlog::debug("ECSystemManager:: DebugPrintProcessing system at address {}, use_count={}",
                   static_cast<void*>(system.get()), system.use_count());
   }
 }

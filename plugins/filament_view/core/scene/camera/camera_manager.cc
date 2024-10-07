@@ -42,14 +42,12 @@ CameraManager::CameraManager() : currentVelocity_(0), initialTouchPosition_(0) {
 void CameraManager::setDefaultCamera() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  auto fview = modelViewer->getFilamentView();
+  auto fview = filamentSystem->getFilamentView();
   assert(fview);
 
   cameraEntity_ = engine->getEntityManager().create();
@@ -256,39 +254,28 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
     manipulatorBuilder.groundPlane(a, b, c, d);
   }
 
-  const auto modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
 
-  const auto viewport = modelViewer->getFilamentView()->getViewport();
+  const auto viewport = filamentSystem->getFilamentView()->getViewport();
   manipulatorBuilder.viewport(static_cast<int>(viewport.width),
                               static_cast<int>(viewport.height));
   cameraManipulator_ = manipulatorBuilder.build(cameraInfo->mode_);
 }
 
-std::future<Resource<std::string_view>> CameraManager::updateCamera(
+void CameraManager::updateCamera(
     Camera* cameraInfo) {
   SPDLOG_DEBUG("++CameraManager::updateCamera");
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto future(promise->get_future());
 
-  if (!cameraInfo) {
-    promise->set_value(Resource<std::string_view>::Error("Camera not found"));
-  } else {
-    asio::post(*ECSystemManager::GetInstance()->GetStrand(),
-               [&, promise, cameraInfo] {
-                 updateExposure(cameraInfo->exposure_.get());
-                 updateProjection(cameraInfo->projection_.get());
-                 updateLensProjection(cameraInfo->lensProjection_.get());
-                 updateCameraShift(cameraInfo->shift_.get());
-                 updateCameraScaling(cameraInfo->scaling_.get());
-                 updateCameraManipulator(cameraInfo);
-                 promise->set_value(Resource<std::string_view>::Success(
-                     "Camera updated successfully"));
-               });
-  }
+   updateExposure(cameraInfo->exposure_.get());
+   updateProjection(cameraInfo->projection_.get());
+   updateLensProjection(cameraInfo->lensProjection_.get());
+   updateCameraShift(cameraInfo->shift_.get());
+   updateCameraScaling(cameraInfo->scaling_.get());
+   updateCameraManipulator(cameraInfo);
 
   SPDLOG_DEBUG("--CameraManager::updateCamera");
-  return future;
 }
 
 void CameraManager::setPrimaryCamera(std::unique_ptr<Camera> camera) {
@@ -451,7 +438,7 @@ void CameraManager::destroyCamera() {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "destroyCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroyCameraComponent(cameraEntity_);
@@ -498,9 +485,12 @@ Ray CameraManager::oGetRayInformationFromOnTouchPosition(
 
 std::pair<filament::math::float3, filament::math::float3>
 CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
-  auto viewport = CustomModelViewer::Instance(__FUNCTION__)
-                      ->getFilamentView()
-                      ->getViewport();
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "CameraManager::aGetRayInformationFromOnTouchPosition");
+
+  auto viewport = filamentSystem->getFilamentView()->getViewport();
 
   // Note at time of writing on a 800*600 resolution this seems like the 10%
   // edges aren't super accurate this might need to be looked at more.
@@ -537,8 +527,6 @@ void CameraManager::onAction(int32_t action,
     return;
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
 #if 0  // Hack testing code - for testing camera controls on PC
   if ( action == ACTION_DOWN || action == ACTION_MOVE) {
     currentVelocity_.z += 1.0f;
@@ -549,7 +537,11 @@ void CameraManager::onAction(int32_t action,
   }
 #endif
 
-  auto viewport = modelViewer->getFilamentView()->getViewport();
+  auto filamentSystem =
+     ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+         FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+
+  auto viewport = filamentSystem->getFilamentView()->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
   switch (action) {
@@ -690,9 +682,11 @@ void CameraManager::updateCameraProjection() {
 }
 
 float CameraManager::calculateAspectRatio() {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+  auto filamentSystem =
+    ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+        FilamentSystem::StaticGetTypeID(), "CameraManager::aGetRayInformationFromOnTouchPosition");
 
-  auto viewport = modelViewer->getFilamentView()->getViewport();
+  auto viewport = filamentSystem->getFilamentView()->getViewport();
   return static_cast<float>(viewport.width) /
          static_cast<float>(viewport.height);
 }

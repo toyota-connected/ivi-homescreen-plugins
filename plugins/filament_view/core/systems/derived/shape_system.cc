@@ -32,8 +32,7 @@ namespace plugin_filament_view {
 using shapes::BaseShape;
 using ::utils::Entity;
 
-ShapeSystem::ShapeSystem() {}
-
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
   if (bValue) {
     for (const auto& shape : shapes_) {
@@ -46,11 +45,13 @@ void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vRemoveAllShapesInScene() {
   vToggleAllShapesInScene(false);
   shapes_.clear();
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
     const std::string& flutter_assets_path,
     const flutter::EncodableMap& mapData) {
@@ -89,6 +90,7 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::addShapesToScene(
     std::vector<std::unique_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
@@ -100,12 +102,12 @@ void ShapeSystem::addShapesToScene(
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "addShapesToScene");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Engine* poFilamentEngine = engine;
   filament::Scene* poFilamentScene =
-      CustomModelViewer::Instance(__FUNCTION__)->getFilamentScene();
+     filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // Ideally this is changed to create all entities on the first go, then
   // we pass them through, upon use this failed in filament engine, more R&D
@@ -132,13 +134,20 @@ void ShapeSystem::addShapesToScene(
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vInitSystem() {}
+
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}
+
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vShutdownSystem() {
   // remove all filament entities.
   vRemoveAllShapesInScene();
 }
+
+////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::DebugPrint() {
-  SPDLOG_DEBUG("--{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_DEBUG("{} {}", __FILE__, __FUNCTION__);
 }
 }  // namespace plugin_filament_view

@@ -19,6 +19,9 @@
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/debug_lines_system.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/light_system.h>
+#include <core/systems/derived/indirect_light_system.h>
+#include <core/systems/derived/skybox_system.h>
 #include <flutter/standard_message_codec.h>
 #include <asio/post.hpp>
 
@@ -54,6 +57,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     void* platform_view_context) {
   spdlog::debug("1 Global Filament API thread: 0x{:x}", pthread_self());
 
+pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
+
   // Create the ECSystemManager instance
   auto ecsManager = ECSystemManager::GetInstance();
 
@@ -85,6 +90,10 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     ecsManager->vAddSystem(std::move(std::make_unique<ModelSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<MaterialSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<ShapeSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<IndirectLightSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<SkyboxSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<LightSystem>()));
+
     ecsManager->vInitSystems();
 
     initPromise.set_value();
@@ -96,12 +105,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   std::future<void> initFuture2 = initPromise2.get_future();
 
   asio::post(strand, [=, &initPromise2]() mutable {
-    spdlog::debug("2 Global Filament API thread: 0x{:x}", pthread_self());
-
-    // Start the run loop
-    // ecsManager->StartRunLoop();
-
-    spdlog::debug("3 Global Filament API thread: 0x{:x}", pthread_self());
+    spdlog::debug("2-3 Global Filament API thread: 0x{:x}", pthread_self());
 
     // Continue with plugin initialization
     auto plugin = std::make_unique<FilamentViewPlugin>(
@@ -125,7 +129,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
     // Set up collision system message channels if needed
     auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
-        CollisionSystem::StaticGetTypeID());
+        CollisionSystem::StaticGetTypeID(), "Filament ViewPlugin :: Second Lambda");
     if (collisionSystem != nullptr) {
       collisionSystem->setupMessageChannels(registrar);
     }
@@ -141,17 +145,24 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   // Wait for the initialization to complete
   initFuture2.wait();
 
-//asio::post(strand, [=]() mutable {
-    auto t = weakPtr->getSceneController()->getModelViewer()->Initialize();
-    t.wait();
-//});
+  // asio::post(strand, [=]() mutable {
+  auto t = weakPtr->getSceneController()->getModelViewer()->Initialize();
+  t.wait();
+  //});
 
   // This should eventually get moved to a system loading process.
-  // asio::post(strand, [=]() mutable {
-  // call a 'plugin' function here.
-  // registrar->
+   std::promise<void> initPromise3;
+   std::future<void> initFuture3 = initPromise3.get_future();
+
+   asio::post(strand, [=, &initPromise3]() mutable {
+  //  call a 'plugin' function here.
+  //  registrar->
   weakPtr->getSceneController()->vRunPostSetupLoad();
-  //});
+   initPromise3.set_value();
+  });
+
+   initFuture3.wait();
+
   ecsManager->DebugPrint();
   ecsManager->StartRunLoop();
 
@@ -233,7 +244,7 @@ void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
   auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID());
+          CollisionSystem::StaticGetTypeID(), "ToggleDebugCollidableViewsInScene");
   if (collisionSystem == nullptr) {
     spdlog::warn("Unable to toggle collision on/off, system is null");
     return;

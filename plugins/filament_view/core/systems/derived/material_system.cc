@@ -20,6 +20,7 @@
 
 namespace plugin_filament_view {
 
+/////////////////////////////////////////////////////////////////////////////////////////
 MaterialSystem::MaterialSystem() {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
@@ -29,10 +30,12 @@ MaterialSystem::MaterialSystem() {
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 MaterialSystem::~MaterialSystem() {
   SPDLOG_DEBUG("--{}", __FUNCTION__);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
     MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
@@ -51,6 +54,7 @@ Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
       "You must provide material asset path or url");
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 Resource<::filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
     ::filament::Material* materialResult,
     const MaterialDefinitions* materialDefinitions) {
@@ -66,15 +70,15 @@ Resource<::filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
   return Resource<::filament::MaterialInstance*>::Success(materialInstance);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
-
   if (!materialDefinitions) {
     SPDLOG_ERROR(
         "--Bad MaterialDefinitions Result "
         "MaterialManager::getMaterialInstance");
-    Resource<::filament::MaterialInstance*>::Error("Material not found");
+    return Resource<::filament::MaterialInstance*>::Error("Material not found");
   }
 
   Resource<filament::Material*> materialToInstanceFrom =
@@ -158,11 +162,15 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
   return materialInstance;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vInitSystem() {}
+/////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
+/////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {}
+/////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::DebugPrint() {
-  SPDLOG_DEBUG("MaterialSystem::DebugPrint");
+    spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

@@ -149,14 +149,12 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   newShape->m_bIsWireframe = true;
 
-  auto cmv = CustomModelViewer::Instance(__FUNCTION__);
-
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "vAddCollidable");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  filament::Scene* poFilamentScene = cmv->getFilamentScene();
+  filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
 
   auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
@@ -198,7 +196,7 @@ void CollisionSystem::vTurnOffRenderingOfCollidables() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::DebugPrint() {
-  spdlog::debug("CollisionManager Debug Info:");
+spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 
   /*for (auto& collidable : collidables_) {
     collidable->DebugPrint();

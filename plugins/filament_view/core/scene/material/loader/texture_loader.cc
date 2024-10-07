@@ -48,7 +48,7 @@ inline ::filament::backend::TextureFormat internalFormat(
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
   const auto engine = filamentSystem->getFilamentEngine();
 
   ::filament::Texture* texture =

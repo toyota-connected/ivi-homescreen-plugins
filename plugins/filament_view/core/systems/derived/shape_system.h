@@ -33,14 +33,13 @@ class BaseShape;
 
 class ShapeSystem : public ECSystem {
  public:
-  explicit ShapeSystem();
+  ShapeSystem() = default;
 
   void addShapesToScene(
       std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   // Disallow copy and assign.
   ShapeSystem(const ShapeSystem&) = delete;
-
   ShapeSystem& operator=(const ShapeSystem&) = delete;
 
   // will add/remove already made entities to/from the scene

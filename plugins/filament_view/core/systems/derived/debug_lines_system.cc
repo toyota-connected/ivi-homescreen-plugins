@@ -35,6 +35,7 @@ using ::filament::VertexBuffer;
 
 namespace plugin_filament_view {
 
+/////////////////////////////////////////////////////////////////////////////////////////
 DebugLine::DebugLine(filament::math::float3 startingPoint,
                      filament::math::float3 endingPoint,
                      filament::Engine* engine,
@@ -89,6 +90,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       .build(*engine, *m_poEntity);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLine::vCleanup(filament::Engine* engine) {
   if (m_poVertexBuffer) {
     engine->destroy(m_poVertexBuffer);
@@ -100,22 +102,23 @@ void DebugLine::vCleanup(filament::Engine* engine) {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 DebugLinesSystem::DebugLinesSystem() : m_bCurrentlyDrawingDebugLines(false) {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::DebugPrint() {
-  spdlog::debug("DebugLinesSystem");
+  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    modelViewer->getFilamentScene()->removeEntities((*it)->m_poEntity.get(), 1);
+    filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(), 1);
 
     // do visual cleanup here
     (*it)->vCleanup(engine);
@@ -124,18 +127,18 @@ void DebugLinesSystem::vCleanup() {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vUpdate(float fElapsedTime) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
     (*it)->m_fRemainingTime -= fElapsedTime;
 
     if ((*it)->m_fRemainingTime < 0) {
-      modelViewer->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
+      filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
                                                       1);
 
       // do visual cleanup here
@@ -148,6 +151,7 @@ void DebugLinesSystem::vUpdate(float fElapsedTime) {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
@@ -162,21 +166,21 @@ void DebugLinesSystem::vInitSystem() {
       });
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vShutdownSystem() {
   vCleanup();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
                                 ::filament::math::float3 endPoint,
                                 float secondsTimeout) {
   if (m_bCurrentlyDrawingDebugLines == false)
     return;
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID());
+          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vAddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
@@ -185,7 +189,7 @@ void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
   auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
                                                   oEntity, secondsTimeout);
 
-  modelViewer->getFilamentScene()->addEntity(*oEntity);
+  filamentSystem->getFilamentScene()->addEntity(*oEntity);
 
   ourLines_.emplace_back(std::move(newDebugLine));
 }

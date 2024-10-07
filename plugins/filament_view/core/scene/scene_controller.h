@@ -24,9 +24,6 @@
 #include "core/entity/model/model.h"
 #include "core/entity/shapes/baseshape.h"
 #include "core/include/resource.h"
-#include "core/scene/indirect_light/indirect_light_manager.h"
-#include "core/scene/light/light_manager.h"
-#include "core/scene/skybox/skybox_manager.h"
 #include "core/systems/derived/material_system.h"
 #include "core/systems/derived/shape_system.h"
 #include "core/utils/ibl_profiler.h"
@@ -39,9 +36,6 @@ namespace plugin_filament_view {
 
 class Model;
 class Scene;
-class LightManager;
-class IndirectLightManager;
-class SkyboxManager;
 class Animation;
 class AnimationManager;
 class CameraManager;
@@ -104,11 +98,6 @@ class SceneController {
 
   std::optional<int32_t> currentAnimationIndex_;
 
-  std::unique_ptr<plugin_filament_view::IBLProfiler> iblProfiler_;
-  std::unique_ptr<plugin_filament_view::LightManager> lightManager_;
-  std::unique_ptr<plugin_filament_view::IndirectLightManager>
-      indirectLightManager_;
-  std::unique_ptr<plugin_filament_view::SkyboxManager> skyboxManager_;
   std::unique_ptr<plugin_filament_view::AnimationManager> animationManager_;
   std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
 
@@ -131,7 +120,7 @@ class SceneController {
 
   std::string setDefaultCamera();
 
-  Resource<std::string_view> loadModel(Model* model);
+  void loadModel(Model* model);
 
   void setUpAnimation(std::optional<Animation*> animation);
 
