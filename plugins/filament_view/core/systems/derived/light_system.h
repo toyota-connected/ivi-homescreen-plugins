@@ -16,14 +16,11 @@
 
 #pragma once
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
 #include <future>
 
 #include "core/include/resource.h"
-#include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
 #include "core/scene/light/light.h"
+#include "core/systems/base/ecsystem.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
@@ -32,20 +29,31 @@ class CustomModelViewer;
 
 class Light;
 
-class LightManager {
+class LightSystem : public ECSystem {
  public:
-  explicit LightManager();
+  LightSystem() = default;
 
   void setDefaultLight();
 
   std::future<Resource<std::string_view>> changeLight(Light* light);
 
   // Disallow copy and assign.
-  LightManager(const LightManager&) = delete;
+  LightSystem(const LightSystem&) = delete;
+  LightSystem& operator=(const LightSystem&) = delete;
 
-  LightManager& operator=(const LightManager&) = delete;
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(LightSystem).hash_code();
+  }
+
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
  private:
   utils::Entity entityLight_;
+  std::unique_ptr<Light> defaultlight_;
 };
 }  // namespace plugin_filament_view

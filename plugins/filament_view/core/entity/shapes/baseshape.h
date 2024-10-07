@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <core/scene/material/material_definitions.h>
+#include <core/systems/derived/material_system.h>
 #include <filament/math/quat.h>
 #include <utils/EntityManager.h>
 
@@ -36,7 +38,6 @@
 
 namespace plugin_filament_view {
 
-class MaterialManager;
 class CollisionSystem;
 using ::utils::Entity;
 
@@ -64,8 +65,7 @@ class BaseShape : public EntityObject {
   virtual void CloneToOther(BaseShape& other) const;
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
-                                   std::shared_ptr<Entity> entityObject,
-                                   MaterialManager* material_manager) = 0;
+                                   std::shared_ptr<Entity> entityObject) = 0;
 
   void vRemoveEntityFromScene();
   void vAddEntityToScene();
@@ -78,8 +78,7 @@ class BaseShape : public EntityObject {
 
   // uses Vertex and Index buffer to create the material and geometry
   // using all the internal variables.
-  void vBuildRenderable(::filament::Engine* engine_,
-                        MaterialManager* material_manager);
+  void vBuildRenderable(::filament::Engine* engine_);
 
   int id{};
   ShapeType type_{};

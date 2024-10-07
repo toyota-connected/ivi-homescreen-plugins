@@ -23,6 +23,7 @@
 #include "core/scene/geometry/direction.h"
 #include "core/scene/geometry/position.h"
 #include "core/scene/indirect_light/indirect_light.h"
+#include "core/systems/base/ecsystem.h"
 #include "core/utils/ibl_profiler.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 #include "viewer/custom_model_viewer.h"
@@ -30,17 +31,16 @@
 namespace plugin_filament_view {
 
 class CustomModelViewer;
-class IBLProfiler;
 class IndirectLight;
 class DefaultIndirectLight;
 class KtxIndirectLight;
 class HdrIndirectLight;
 
-class IndirectLightManager {
+class IndirectLightSystem : public ECSystem {
  public:
-  explicit IndirectLightManager(IBLProfiler* ibl_profiler);
+  IndirectLightSystem() = default;
 
-  static void setDefaultIndirectLight();
+  void setDefaultIndirectLight();
 
   static std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
       std::string path,
@@ -62,15 +62,27 @@ class IndirectLightManager {
       const std::string& asset_path,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLight(
+  std::future<Resource<std::string_view>> setIndirectLight(
       DefaultIndirectLight* indirectLight);
 
   // Disallow copy and assign.
-  IndirectLightManager(const IndirectLightManager&) = delete;
+  IndirectLightSystem(const IndirectLightSystem&) = delete;
+  IndirectLightSystem& operator=(const IndirectLightSystem&) = delete;
 
-  IndirectLightManager& operator=(const IndirectLightManager&) = delete;
+  ~IndirectLightSystem() override;
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(IndirectLightSystem).hash_code();
+  }
+
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
  private:
-  IBLProfiler* ibl_prefilter_;
+  std::unique_ptr<DefaultIndirectLight> indirect_light_;
 };
 }  // namespace plugin_filament_view

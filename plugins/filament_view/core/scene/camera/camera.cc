@@ -232,11 +232,11 @@ Camera::Camera(const flutter::EncodableMap& params)
       } else if (std::holds_alternative<std::monostate>(it.second)) {
         zoomSpeed_ = 0.01;
       }
-    } else if (!it.second.IsNull()) {
+    } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Camera] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
                                                            it.second);
-    }
+    }*/
   }
   SPDLOG_TRACE("--Camera::Camera");
 }

@@ -18,21 +18,18 @@
 
 #include <future>
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
-#include "core/utils/ibl_profiler.h"
+#include "core/systems/base/ecsystem.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
-class SkyboxManager {
+
+class SkyboxSystem : public ECSystem {
  public:
-  explicit SkyboxManager(IBLProfiler* ibl_profiler);
+  SkyboxSystem() = default;
 
   static std::future<void> Initialize();
 
-  static void setDefaultSkybox();
+  void setDefaultSkybox();
 
   std::future<Resource<std::string_view>> setSkyboxFromHdrAsset(
       const std::string& path,
@@ -46,13 +43,13 @@ class SkyboxManager {
       bool shouldUpdateLight,
       float intensity);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
+  std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
       const std::string& path);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
+  std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
       const std::string& url);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromColor(
+  std::future<Resource<std::string_view>> setSkyboxFromColor(
       const std::string& color);
 
   Resource<std::string_view> loadSkyboxFromHdrBuffer(
@@ -69,13 +66,21 @@ class SkyboxManager {
   void destroySkybox();
 
   // Disallow copy and assign.
-  SkyboxManager(const SkyboxManager&) = delete;
+  SkyboxSystem(const SkyboxSystem&) = delete;
+  SkyboxSystem& operator=(const SkyboxSystem&) = delete;
 
-  SkyboxManager& operator=(const SkyboxManager&) = delete;
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(SkyboxSystem).hash_code();
+  }
+
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
  private:
-  IBLProfiler* ibl_profiler_;
-
   static void setTransparentSkybox();
 };
 }  // namespace plugin_filament_view

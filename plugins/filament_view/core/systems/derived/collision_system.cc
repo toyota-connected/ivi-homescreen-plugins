@@ -18,8 +18,10 @@
 #include <core/entity/shapes/cube.h>
 #include <core/entity/shapes/plane.h>
 #include <core/entity/shapes/sphere.h>
+#include <core/systems/ecsystems_manager.h>
 #include <viewer/custom_model_viewer.h>
 
+#include "filament_system.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
@@ -147,15 +149,17 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   newShape->m_bIsWireframe = true;
 
-  auto cmv = CustomModelViewer::Instance(__FUNCTION__);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "vAddCollidable");
+  const auto engine = filamentSystem->getFilamentEngine();
 
-  filament::Engine* poFilamentEngine = cmv->getFilamentEngine();
-  filament::Scene* poFilamentScene = cmv->getFilamentScene();
-  utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
+  filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
+  utils::EntityManager& oEntitymanager = engine->getEntityManager();
 
   auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
 
-  newShape->bInitAndCreateShape(cmv->getFilamentEngine(), oEntity, nullptr);
+  newShape->bInitAndCreateShape(engine, oEntity);
   poFilamentScene->addEntity(*oEntity);
 
   // now store in map.
@@ -192,11 +196,11 @@ void CollisionSystem::vTurnOffRenderingOfCollidables() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::DebugPrint() {
-  spdlog::debug("CollisionManager Debug Info:");
+  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 
-  for (auto& collidable : collidables_) {
+  /*for (auto& collidable : collidables_) {
     collidable->DebugPrint();
-  }
+  }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -303,23 +307,22 @@ void CollisionSystem::SendCollisionInformationCallback(
 }
 
 void CollisionSystem::vInitSystem() {
-vRegisterMessageHandler(ECSMessageType::CollisionRequest,  [this](const ECSMessage& msg ) {
-    Ray rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
-    auto requestor = msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
-    auto type = msg.getData<CollisionEventType>(ECSMessageType::CollisionRequestType);
+  vRegisterMessageHandler(
+      ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
+        Ray rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
+        auto requestor =
+            msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
+        auto type = msg.getData<CollisionEventType>(
+            ECSMessageType::CollisionRequestType);
 
-    auto hitList = lstCheckForCollidable(rayInfo, 0);
+        auto hitList = lstCheckForCollidable(rayInfo, 0);
 
-    SendCollisionInformationCallback(hitList, requestor, type);
-  });
+        SendCollisionInformationCallback(hitList, requestor, type);
+      });
 }
 
-void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
+void CollisionSystem::vUpdate(float /*fElapsedTime*/) {}
 
-}
-
-void CollisionSystem::vShutdownSystem() {
-
-}
+void CollisionSystem::vShutdownSystem() {}
 
 }  // namespace plugin_filament_view

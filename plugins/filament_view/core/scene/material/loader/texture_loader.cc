@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 #include "core/scene/material/loader/texture_loader.h"
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <imageio/ImageDecoder.h>
 #include <stb_image.h>
 #include <memory>
+
 #include "core/include/file_utils.h"
 #include "plugins/common/curl_client/curl_client.h"
 
@@ -43,8 +46,10 @@ inline ::filament::backend::TextureFormat internalFormat(
   int w, h, n;
   unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
+  const auto engine = filamentSystem->getFilamentEngine();
 
   ::filament::Texture* texture =
       ::filament::Texture::Builder()

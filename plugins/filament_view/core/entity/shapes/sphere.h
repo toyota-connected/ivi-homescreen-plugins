@@ -22,7 +22,6 @@
 
 namespace plugin_filament_view {
 
-class MaterialManager;
 using ::utils::Entity;
 
 namespace shapes {
@@ -41,16 +40,13 @@ class Sphere : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject,
-                           MaterialManager* material_manager) override;
+                           std::shared_ptr<Entity> entityObject) override;
   void CloneToOther(BaseShape& other) const override;
 
  private:
-  static void createDoubleSidedSphere(::filament::Engine* engine_,
-                                      MaterialManager* material_manager);
+  static void createDoubleSidedSphere(::filament::Engine* engine_);
 
-  void createSingleSidedSphere(::filament::Engine* engine_,
-                               MaterialManager* material_manager);
+  void createSingleSidedSphere(::filament::Engine* engine_);
 
   int stacks_;
   int slices_;

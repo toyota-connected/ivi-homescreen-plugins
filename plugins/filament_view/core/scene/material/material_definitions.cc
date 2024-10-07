@@ -16,10 +16,10 @@
 
 #include "material_definitions.h"
 
+#include <filament/Material.h>
 #include <filament/TextureSampler.h>
 #include <filesystem>
 
-#include "material_manager.h"
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {

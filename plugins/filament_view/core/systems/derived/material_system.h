@@ -25,7 +25,7 @@
 
 #include "core/scene/material/loader/material_loader.h"
 #include "core/scene/material/loader/texture_loader.h"
-#include "viewer/custom_model_viewer.h"
+#include "core/systems/base/ecsystem.h"
 
 namespace plugin_filament_view {
 
@@ -36,16 +36,28 @@ class TextureLoader;
 
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
-class MaterialManager {
+class MaterialSystem : public ECSystem {
  public:
-  MaterialManager();
+  MaterialSystem();
+  ~MaterialSystem() override;
 
   Resource<::filament::MaterialInstance*> getMaterialInstance(
       MaterialDefinitions* materialDefinitions);
 
   // Disallow copy and assign.
-  MaterialManager(const MaterialManager&) = delete;
-  MaterialManager& operator=(const MaterialManager&) = delete;
+  MaterialSystem(const MaterialSystem&) = delete;
+  MaterialSystem& operator=(const MaterialSystem&) = delete;
+
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(MaterialSystem).hash_code();
+  }
 
  private:
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;

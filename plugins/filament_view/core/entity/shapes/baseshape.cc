@@ -17,8 +17,9 @@
 #include "baseshape.h"
 
 #include <core/components/collidable.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <filament/RenderableManager.h>
-#include <math/mat3.h>
 #include <math/norm.h>
 #include <math/vec3.h>
 
@@ -103,8 +104,10 @@ BaseShape::~BaseShape() {
 }
 
 void BaseShape::vDestroyBuffers() {
-  const auto filamentEngine =
-      CustomModelViewer::Instance(__FUNCTION__)->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
+  const auto filamentEngine = filamentSystem->getFilamentEngine();
 
   if (m_poMaterialInstance.getStatus() == Status::Success &&
       m_poMaterialInstance.getData() != nullptr) {
@@ -152,8 +155,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
       std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 }
 
-void BaseShape::vBuildRenderable(::filament::Engine* engine_,
-                                 MaterialManager* material_manager) {
+void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   if (m_bIsWireframe) {
@@ -170,10 +172,23 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_,
         .castShadows(false)
         .build(*engine_, *m_poEntity);
   } else {
-    // this will also set all the default values of the material instance from
-    // the material param list
-    m_poMaterialInstance =
-        material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
+    auto materialSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
+            MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+
+    if (materialSystem == nullptr) {
+      spdlog::error("Failed to get material system.");
+    } else {
+      // this will also set all the default values of the material instance from
+      // the material param list
+      m_poMaterialInstance =
+          materialSystem->getMaterialInstance(m_poMaterialDefinitions->get());
+
+      if (m_poMaterialInstance.getStatus() != Status::Success) {
+        spdlog::error("Failed to get material instance.");
+        return;
+      }
+    }
 
     RenderableManager::Builder(1)
         .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
@@ -202,8 +217,13 @@ void BaseShape::vRemoveEntityFromScene() {
                 __FILE__, __FUNCTION__);
     return;
   }
-  CustomModelViewer::Instance("Shape")->getFilamentScene()->removeEntities(
-      m_poEntity.get(), 1);
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(),
+          "BaseShape::vRemoveEntityFromScene");
+
+  filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
 }
 
 void BaseShape::vAddEntityToScene() {
@@ -213,8 +233,11 @@ void BaseShape::vAddEntityToScene() {
     return;
   }
 
-  CustomModelViewer::Instance("Shape")->getFilamentScene()->addEntity(
-      *m_poEntity);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(),
+          "BaseShape::vRemoveEntityFromScene");
+  filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
 
 void BaseShape::DebugPrint() const {

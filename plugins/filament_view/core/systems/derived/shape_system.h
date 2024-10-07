@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,29 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <core/systems/base/ecsystem.h>
 #include <list>
 
 #include "core/entity/shapes/baseshape.h"
-#include "core/scene/material/material_manager.h"
+#include "core/systems/derived/material_system.h"
 #include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
-
-class MaterialManager;
 
 namespace shapes {
 class BaseShape;
 }
 
-class ShapeManager {
+class ShapeSystem : public ECSystem {
  public:
-  explicit ShapeManager(MaterialManager* material_manager);
-  ~ShapeManager();
+  ShapeSystem() = default;
 
   void addShapesToScene(
       std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   // Disallow copy and assign.
-  ShapeManager(const ShapeManager&) = delete;
-
-  ShapeManager& operator=(const ShapeManager&) = delete;
+  ShapeSystem(const ShapeSystem&) = delete;
+  ShapeSystem& operator=(const ShapeSystem&) = delete;
 
   // will add/remove already made entities to/from the scene
   void vToggleAllShapesInScene(bool bValue);
@@ -57,9 +54,18 @@ class ShapeManager {
       const std::string& flutter_assets_path,
       const flutter::EncodableMap& mapData);
 
- private:
-  MaterialManager* material_manager_;
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(ShapeSystem).hash_code();
+  }
+
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
+
+ private:
   std::list<std::unique_ptr<shapes::BaseShape>> shapes_;
 };
 }  // namespace plugin_filament_view

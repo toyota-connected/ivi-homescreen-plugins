@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "model_manager.h"
-
-#include <algorithm>  // for max
-#include <sstream>
+#include "model_system.h"
 
 #include <core/components/collidable.h>
-#include <filament/filament/DebugRegistry.h>
+#include <core/systems/ecsystems_manager.h>
+#include <curl_client/curl_client.h>
 #include <filament/filament/RenderableManager.h>
 #include <filament/filament/TransformManager.h>
 #include <filament/gltfio/ResourceLoader.h>
 #include <filament/gltfio/TextureProvider.h>
-#include <filament/math/mat4.h>
 #include <filament/utils/Slice.h>
+#include <algorithm>  // for max
 #include <asio/post.hpp>
-#include <core/systems/ecsystems_manager.h>
-
-#include "core/utils/entitytransforms.h"
+#include <sstream>
 
 #include "collision_system.h"
-#include "filament/gltfio/materials/uberarchive.h"
-
-#include <curl_client/curl_client.h>
 #include "core/include/file_utils.h"
+#include "core/utils/entitytransforms.h"
+#include "filament/gltfio/materials/uberarchive.h"
+#include "filament_system.h"
 
 namespace plugin_filament_view {
 
@@ -45,49 +41,7 @@ using ::filament::gltfio::ResourceConfiguration;
 using ::filament::gltfio::ResourceLoader;
 
 ////////////////////////////////////////////////////////////////////////////////////
-ModelManager::ModelManager() {
-  SPDLOG_TRACE("++ModelLoader::ModelLoader");
-
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
-
-  materialProvider_ = ::filament::gltfio::createUbershaderProvider(
-      engine, UBERARCHIVE_DEFAULT_DATA,
-      static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
-  SPDLOG_DEBUG("UbershaderProvider MaterialsCount: {}",
-               materialProvider_->getMaterialsCount());
-
-  AssetConfiguration assetConfiguration{};
-  assetConfiguration.engine = engine;
-  assetConfiguration.materials = materialProvider_;
-  assetLoader_ = AssetLoader::create(assetConfiguration);
-
-  ResourceConfiguration resourceConfiguration{};
-  resourceConfiguration.engine = engine;
-  resourceConfiguration.normalizeSkinningWeights = true;
-  resourceLoader_ = new ResourceLoader(resourceConfiguration);
-
-  auto decoder = filament::gltfio::createStbProvider(engine);
-  resourceLoader_->addTextureProvider("image/png", decoder);
-  resourceLoader_->addTextureProvider("image/jpeg", decoder);
-
-  SPDLOG_TRACE("--ModelLoader::ModelLoader");
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-ModelManager::~ModelManager() {
-  destroyAllAssetsOnModels();
-  delete resourceLoader_;
-  resourceLoader_ = nullptr;
-
-  if (assetLoader_) {
-    AssetLoader::destroy(&assetLoader_);
-    assetLoader_ = nullptr;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::destroyAllAssetsOnModels() {
+void ModelSystem::destroyAllAssetsOnModels() {
   for (const auto& model : m_mapszpoAssets) {
     destroyAsset(model.second->getAsset());
     delete model.second;
@@ -96,19 +50,22 @@ void ModelManager::destroyAllAssetsOnModels() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::destroyAsset(filament::gltfio::FilamentAsset* asset) {
+void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
   if (!asset) {
     return;
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                  asset->getEntityCount());
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+
+  filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
+                                                     asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-filament::gltfio::FilamentAsset* ModelManager::poFindAssetByGuid(
+filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
     const std::string& szGUID) {
   auto iter = m_mapszpoAssets.find(szGUID);
   if (iter == m_mapszpoAssets.end()) {
@@ -119,10 +76,16 @@ filament::gltfio::FilamentAsset* ModelManager::poFindAssetByGuid(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::loadModelGlb(Model* poOurModel,
-                                const std::vector<uint8_t>& buffer,
-                                const std::string& /*assetName*/) {
+void ModelSystem::loadModelGlb(Model* poOurModel,
+                               const std::vector<uint8_t>& buffer,
+                               const std::string& /*assetName*/) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+
+  if (assetLoader_ == nullptr) {
+    // NOTE, this should only be temporary until CustomModelViewer isn't
+    // necessary in implementation.
+    vInitSystem();
+  }
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
@@ -130,6 +93,11 @@ void ModelManager::loadModelGlb(Model* poOurModel,
     spdlog::error("Failed to loadModelGlb->createasset from buffered data.");
     return;
   }
+
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "loadModelGlb");
+  const auto engine = filamentSystem->getFilamentEngine();
 
   resourceLoader_->asyncBeginLoad(asset);
 
@@ -139,7 +107,6 @@ void ModelManager::loadModelGlb(Model* poOurModel,
   // NOTE if this is a prefab/instance you will NOT Want to do this.
   asset->releaseSourceData();
 
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
   auto& rcm = engine->getRenderableManager();
 
   utils::Slice<Entity> const listOfRenderables{
@@ -157,11 +124,18 @@ void ModelManager::loadModelGlb(Model* poOurModel,
   }
 
   poOurModel->setAsset(asset);
+
+  EntityTransforms::vApplyTransform(poOurModel->getAsset(),
+                                    *poOurModel->GetBaseTransform());
+
+  // todo
+  // setUpAnimation(poCurrModel->GetAnimation());
+
   m_mapszpoAssets.insert(std::pair(poOurModel->GetGlobalGuid(), poOurModel));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::loadModelGltf(
+void ModelSystem::loadModelGltf(
     Model* poOurModel,
     const std::vector<uint8_t>& buffer,
     std::function<const ::filament::backend::BufferDescriptor&(
@@ -192,7 +166,11 @@ void ModelManager::loadModelGltf(
   modelViewer->setAnimator(asset->getInstance()->getAnimator());
   asset->releaseSourceData();
 
-  ::filament::Engine* engine = modelViewer->getFilamentEngine();
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "loadModelGltf");
+  const auto engine = filamentSystem->getFilamentEngine();
+
   auto& rcm = engine->getRenderableManager();
 
   utils::Slice<Entity> const listOfRenderables{
@@ -214,15 +192,29 @@ void ModelManager::loadModelGltf(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::populateSceneWithAsyncLoadedAssets(Model* model) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
+void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+  const auto engine = filamentSystem->getFilamentEngine();
 
-  auto& rcm = modelViewer->getFilamentEngine()->getRenderableManager();
+  auto& rcm = engine->getRenderableManager();
 
   auto* asset = model->getAsset();
+
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
-    asset->popRenderables(readyRenderables_, count);
+    constexpr size_t maxToPopAtOnce = 128;
+    auto maxToPop = std::min(count, maxToPopAtOnce);
+
+    SPDLOG_DEBUG(
+        "ModelSystem::populateSceneWithAsyncLoadedAssets async load count "
+        "available[{}] - working on [{}]",
+        count, maxToPop);
+    // Note for high amounts, we should probably do a small amount; break out;
+    // and let it come back do more on another frame.
+
+    asset->popRenderables(readyRenderables_, maxToPop);
 
     utils::Slice<Entity> const listOfRenderables{
         asset->getRenderableEntities(), asset->getRenderableEntityCount()};
@@ -237,19 +229,19 @@ void ModelManager::populateSceneWithAsyncLoadedAssets(Model* model) {
       // component.
       rcm.setScreenSpaceContactShadows(ri, false);
     }
-    modelViewer->getFilamentScene()->addEntities(readyRenderables_, count);
+    filamentSystem->getFilamentScene()->addEntities(readyRenderables_, count);
     count = asset->popRenderables(nullptr, 0);
   }
 
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
-    modelViewer->getFilamentScene()->addEntities(asset->getLightEntities(),
-                                                 sizeof(*lightEntities));
+    filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
+                                                    sizeof(*lightEntities));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::updateAsyncAssetLoading() {
+void ModelSystem::updateAsyncAssetLoading() {
   resourceLoader_->asyncUpdateLoad();
 
   // This does not specify per resource, but a global, best we can do with this
@@ -259,8 +251,6 @@ void ModelManager::updateAsyncAssetLoading() {
   // eventually settle
   float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
-
-
   for (const auto& asset : m_mapszpoAssets) {
     populateSceneWithAsyncLoadedAssets(asset.second);
 
@@ -268,7 +258,9 @@ void ModelManager::updateAsyncAssetLoading() {
       continue;
     }
 
-    auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+    auto collisionSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+            CollisionSystem::StaticGetTypeID(), "updateAsyncAssetLoading");
     if (collisionSystem == nullptr) {
       spdlog::warn("Failed to get collision system when loading model");
       continue;
@@ -280,8 +272,7 @@ void ModelManager::updateAsyncAssetLoading() {
     // Also need to make sure it hasn't already created one for this model.
     if (asset.second->HasComponentByStaticTypeID(
             Collidable::StaticGetTypeID()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(
-            asset.first)) {
+        !collisionSystem->bHasEntityObjectRepresentation(asset.first)) {
       // I don't think this needs to become a message; as an async load
       // gives us un-deterministic throughput; it can't be replicated with a
       // messaging structure, and we have to wait till the load is done.
@@ -291,18 +282,20 @@ void ModelManager::updateAsyncAssetLoading() {
 }  // end method
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelManager::loadGlbFromAsset(
+std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
     Model* poOurModel,
     const std::string& path,
     bool isFallback) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
+
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
 
   try {
-    const asio::io_context::strand& strand_(modelViewer->getStrandContext());
+    const asio::io_context::strand& strand_(
+        *ECSystemManager::GetInstance()->GetStrand());
     const std::string assetPath = modelViewer->getAssetPath();
 
     asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
@@ -324,7 +317,7 @@ std::future<Resource<std::string_view>> ModelManager::loadGlbFromAsset(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelManager::loadGlbFromUrl(
+std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
     Model* poOurModel,
     std::string url,
     bool isFallback) {
@@ -333,7 +326,7 @@ std::future<Resource<std::string_view>> ModelManager::loadGlbFromUrl(
   auto promise_future(promise->get_future());
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
-  asio::post(modelViewer->getStrandContext(),
+  asio::post(*ECSystemManager::GetInstance()->GetStrand(),
              [&, poOurModel, promise, url = std::move(url), isFallback] {
                plugin_common_curl::CurlClient client;
                auto buffer = client.RetrieveContentAsVector();
@@ -348,11 +341,11 @@ std::future<Resource<std::string_view>> ModelManager::loadGlbFromUrl(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelManager::handleFile(Model* poOurModel,
-                              const std::vector<uint8_t>& buffer,
-                              const std::string& fileSource,
-                              bool isFallback,
-                              const PromisePtr& promise) {
+void ModelSystem::handleFile(Model* poOurModel,
+                             const std::vector<uint8_t>& buffer,
+                             const std::string& fileSource,
+                             bool isFallback,
+                             const PromisePtr& promise) {
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(poOurModel, buffer, fileSource);
@@ -368,7 +361,7 @@ void ModelManager::handleFile(Model* poOurModel,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelManager::loadGltfFromAsset(
+std::future<Resource<std::string_view>> ModelSystem::loadGltfFromAsset(
     Model* /*poOurModel*/,
     const std::string& /* path */,
     const std::string& /* pre_path */,
@@ -382,7 +375,7 @@ std::future<Resource<std::string_view>> ModelManager::loadGltfFromAsset(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelManager::loadGltfFromUrl(
+std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
     Model* /*poOurModel*/,
     const std::string& /* url */,
     bool /* isFallback */) {
@@ -391,6 +384,62 @@ std::future<Resource<std::string_view>> ModelManager::loadGltfFromUrl(
   auto future(promise->get_future());
   promise->set_value(Resource<std::string_view>::Error("Not implemented yet"));
   return future;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ModelSystem::vInitSystem() {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");
+  const auto engine = filamentSystem->getFilamentEngine();
+
+  if (engine == nullptr) {
+    spdlog::error("Engine is null, delaying vInitSystem");
+    return;
+  }
+
+  materialProvider_ = ::filament::gltfio::createUbershaderProvider(
+      engine, UBERARCHIVE_DEFAULT_DATA,
+      static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
+
+  SPDLOG_DEBUG("UbershaderProvider MaterialsCount: {}",
+               materialProvider_->getMaterialsCount());
+
+  AssetConfiguration assetConfiguration{};
+  assetConfiguration.engine = engine;
+  assetConfiguration.materials = materialProvider_;
+  assetLoader_ = AssetLoader::create(assetConfiguration);
+
+  ResourceConfiguration resourceConfiguration{};
+  resourceConfiguration.engine = engine;
+  resourceConfiguration.normalizeSkinningWeights = true;
+  resourceLoader_ = new ResourceLoader(resourceConfiguration);
+
+  auto decoder = filament::gltfio::createStbProvider(engine);
+  resourceLoader_->addTextureProvider("image/png", decoder);
+  resourceLoader_->addTextureProvider("image/jpeg", decoder);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ModelSystem::vUpdate(float /*fElapsedTime*/) {
+  updateAsyncAssetLoading();
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ModelSystem::vShutdownSystem() {
+  destroyAllAssetsOnModels();
+  delete resourceLoader_;
+  resourceLoader_ = nullptr;
+
+  if (assetLoader_) {
+    AssetLoader::destroy(&assetLoader_);
+    assetLoader_ = nullptr;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ModelSystem::DebugPrint() {
+  SPDLOG_DEBUG("{} {}", __FILE__, __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

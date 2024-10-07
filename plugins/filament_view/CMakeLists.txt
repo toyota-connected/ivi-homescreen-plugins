@@ -82,8 +82,10 @@ add_library(plugin_filament_view STATIC
         core/components/collidable.cc
         core/entity/model/animation/animation.cc
         core/entity/model/animation/animation_manager.cc
+        core/systems/base/ecsystem.cc
         core/systems/ecsystems_manager.cc
-        core/systems/derived/model_manager.cc
+        core/systems/derived/filament_system.cc
+        core/systems/derived/model_system.cc
         core/entity/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
@@ -96,26 +98,26 @@ add_library(plugin_filament_view STATIC
         core/systems/derived/collision_system.cc
         core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
-        core/scene/indirect_light/indirect_light_manager.cc
+        core/systems/derived/indirect_light_system.cc
         core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
-        core/scene/light/light_manager.cc
+        core/systems/derived/light_system.cc
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
-        core/scene/material/material_manager.cc
+        core/systems/derived/material_system.cc
         core/scene/material/material_definitions.cc
         core/scene/material/material_parameter.cc
         core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc
         core/scene/skybox/skybox.cc
-        core/scene/skybox/skybox_manager.cc
+        core/systems/derived/skybox_system.cc
         core/scene/scene.cc
         core/entity/shapes/baseshape.cc
         core/entity/shapes/cube.cc
         core/entity/shapes/sphere.cc
         core/entity/shapes/plane.cc
-        core/systems/derived/shape_manager.cc
+        core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
         viewer/custom_model_viewer.cc
 )

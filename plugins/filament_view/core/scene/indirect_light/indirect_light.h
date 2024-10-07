@@ -65,7 +65,7 @@ class DefaultIndirectLight final : public IndirectLight {
 
   ~DefaultIndirectLight() override = default;
 
-  friend class IndirectLightManager;
+  friend class IndirectLightSystem;
 
   void Print(const char* tag) override;
 

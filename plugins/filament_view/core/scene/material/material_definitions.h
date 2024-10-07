@@ -41,8 +41,6 @@ class MaterialDefinitions {
   MaterialDefinitions(const MaterialDefinitions&) = delete;
   MaterialDefinitions& operator=(const MaterialDefinitions&) = delete;
 
-  friend class MaterialManager;
-
   void vSetMaterialInstancePropertiesFromMyPropertyMap(
       const ::filament::Material* materialResult,
       filament::MaterialInstance* materialInstance,
@@ -57,6 +55,11 @@ class MaterialDefinitions {
   // loaded.
   [[nodiscard]] std::vector<MaterialParameter*>
   vecGetTextureMaterialParameters() const;
+
+  [[nodiscard]] std::string szGetMaterialAssetPath() const {
+    return assetPath_;
+  }
+  [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
 
  private:
   const std::string& flutterAssetsPath_;

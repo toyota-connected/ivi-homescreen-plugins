@@ -41,7 +41,7 @@
 #include "core/entity/model/state/shape_state.h"
 #include "core/scene/camera/camera_manager.h"
 #include "core/scene/scene.h"
-#include "core/systems/derived/model_manager.h"
+#include "core/systems/derived/model_system.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
 #include "settings.h"
@@ -49,8 +49,6 @@
 namespace plugin_filament_view {
 
 class CameraManager;
-class ModelManager;
-class Model;
 class Scene;
 
 class CustomModelViewer {
@@ -65,40 +63,21 @@ class CustomModelViewer {
   ~CustomModelViewer();
 
   void setModelState(ModelState modelState);
-
   void setLightState(SceneState sceneState);
-
   void setSkyboxState(SceneState sceneState);
+  static void destroyIndirectLight();
 
-  void destroyIndirectLight();
-
-  void destroySkybox();
+  static void destroySkybox();
 
   // Disallow copy and assign.
   CustomModelViewer(const CustomModelViewer&) = delete;
   CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
-  [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
-    return fengine_;
-  }
-
-  [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
-
-  [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
-
   [[nodiscard]] ::filament::Skybox* getFilamentSkybox() const {
     return fskybox_;
   }
 
-  [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
-    return frenderer_;
-  }
-
   [[nodiscard]] plugin_filament_view::Scene* getScene() const { return scene_; }
-
-  [[nodiscard]] ModelManager* getModelLoader() const {
-    return modelLoader_.get();
-  }
 
   void setCameraManager(CameraManager* cameraManager) {
     cameraManager_ = cameraManager;
@@ -106,10 +85,6 @@ class CustomModelViewer {
 
   void setAnimator(filament::gltfio::Animator* animator) {
     fanimator_ = animator;
-  }
-
-  [[nodiscard]] const asio::io_context::strand& getStrandContext() const {
-    return *strand_;
   }
 
   void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
@@ -122,12 +97,7 @@ class CustomModelViewer {
 
   void setInitialized() {
     initialized_ = true;
-    fview_->setVisibleLayers(0x4, 0x4);
     OnFrame(this, nullptr, 0);
-  }
-
-  [[nodiscard]] pthread_t getFilamentApiThreadId() const {
-    return filament_api_thread_id_;
   }
 
   [[nodiscard]] std::string getAssetPath() const { return flutterAssetsPath_; }
@@ -138,6 +108,8 @@ class CustomModelViewer {
 
   static CustomModelViewer* Instance(const std::string& where);
 
+  std::future<bool> Initialize();
+
  private:
   static CustomModelViewer* m_poInstance;
 
@@ -146,7 +118,6 @@ class CustomModelViewer {
   static constexpr float originDistance = 1.0f;
 
   void setupWaylandSubsurface();
-  std::future<bool> Initialize(PlatformView* platformView);
 
   [[maybe_unused]] FlutterDesktopEngineState* state_;
   const std::string flutterAssetsPath_;
@@ -158,12 +129,6 @@ class CustomModelViewer {
   bool initialized_{};
 
   std::unique_ptr<flutter::MethodChannel<>> frameViewCallback_;
-
-  std::thread filament_api_thread_;
-  pthread_t filament_api_thread_id_{};
-  std::unique_ptr<asio::io_context> io_context_;
-  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
-  std::unique_ptr<asio::io_context::strand> strand_;
 
   wl_display* display_{};
   wl_surface* surface_{};
@@ -180,11 +145,7 @@ class CustomModelViewer {
 
   plugin_filament_view::Scene* scene_{};
 
-  ::filament::Engine* fengine_{};
-  ::filament::Scene* fscene_{};
-  ::filament::View* fview_{};
   filament::Skybox* fskybox_ = nullptr;
-  ::filament::Renderer* frenderer_{};
   ::filament::SwapChain* fswapChain_{};
 
   ::filament::gltfio::Animator* fanimator_;
@@ -197,8 +158,6 @@ class CustomModelViewer {
   [[maybe_unused]] SceneState currentLightState_;
   [[maybe_unused]] ShapeState currentShapesState_;
 
-  std::unique_ptr<ModelManager> modelLoader_;
-
   void SendFrameViewCallback(
       const std::string& methodName,
       std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
@@ -210,7 +169,7 @@ class CustomModelViewer {
 
   void DrawFrame(uint32_t time);
 
-  void setupView();
+  static void setupView();
 
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.

@@ -71,7 +71,7 @@ class CameraManager {
 
   void updateCameraOnResize(uint32_t width, uint32_t height);
 
-  std::future<Resource<std::string_view>> updateCamera(Camera* cameraInfo);
+  void updateCamera(Camera* cameraInfo);
 
   std::string updateExposure(Exposure* exposure);
 

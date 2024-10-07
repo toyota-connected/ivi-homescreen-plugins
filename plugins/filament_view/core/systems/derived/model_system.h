@@ -27,17 +27,17 @@
 #include "viewer/custom_model_viewer.h"
 #include "viewer/settings.h"
 
+#include "core/systems/base/ecsystem.h"
+
 namespace plugin_filament_view {
 
 class CustomModelViewer;
 
 class Model;
 
-class ModelManager {
+class ModelSystem : public ECSystem {
  public:
-  ModelManager();
-
-  ~ModelManager();
+  ModelSystem() = default;
 
   void destroyAllAssetsOnModels();
   void destroyAsset(filament::gltfio::FilamentAsset* asset);
@@ -77,12 +77,23 @@ class ModelManager {
 
   friend class CustomModelViewer;
 
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
+
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(ModelSystem).hash_code();
+  }
+
  private:
   // sunlight_ needs to be moved, no reason to be on this class
   utils::Entity sunlight_;
-  ::filament::gltfio::AssetLoader* assetLoader_;
-  ::filament::gltfio::MaterialProvider* materialProvider_;
-  ::filament::gltfio::ResourceLoader* resourceLoader_;
+  ::filament::gltfio::AssetLoader* assetLoader_{};
+  ::filament::gltfio::MaterialProvider* materialProvider_{};
+  ::filament::gltfio::ResourceLoader* resourceLoader_{};
 
   // This is the EntityObject guids to model instantiated.
   std::map<EntityGUID, Model*> m_mapszpoAssets;

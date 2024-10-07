@@ -17,8 +17,8 @@
 #pragma once
 
 #include <core/include/literals.h>
-#include <list>
 #include <core/systems/base/ecsystem.h>
+#include <list>
 
 #include "core/components/basetransform.h"
 #include "core/components/collidable.h"
@@ -53,16 +53,16 @@ class CollisionSystem : public ECSystem {
   void vTurnOnRenderingOfCollidables();
   void vTurnOffRenderingOfCollidables();
 
- void vUpdate(float fElapsedTime) override;
+  void vUpdate(float fElapsedTime) override;
 
- void vInitSystem() override;
- void vShutdownSystem() override;
+  void vInitSystem() override;
+  void vShutdownSystem() override;
 
- [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- [[nodiscard]] static size_t StaticGetTypeID() {
-  return typeid(CollisionSystem).hash_code();
- }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(CollisionSystem).hash_code();
+  }
 
   void vAddCollidable(EntityObject* collidable);
   void vRemoveCollidable(EntityObject* collidable);
@@ -84,7 +84,6 @@ class CollisionSystem : public ECSystem {
       const EntityGUID& guid) const;
 
  private:
-
   bool currentlyDrawingDebugCollidables = false;
 
   void vMatchCollidablesToRenderingModelsTransforms();

@@ -18,7 +18,12 @@
 
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/debug_lines_system.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/indirect_light_system.h>
+#include <core/systems/derived/light_system.h>
+#include <core/systems/derived/skybox_system.h>
 #include <flutter/standard_message_codec.h>
+#include <asio/post.hpp>
 
 #include "filament_scene.h"
 #include "messages.g.h"
@@ -31,8 +36,10 @@ class FlutterView;
 class Display;
 
 namespace plugin_filament_view {
+FilamentScene* weakPtr;
+FilamentViewPlugin* viewPluginWeakPtr;
 
-// static
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar,
     int32_t id,
@@ -48,37 +55,108 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
+  pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
 
-    // This will need to be done before anything else.
-    auto ecsManager = ECSystemManager::GetInstance();
-    ecsManager->vAddSystem(std::move(std::make_shared<DebugLinesSystem>()));
-    ecsManager->vAddSystem(std::move(std::make_shared<CollisionSystem>()));
+  // Create the ECSystemManager instance
+  auto ecsManager = ECSystemManager::GetInstance();
+
+  // Get the strand from the ECSystemManager
+  const auto& strand = *ecsManager->GetStrand();
+
+  /*bool bDebugAttached = false;
+  int i = 0;
+  while (!bDebugAttached) {
+    int breakhere = 0;
+    if (i++ == 10000000000) {
+      bDebugAttached = true;
+    }
+  }*/
+
+  // Create a promise and future to synchronize initialization
+  std::promise<void> initPromise;
+  std::future<void> initFuture = initPromise.get_future();
+
+  // Post the initialization code to the strand
+  asio::post(strand, [=, &initPromise]() mutable {
+    // Add systems to the ECSystemManager
+    ecsManager->vAddSystem(std::move(std::make_unique<FilamentSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<DebugLinesSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<CollisionSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<ModelSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<MaterialSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<ShapeSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<IndirectLightSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<SkyboxSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<LightSystem>()));
+
     ecsManager->vInitSystems();
 
-  auto plugin = std::make_unique<FilamentViewPlugin>(
-      id, std::move(viewType), direction, top, left, width, height, params,
-      std::move(assetDirectory), engine, addListener, removeListener,
-      platform_view_context);
+    initPromise.set_value();
+  });
 
-  FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
-  ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
-  SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-  ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-  RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+  initFuture.wait();
 
-  CustomModelViewer::Instance("RegisterWithRegistrar")
-      ->setupMessageChannels(registrar);
+  std::promise<void> initPromise2;
+  std::future<void> initFuture2 = initPromise2.get_future();
 
-    auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
+  asio::post(strand, [=, &initPromise2]() mutable {
+    // Continue with plugin initialization
+    auto plugin = std::make_unique<FilamentViewPlugin>(
+        id, std::move(viewType), direction, top, left, width, height, params,
+        std::move(assetDirectory), engine, addListener, removeListener,
+        platform_view_context);
+
+    // Set up message channels and APIs
+    FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
+    ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+    SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+    ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+    RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+
+    CustomModelViewer::Instance("RegisterWithRegistrar")
+        ->setupMessageChannels(registrar);
+
+    // Set up collision system message channels if needed
+    auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
+        CollisionSystem::StaticGetTypeID(),
+        "Filament ViewPlugin :: Second Lambda");
     if (collisionSystem != nullptr) {
-        collisionSystem->setupMessageChannels(registrar);
+      collisionSystem->setupMessageChannels(registrar);
     }
 
-  registrar->AddPlugin(std::move(plugin));
+    registrar->AddPlugin(std::move(plugin));
 
-    ECSystemManager::GetInstance()->StartRunLoop();
+    // Signal that initialization is complete
+    initPromise2.set_value();
+  });
+
+  // Wait for the initialization to complete
+  initFuture2.wait();
+
+  // asio::post(strand, [=]() mutable {
+  // Todo - to be changed.
+  auto t = weakPtr->getSceneController()->getModelViewer()->Initialize();
+  t.wait();
+  //});
+
+  // This should eventually get moved to a system loading process.
+  std::promise<void> initPromise3;
+  std::future<void> initFuture3 = initPromise3.get_future();
+
+  asio::post(strand, [=, &initPromise3]() mutable {
+    weakPtr->getSceneController()->vRunPostSetupLoad();
+    initPromise3.set_value();
+  });
+
+  initFuture3.wait();
+
+  ecsManager->DebugPrint();
+  ecsManager->StartRunLoop();
+
+  spdlog::debug("Initialization completed");
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
 FilamentViewPlugin::FilamentViewPlugin(
     int32_t id,
     std::string viewType,
@@ -108,23 +186,28 @@ FilamentViewPlugin::FilamentViewPlugin(
   filamentScene_ = std::make_unique<FilamentScene>(this, state, id, params,
                                                    flutterAssetsPath_);
   addListener(platformViewsContext_, id, &platform_view_listener_, this);
+
+  weakPtr = filamentScene_.get();
   SPDLOG_TRACE("--FilamentViewPlugin::FilamentViewPlugin");
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
 
   ECSystemManager::GetInstance()->vShutdownSystems();
   ECSystemManager::GetInstance()->vRemoveAllSystems();
-    // wait for thread to stop running. (Should be relatively quick)
-  while(ECSystemManager::GetInstance()->bIsCompletedStopping() == false) {}
-
+  // wait for thread to stop running. (Should be relatively quick)
+  while (ECSystemManager::GetInstance()->bIsCompletedStopping() == false) {
+  }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ChangeAnimationByIndex(
     int32_t /* index */,
     std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ChangeDirectLightByIndex(
     int32_t index,
     std::string color,
@@ -146,14 +229,16 @@ void FilamentViewPlugin::ToggleShapesInScene(
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  auto collisionSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+          CollisionSystem::StaticGetTypeID(),
+          "ToggleDebugCollidableViewsInScene");
+  if (collisionSystem == nullptr) {
+    spdlog::warn("Unable to toggle collision on/off, system is null");
+    return;
+  }
 
-    auto collisionSystem = ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(CollisionSystem::StaticGetTypeID());
-    if (collisionSystem == nullptr) {
-        spdlog::warn("Unable to toggle collision on/off, system is null");
-        return;
-    }
-
-    // Note this can probably become a message in the future, backlogged.
+  // Note this can probably become a message in the future, backlogged.
   if (!value) {
     collisionSystem->vTurnOffRenderingOfCollidables();
   } else {
