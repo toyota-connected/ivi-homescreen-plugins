@@ -85,17 +85,11 @@ SceneController::~SceneController() {
 
 void SceneController::setUpViewer(PlatformView* platformView,
                                   FlutterDesktopEngineState* state) {
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   modelViewer_ = std::make_unique<CustomModelViewer>(platformView, state,
                                                      flutterAssetsPath_);
 
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   // TODO surfaceView.setOnTouchListener(modelViewer)
   //  surfaceView.setZOrderOnTop(true) // necessary
-
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 }
 
 void SceneController::setUpCamera() {

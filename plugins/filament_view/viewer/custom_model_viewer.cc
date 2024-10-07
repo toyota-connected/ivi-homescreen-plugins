@@ -167,21 +167,10 @@ void CustomModelViewer::setupWaylandSubsurface() {
 std::future<bool> CustomModelViewer::Initialize() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   auto promise(std::make_shared<std::promise<bool>>());
   auto future(promise->get_future());
 
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-  spdlog::debug("Platform init 1 Initialize Filament API thread: 0x{:x}",
-                pthread_self());
-
   asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, promise] {
-    SPDLOG_INFO("ALLEN DELETE: lambda internal 1");
-
-    spdlog::debug("Platform init Initialize Filament API thread: 0x{:x}",
-                  pthread_self());
-
     // auto platform_view_size = platformView->GetSize();
     native_window_ = {.display = display_,
                       .surface = surface_,
@@ -193,11 +182,7 @@ std::future<bool> CustomModelViewer::Initialize() {
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "CustomModelViewer::Initialize");
     const auto engine = filamentSystem->getFilamentEngine();
-    SPDLOG_INFO("ALLEN DELETE: lambda internal 2");
-
     fswapChain_ = engine->createSwapChain(&native_window_);
-
-    SPDLOG_INFO("ALLEN DELETE: lambda internal 4");
 
     setupView();
 

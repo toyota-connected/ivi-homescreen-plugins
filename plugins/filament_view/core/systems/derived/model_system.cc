@@ -291,18 +291,12 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
   CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   modelViewer->setModelState(ModelState::LOADING);
 
-  spdlog::warn("ALLEN DELETE loadGlbFromAsset 1");
-
   try {
     const asio::io_context::strand& strand_(
         *ECSystemManager::GetInstance()->GetStrand());
     const std::string assetPath = modelViewer->getAssetPath();
 
-    spdlog::warn("ALLEN DELETE loadGlbFromAsset 2");
-
     asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
-      spdlog::warn("ALLEN DELETE loadGlbFromAsset 3");
-
       try {
         auto buffer = readBinaryFile(path, assetPath);
         handleFile(poOurModel, buffer, path, isFallback, promise);

@@ -160,7 +160,6 @@ void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   spdlog::debug("Adding system at address {}",
                 static_cast<void*>(system.get()));
   m_vecSystems.push_back(std::move(system));
-  spdlog::debug("m_vecSystems size after adding: {}", m_vecSystems.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////
