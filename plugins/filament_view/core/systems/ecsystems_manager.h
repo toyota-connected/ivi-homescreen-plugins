@@ -41,10 +41,12 @@ class ECSystemManager {
     m_vecSystems.clear();
   }
 
-  std::shared_ptr<ECSystem> poGetSystem(size_t systemTypeID, const std::string& where);
+  std::shared_ptr<ECSystem> poGetSystem(size_t systemTypeID,
+                                        const std::string& where);
 
   template <typename Target>
-  std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID, const std::string& where) {
+  std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID,
+                                        const std::string& where) {
     // Retrieve the system from the manager using its type ID
     auto system = poGetSystem(systemTypeID, where);
     // Perform dynamic pointer cast to the desired type

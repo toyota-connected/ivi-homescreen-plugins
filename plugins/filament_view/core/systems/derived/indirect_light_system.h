@@ -23,10 +23,10 @@
 #include "core/scene/geometry/direction.h"
 #include "core/scene/geometry/position.h"
 #include "core/scene/indirect_light/indirect_light.h"
+#include "core/systems/base/ecsystem.h"
 #include "core/utils/ibl_profiler.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 #include "viewer/custom_model_viewer.h"
-#include "core/systems/base/ecsystem.h"
 
 namespace plugin_filament_view {
 
@@ -36,7 +36,7 @@ class DefaultIndirectLight;
 class KtxIndirectLight;
 class HdrIndirectLight;
 
-class IndirectLightSystem : public ECSystem  {
+class IndirectLightSystem : public ECSystem {
  public:
   IndirectLightSystem() = default;
 
@@ -69,19 +69,20 @@ class IndirectLightSystem : public ECSystem  {
   IndirectLightSystem(const IndirectLightSystem&) = delete;
   IndirectLightSystem& operator=(const IndirectLightSystem&) = delete;
 
-    ~IndirectLightSystem() override;
+  ~IndirectLightSystem() override;
 
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-    [[nodiscard]] static size_t StaticGetTypeID() {
-        return typeid(IndirectLightSystem).hash_code();
-    }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(IndirectLightSystem).hash_code();
+  }
 
-    void vInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
+
  private:
-    std::unique_ptr<DefaultIndirectLight> indirect_light_;
+  std::unique_ptr<DefaultIndirectLight> indirect_light_;
 };
 }  // namespace plugin_filament_view

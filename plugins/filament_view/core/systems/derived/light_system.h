@@ -20,8 +20,8 @@
 
 #include "core/include/resource.h"
 #include "core/scene/light/light.h"
-#include "viewer/custom_model_viewer.h"
 #include "core/systems/base/ecsystem.h"
+#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
@@ -41,16 +41,16 @@ class LightSystem : public ECSystem {
   LightSystem(const LightSystem&) = delete;
   LightSystem& operator=(const LightSystem&) = delete;
 
- [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- [[nodiscard]] static size_t StaticGetTypeID() {
-  return typeid(LightSystem).hash_code();
- }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(LightSystem).hash_code();
+  }
 
- void vInitSystem() override;
- void vUpdate(float fElapsedTime) override;
- void vShutdownSystem() override;
- void DebugPrint() override;
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
  private:
   utils::Entity entityLight_;

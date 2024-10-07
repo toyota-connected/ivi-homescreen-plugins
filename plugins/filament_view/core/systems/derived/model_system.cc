@@ -58,11 +58,11 @@ void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
   }
 
   auto filamentSystem =
-    ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-        FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                  asset->getEntityCount());
+                                                     asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
 
@@ -128,7 +128,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
   poOurModel->setAsset(asset);
 
   EntityTransforms::vApplyTransform(poOurModel->getAsset(),
-                                   *poOurModel->GetBaseTransform());
+                                    *poOurModel->GetBaseTransform());
 
   // todo
   // setUpAnimation(poCurrModel->GetAnimation());
@@ -206,11 +206,15 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
 
   size_t count = asset->popRenderables(nullptr, 0);
   while (count) {
-
     constexpr size_t maxToPopAtOnce = 128;
     auto maxToPop = std::min(count, maxToPopAtOnce);
 
-    SPDLOG_DEBUG("Popping model count at once {} {}", count, maxToPop);
+    SPDLOG_DEBUG(
+        "ModelSystem::populateSceneWithAsyncLoadedAssets async load count "
+        "available[{}] - working on [{}]",
+        count, maxToPop);
+    // Note for high amounts, we should probably do a small amount; break out;
+    // and let it come back do more on another frame.
 
     asset->popRenderables(readyRenderables_, maxToPop);
 
@@ -234,7 +238,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
   auto lightEntities = asset->getLightEntities();
   if (lightEntities) {
     filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
-                                                 sizeof(*lightEntities));
+                                                    sizeof(*lightEntities));
   }
 }
 

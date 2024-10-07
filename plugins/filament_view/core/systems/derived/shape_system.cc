@@ -106,8 +106,7 @@ void ShapeSystem::addShapesToScene(
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Engine* poFilamentEngine = engine;
-  filament::Scene* poFilamentScene =
-     filamentSystem->getFilamentScene();
+  filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = poFilamentEngine->getEntityManager();
   // Ideally this is changed to create all entities on the first go, then
   // we pass them through, upon use this failed in filament engine, more R&D

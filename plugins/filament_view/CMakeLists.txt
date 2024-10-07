@@ -82,6 +82,7 @@ add_library(plugin_filament_view STATIC
         core/components/collidable.cc
         core/entity/model/animation/animation.cc
         core/entity/model/animation/animation_manager.cc
+        core/systems/base/ecsystem.cc
         core/systems/ecsystems_manager.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc

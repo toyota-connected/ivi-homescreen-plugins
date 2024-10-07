@@ -170,7 +170,7 @@ void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 void MaterialSystem::vShutdownSystem() {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::DebugPrint() {
-    spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

@@ -67,7 +67,7 @@ void SkyboxSystem::setDefaultSkybox() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::setTransparentSkybox() {
-    auto filamentSystem =
+  auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "setTransparentSkybox");
 
@@ -318,7 +318,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
-    auto skyboxTexture = filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
+    auto skyboxTexture =
+        filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
     engine->destroy(texture);
 
     if (skyboxTexture) {
@@ -329,7 +330,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        auto reflections = filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
+        auto reflections =
+            filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
         auto ibl = ::filament::IndirectLight::Builder()
                        .reflections(reflections)
                        .intensity(intensity)
@@ -374,7 +376,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
-    auto skyboxTexture = filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
+    auto skyboxTexture =
+        filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
     engine->destroy(texture);
 
     if (skyboxTexture) {
@@ -385,7 +388,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        auto reflections = filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
+        auto reflections =
+            filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
         auto ibl = ::filament::IndirectLight::Builder()
                        .reflections(reflections)
                        .intensity(intensity)
@@ -411,19 +415,17 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::vInitSystem() {
-    Initialize();
+  Initialize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vShutdownSystem() {
-}
+void SkyboxSystem::vShutdownSystem() {}
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::DebugPrint() {
-    spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 }
-
 
 }  // namespace plugin_filament_view

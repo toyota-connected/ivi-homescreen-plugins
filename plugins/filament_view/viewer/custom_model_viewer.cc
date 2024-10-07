@@ -61,7 +61,6 @@ CustomModelViewer::CustomModelViewer(PlatformView* platformView,
       currentSkyboxState_(SceneState::NONE),
       currentLightState_(SceneState::NONE),
       currentShapesState_(ShapeState::NONE) {
-
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
   m_poInstance = this;
@@ -212,8 +211,8 @@ void CustomModelViewer::setSkyboxState(SceneState sceneState) {
 
 void CustomModelViewer::destroyIndirectLight() {
   auto filamentSystem =
-     ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-         FilamentSystem::StaticGetTypeID(), "destroyIndirectLight");
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "destroyIndirectLight");
 
   const auto scene = filamentSystem->getFilamentView()->getScene();
   auto indirectLight = scene->getIndirectLight();
@@ -243,8 +242,8 @@ void CustomModelViewer::setupView() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   auto filamentSystem =
-    ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-        FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   // this will be going back to an internal class variable.
   auto fview_ = filamentSystem->getFilamentView();
@@ -340,8 +339,8 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
                                       flutter::EncodableValue(G_LastTime))});
 
     auto filamentSystem =
-    ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-        FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+            FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
     // Render the scene, unless the renderer wants to skip the frame.
     if (filamentSystem->getFilamentRenderer()->beginFrame(fswapChain_, time)) {
@@ -372,7 +371,8 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
            std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
-      filamentSystem->getFilamentRenderer()->render(filamentSystem->getFilamentView());
+      filamentSystem->getFilamentRenderer()->render(
+          filamentSystem->getFilamentView());
 
       filamentSystem->getFilamentRenderer()->endFrame();
 
@@ -426,13 +426,13 @@ void CustomModelViewer::setOffset(double left, double top) {
 }
 
 void CustomModelViewer::resize(double width, double height) {
-
   auto filamentSystem =
-  ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
-  filamentSystem->getFilamentView()->setViewport({left_, top_, static_cast<uint32_t>(width),
-                       static_cast<uint32_t>(height)});
+  filamentSystem->getFilamentView()->setViewport(
+      {left_, top_, static_cast<uint32_t>(width),
+       static_cast<uint32_t>(height)});
   cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
                                        static_cast<uint32_t>(height));
 }

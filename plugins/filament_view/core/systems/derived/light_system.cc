@@ -38,14 +38,13 @@ void LightSystem::setDefaultLight() {
   SPDLOG_TRACE("++LightManager::setDefaultLight");
   defaultlight_ = std::make_unique<Light>();
   changeLight(defaultlight_.get());
-  //f.wait();
-  //light.reset();
-  //SPDLOG_TRACE("--LightManager::setDefaultLight: {}", f.get().getMessage());
+  // f.wait();
+  // light.reset();
+  // SPDLOG_TRACE("--LightManager::setDefaultLight: {}", f.get().getMessage());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> LightSystem::changeLight(
-    Light* light) {
+std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   const asio::io_context::strand& strand_(

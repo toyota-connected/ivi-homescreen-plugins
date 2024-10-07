@@ -38,8 +38,7 @@ void IndirectLightSystem::setDefaultIndirectLight() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-IndirectLightSystem::~IndirectLightSystem() {
-}
+IndirectLightSystem::~IndirectLightSystem() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
@@ -90,7 +89,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>>
 IndirectLightSystem::setIndirectLightFromKtxAsset(std::string path,
-                                                   double /*intensity*/) {
+                                                  double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -107,7 +106,7 @@ IndirectLightSystem::setIndirectLightFromKtxAsset(std::string path,
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>>
 IndirectLightSystem::setIndirectLightFromKtxUrl(std::string url,
-                                                 double /*intensity*/) {
+                                                double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -139,10 +138,12 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     modelViewer->setLightState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR file");
   }
-  auto skyboxTexture = filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
+  auto skyboxTexture =
+      filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
   engine->destroy(texture);
 
-  auto reflections = filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
+  auto reflections =
+      filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
 
   auto ibl = ::filament::IndirectLight::Builder()
                  .reflections(reflections)
@@ -162,7 +163,7 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>>
 IndirectLightSystem::setIndirectLightFromHdrAsset(std::string path,
-                                                   double intensity) {
+                                                  double intensity) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
@@ -199,7 +200,7 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(std::string path,
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>>
 IndirectLightSystem::setIndirectLightFromHdrUrl(std::string url,
-                                                 double /*intensity*/) {
+                                                double /*intensity*/) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
 
@@ -215,7 +216,7 @@ IndirectLightSystem::setIndirectLightFromHdrUrl(std::string url,
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vInitSystem() {
-    setDefaultIndirectLight();
+  setDefaultIndirectLight();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -223,13 +224,12 @@ void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vShutdownSystem() {
-    indirect_light_.reset();
+  indirect_light_.reset();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::DebugPrint() {
-    spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
 }
-
 
 }  // namespace plugin_filament_view

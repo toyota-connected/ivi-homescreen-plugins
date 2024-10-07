@@ -118,7 +118,8 @@ void DebugLinesSystem::vCleanup() {
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(), 1);
+    filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
+                                                       1);
 
     // do visual cleanup here
     (*it)->vCleanup(engine);
@@ -138,8 +139,8 @@ void DebugLinesSystem::vUpdate(float fElapsedTime) {
     (*it)->m_fRemainingTime -= fElapsedTime;
 
     if ((*it)->m_fRemainingTime < 0) {
-      filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
-                                                      1);
+      filamentSystem->getFilamentScene()->removeEntities(
+          (*it)->m_poEntity.get(), 1);
 
       // do visual cleanup here
       (*it)->vCleanup(engine);

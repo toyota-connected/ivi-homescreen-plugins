@@ -72,8 +72,6 @@ class CustomModelViewer {
   CustomModelViewer(const CustomModelViewer&) = delete;
   CustomModelViewer& operator=(const CustomModelViewer&) = delete;
 
-
-
   [[nodiscard]] ::filament::Skybox* getFilamentSkybox() const {
     return fskybox_;
   }

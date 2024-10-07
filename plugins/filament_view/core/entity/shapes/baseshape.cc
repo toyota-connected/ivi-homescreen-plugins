@@ -176,9 +176,6 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
     auto materialSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
             MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
-    spdlog::debug("BaseShape calling to create object Processing system at address {}, use_count={}",
-                  static_cast<void*>(materialSystem.get()),
-                  materialSystem.use_count());
 
     if (materialSystem == nullptr) {
       spdlog::error("Failed to get material system.");
@@ -188,10 +185,10 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
       m_poMaterialInstance =
           materialSystem->getMaterialInstance(m_poMaterialDefinitions->get());
 
-        if(m_poMaterialInstance.getStatus() != Status::Success) {
-            spdlog::error("Failed to get material instance.");
-            return;
-        }
+      if (m_poMaterialInstance.getStatus() != Status::Success) {
+        spdlog::error("Failed to get material instance.");
+        return;
+      }
     }
 
     RenderableManager::Builder(1)
@@ -222,9 +219,10 @@ void BaseShape::vRemoveEntityFromScene() {
     return;
   }
 
- auto filamentSystem =
-   ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-       FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene");
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(),
+          "BaseShape::vRemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
 }
@@ -236,11 +234,11 @@ void BaseShape::vAddEntityToScene() {
     return;
   }
 
-auto filamentSystem =
-  ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-      FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene");
-    filamentSystem->getFilamentScene()->addEntity(
-      *m_poEntity);
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(),
+          "BaseShape::vRemoveEntityFromScene");
+  filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
 
 void BaseShape::DebugPrint() const {

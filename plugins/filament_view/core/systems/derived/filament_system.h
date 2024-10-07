@@ -45,24 +45,24 @@ class FilamentSystem : public ECSystem {
     return fengine_;
   }
 
-[[nodiscard]] IBLProfiler* getIBLProfiler() const {
-      return iblProfiler_.get();
+  [[nodiscard]] IBLProfiler* getIBLProfiler() const {
+    return iblProfiler_.get();
   }
 
-    [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
+  [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
 
-    [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
+  [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
 
-    [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
-      return frenderer_;
+  [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
+    return frenderer_;
   }
 
  private:
-    ::filament::Engine* fengine_{};
-    ::filament::Renderer* frenderer_{};
-    ::filament::Scene* fscene_{};
-    ::filament::View* fview_{};
+  ::filament::Engine* fengine_{};
+  ::filament::Renderer* frenderer_{};
+  ::filament::Scene* fscene_{};
+  ::filament::View* fview_{};
 
-    std::unique_ptr<IBLProfiler> iblProfiler_;
+  std::unique_ptr<IBLProfiler> iblProfiler_;
 };
 }  // namespace plugin_filament_view

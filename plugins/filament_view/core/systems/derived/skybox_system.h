@@ -18,14 +18,14 @@
 
 #include <future>
 
-#include "viewer/custom_model_viewer.h"
 #include "core/systems/base/ecsystem.h"
+#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
 class SkyboxSystem : public ECSystem {
  public:
-  SkyboxSystem()= default;
+  SkyboxSystem() = default;
 
   static std::future<void> Initialize();
 
@@ -43,13 +43,13 @@ class SkyboxSystem : public ECSystem {
       bool shouldUpdateLight,
       float intensity);
 
-   std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
+  std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
       const std::string& path);
 
-   std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
+  std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
       const std::string& url);
 
-   std::future<Resource<std::string_view>> setSkyboxFromColor(
+  std::future<Resource<std::string_view>> setSkyboxFromColor(
       const std::string& color);
 
   Resource<std::string_view> loadSkyboxFromHdrBuffer(
@@ -69,16 +69,16 @@ class SkyboxSystem : public ECSystem {
   SkyboxSystem(const SkyboxSystem&) = delete;
   SkyboxSystem& operator=(const SkyboxSystem&) = delete;
 
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-    [[nodiscard]] static size_t StaticGetTypeID() {
-        return typeid(SkyboxSystem).hash_code();
-    }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(SkyboxSystem).hash_code();
+  }
 
-    void vInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
  private:
   static void setTransparentSkybox();
