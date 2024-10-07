@@ -108,8 +108,6 @@ class SceneController {
 
   void setUpCamera();
 
-  std::future<void> setUpIblProfiler();
-
   void setUpSkybox();
 
   void setUpLight();
@@ -123,9 +121,5 @@ class SceneController {
   void loadModel(Model* model);
 
   void setUpAnimation(std::optional<Animation*> animation);
-
-  void makeSurfaceViewTransparent();
-
-  void makeSurfaceViewNotTransparent();
 };
 }  // namespace plugin_filament_view

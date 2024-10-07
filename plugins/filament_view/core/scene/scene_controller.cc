@@ -22,6 +22,8 @@
 #include <utility>
 
 #include <core/systems/derived/collision_system.h>
+#include <core/systems/derived/light_system.h>
+
 #include "core/systems/derived/filament_system.h"
 
 #include "plugins/common/common.h"
@@ -41,16 +43,7 @@ SceneController::SceneController(
       models_(std::move(models)),
       scene_(scene),
       shapes_(std::move(shapes)) {
-  SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
-
-  spdlog::info("SceneController {} setup", id_);
-
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpViewer(platformView, state);
-
-  setUpIblProfiler();
-  SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
 void SceneController::vRunPostSetupLoad() {
@@ -132,20 +125,6 @@ void SceneController::setUpCamera() {
   cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
 }
 
-std::future<void> SceneController::setUpIblProfiler() {
-  const auto promise(std::make_shared<std::promise<void>>());
-  auto future(promise->get_future());
-
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&/*, promise*/] {
-    auto filamentSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "setUpIblProfiler");
-
-
-  });
-  return future;
-}
-
 void SceneController::setUpSkybox() {
   // TODO
   /*skyboxManager_ =
@@ -192,17 +171,15 @@ void SceneController::setUpSkybox() {
 }
 
 void SceneController::setUpLight() {
-  /*lightManager_ = std::make_unique<LightSystem>();
 
-  if (scene_) {
-    if (scene_->light_) {
-      lightManager_->changeLight(scene_->light_.get());
-    } else {
-      lightManager_->setDefaultLight();
-    }
+  auto lightSystem  = ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
+      LightSystem::StaticGetTypeID(), __FUNCTION__);
+
+  if(scene_ && scene_->light_) {
+    lightSystem->changeLight(scene_->light_.get());
   } else {
-    lightManager_->setDefaultLight();
-  }*/
+    lightSystem->setDefaultLight();
+  }
 }
 
 void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,

@@ -131,7 +131,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
                                    *poOurModel->GetBaseTransform());
 
   // todo
-  //setUpAnimation(poCurrModel->GetAnimation());
+  // setUpAnimation(poCurrModel->GetAnimation());
 
   m_mapszpoAssets.insert(std::pair(poOurModel->GetGlobalGuid(), poOurModel));
 }
