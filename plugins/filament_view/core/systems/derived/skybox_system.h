@@ -29,7 +29,7 @@ class SkyboxSystem : public ECSystem {
 
   static std::future<void> Initialize();
 
-  static void setDefaultSkybox();
+  void setDefaultSkybox();
 
   std::future<Resource<std::string_view>> setSkyboxFromHdrAsset(
       const std::string& path,
@@ -43,13 +43,13 @@ class SkyboxSystem : public ECSystem {
       bool shouldUpdateLight,
       float intensity);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
+   std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
       const std::string& path);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
+   std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
       const std::string& url);
 
-  static std::future<Resource<std::string_view>> setSkyboxFromColor(
+   std::future<Resource<std::string_view>> setSkyboxFromColor(
       const std::string& color);
 
   Resource<std::string_view> loadSkyboxFromHdrBuffer(

@@ -62,14 +62,14 @@ class IndirectLightSystem : public ECSystem  {
       const std::string& asset_path,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLight(
+  std::future<Resource<std::string_view>> setIndirectLight(
       DefaultIndirectLight* indirectLight);
 
   // Disallow copy and assign.
   IndirectLightSystem(const IndirectLightSystem&) = delete;
   IndirectLightSystem& operator=(const IndirectLightSystem&) = delete;
 
-    ~IndirectLightSystem();
+    ~IndirectLightSystem() override;
 
     [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 

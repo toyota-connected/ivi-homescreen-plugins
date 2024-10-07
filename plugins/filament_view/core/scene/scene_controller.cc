@@ -22,7 +22,9 @@
 #include <utility>
 
 #include <core/systems/derived/collision_system.h>
+#include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
+#include <core/systems/derived/skybox_system.h>
 
 #include "core/systems/derived/filament_system.h"
 
@@ -43,6 +45,7 @@ SceneController::SceneController(
       models_(std::move(models)),
       scene_(scene),
       shapes_(std::move(shapes)) {
+  SPDLOG_TRACE("{}::{}::{}", __FILE__, __FUNCTION__, id_);
   setUpViewer(platformView, state);
 }
 
@@ -54,37 +57,23 @@ void SceneController::vRunPostSetupLoad() {
 
   auto view = filamentSystem->getFilamentView();
   auto scene = filamentSystem->getFilamentScene();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   // auto size = platformView->GetSize();
   //  todo.
   view->setViewport({0, 0, 800, 600});
 
   view->setScene(scene);
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   // TODO this may need to be turned off for target
   view->setPostProcessingEnabled(true);
 
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
+  // These setups to all be moved
   setUpLoadingModels();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpCamera();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpSkybox();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpLight();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpIndirectLight();
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
-
   setUpShapes(shapes_.get());
-  SPDLOG_INFO("ALLEN DELETE: {} {}", __FUNCTION__, __LINE__);
 
   // This kicks off the first frame. Should probably be moved.
   modelViewer_->setInitialized();
@@ -126,14 +115,14 @@ void SceneController::setUpCamera() {
 }
 
 void SceneController::setUpSkybox() {
-  // TODO
-  /*skyboxManager_ =
-      std::make_unique<plugin_filament_view::SkyboxManager>();
-  return;
+  // Todo move to a message.
+
+  auto skyboxSystem  = ECSystemManager::GetInstance()->poGetSystemAs<SkyboxSystem>(
+    SkyboxSystem::StaticGetTypeID(), __FUNCTION__);
 
   if (!scene_->skybox_) {
-    plugin_filament_view::SkyboxManager::setDefaultSkybox();
-    makeSurfaceViewTransparent();
+    skyboxSystem->setDefaultSkybox();
+    //makeSurfaceViewTransparent();
   } else {
     auto skybox = scene_->skybox_.get();
     if (dynamic_cast<HdrSkybox*>(skybox)) {
@@ -141,36 +130,37 @@ void SceneController::setUpSkybox() {
       if (!hdr_skybox->assetPath_.empty()) {
         auto shouldUpdateLight =
             hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath();
-        skyboxManager_->setSkyboxFromHdrAsset(
+        skyboxSystem->setSkyboxFromHdrAsset(
             hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
             hdr_skybox->url_ == scene_->indirect_light_->getUrl();
-        skyboxManager_->setSkyboxFromHdrUrl(
+        skyboxSystem->setSkyboxFromHdrUrl(
             hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
       if (!kxt_skybox->assetPath_.empty()) {
-        plugin_filament_view::SkyboxManager::setSkyboxFromKTXAsset(
+        skyboxSystem->setSkyboxFromKTXAsset(
             kxt_skybox->assetPath_);
       } else if (!kxt_skybox->url_.empty()) {
-        plugin_filament_view::SkyboxManager::setSkyboxFromKTXUrl(
+        skyboxSystem->setSkyboxFromKTXUrl(
             kxt_skybox->url_);
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
       auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
       if (!color_skybox->color_.empty()) {
-        plugin_filament_view::SkyboxManager::setSkyboxFromColor(
+        skyboxSystem->setSkyboxFromColor(
             color_skybox->color_);
       }
     }
-  }*/
+  }
 }
 
 void SceneController::setUpLight() {
+  // Todo move to a message.
 
   auto lightSystem  = ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
       LightSystem::StaticGetTypeID(), __FUNCTION__);
@@ -185,41 +175,43 @@ void SceneController::setUpLight() {
 void SceneController::ChangeLightProperties(int /*nWhichLightIndex*/,
                                             const std::string& colorValue,
                                             int32_t intensity) {
-  if (scene_) {
-    if (scene_->light_) {
+  // Todo move to a message.
+
+  if (scene_ && scene_->light_) {
       SPDLOG_TRACE("Changing light values. {} {}", __FILE__, __FUNCTION__);
+
+      auto lightSystem  = ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
+        LightSystem::StaticGetTypeID(), __FUNCTION__);
 
       scene_->light_->ChangeColor(colorValue);
       scene_->light_->ChangeIntensity(static_cast<float>(intensity));
 
-      // TODO
-      //lightManager_->changeLight(scene_->light_.get());
+      lightSystem->changeLight(scene_->light_.get());
       return;
-    }
   }
 
   SPDLOG_WARN("Not implemented {} {}", __FILE__, __FUNCTION__);
 }
 
 void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
+  // Todo move to a message.
+
   auto indirectLight = scene_->indirect_light_.get();
   indirectLight->setIntensity(static_cast<float>(intensity));
   indirectLight->Print("SceneController ChangeIndirectLightProperties");
 
-  // TODO
+  auto indirectlightSystem  = ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
+        IndirectLightSystem::StaticGetTypeID(), __FUNCTION__);
 
-  /*if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-    SPDLOG_WARN("setIndirectLight  {} {}", __FILE__, __FUNCTION__);
-    plugin_filament_view::IndirectLightSystem::setIndirectLight(
-        dynamic_cast<DefaultIndirectLight*>(indirectLight));
-  }*/
+  indirectlightSystem->setIndirectLight(dynamic_cast<DefaultIndirectLight*>(indirectLight));
 }
 
 void SceneController::setUpIndirectLight() {
-  // TODO
 
-  /*indirectLightManager_ =
-      std::make_unique<IndirectLightSystem>();
+  // Todo move to a message.
+  auto indirectlightSystem  = ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
+       IndirectLightSystem::StaticGetTypeID(), __FUNCTION__);
+
   if (!scene_->indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.
     // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
@@ -238,7 +230,7 @@ void SceneController::setUpIndirectLight() {
       if (!indirectLight->getAssetPath().empty()) {
         // val shouldUpdateLight = indirectLight->getAssetPath() !=
         // scene?.skybox?.assetPath if (shouldUpdateLight) {
-        indirectLightManager_->setIndirectLightFromHdrAsset(
+        indirectlightSystem->setIndirectLightFromHdrAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
         //}
 
@@ -251,13 +243,12 @@ void SceneController::setUpIndirectLight() {
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      plugin_filament_view::IndirectLightSystem::setIndirectLight(
-          dynamic_cast<DefaultIndirectLight*>(indirectLight));
+      indirectlightSystem->setIndirectLight(dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
       // Already called in the default constructor.
       //plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
     }
-  }*/
+  }
 }
 
 void SceneController::setUpAnimation(std::optional<Animation*> animation) {

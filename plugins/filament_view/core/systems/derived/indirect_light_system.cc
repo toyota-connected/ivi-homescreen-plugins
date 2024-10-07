@@ -32,7 +32,7 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::setDefaultIndirectLight() {
-  SPDLOG_TRACE("++IndirectLightManager::setDefaultIndirectLight");
+  SPDLOG_TRACE("++IndirectLightSystem::setDefaultIndirectLight");
   indirect_light_ = std::make_unique<DefaultIndirectLight>();
   setIndirectLight(indirect_light_.get());
 }
@@ -49,6 +49,8 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
   auto future(promise->get_future());
 
   // Note: LightState to custom model viewer was done here.
+
+  // todo copy values to internal var.
 
   if (!indirectLight) {
     promise->set_value(Resource<std::string_view>::Error("Light is null"));
