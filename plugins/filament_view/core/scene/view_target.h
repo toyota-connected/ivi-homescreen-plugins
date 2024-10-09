@@ -31,10 +31,10 @@
 #include <wayland-client.h>
 #include <asio/io_context_strand.hpp>
 
+#include "core/include/settings.h"
 #include "core/scene/camera/camera_manager.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
-#include "core/include/settings.h"
 
 namespace plugin_filament_view {
 
@@ -50,10 +50,6 @@ class ViewTarget {
   // Disallow copy and assign.
   ViewTarget(const ViewTarget&) = delete;
   ViewTarget& operator=(const ViewTarget&) = delete;
-
-  void setCameraManager(CameraManager* cameraManager) {
-    cameraManager_ = cameraManager;
-  }
 
   void setAnimator(filament::gltfio::Animator* animator) {
     fanimator_ = animator;
@@ -80,6 +76,18 @@ class ViewTarget {
   void resize(double width, double height);
 
   void InitializeFilamentInternals(uint32_t width, uint32_t height);
+
+  void vSetupCameraManagerWithDeserializedCamera(
+      std::unique_ptr<Camera> camera);
+
+  void vOnTouch(int32_t action,
+                int32_t point_count,
+                size_t point_data_size,
+                const double* point_data);
+
+  [[nodiscard]] CameraManager* getCameraManager() const {
+    return cameraManager_.get();
+  }
 
  private:
   void setupWaylandSubsurface();
@@ -113,8 +121,6 @@ class ViewTarget {
   // todo to be moved
   ::filament::gltfio::Animator* fanimator_;
 
-  CameraManager* cameraManager_;
-
   void SendFrameViewCallback(
       const std::string& methodName,
       std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
@@ -131,6 +137,8 @@ class ViewTarget {
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.
   void doCameraFeatures(float fDeltaTime);
+
+  std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
 };
 
 }  // namespace plugin_filament_view

@@ -23,7 +23,7 @@
 namespace plugin_filament_view {
 
 class ViewTarget;
-class CameraManager;
+class Camera;
 
 class ViewTargetSystem : public ECSystem {
  public:
@@ -52,10 +52,20 @@ class ViewTargetSystem : public ECSystem {
   void vInitializeFilamentInternalsWithViewTargets(uint32_t width[],
                                                    uint32_t height[]);
   void vKickOffFrameRenderingLoops();
-  void vSetCameraManager(CameraManager* cameraManager);
+  void vSetCameraFromSerializedData(std::unique_ptr<Camera> camera);
   void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
   void vResizeViewTarget(size_t nWhich, double width, double height);
   void vSetViewTargetOffSet(size_t nWhich, double left, double top);
+
+  void vOnTouch(size_t nWhich,
+                int32_t action,
+                int32_t point_count,
+                size_t point_data_size,
+                const double* point_data);
+
+  void vChangePrimaryCameraMode(size_t nWhich, std::string szValue);
+  void vResetInertiaCameraToDefaultValues(size_t nWhich);
+  void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue);
 
  private:
   std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;

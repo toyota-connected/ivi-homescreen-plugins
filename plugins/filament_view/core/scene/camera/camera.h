@@ -37,10 +37,71 @@ class Camera {
 
   void Print(const char* tag);
 
-  // Disallow copy and assign.
-  Camera(const Camera&) = delete;
+  Camera(const Camera& other)
+      : mode_(other.mode_),
+        eCustomCameraMode_(other.eCustomCameraMode_),
+        forceSingleFrameUpdate_(other.forceSingleFrameUpdate_),
+        fCurrentOrbitAngle_(other.fCurrentOrbitAngle_),
+        inertia_rotationSpeed_(other.inertia_rotationSpeed_),
+        inertia_velocityFactor_(other.inertia_velocityFactor_),
+        inertia_decayFactor_(other.inertia_decayFactor_),
+        pan_angleCapX_(other.pan_angleCapX_),
+        pan_angleCapY_(other.pan_angleCapY_),
+        zoom_minCap_(other.zoom_minCap_),
+        zoom_maxCap_(other.zoom_maxCap_),
+        current_zoom_radius_(other.current_zoom_radius_),
+        current_pitch_addition_(other.current_pitch_addition_),
+        current_yaw_addition_(other.current_yaw_addition_) {
+    // Deep copy unique_ptr members
+    if (other.exposure_) {
+      exposure_ = std::make_unique<Exposure>(*other.exposure_);
+    }
+    if (other.projection_) {
+      projection_ = std::make_unique<Projection>(*other.projection_);
+    }
+    if (other.lensProjection_) {
+      lensProjection_ =
+          std::make_unique<LensProjection>(*other.lensProjection_);
+    }
+    if (other.scaling_) {
+      scaling_ = std::make_unique<std::vector<double>>(*other.scaling_);
+    }
+    if (other.shift_) {
+      shift_ = std::make_unique<std::vector<double>>(*other.shift_);
+    }
+    if (other.targetPosition_) {
+      targetPosition_ =
+          std::make_unique<::filament::math::float3>(*other.targetPosition_);
+    }
+    if (other.upVector_) {
+      upVector_ = std::make_unique<::filament::math::float3>(*other.upVector_);
+    }
+    if (other.orbitHomePosition_) {
+      orbitHomePosition_ =
+          std::make_unique<::filament::math::float3>(*other.orbitHomePosition_);
+    }
+    if (other.flightStartPosition_) {
+      flightStartPosition_ = std::make_unique<::filament::math::float3>(
+          *other.flightStartPosition_);
+    }
+    if (other.flightStartOrientation_) {
+      flightStartOrientation_ =
+          std::make_unique<std::vector<float>>(*other.flightStartOrientation_);
+    }
+    if (other.groundPlane_) {
+      groundPlane_ = std::make_unique<std::vector<float>>(*other.groundPlane_);
+    }
+    if (other.orbitSpeed_) {
+      orbitSpeed_ = std::make_unique<std::vector<float>>(*other.orbitSpeed_);
+    }
+  }
 
   Camera& operator=(const Camera&) = delete;
+
+  [[nodiscard]] std::unique_ptr<Camera> clone() const {
+    return std::make_unique<Camera>(
+        *this);  // Calls the custom copy constructor
+  }
 
   static const char* getTextForMode(::filament::camutils::Mode mode);
 

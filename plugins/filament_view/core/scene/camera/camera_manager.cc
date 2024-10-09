@@ -34,6 +34,7 @@
 #define USING_CAM_MANIPULATOR 0
 
 namespace plugin_filament_view {
+
 CameraManager::CameraManager() : currentVelocity_(0), initialTouchPosition_(0) {
   SPDLOG_TRACE("++CameraManager::CameraManager");
   setDefaultCamera();

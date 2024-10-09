@@ -49,39 +49,20 @@ SceneController::SceneController(
 void SceneController::vRunPostSetupLoad() {
   // These setups to all be moved
   setUpLoadingModels();
-  setUpCamera();
   setUpSkybox();
   setUpLight();
   setUpIndirectLight();
   setUpShapes(shapes_.get());
-}
-
-SceneController::~SceneController() {
-  cameraManager_->destroyCamera();
-
-  SPDLOG_TRACE("SceneController::~SceneController");
-}
-
-void SceneController::setUpCamera() {
-  // TODO make a system
-  cameraManager_ = std::make_unique<CameraManager>();
 
   auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
           ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
 
-  viewTargetSystem->vSetCameraManager(cameraManager_.get());
+  viewTargetSystem->vSetCameraFromSerializedData(std::move(scene_->camera_));
+}
 
-  if (!scene_->camera_) {
-    SPDLOG_ERROR("Camera failed to create {}", __FILE__, __FUNCTION__);
-    return;
-  }
-
-  // Note right now cameraManager creates a default camera on startup; if we're
-  // immediately setting it to a different one; that's extra work that shouldn't
-  // be done. Backlogged
-  cameraManager_->updateCamera(scene_->camera_.get());
-  cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
+SceneController::~SceneController() {
+  SPDLOG_TRACE("SceneController::~SceneController");
 }
 
 void SceneController::setUpSkybox() {
@@ -200,7 +181,7 @@ void SceneController::setUpIndirectLight() {
       if (!indirectLight->getAssetPath().empty()) {
         // val shouldUpdateLight = indirectLight->getAssetPath() !=
         // scene?.skybox?.assetPath if (shouldUpdateLight) {
-        indirectlightSystem->setIndirectLightFromHdrAsset(
+        IndirectLightSystem::setIndirectLightFromHdrAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
         //}
 
@@ -298,11 +279,6 @@ void SceneController::vToggleAllShapesInScene(bool bValue) {
   shapeSystem->vToggleAllShapesInScene(bValue);
 }
 
-std::string SceneController::setDefaultCamera() {
-  cameraManager_->setDefaultCamera();
-  return "Default camera updated successfully";
-}
-
 void SceneController::loadModel(Model* model) {
   auto ecsManager = ECSystemManager::GetInstance();
   const auto& strand = *ecsManager->GetStrand();
@@ -342,47 +318,6 @@ void SceneController::loadModel(Model* model) {
       }
     }
   });
-}
-
-// This will need to change to 'which' view its on.
-void SceneController::onTouch(int32_t action,
-                              int32_t point_count,
-                              size_t point_data_size,
-                              const double* point_data) {
-  auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
-
-  auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
-
-  // if action is 0, then on 'first' touch, cast ray from camera;
-  auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
-  auto touch =
-      TouchPair(point_count, point_data_size, point_data, viewport.height);
-
-  static constexpr int ACTION_DOWN = 0;
-
-  if (action == ACTION_DOWN) {
-    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
-
-    ECSMessage rayInformation;
-    rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
-    ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
-
-    ECSMessage collisionRequest;
-    collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
-    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
-                             std::string(__FUNCTION__));
-    collisionRequest.addData(ECSMessageType::CollisionRequestType,
-                             CollisionEventType::eNativeOnTouchBegin);
-    ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
-  }
-
-  if (cameraManager_) {
-    cameraManager_->onAction(action, point_count, point_data_size, point_data);
-  }
 }
 
 }  // namespace plugin_filament_view

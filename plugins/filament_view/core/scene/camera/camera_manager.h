@@ -40,6 +40,7 @@ class Camera;
 class Exposure;
 class Projection;
 
+// CameraManager is a per 'view target' system
 class CameraManager {
  public:
   explicit CameraManager();

@@ -32,6 +32,7 @@ class Light;
 class SceneController;
 class SkyBox;
 
+// This is marked for cleanup.
 class Scene {
  public:
   Scene(const std::string& flutter_assets_path,

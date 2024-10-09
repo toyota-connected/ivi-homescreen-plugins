@@ -59,9 +59,14 @@ void ViewTargetSystem::vKickOffFrameRenderingLoops() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetCameraManager(CameraManager* cameraManager) {
+void ViewTargetSystem::vSetCameraFromSerializedData(
+    std::unique_ptr<Camera> camera) {
+  // todo clone camera per view target (for now)
   for (auto& viewTarget : m_lstViewTargets) {
-    viewTarget->setCameraManager(cameraManager);
+    std::unique_ptr<Camera> clonedCamera = camera->clone();
+
+    viewTarget->vSetupCameraManagerWithDeserializedCamera(
+        std::move(clonedCamera));
   }
 }
 
@@ -93,6 +98,38 @@ void ViewTargetSystem::vSetViewTargetOffSet(size_t nWhich,
                                             double left,
                                             double top) {
   m_lstViewTargets[nWhich]->setOffset(left, top);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ViewTargetSystem::vOnTouch(size_t nWhich,
+                                int32_t action,
+                                int32_t point_count,
+                                size_t point_data_size,
+                                const double* point_data) {
+  m_lstViewTargets[nWhich]->vOnTouch(action, point_count, point_data_size,
+                                     point_data);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ViewTargetSystem::vChangePrimaryCameraMode(size_t nWhich,
+                                                std::string szValue) {
+  m_lstViewTargets[nWhich]->getCameraManager()->ChangePrimaryCameraMode(
+      szValue);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ViewTargetSystem::vResetInertiaCameraToDefaultValues(size_t nWhich) {
+  m_lstViewTargets[nWhich]
+      ->getCameraManager()
+      ->vResetInertiaCameraToDefaultValues();
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ViewTargetSystem::vSetCurrentCameraOrbitAngle(size_t nWhich,
+                                                   float fValue) {
+  auto camera =
+      m_lstViewTargets[nWhich]->getCameraManager()->poGetPrimaryCamera();
+  camera->vSetCurrentCameraOrbitAngle(fValue);
 }
 
 }  // namespace plugin_filament_view

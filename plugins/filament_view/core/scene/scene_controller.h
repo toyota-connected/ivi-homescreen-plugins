@@ -48,6 +48,7 @@ class BaseShape;
 
 class IBLProfiler;
 
+// This is marked for cleanup.
 class SceneController {
  public:
   SceneController(
@@ -57,15 +58,6 @@ class SceneController {
       int32_t id);
 
   ~SceneController();
-
-  void onTouch(int32_t action,
-               int32_t point_count,
-               size_t point_data_size,
-               const double* point_data);
-
-  [[nodiscard]] CameraManager* getCameraManager() const {
-    return cameraManager_.get();
-  }
 
   void ChangeLightProperties(int nWhichLightIndex,
                              const std::string& colorValue,
@@ -89,17 +81,13 @@ class SceneController {
   std::optional<int32_t> currentAnimationIndex_;
 
   std::unique_ptr<plugin_filament_view::AnimationManager> animationManager_;
-  std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
 
   void setUpLoadingModels();
-  void setUpCamera();
   void setUpSkybox();
   void setUpLight();
   void setUpIndirectLight();
   static void setUpShapes(
       std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
-
-  std::string setDefaultCamera();
 
   static void loadModel(Model* model);
 

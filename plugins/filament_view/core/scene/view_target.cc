@@ -62,6 +62,9 @@ ViewTarget::ViewTarget(int32_t left,
 
 ////////////////////////////////////////////////////////////////////////////
 ViewTarget::~ViewTarget() {
+  cameraManager_->destroyCamera();
+  cameraManager_.reset();
+
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   if (callback_) {
@@ -227,7 +230,18 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   // fview_->setStencilBufferEnabled(false);
   // fview_->setDynamicLightingOptions(0.01, 1000.0f);
 
+  cameraManager_ = std::make_unique<CameraManager>();
+
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+}
+
+void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
+    std::unique_ptr<Camera> camera) {
+  // Note right now cameraManager creates a default camera on startup; if we're
+  // immediately setting it to a different one; that's extra work that shouldn't
+  // be done. Backlogged
+  cameraManager_->updateCamera(camera.get());
+  cameraManager_->setPrimaryCamera(std::move(camera));
 }
 
 // todo , change to member function and nonstatic
@@ -381,6 +395,43 @@ void ViewTarget::resize(double width, double height) {
 
   cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
                                        static_cast<uint32_t>(height));
+}
+
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::vOnTouch(int32_t action,
+                          int32_t point_count,
+                          size_t point_data_size,
+                          const double* point_data) {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+
+  // if action is 0, then on 'first' touch, cast ray from camera;
+  auto viewport = fview_->getViewport();
+  auto touch =
+      TouchPair(point_count, point_data_size, point_data, viewport.height);
+
+  static constexpr int ACTION_DOWN = 0;
+
+  if (action == ACTION_DOWN) {
+    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+
+    ECSMessage rayInformation;
+    rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
+    ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
+
+    ECSMessage collisionRequest;
+    collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
+    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
+                             std::string(__FUNCTION__));
+    collisionRequest.addData(ECSMessageType::CollisionRequestType,
+                             CollisionEventType::eNativeOnTouchBegin);
+    ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
+  }
+
+  if (cameraManager_) {
+    cameraManager_->onAction(action, point_count, point_data_size, point_data);
+  }
 }
 
 }  // namespace plugin_filament_view

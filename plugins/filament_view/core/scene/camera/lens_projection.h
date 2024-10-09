@@ -37,10 +37,29 @@ class LensProjection {
 
   [[nodiscard]] std::optional<float> getFar() const { return far_; }
 
-  // Disallow copy and assign.
-  LensProjection(const LensProjection&) = delete;
+  LensProjection(const LensProjection& other)  // NOLINT
+      : focalLength_(other.focalLength_),
+        aspect_(other.aspect_),
+        near_(other.near_),
+        far_(other.far_) {}
 
-  LensProjection& operator=(const LensProjection&) = delete;
+  // Implement the assignment operator for deep copy.
+  LensProjection& operator=(const LensProjection& other) {
+    if (this == &other) {
+      return *this;  // Handle self-assignment.
+    }
+    focalLength_ = other.focalLength_;
+    aspect_ = other.aspect_;
+    near_ = other.near_;
+    far_ = other.far_;
+    return *this;
+  }
+
+  // Add a clone method for creating a deep copy.
+  [[nodiscard]] std::unique_ptr<LensProjection> clone() const {
+    return std::make_unique<LensProjection>(
+        *this);  // Calls the copy constructor
+  }
 
  private:
   float focalLength_;

@@ -266,28 +266,35 @@ void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ChangeCameraMode(
-    std::string value,
+    std::string szValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  const auto sceneController = filamentScene_->getSceneController();
-  sceneController->getCameraManager()->ChangePrimaryCameraMode(value);
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  viewTargetSystem->vChangePrimaryCameraMode(0, szValue);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  const auto sceneController = filamentScene_->getSceneController();
-  sceneController->getCameraManager()->vResetInertiaCameraToDefaultValues();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  viewTargetSystem->vResetInertiaCameraToDefaultValues(0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::SetCameraRotation(
     float fValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  const auto sceneController = filamentScene_->getSceneController();
-  Camera* poCamera = sceneController->getCameraManager()->poGetPrimaryCamera();
-  if (poCamera != nullptr) {
-    poCamera->vSetCurrentCameraOrbitAngle(fValue);
-  }
+  // TODO
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  viewTargetSystem->vSetCurrentCameraOrbitAngle(0, fValue);
 }
 
 void FilamentViewPlugin::ChangeAnimationByName(
@@ -375,18 +382,16 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin && plugin->filamentScene_) {
-    auto sceneController = plugin->filamentScene_->getSceneController();
-    if (sceneController) {
-      auto viewTargetSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-              ViewTargetSystem::StaticGetTypeID(),
-              "FilamentViewPlugin::on_resize");
+    auto viewTargetSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+            ViewTargetSystem::StaticGetTypeID(),
+            "FilamentViewPlugin::on_resize");
 
-      viewTargetSystem->vSetViewTargetOffSet(0, left, top);
-    }
+    viewTargetSystem->vSetViewTargetOffSet(0, left, top);
   }
 }
 
+// TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_touch(int32_t action,
                                   int32_t point_count,
                                   size_t point_data_size,
@@ -394,11 +399,14 @@ void FilamentViewPlugin::on_touch(int32_t action,
                                   void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin && plugin->filamentScene_) {
-    auto sceneController = plugin->filamentScene_->getSceneController();
-    if (sceneController) {
-      sceneController->onTouch(action, point_count, point_data_size,
+    auto viewTargetSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+            ViewTargetSystem::StaticGetTypeID(),
+            "FilamentViewPlugin::on_touch");
+
+    // has to be changed to 'which' on touch was hit
+    viewTargetSystem->vOnTouch(0, action, point_count, point_data_size,
                                point_data);
-    }
   }
 }
 
