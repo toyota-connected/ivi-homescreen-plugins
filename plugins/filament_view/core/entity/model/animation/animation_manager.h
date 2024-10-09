@@ -17,11 +17,9 @@
 #pragma once
 
 #include "core/scene/scene_controller.h"
-#include "viewer/custom_model_viewer.h"
+#include "core/scene/view_target.h"
 
 namespace plugin_filament_view {
-
-class CustomModelViewer;
 
 class AnimationManager;
 

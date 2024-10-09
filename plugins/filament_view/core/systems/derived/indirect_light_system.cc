@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <memory>
 
+#include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <filament/Texture.h>
@@ -38,7 +39,7 @@ void IndirectLightSystem::setDefaultIndirectLight() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-IndirectLightSystem::~IndirectLightSystem() {}
+IndirectLightSystem::~IndirectLightSystem() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
@@ -69,8 +70,6 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
     if (indirectLight->rotation_.has_value()) {
       builder.rotation(indirectLight->rotation_.value());
     }
-    CustomModelViewer* modelViewer =
-        CustomModelViewer::Instance("setIndirectLight::Lambda");
 
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -79,7 +78,6 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
 
     builder.build(*engine);
 
-    modelViewer->setLightState(SceneState::LOADED);
     promise->set_value(
         Resource<std::string_view>::Success("changed Light successfully"));
   });
@@ -124,18 +122,15 @@ IndirectLightSystem::setIndirectLightFromKtxUrl(std::string url,
 Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
     double intensity) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadIndirectLightHdrFromFile");
   const auto engine = filamentSystem->getFilamentEngine();
-  modelViewer->setLightState(SceneState::LOADING);
 
   ::filament::Texture* texture;
   try {
     texture = HDRLoader::createTexture(engine, asset_path);
   } catch (...) {
-    modelViewer->setLightState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR file");
   }
   auto skyboxTexture =
@@ -150,11 +145,12 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
                  .intensity(static_cast<float>(intensity))
                  .build(*engine);
 
-  // destroy the previous IBl
-  modelViewer->destroyIndirectLight();
+    auto prevIndirectLight = filamentSystem->getFilamentScene()->getIndirectLight();
+    if(prevIndirectLight) {
+        engine->destroy(prevIndirectLight);
+    }
 
-  filamentSystem->getFilamentView()->getScene()->setIndirectLight(ibl);
-  modelViewer->setLightState(SceneState::LOADED);
+  filamentSystem->getFilamentScene()->setIndirectLight(ibl);
 
   return Resource<std::string_view>::Success(
       "loaded Indirect light successfully");
@@ -168,20 +164,17 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(std::string path,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
-  const std::string assetPath = modelViewer->getAssetPath();
-  modelViewer->setLightState(SceneState::LOADING);
+  const auto assetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+
   asio::post(
       strand_, [&, promise, path = std::move(path), intensity, assetPath] {
         std::filesystem::path asset_path(assetPath);
         asset_path /= path;
-        CustomModelViewer* modelViewer =
-            CustomModelViewer::Instance("setIndirectLightFromHdrAsset::Lambda");
 
         if (path.empty() || !std::filesystem::exists(asset_path)) {
-          modelViewer->setModelState(ModelState::ERROR);
           promise->set_value(
               Resource<std::string_view>::Error("Asset path not valid"));
         }
@@ -189,7 +182,6 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(std::string path,
           promise->set_value(
               loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
         } catch (...) {
-          modelViewer->setLightState(SceneState::ERROR);
           promise->set_value(Resource<std::string_view>::Error(
               "Couldn't changed Light from asset"));
         }

@@ -31,14 +31,6 @@ void FilamentSystem::vInitSystem() {
   frenderer_ = fengine_->createRenderer();
   fscene_ = fengine_->createScene();
 
-  // fview will go back to 'viewtarget' / render path.
-  fview_ = fengine_->createView();
-
-  // this probably needs to change
-  fview_->setVisibleLayers(0x4, 0x4);
-
-  fview_->setBlendMode(::filament::View::BlendMode::TRANSLUCENT);
-
   auto clearOptions = frenderer_->getClearOptions();
   clearOptions.clear = true;
   frenderer_->setClearOptions(clearOptions);
@@ -49,7 +41,6 @@ void FilamentSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void FilamentSystem::vShutdownSystem() {
-  fengine_->destroy(fview_);
   fengine_->destroy(fscene_);
   fengine_->destroy(frenderer_);
 

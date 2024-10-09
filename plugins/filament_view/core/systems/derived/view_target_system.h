@@ -18,22 +18,25 @@
 
 #include <core/systems/base/ecsystem.h>
 #include <filament/Engine.h>
-#include "core/utils/ibl_profiler.h"
+#include "flutter_desktop_engine_state.h"
 
 namespace plugin_filament_view {
 
-class FilamentSystem : public ECSystem {
+class ViewTarget;
+class CameraManager;
+
+class ViewTargetSystem : public ECSystem {
  public:
-  FilamentSystem() = default;
+  ViewTargetSystem() = default;
 
   // Disallow copy and assign.
-  FilamentSystem(const FilamentSystem&) = delete;
-  FilamentSystem& operator=(const FilamentSystem&) = delete;
+  ViewTargetSystem(const ViewTargetSystem&) = delete;
+  ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
   [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
   [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(FilamentSystem).hash_code();
+    return typeid(ViewTargetSystem).hash_code();
   }
 
   void vInitSystem() override;
@@ -41,25 +44,19 @@ class FilamentSystem : public ECSystem {
   void vShutdownSystem() override;
   void DebugPrint() override;
 
-  [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
-    return fengine_;
-  }
+  [[nodiscard]] filament::View* getFilamentView(size_t nWhich) const;
 
-  [[nodiscard]] IBLProfiler* getIBLProfiler() const {
-    return iblProfiler_.get();
-  }
-
-  [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
-
-  [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
-    return frenderer_;
-  }
+  void vSetupViewTargetFromDesktopState(int32_t top,
+                                        int32_t left,
+                                        FlutterDesktopEngineState* state);
+  void vInitializeFilamentInternalsWithViewTargets(uint32_t width[], uint32_t height[]);
+  void vKickOffFrameRenderingLoops();
+  void vSetCameraManager(CameraManager* cameraManager);
+  void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+  void vResizeViewTarget(size_t nWhich, double width, double height);
+  void vSetViewTargetOffSet(size_t nWhich, double left, double top);
 
  private:
-  ::filament::Engine* fengine_{};
-  ::filament::Renderer* frenderer_{};
-  ::filament::Scene* fscene_{};
-
-  std::unique_ptr<IBLProfiler> iblProfiler_;
+  std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;
 };
 }  // namespace plugin_filament_view

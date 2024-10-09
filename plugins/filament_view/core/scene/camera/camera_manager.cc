@@ -17,6 +17,7 @@
 #include "camera_manager.h"
 
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <core/utils/entitytransforms.h>
 
@@ -47,7 +48,11 @@ void CameraManager::setDefaultCamera() {
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  auto fview = filamentSystem->getFilamentView();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  auto fview = viewTargetSystem->getFilamentView(0);
   assert(fview);
 
   cameraEntity_ = engine->getEntityManager().create();
@@ -183,6 +188,9 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
     manipulatorBuilder.targetPosition(tp->x, tp->y, tp->z);
 
   } else {
+    static constexpr ::filament::float3 kDefaultObjectPosition = {0.0f, 0.0f,
+                                                                  -4.0f};
+
     manipulatorBuilder.targetPosition(kDefaultObjectPosition.x,
                                       kDefaultObjectPosition.y,
                                       kDefaultObjectPosition.z);
@@ -258,7 +266,11 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
 
-  const auto viewport = filamentSystem->getFilamentView()->getViewport();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  const auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
   manipulatorBuilder.viewport(static_cast<int>(viewport.width),
                               static_cast<int>(viewport.height));
   cameraManipulator_ = manipulatorBuilder.build(cameraInfo->mode_);
@@ -489,7 +501,11 @@ CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
           FilamentSystem::StaticGetTypeID(),
           "CameraManager::aGetRayInformationFromOnTouchPosition");
 
-  auto viewport = filamentSystem->getFilamentView()->getViewport();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  const auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
 
   // Note at time of writing on a 800*600 resolution this seems like the 10%
   // edges aren't super accurate this might need to be looked at more.
@@ -540,7 +556,11 @@ void CameraManager::onAction(int32_t action,
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
 
-  auto viewport = filamentSystem->getFilamentView()->getViewport();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  const auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
   switch (action) {
@@ -686,7 +706,11 @@ float CameraManager::calculateAspectRatio() {
           FilamentSystem::StaticGetTypeID(),
           "CameraManager::aGetRayInformationFromOnTouchPosition");
 
-  auto viewport = filamentSystem->getFilamentView()->getViewport();
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  const auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
   return static_cast<float>(viewport.width) /
          static_cast<float>(viewport.height);
 }

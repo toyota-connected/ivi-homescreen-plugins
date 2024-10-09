@@ -66,7 +66,6 @@ class FilamentViewPlugin : public flutter::Plugin,
                      double height,
                      const std::vector<uint8_t>& params,
                      std::string assetDirectory,
-                     FlutterDesktopEngineState* state,
                      PlatformViewAddListener addListener,
                      PlatformViewRemoveListener removeListener,
                      void* platform_view_context);

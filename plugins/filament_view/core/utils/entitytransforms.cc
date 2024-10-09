@@ -20,8 +20,6 @@
 #include <filament/TransformManager.h>
 #include <filament/math/TMatHelpers.h>
 
-#include "viewer/custom_model_viewer.h"
-
 namespace plugin_filament_view {
 
 using ::utils::Entity;

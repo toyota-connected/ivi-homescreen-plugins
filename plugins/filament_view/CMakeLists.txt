@@ -119,7 +119,8 @@ add_library(plugin_filament_view STATIC
         core/entity/shapes/plane.cc
         core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
-        viewer/custom_model_viewer.cc
+        core/scene/view_target.cc
+        core/systems/derived/view_target_system.cc
 )
 
 target_include_directories(plugin_filament_view PUBLIC

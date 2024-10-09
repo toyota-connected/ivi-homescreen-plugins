@@ -29,7 +29,6 @@
 
 namespace plugin_filament_view {
 
-class CustomModelViewer;
 class MaterialDefinitions;
 class MaterialLoader;
 class TextureLoader;

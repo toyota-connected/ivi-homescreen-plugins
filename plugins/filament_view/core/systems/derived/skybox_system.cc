@@ -18,9 +18,14 @@
 
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
+#include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
+#include <filament/IndirectLight.h>
+#include <filament/Scene.h>
+#include <filament/Skybox.h>
 #include <asio/post.hpp>
 
 #include "core/include/color.h"
@@ -58,10 +63,7 @@ std::future<void> SkyboxSystem::Initialize() {
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::setDefaultSkybox() {
   SPDLOG_TRACE("++SkyboxManager::setDefaultSkybox");
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setSkyboxState(SceneState::LOADING);
   setTransparentSkybox();
-  modelViewer->setSkyboxState(SceneState::LOADED);
   SPDLOG_TRACE("--SkyboxManager::setDefaultSkybox");
 }
 
@@ -85,13 +87,13 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setSkyboxState(SceneState::LOADING);
-  std::filesystem::path asset_path = modelViewer->getAssetPath();
+  const auto assetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+
+  std::filesystem::path asset_path = assetPath;
 
   asset_path /= path;
   if (path.empty() || !std::filesystem::exists(asset_path)) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     promise->set_value(
         Resource<std::string_view>::Error("Skybox Asset path is not valid"));
   }
@@ -120,11 +122,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setSkyboxState(SceneState::LOADING);
-
   if (url.empty()) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     promise->set_value(Resource<std::string_view>::Error("URL is empty"));
     return future;
   }
@@ -134,13 +132,10 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
 
   SPDLOG_DEBUG("Skybox downloading HDR Asset: {}", url.c_str());
   asio::post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
-    CustomModelViewer* modelViewer =
-        CustomModelViewer::Instance("setSkyboxFromHdrUrl::Lambda");
     plugin_common_curl::CurlClient client;
     // todo client.Init(url, {}, {});
     auto buffer = client.RetrieveContentAsVector();
     if (client.GetCode() != CURLE_OK) {
-      modelViewer->setSkyboxState(SceneState::ERROR);
       promise->set_value(Resource<std::string_view>::Error(
           "Couldn't load skybox from " + url));
     }
@@ -148,7 +143,6 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
       promise->set_value(loadSkyboxFromHdrBuffer(buffer, showSun,
                                                  shouldUpdateLight, intensity));
     } else {
-      modelViewer->setSkyboxState(SceneState::ERROR);
       promise->set_value(Resource<std::string_view>::Error(
           "Couldn't load HDR file from " + url));
     }
@@ -165,13 +159,12 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setSkyboxState(SceneState::LOADING);
+  const auto assetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-  std::filesystem::path asset_path = modelViewer->getAssetPath();
+  std::filesystem::path asset_path = assetPath;
   asset_path /= path;
   if (path.empty() || !std::filesystem::exists(asset_path)) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     promise->set_value(
         Resource<std::string_view>::Error("KTX Asset path is not valid"));
   }
@@ -194,7 +187,6 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
       ss << "Loaded environment successfully from " << asset_path;
       promise->set_value(Resource<std::string_view>::Success(ss.str()));
     } else {
-      modelViewer->setSkyboxState(SceneState::ERROR);
       std::stringstream ss;
       ss << "Couldn't change environment from " << asset_path;
       promise->set_value(Resource<std::string_view>::Error(ss.str()));
@@ -211,10 +203,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setSkyboxState(SceneState::LOADING);
   if (url.empty()) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     promise->set_value(Resource<std::string_view>::Error("URL is empty"));
     return future;
   }
@@ -223,13 +212,10 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(
       *ECSystemManager::GetInstance()->GetStrand());
   asio::post(strand_, [&, promise, url] {
     plugin_common_curl::CurlClient client;
-    CustomModelViewer* modelViewer =
-        CustomModelViewer::Instance("setSkyboxFromKTXUrl::Lambda");
 
     // TODO client.Init(url, {}, {});
     auto buffer = client.RetrieveContentAsVector();
     if (client.GetCode() != CURLE_OK) {
-      modelViewer->setSkyboxState(SceneState::ERROR);
       std::stringstream ss;
       ss << "Couldn't load skybox from " << url;
       promise->set_value(Resource<std::string_view>::Error(ss.str()));
@@ -246,7 +232,6 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(
       ss << "Loaded skybox successfully from " << url;
       promise->set_value(Resource<std::string_view>::Success(ss.str()));
     } else {
-      modelViewer->setSkyboxState(SceneState::ERROR);
       std::stringstream ss;
       ss << "Couldn't load skybox from " << url;
       promise->set_value(Resource<std::string_view>::Error(ss.str()));
@@ -264,10 +249,8 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   if (color.empty()) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     promise->set_value(Resource<std::string_view>::Error("Color is Invalid"));
     return future;
   }
@@ -275,20 +258,15 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
       *ECSystemManager::GetInstance()->GetStrand());
 
   asio::post(strand_, [&, promise, color] {
-    CustomModelViewer* modelViewer =
-        CustomModelViewer::Instance("setSkyboxFromColor::Lambda");
-
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "setSkyboxFromColor");
     const auto engine = filamentSystem->getFilamentEngine();
 
-    modelViewer->setSkyboxState(SceneState::LOADING);
     auto colorArray = colorOf(color);
     auto skybox =
         ::filament::Skybox::Builder().color(colorArray).build(*engine);
     filamentSystem->getFilamentScene()->setSkybox(skybox);
-    modelViewer->setSkyboxState(SceneState::LOADED);
     promise->set_value(Resource<std::string_view>::Success(
         "Loaded environment successfully from color"));
   });
@@ -304,7 +282,6 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
     bool shouldUpdateLight,
     float intensity) {
   ::filament::Texture* texture;
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -314,7 +291,6 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
   try {
     texture = HDRLoader::createTexture(engine, assetPath);
   } catch (...) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
@@ -343,15 +319,17 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      modelViewer->destroySkybox();
+        auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+        if(prevSkybox) {
+            engine->destroy(prevSkybox);
+        }
+
       filamentSystem->getFilamentScene()->setSkybox(sky);
     }
-    modelViewer->setSkyboxState(SceneState::LOADED);
     return Resource<std::string_view>::Success(
         "Loaded hdr skybox successfully");
   }
 
-  modelViewer->setSkyboxState(SceneState::ERROR);
   return Resource<std::string_view>::Error("Could not decode HDR file");
 }
 
@@ -362,7 +340,6 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
     bool shouldUpdateLight,
     float intensity) {
   ::filament::Texture* texture;
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -372,7 +349,6 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
   try {
     texture = HDRLoader::createTexture(engine, buffer);
   } catch (...) {
-    modelViewer->setSkyboxState(SceneState::ERROR);
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
@@ -401,15 +377,17 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      modelViewer->destroySkybox();
+        auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+        if(prevSkybox) {
+            engine->destroy(prevSkybox);
+        }
+
       filamentSystem->getFilamentScene()->setSkybox(sky);
     }
-    modelViewer->setSkyboxState(SceneState::LOADED);
     return Resource<std::string_view>::Success(
         "Loaded hdr skybox successfully");
   }
 
-  modelViewer->setSkyboxState(SceneState::ERROR);
   return Resource<std::string_view>::Error("Could not decode HDR file");
 }
 
@@ -422,7 +400,17 @@ void SkyboxSystem::vInitSystem() {
 void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vShutdownSystem() {}
+void SkyboxSystem::vShutdownSystem() {
+    auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
+    const auto engine = filamentSystem->getFilamentEngine();
+
+    auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+    if(prevSkybox) {
+        engine->destroy(prevSkybox);
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::DebugPrint() {
   spdlog::debug("{}::{}", __FILE__, __FUNCTION__);

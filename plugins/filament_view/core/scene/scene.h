@@ -27,15 +27,9 @@
 namespace plugin_filament_view {
 
 class Camera;
-
-class CustomModelViewer;
-
 class IndirectLight;
-
 class Light;
-
 class SceneController;
-
 class SkyBox;
 
 class Scene {
@@ -53,8 +47,6 @@ class Scene {
   Scene& operator=(const Scene&) = delete;
 
   friend class SceneController;
-
-  friend class CustomModelViewer;
 
  private:
   const std::string& flutterAssetsPath_;

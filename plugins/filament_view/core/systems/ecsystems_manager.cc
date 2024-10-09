@@ -124,11 +124,15 @@ void ECSystemManager::ExecuteOnMainThread(float elapsedTime) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vInitSystems() {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
-    for (const auto& system : m_vecSystems) {
-      system->vInitSystem();
-    }
-  });
+  // Note this is currently expected to be called from within
+  // an already asio post, Leaving this commented out so you know
+  // that you could change up the routine, but if you do
+  // it need sto ru non the main thread.
+  // asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
+  for (const auto& system : m_vecSystems) {
+    system->vInitSystem();
+  }
+  //});
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -137,13 +141,20 @@ std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
     const std::string& where) {
   auto callingThread = pthread_self();
   if (callingThread != filament_api_thread_id_) {
-    spdlog::error(
-        "From {}"
-        "You're calling to get a system from an off thread, undefined "
-        "experience!"
-        " Use a message to do your work or grab the ecsystemmanager strand and "
-        "do your work.",
-        where);
+    // Note we should have a 'log once' base functionality in common
+    // creating this inline for now.
+    auto foundIter = m_mapOffThreadCallers.find(where);
+    if(foundIter ==  m_mapOffThreadCallers.end()) {
+      spdlog::info(
+          "From {} "
+          "You're calling to get a system from an off thread, undefined "
+          "experience!"
+          " Use a message to do your work or grab the ecsystemmanager strand and "
+          "do your work.",
+          where);
+
+      m_mapOffThreadCallers.insert(std::pair(where, 0));
+    }
   }
 
   std::unique_lock<std::mutex> lock(vecSystemsMutex);

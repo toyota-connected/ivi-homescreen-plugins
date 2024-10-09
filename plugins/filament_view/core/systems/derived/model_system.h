@@ -20,18 +20,16 @@
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
 #include <asio/io_context_strand.hpp>
+#include <future>
 #include <list>
 
 #include "core/entity/model/model.h"
 #include "core/include/resource.h"
-#include "viewer/custom_model_viewer.h"
 #include "viewer/settings.h"
 
 #include "core/systems/base/ecsystem.h"
 
 namespace plugin_filament_view {
-
-class CustomModelViewer;
 
 class Model;
 
@@ -75,8 +73,6 @@ class ModelSystem : public ECSystem {
       const std::string& url,
       bool isFallback = false);
 
-  friend class CustomModelViewer;
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
@@ -101,11 +97,10 @@ class ModelSystem : public ECSystem {
   // This will be needed for a list of prefab instances to load from
   // std::map<Model*> <name>models_;
 
-  // TODO we shouldnt have indirect lgiht on model loader.
-  ::filament::IndirectLight* indirectLight_ = nullptr;
-
   // This is a reusable list of renderables for popping off
   // async load.
+  // NOTE If you change this size; the async update loop on teh system count
+  // needs to change.
   utils::Entity readyRenderables_[128];
 
   // Todo, this needs to be moved; if its not initialized, undefined <results>

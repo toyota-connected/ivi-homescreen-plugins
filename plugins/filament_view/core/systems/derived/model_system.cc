@@ -79,8 +79,6 @@ filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
 void ModelSystem::loadModelGlb(Model* poOurModel,
                                const std::vector<uint8_t>& buffer,
                                const std::string& /*assetName*/) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   if (assetLoader_ == nullptr) {
     // NOTE, this should only be temporary until CustomModelViewer isn't
     // necessary in implementation.
@@ -101,8 +99,9 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 
   resourceLoader_->asyncBeginLoad(asset);
 
+  // TODO
   // This will move to be on the model itself.
-  modelViewer->setAnimator(asset->getInstance()->getAnimator());
+  // modelViewer->setAnimator(asset->getInstance()->getAnimator());
 
   // NOTE if this is a prefab/instance you will NOT Want to do this.
   asset->releaseSourceData();
@@ -140,8 +139,6 @@ void ModelSystem::loadModelGltf(
     const std::vector<uint8_t>& buffer,
     std::function<const ::filament::backend::BufferDescriptor&(
         std::string uri)>& /* callback */) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
@@ -163,7 +160,7 @@ void ModelSystem::loadModelGltf(
 #endif  // TODO
   }
   resourceLoader_->asyncBeginLoad(asset);
-  modelViewer->setAnimator(asset->getInstance()->getAnimator());
+  // modelViewer->setAnimator(asset->getInstance()->getAnimator());
   asset->releaseSourceData();
 
   auto filamentSystem =
@@ -290,13 +287,11 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setModelState(ModelState::LOADING);
-
   try {
     const asio::io_context::strand& strand_(
         *ECSystemManager::GetInstance()->GetStrand());
-    const std::string assetPath = modelViewer->getAssetPath();
+    const auto assetPath =
+        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
     asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
       try {
@@ -324,14 +319,11 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-  modelViewer->setModelState(ModelState::LOADING);
   asio::post(*ECSystemManager::GetInstance()->GetStrand(),
              [&, poOurModel, promise, url = std::move(url), isFallback] {
                plugin_common_curl::CurlClient client;
                auto buffer = client.RetrieveContentAsVector();
                if (client.GetCode() != CURLE_OK) {
-                 modelViewer->setModelState(ModelState::ERROR);
                  promise->set_value(Resource<std::string_view>::Error(
                      "Couldn't load Glb from " + url));
                }
@@ -344,17 +336,13 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
 void ModelSystem::handleFile(Model* poOurModel,
                              const std::vector<uint8_t>& buffer,
                              const std::string& fileSource,
-                             bool isFallback,
+                             bool /*isFallback*/,
                              const PromisePtr& promise) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
   if (!buffer.empty()) {
     loadModelGlb(poOurModel, buffer, fileSource);
-    modelViewer->setModelState(isFallback ? ModelState::FALLBACK_LOADED
-                                          : ModelState::LOADED);
     promise->set_value(Resource<std::string_view>::Success(
         "Loaded glb model successfully from " + fileSource));
   } else {
-    modelViewer->setModelState(ModelState::ERROR);
     promise->set_value(Resource<std::string_view>::Error(
         "Couldn't load glb model from " + fileSource));
   }

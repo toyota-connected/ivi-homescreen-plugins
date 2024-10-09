@@ -24,13 +24,13 @@
 #include "core/entity/model/model.h"
 #include "core/entity/shapes/baseshape.h"
 #include "core/include/resource.h"
+#include "core/scene/view_target.h"
 #include "core/systems/derived/material_system.h"
 #include "core/systems/derived/shape_system.h"
 #include "core/utils/ibl_profiler.h"
 #include "flutter_desktop_engine_state.h"
 #include "platform_views/platform_view.h"
 #include "scene.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
@@ -51,19 +51,12 @@ class IBLProfiler;
 class SceneController {
  public:
   SceneController(
-      PlatformView* platformView,
-      FlutterDesktopEngineState* state,
-      std::string flutterAssetsPath,
       std::unique_ptr<std::vector<std::unique_ptr<Model>>> models,
       Scene* scene,
       std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes,
       int32_t id);
 
   ~SceneController();
-
-  [[nodiscard]] CustomModelViewer* getModelViewer() const {
-    return modelViewer_.get();
-  }
 
   void onTouch(int32_t action,
                int32_t point_count,
@@ -88,33 +81,23 @@ class SceneController {
   // Note: id_ will be moved in a future version when we start to maintain
   // scenes to views to swapchains more appropriately.
   int32_t id_;
-  std::string flutterAssetsPath_;
 
   std::unique_ptr<std::vector<std::unique_ptr<Model>>> models_;
   Scene* scene_;
   std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes_;
-
-  std::unique_ptr<CustomModelViewer> modelViewer_;
 
   std::optional<int32_t> currentAnimationIndex_;
 
   std::unique_ptr<plugin_filament_view::AnimationManager> animationManager_;
   std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
 
-  void setUpViewer(PlatformView* platformView,
-                   FlutterDesktopEngineState* state);
-
   void setUpLoadingModels();
-
   void setUpCamera();
-
   void setUpSkybox();
-
   void setUpLight();
-
   void setUpIndirectLight();
-
-  static void setUpShapes(std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
+  static void setUpShapes(
+      std::vector<std::unique_ptr<shapes::BaseShape>>* shapes);
 
   std::string setDefaultCamera();
 

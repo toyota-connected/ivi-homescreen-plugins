@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "custom_model_viewer.h"
+#include "view_target.h"
 
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
@@ -46,26 +46,22 @@ class FilamentViewPlugin;
 
 namespace plugin_filament_view {
 
-CustomModelViewer::CustomModelViewer(PlatformView* platformView,
-                                     FlutterDesktopEngineState* state,
-                                     std::string flutterAssetsPath)
+////////////////////////////////////////////////////////////////////////////
+ViewTarget::ViewTarget(int32_t left,
+                       int32_t top,
+                       FlutterDesktopEngineState* state)
     : state_(state),
-      flutterAssetsPath_(std::move(flutterAssetsPath)),
-      left_(platformView->GetOffset().first),
-      top_(platformView->GetOffset().second),
+      left_(left),
+      top_(top),
       callback_(nullptr),
       fanimator_(nullptr),
-      cameraManager_(nullptr),
-      currentModelState_(ModelState::NONE),
-      currentSkyboxState_(SceneState::NONE),
-      currentLightState_(SceneState::NONE),
-      currentShapesState_(ShapeState::NONE) {
+      cameraManager_(nullptr) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
-  m_poInstance = this;
 }
 
-CustomModelViewer::~CustomModelViewer() {
+////////////////////////////////////////////////////////////////////////////
+ViewTarget::~ViewTarget() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   if (callback_) {
@@ -73,14 +69,12 @@ CustomModelViewer::~CustomModelViewer() {
     callback_ = nullptr;
   }
 
-  cameraManager_->destroyCamera();
-
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "~CustomModelViewer");
+          FilamentSystem::StaticGetTypeID(), "~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  engine->destroy(fskybox_);
+  engine->destroy(fview_);
   engine->destroy(fswapChain_);
 
   if (subsurface_) {
@@ -95,14 +89,8 @@ CustomModelViewer::~CustomModelViewer() {
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
-CustomModelViewer* CustomModelViewer::m_poInstance = nullptr;
-CustomModelViewer* CustomModelViewer::Instance(const std::string& where) {
-  if (m_poInstance == nullptr)
-    SPDLOG_DEBUG("CustomModelViewer::Instance is null {}", where.c_str());
-  return m_poInstance;
-}
-
-void CustomModelViewer::setupMessageChannels(
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
   auto channel_name = std::string("plugin.filament_view.frame_view");
 
@@ -111,7 +99,8 @@ void CustomModelViewer::setupMessageChannels(
       &flutter::StandardMethodCodec::GetInstance());
 }
 
-void CustomModelViewer::setupWaylandSubsurface() {
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::setupWaylandSubsurface() {
   // Ensure state_ is properly initialized
   if (!state_ || !state_->view_controller) {
     // Handle error: state_ or view_controller is not initialized
@@ -162,90 +151,44 @@ void CustomModelViewer::setupWaylandSubsurface() {
   wl_subsurface_set_desync(subsurface_);
 }
 
-std::future<bool> CustomModelViewer::Initialize() {
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  auto promise(std::make_shared<std::promise<bool>>());
-  auto future(promise->get_future());
+  native_window_ = {.display = display_,
+                    .surface = surface_,
+                    // TODO as params
+                    .width = width,
+                    .height = height};
 
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, promise] {
-    // auto platform_view_size = platformView->GetSize();
-    native_window_ = {.display = display_,
-                      .surface = surface_,
-                      // TODO as params
-                      .width = 800,
-                      .height = 600};
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
 
-    auto filamentSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "CustomModelViewer::Initialize");
-    const auto engine = filamentSystem->getFilamentEngine();
-    fswapChain_ = engine->createSwapChain(&native_window_);
+  const auto engine = filamentSystem->getFilamentEngine();
+  fswapChain_ = engine->createSwapChain(&native_window_);
+  fview_ = engine->createView();
 
-    setupView();
+  setupView(width, height);
 
-    promise->set_value(true);
-  });
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
-  return future;
 }
 
-void CustomModelViewer::setModelState(ModelState modelState) {
-  currentModelState_ = modelState;
-  SPDLOG_DEBUG("[FilamentView] setModelState: {}",
-               getTextForModelState(currentModelState_));
-}
-
-void CustomModelViewer::setLightState(SceneState sceneState) {
-  currentLightState_ = sceneState;
-  SPDLOG_DEBUG("[FilamentView] setLightState: {}",
-               getTextForSceneState(currentLightState_));
-}
-
-void CustomModelViewer::setSkyboxState(SceneState sceneState) {
-  currentSkyboxState_ = sceneState;
-  SPDLOG_DEBUG("[FilamentView] setSkyboxState: {}",
-               getTextForSceneState(currentSkyboxState_));
-}
-
-void CustomModelViewer::destroyIndirectLight() {
-  auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "destroyIndirectLight");
-
-  const auto scene = filamentSystem->getFilamentView()->getScene();
-  auto indirectLight = scene->getIndirectLight();
-
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  if (indirectLight) {
-    engine->destroy(indirectLight);
-  }
-}
-
-void CustomModelViewer::destroySkybox() {
-  auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "destroySkybox");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  auto scene = filamentSystem->getFilamentView()->getScene();
-  auto skybox = scene->getSkybox();
-
-  if (skybox) {
-    engine->destroy(skybox);
-  }
-}
-
-void CustomModelViewer::setupView() {
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
-  // this will be going back to an internal class variable.
-  auto fview_ = filamentSystem->getFilamentView();
+  fview_->setScene(filamentSystem->getFilamentScene());
+
+  // this probably needs to change
+  fview_->setVisibleLayers(0x4, 0x4);
+  fview_->setViewport({0, 0, width, height});
+
+  fview_->setBlendMode(::filament::View::BlendMode::TRANSLUCENT);
 
   // on mobile, better use lower quality color buffer
   ::filament::View::RenderQuality renderQuality{};
@@ -277,6 +220,8 @@ void CustomModelViewer::setupView() {
       .enabled = true,
   });
 
+  fview_->setPostProcessingEnabled(true);
+
   // fview_->setShadowingEnabled(false);
   // fview_->setScreenSpaceRefractionEnabled(false);
   // fview_->setStencilBufferEnabled(false);
@@ -285,9 +230,11 @@ void CustomModelViewer::setupView() {
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
+// todo , change to member function and nonstatic
 static uint32_t G_LastTime = 0;
 
-void CustomModelViewer::SendFrameViewCallback(
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
     std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
         args) {
@@ -299,10 +246,14 @@ void CustomModelViewer::SendFrameViewCallback(
   for (const auto& arg : args) {
     encodableMap[flutter::EncodableValue(arg.first)] = arg.second;
   }
+
   frameViewCallback_->InvokeMethod(methodName,
                                    std::make_unique<flutter::EncodableValue>(
                                        flutter::EncodableValue(encodableMap)));
 }
+
+/////////////////////////////////////////////////////////////////////////
+const wl_callback_listener ViewTarget::frame_listener = {.done = OnFrame};
 
 /**
  * Renders the model and updates the Filament camera.
@@ -310,7 +261,7 @@ void CustomModelViewer::SendFrameViewCallback(
  * @param time - timestamp of running program
  * rendered
  */
-void CustomModelViewer::DrawFrame(uint32_t time) {
+void ViewTarget::DrawFrame(uint32_t time) {
   asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time]() {
     static bool bonce = true;
     if (bonce) {
@@ -370,8 +321,7 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
                           flutter::EncodableValue(timeSinceLastRenderedSec)),
            std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
 
-      filamentSystem->getFilamentRenderer()->render(
-          filamentSystem->getFilamentView());
+      filamentSystem->getFilamentRenderer()->render(fview_);
 
       filamentSystem->getFilamentRenderer()->endFrame();
 
@@ -386,10 +336,11 @@ void CustomModelViewer::DrawFrame(uint32_t time) {
   });
 }
 
-void CustomModelViewer::OnFrame(void* data,
-                                wl_callback* callback,
-                                const uint32_t time) {
-  const auto obj = static_cast<CustomModelViewer*>(data);
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::OnFrame(void* data,
+                         wl_callback* callback,
+                         const uint32_t time) {
+  const auto obj = static_cast<ViewTarget*>(data);
 
   obj->callback_ = nullptr;
 
@@ -400,8 +351,7 @@ void CustomModelViewer::OnFrame(void* data,
   obj->DrawFrame(time);
 
   obj->callback_ = wl_surface_frame(obj->surface_);
-  wl_callback_add_listener(obj->callback_, &CustomModelViewer::frame_listener,
-                           data);
+  wl_callback_add_listener(obj->callback_, &ViewTarget::frame_listener, data);
 
   // Z-Order
   // These do not need <seem> to need to be called every frame.
@@ -412,26 +362,23 @@ void CustomModelViewer::OnFrame(void* data,
 }
 
 /////////////////////////////////////////////////////////////////////////
-void CustomModelViewer::doCameraFeatures(float fDeltaTime) {
+void ViewTarget::doCameraFeatures(float fDeltaTime) {
+  if (cameraManager_ == nullptr)
+    return;
   cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
-const wl_callback_listener CustomModelViewer::frame_listener = {.done =
-                                                                    OnFrame};
-
-void CustomModelViewer::setOffset(double left, double top) {
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::setOffset(double left, double top) {
   left_ = static_cast<int32_t>(left);
   top_ = static_cast<int32_t>(top);
 }
 
-void CustomModelViewer::resize(double width, double height) {
-  auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+////////////////////////////////////////////////////////////////////////////
+void ViewTarget::resize(double width, double height) {
+  fview_->setViewport({left_, top_, static_cast<uint32_t>(width),
+                       static_cast<uint32_t>(height)});
 
-  filamentSystem->getFilamentView()->setViewport(
-      {left_, top_, static_cast<uint32_t>(width),
-       static_cast<uint32_t>(height)});
   cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
                                        static_cast<uint32_t>(height));
 }

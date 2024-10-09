@@ -1,6 +1,7 @@
 
 #include "core/scene/material/loader/material_loader.h"
 
+#include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
 
@@ -17,9 +18,9 @@ MaterialLoader::MaterialLoader() = default;
 // This function does NOT set default parameter values.
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
-  auto buffer = readBinaryFile(path, modelViewer->getAssetPath());
+  const auto assetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+  auto buffer = readBinaryFile(path, assetPath);
 
   if (!buffer.empty()) {
     auto filamentSystem =

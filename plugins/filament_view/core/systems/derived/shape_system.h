@@ -23,7 +23,6 @@
 
 #include "core/entity/shapes/baseshape.h"
 #include "core/systems/derived/material_system.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 

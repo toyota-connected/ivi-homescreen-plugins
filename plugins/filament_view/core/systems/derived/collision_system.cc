@@ -15,11 +15,11 @@
  */
 #include "collision_system.h"
 
+#include <core/entity/model/model.h>
 #include <core/entity/shapes/cube.h>
 #include <core/entity/shapes/plane.h>
 #include <core/entity/shapes/sphere.h>
 #include <core/systems/ecsystems_manager.h>
-#include <viewer/custom_model_viewer.h>
 
 #include "filament_system.h"
 #include "plugins/common/common.h"

@@ -16,10 +16,10 @@
 
 #pragma once
 
+#include <core/include/resource.h>
 #include <future>
 
 #include "core/systems/base/ecsystem.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 

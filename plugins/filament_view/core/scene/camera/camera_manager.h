@@ -29,15 +29,14 @@
 #include "core/scene/camera/exposure.h"
 #include "core/scene/camera/lens_projection.h"
 #include "core/scene/camera/projection.h"
+#include "core/scene/view_target.h"
 #include "touch_pair.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
 using CameraManipulator = ::filament::camutils::Manipulator<float>;
 
 class Camera;
-class CustomModelViewer;
 class Exposure;
 class Projection;
 

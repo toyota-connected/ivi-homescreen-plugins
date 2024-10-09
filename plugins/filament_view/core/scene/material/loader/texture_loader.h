@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include "viewer/custom_model_viewer.h"
+#include "core/scene/view_target.h"
 
 #include <future>
 
@@ -27,8 +27,6 @@
 #include "core/scene/material/texture/texture_definitions.h"
 
 namespace plugin_filament_view {
-
-class CustomModelViewer;
 
 class TextureDefinitions;
 

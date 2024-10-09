@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "core/scene/material/loader/texture_loader.h"
+#include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <imageio/ImageDecoder.h>
@@ -85,11 +86,11 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
         "Invalid filament_view texture passed into into loadTexture.");
   }
 
-  CustomModelViewer* modelViewer = CustomModelViewer::Instance(__FUNCTION__);
-
   if (!texture->assetPath_.empty()) {
-    auto file_path =
-        getAbsolutePath(texture->assetPath_, modelViewer->getAssetPath());
+    const auto assetPath =
+        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+
+    auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
       return Resource<::filament::Texture*>::Error(

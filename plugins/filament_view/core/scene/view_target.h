@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,60 +24,33 @@
 #include <filament/Camera.h>
 #include <filament/Engine.h>
 #include <filament/Renderer.h>
-#include <filament/Scene.h>
-#include <filament/Skybox.h>
 #include <filament/SwapChain.h>
 #include <filament/View.h>
 #include <gltfio/Animator.h>
 #include <gltfio/AssetLoader.h>
-#include <gltfio/NodeManager.h>
-#include <gltfio/ResourceLoader.h>
 #include <wayland-client.h>
 #include <asio/io_context_strand.hpp>
 
-#include "core/entity/model/model.h"
-#include "core/entity/model/state/model_state.h"
-#include "core/entity/model/state/scene_state.h"
-#include "core/entity/model/state/shape_state.h"
 #include "core/scene/camera/camera_manager.h"
-#include "core/scene/scene.h"
-#include "core/systems/derived/model_system.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
-#include "settings.h"
+// TODO Move
+#include "viewer/settings.h"
 
 namespace plugin_filament_view {
 
 class CameraManager;
 class Scene;
 
-class CustomModelViewer {
+class ViewTarget {
  public:
-  static constexpr ::filament::float3 kDefaultObjectPosition = {0.0f, 0.0f,
-                                                                -4.0f};
+  ViewTarget(int32_t left, int32_t top, FlutterDesktopEngineState* state);
 
-  CustomModelViewer(PlatformView* platformView,
-                    FlutterDesktopEngineState* state,
-                    std::string flutterAssetsPath);
-
-  ~CustomModelViewer();
-
-  void setModelState(ModelState modelState);
-  void setLightState(SceneState sceneState);
-  void setSkyboxState(SceneState sceneState);
-  static void destroyIndirectLight();
-
-  static void destroySkybox();
+  ~ViewTarget();
 
   // Disallow copy and assign.
-  CustomModelViewer(const CustomModelViewer&) = delete;
-  CustomModelViewer& operator=(const CustomModelViewer&) = delete;
-
-  [[nodiscard]] ::filament::Skybox* getFilamentSkybox() const {
-    return fskybox_;
-  }
-
-  [[nodiscard]] plugin_filament_view::Scene* getScene() const { return scene_; }
+  ViewTarget(const ViewTarget&) = delete;
+  ViewTarget& operator=(const ViewTarget&) = delete;
 
   void setCameraManager(CameraManager* cameraManager) {
     cameraManager_ = cameraManager;
@@ -96,23 +69,22 @@ class CustomModelViewer {
   static bool getActualSize() { return actualSize; }
 
   void setInitialized() {
+    if (initialized_)
+      return;
+
     initialized_ = true;
     OnFrame(this, nullptr, 0);
   }
 
-  [[nodiscard]] std::string getAssetPath() const { return flutterAssetsPath_; }
+  [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
 
   void setOffset(double left, double top);
 
   void resize(double width, double height);
 
-  static CustomModelViewer* Instance(const std::string& where);
-
-  std::future<bool> Initialize();
+  void InitializeFilamentInternals(uint32_t width, uint32_t height);
 
  private:
-  static CustomModelViewer* m_poInstance;
-
   static constexpr bool actualSize = false;
   static constexpr bool originIsFarAway = false;
   static constexpr float originDistance = 1.0f;
@@ -120,7 +92,6 @@ class CustomModelViewer {
   void setupWaylandSubsurface();
 
   [[maybe_unused]] FlutterDesktopEngineState* state_;
-  const std::string flutterAssetsPath_;
   filament::viewer::Settings settings_;
   filament::gltfio::FilamentAsset* asset_{};
   int32_t left_;
@@ -143,20 +114,13 @@ class CustomModelViewer {
     uint32_t height;
   } native_window_{};
 
-  plugin_filament_view::Scene* scene_{};
-
-  filament::Skybox* fskybox_ = nullptr;
   ::filament::SwapChain* fswapChain_{};
+  ::filament::View* fview_{};
 
+  // todo to be moved
   ::filament::gltfio::Animator* fanimator_;
 
   CameraManager* cameraManager_;
-
-  // TODO Change state management to a different format
-  ModelState currentModelState_;
-  [[maybe_unused]] SceneState currentSkyboxState_;
-  [[maybe_unused]] SceneState currentLightState_;
-  [[maybe_unused]] ShapeState currentShapesState_;
 
   void SendFrameViewCallback(
       const std::string& methodName,
@@ -169,7 +133,7 @@ class CustomModelViewer {
 
   void DrawFrame(uint32_t time);
 
-  static void setupView();
+  void setupView(uint32_t width, uint32_t height);
 
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.

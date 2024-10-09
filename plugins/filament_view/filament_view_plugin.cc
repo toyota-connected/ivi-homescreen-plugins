@@ -22,8 +22,10 @@
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/skybox_system.h>
+#include <core/systems/derived/view_target_system.h>
 #include <flutter/standard_message_codec.h>
 #include <asio/post.hpp>
+#include <core/systems/derived/model_system.h>
 
 #include "filament_scene.h"
 #include "messages.g.h"
@@ -36,8 +38,8 @@ class FlutterView;
 class Display;
 
 namespace plugin_filament_view {
-FilamentScene* weakPtr;
-FilamentViewPlugin* viewPluginWeakPtr;
+
+FilamentScene* postSetupDeserializer;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::RegisterWithRegistrar(
@@ -59,6 +61,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
   // Create the ECSystemManager instance
   auto ecsManager = ECSystemManager::GetInstance();
+  ecsManager->setConfigValue(kAssetPath, assetDirectory);
 
   // Get the strand from the ECSystemManager
   const auto& strand = *ecsManager->GetStrand();
@@ -67,7 +70,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   int i = 0;
   while (!bDebugAttached) {
     int breakhere = 0;
-    if (i++ == 10000000000) {
+    if (i++ == 100000000) {
       bDebugAttached = true;
     }
   }*/
@@ -88,8 +91,23 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     ecsManager->vAddSystem(std::move(std::make_unique<IndirectLightSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<SkyboxSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<LightSystem>()));
+    ecsManager->vAddSystem(std::move(std::make_unique<ViewTargetSystem>()));
 
     ecsManager->vInitSystems();
+
+    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
+        ViewTargetSystem::StaticGetTypeID(),
+        "FilamenViewPlugin :: First Lambda");
+
+    // TODO, this needs to change to how many we have to initialize.
+    // This setups wayland subsurfaces.
+    viewTargetSystem->vSetupViewTargetFromDesktopState(
+        static_cast<int>(top), static_cast<int>(left), engine);
+
+    // this binds to a filament view with the wayland surfaces created.
+  uint32_t widthArray[1] = {static_cast<uint32_t>(width)};
+  uint32_t heightArray[1] = {static_cast<uint32_t>(height)};
+    viewTargetSystem->vInitializeFilamentInternalsWithViewTargets(widthArray, heightArray);
 
     initPromise.set_value();
   });
@@ -100,21 +118,17 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   std::future<void> initFuture2 = initPromise2.get_future();
 
   asio::post(strand, [=, &initPromise2]() mutable {
-    // Continue with plugin initialization
     auto plugin = std::make_unique<FilamentViewPlugin>(
         id, std::move(viewType), direction, top, left, width, height, params,
-        std::move(assetDirectory), engine, addListener, removeListener,
-        platform_view_context);
+        assetDirectory, addListener, removeListener, platform_view_context);
 
     // Set up message channels and APIs
+    // TODO all these API's are not needed.
     FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
     ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
     SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
     ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
     RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
-
-    CustomModelViewer::Instance("RegisterWithRegistrar")
-        ->setupMessageChannels(registrar);
 
     // Set up collision system message channels if needed
     auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
@@ -123,6 +137,11 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     if (collisionSystem != nullptr) {
       collisionSystem->setupMessageChannels(registrar);
     }
+
+    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
+        ViewTargetSystem::StaticGetTypeID(),
+    "Filament ViewPlugin :: Second Lambda");
+    viewTargetSystem->vSetupMessageChannels(registrar);
 
     registrar->AddPlugin(std::move(plugin));
 
@@ -133,18 +152,20 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   // Wait for the initialization to complete
   initFuture2.wait();
 
-  // asio::post(strand, [=]() mutable {
-  // Todo - to be changed.
-  auto t = weakPtr->getSceneController()->getModelViewer()->Initialize();
-  t.wait();
-  //});
-
   // This should eventually get moved to a system loading process.
   std::promise<void> initPromise3;
   std::future<void> initFuture3 = initPromise3.get_future();
 
   asio::post(strand, [=, &initPromise3]() mutable {
-    weakPtr->getSceneController()->vRunPostSetupLoad();
+    // This is really a deserialize type routine.
+    postSetupDeserializer->getSceneController()->vRunPostSetupLoad();
+
+    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
+        ViewTargetSystem::StaticGetTypeID(),
+        "Filament ViewPlugin :: third Lambda");
+
+    viewTargetSystem->vKickOffFrameRenderingLoops();
+
     initPromise3.set_value();
   });
 
@@ -167,7 +188,6 @@ FilamentViewPlugin::FilamentViewPlugin(
     double height,
     const std::vector<uint8_t>& params,
     std::string assetDirectory,
-    FlutterDesktopEngineState* state,
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context)
@@ -180,14 +200,12 @@ FilamentViewPlugin::FilamentViewPlugin(
                    height),
       id_(id),
       platformViewsContext_(platform_view_context),
-      removeListener_(removeListener),
-      flutterAssetsPath_(std::move(assetDirectory)) {
+      removeListener_(removeListener) {
   SPDLOG_TRACE("++FilamentViewPlugin::FilamentViewPlugin");
-  filamentScene_ = std::make_unique<FilamentScene>(this, state, id, params,
-                                                   flutterAssetsPath_);
+  filamentScene_ = std::make_unique<FilamentScene>(id, params, assetDirectory);
   addListener(platformViewsContext_, id, &platform_view_listener_, this);
 
-  weakPtr = filamentScene_.get();
+  postSetupDeserializer = filamentScene_.get();
   SPDLOG_TRACE("--FilamentViewPlugin::FilamentViewPlugin");
 }
 
@@ -332,11 +350,15 @@ void FilamentViewPlugin::ChangeLightByHdrUrl(
 void FilamentViewPlugin::ChangeToDefaultIndirectLight(
     std::function<void(std::optional<FlutterError> reply)> /* result */) {}
 
+// TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin && plugin->filamentScene_) {
-    plugin->filamentScene_->getSceneController()->getModelViewer()->resize(
-        width, height);
+    auto viewTargetSystem = ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+       ViewTargetSystem::StaticGetTypeID(),
+       "FilamentViewPlugin::on_resize");
+
+      viewTargetSystem->vResizeViewTarget(0, width, height);
   }
 }
 
@@ -348,12 +370,17 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
   SPDLOG_TRACE("SetDirection: {}", plugin->direction_);
 }
 
+// TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin && plugin->filamentScene_) {
     auto sceneController = plugin->filamentScene_->getSceneController();
     if (sceneController) {
-      sceneController->getModelViewer()->setOffset(left, top);
+        auto viewTargetSystem = ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+            ViewTargetSystem::StaticGetTypeID(),
+            "FilamentViewPlugin::on_resize");
+
+        viewTargetSystem->vSetViewTargetOffSet(0, left, top);
     }
   }
 }

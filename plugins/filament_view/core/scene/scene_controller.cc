@@ -24,48 +24,29 @@
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
+#include <core/systems/derived/model_system.h>
 #include <core/systems/derived/skybox_system.h>
 
 #include "core/systems/derived/filament_system.h"
+#include "core/systems/derived/view_target_system.h"
 
 #include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 
 SceneController::SceneController(
-    PlatformView* platformView,
-    FlutterDesktopEngineState* state,
-    std::string flutterAssetsPath,
     std::unique_ptr<std::vector<std::unique_ptr<Model>>> models,
     Scene* scene,
     std::unique_ptr<std::vector<std::unique_ptr<shapes::BaseShape>>> shapes,
     int32_t id)
     : id_(id),
-      flutterAssetsPath_(std::move(flutterAssetsPath)),
       models_(std::move(models)),
       scene_(scene),
       shapes_(std::move(shapes)) {
   SPDLOG_TRACE("{}::{}::{}", __FILE__, __FUNCTION__, id_);
-  setUpViewer(platformView, state);
 }
 
 void SceneController::vRunPostSetupLoad() {
-  auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
-
-  auto view = filamentSystem->getFilamentView();
-  auto scene = filamentSystem->getFilamentScene();
-
-  // auto size = platformView->GetSize();
-  //  todo.
-  view->setViewport({0, 0, 800, 600});
-
-  view->setScene(scene);
-
-  // TODO this may need to be turned off for target
-  view->setPostProcessingEnabled(true);
-
   // These setups to all be moved
   setUpLoadingModels();
   setUpCamera();
@@ -73,27 +54,24 @@ void SceneController::vRunPostSetupLoad() {
   setUpLight();
   setUpIndirectLight();
   setUpShapes(shapes_.get());
-
-  // This kicks off the first frame. Should probably be moved.
-  modelViewer_->setInitialized();
 }
 
 SceneController::~SceneController() {
+  cameraManager_->destroyCamera();
+
   SPDLOG_TRACE("SceneController::~SceneController");
 }
 
-void SceneController::setUpViewer(PlatformView* platformView,
-                                  FlutterDesktopEngineState* state) {
-  modelViewer_ = std::make_unique<CustomModelViewer>(platformView, state,
-                                                     flutterAssetsPath_);
-
-  // TODO surfaceView.setOnTouchListener(modelViewer)
-  //  surfaceView.setZOrderOnTop(true) // necessary
-}
-
 void SceneController::setUpCamera() {
+  // TODO make a system
   cameraManager_ = std::make_unique<CameraManager>();
-  modelViewer_->setCameraManager(cameraManager_.get());
+
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
+  viewTargetSystem->vSetCameraManager(cameraManager_.get());
+
   if (!scene_->camera_) {
     SPDLOG_ERROR("Camera failed to create {}", __FILE__, __FUNCTION__);
     return;
@@ -103,7 +81,6 @@ void SceneController::setUpCamera() {
   // immediately setting it to a different one; that's extra work that shouldn't
   // be done. Backlogged
   cameraManager_->updateCamera(scene_->camera_.get());
-
   cameraManager_->setPrimaryCamera(std::move(scene_->camera_));
 }
 
@@ -367,6 +344,7 @@ void SceneController::loadModel(Model* model) {
   });
 }
 
+// This will need to change to 'which' view its on.
 void SceneController::onTouch(int32_t action,
                               int32_t point_count,
                               size_t point_data_size,
@@ -375,8 +353,12 @@ void SceneController::onTouch(int32_t action,
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
+  auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+
   // if action is 0, then on 'first' touch, cast ray from camera;
-  auto viewport = filamentSystem->getFilamentView()->getViewport();
+  auto viewport = viewTargetSystem->getFilamentView(0)->getViewport();
   auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
 

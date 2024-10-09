@@ -28,7 +28,6 @@
 #include "plugins/common/common.h"
 
 #include "core/utils/entitytransforms.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view::shapes {
 

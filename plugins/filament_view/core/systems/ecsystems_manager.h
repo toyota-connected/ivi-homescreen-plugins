@@ -1,6 +1,7 @@
 #pragma once
 
 #include <asio/io_context_strand.hpp>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -78,6 +79,27 @@ class ECSystemManager {
     return strand_;
   }
 
+  template <typename T>
+  void setConfigValue(const std::string& key, T value) {
+    m_mapConfigurationValues[key] = value;
+  }
+
+  // Getter for any type of value
+  template <typename T>
+  T getConfigValue(const std::string& key) const {
+    auto it = m_mapConfigurationValues.find(key);
+    if (it != m_mapConfigurationValues.end()) {
+      try {
+        return std::any_cast<T>(
+            it->second);  // Cast the value to the expected type
+      } catch (const std::bad_any_cast& e) {
+        throw std::runtime_error("Error: Incorrect type for key: " + key);
+      }
+    } else {
+      throw std::runtime_error("Error: Key not found: " + key);
+    }
+  }
+
  private:
   ECSystemManager();
   ~ECSystemManager();
@@ -103,5 +125,9 @@ class ECSystemManager {
   std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
 
   std::mutex vecSystemsMutex;
+
+  std::map<std::string, std::any> m_mapConfigurationValues;
+
+  std::map<std::string, int> m_mapOffThreadCallers;
 };
 }  // namespace plugin_filament_view
