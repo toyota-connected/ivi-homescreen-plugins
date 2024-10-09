@@ -230,7 +230,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   // fview_->setStencilBufferEnabled(false);
   // fview_->setDynamicLightingOptions(0.01, 1000.0f);
 
-  cameraManager_ = std::make_unique<CameraManager>();
+  cameraManager_ = std::make_unique<CameraManager>(this);
 
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }

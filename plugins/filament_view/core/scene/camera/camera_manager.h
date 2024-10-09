@@ -39,11 +39,12 @@ using CameraManipulator = ::filament::camutils::Manipulator<float>;
 class Camera;
 class Exposure;
 class Projection;
+class ViewTarget;
 
 // CameraManager is a per 'view target' system
 class CameraManager {
  public:
-  explicit CameraManager();
+  explicit CameraManager(ViewTarget* poOwner);
 
   void setDefaultCamera();
 
@@ -60,7 +61,7 @@ class CameraManager {
                 size_t point_data_size,
                 const double* point_data);
 
-  static float calculateAspectRatio();
+  float calculateAspectRatio();
 
   void updateCameraManipulator(Camera* cameraInfo);
 
@@ -178,6 +179,8 @@ class CameraManager {
   // Used with Camera Inertia / zoom
   filament::math::float3 currentVelocity_;
   filament::math::float2 initialTouchPosition_;
+
+  ViewTarget* m_poOwner;
 
   void endGesture();
   bool isOrbitGesture();
