@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "core/entity/model/model.h"
+#include "core/entity/derived/model/model.h"
 
-#include <core/components/collidable.h>
+#include <core/components/derived/collidable.h>
 
 #include <utility>
 

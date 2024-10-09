@@ -77,22 +77,22 @@ add_library(plugin_filament_view STATIC
 
         filament_scene.cc
         core/scene/scene_controller.cc
-        core/components/basetransform.cc
-        core/components/commonrenderable.cc
-        core/components/collidable.cc
-        core/entity/model/animation/animation.cc
-        core/entity/model/animation/animation_manager.cc
+        core/components/derived/basetransform.cc
+        core/components/derived/commonrenderable.cc
+        core/components/derived/collidable.cc
+        core/entity/derived/model/animation/animation.cc
+        core/entity/derived/model/animation/animation_manager.cc
         core/systems/base/ecsystem.cc
         core/systems/ecsystems_manager.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc
-        core/entity/model/model.cc
+        core/entity/derived/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc
-        core/entity/entityobject.cc
+        core/entity/base/entityobject.cc
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
         core/systems/derived/collision_system.cc
@@ -113,10 +113,10 @@ add_library(plugin_filament_view STATIC
         core/scene/skybox/skybox.cc
         core/systems/derived/skybox_system.cc
         core/scene/scene.cc
-        core/entity/shapes/baseshape.cc
-        core/entity/shapes/cube.cc
-        core/entity/shapes/sphere.cc
-        core/entity/shapes/plane.cc
+        core/entity/derived/shapes/baseshape.cc
+        core/entity/derived/shapes/cube.cc
+        core/entity/derived/shapes/sphere.cc
+        core/entity/derived/shapes/plane.cc
         core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
         core/scene/view_target.cc

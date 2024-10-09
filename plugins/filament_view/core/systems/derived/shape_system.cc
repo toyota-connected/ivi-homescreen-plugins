@@ -19,10 +19,10 @@
 #include <core/systems/ecsystems_manager.h>
 #include <filament/Engine.h>
 
-#include "core/entity/shapes/baseshape.h"
-#include "core/entity/shapes/cube.h"
-#include "core/entity/shapes/plane.h"
-#include "core/entity/shapes/sphere.h"
+#include "core/entity/derived/shapes/baseshape.h"
+#include "core/entity/derived/shapes/cube.h"
+#include "core/entity/derived/shapes/plane.h"
+#include "core/entity/derived/shapes/sphere.h"
 #include "filament_system.h"
 
 #include "plugins/common/common.h"

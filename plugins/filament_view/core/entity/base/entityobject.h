@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "core/components/component.h"
+#include "core/components/base/component.h"
 
 namespace plugin_filament_view {
 

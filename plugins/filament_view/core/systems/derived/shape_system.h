@@ -21,7 +21,7 @@
 #include <core/systems/base/ecsystem.h>
 #include <list>
 
-#include "core/entity/shapes/baseshape.h"
+#include "core/entity/derived/shapes/baseshape.h"
 #include "core/systems/derived/material_system.h"
 
 namespace plugin_filament_view {

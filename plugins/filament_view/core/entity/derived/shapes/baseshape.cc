@@ -16,7 +16,7 @@
 
 #include "baseshape.h"
 
-#include <core/components/collidable.h>
+#include <core/components/derived/collidable.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <filament/RenderableManager.h>

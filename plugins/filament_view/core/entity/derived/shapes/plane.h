@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/entity/shapes/baseshape.h"
+#include "core/entity/derived/shapes/baseshape.h"
 
 namespace plugin_filament_view {
 
@@ -26,16 +26,16 @@ using ::utils::Entity;
 
 namespace shapes {
 
-class Cube : public BaseShape {
+class Plane : public BaseShape {
  public:
-  Cube(const std::string& flutter_assets_path,
-       const flutter::EncodableMap& params);
-  Cube() = default;
-  ~Cube() override = default;
+  Plane(const std::string& flutter_assets_path,
+        const flutter::EncodableMap& params);
+  Plane() = default;
+  ~Plane() override = default;
 
   // Disallow copy and assign.
-  Cube(const Cube&) = delete;
-  Cube& operator=(const Cube&) = delete;
+  Plane(const Plane&) = delete;
+  Plane& operator=(const Plane&) = delete;
 
   void DebugPrint(const char* tag) const override;
 
@@ -43,9 +43,9 @@ class Cube : public BaseShape {
                            std::shared_ptr<Entity> entityObject) override;
 
  private:
-  void createDoubleSidedCube(::filament::Engine* engine_);
+  void createDoubleSidedPlane(::filament::Engine* engine_);
 
-  void createSingleSidedCube(::filament::Engine* engine_);
+  void createSingleSidedPlane(::filament::Engine* engine_);
 };
 
 }  // namespace shapes

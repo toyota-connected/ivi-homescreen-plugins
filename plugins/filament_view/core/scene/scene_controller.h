@@ -20,9 +20,9 @@
 #include <gltfio/AssetLoader.h>
 #include <gltfio/ResourceLoader.h>
 
-#include "core/entity/model/animation/animation_manager.h"
-#include "core/entity/model/model.h"
-#include "core/entity/shapes/baseshape.h"
+#include "core/entity/derived/model/animation/animation_manager.h"
+#include "core/entity/derived/model/model.h"
+#include "core/entity/derived/shapes/baseshape.h"
 #include "core/include/resource.h"
 #include "core/scene/view_target.h"
 #include "core/systems/derived/material_system.h"

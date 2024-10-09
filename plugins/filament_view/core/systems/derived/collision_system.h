@@ -20,9 +20,9 @@
 #include <core/systems/base/ecsystem.h>
 #include <list>
 
-#include "core/components/basetransform.h"
-#include "core/components/collidable.h"
-#include "core/entity/shapes/baseshape.h"
+#include "core/components/derived/basetransform.h"
+#include "core/components/derived/collidable.h"
+#include "core/entity/derived/shapes/baseshape.h"
 #include "flutter_desktop_plugin_registrar.h"
 
 namespace plugin_filament_view {

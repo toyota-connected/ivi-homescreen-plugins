@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <core/components/commonrenderable.h>
+#include <core/components/derived/commonrenderable.h>
 #include <string>
 
 #include <gltfio/FilamentAsset.h>
-#include "core/components/basetransform.h"
-#include "core/entity/model/animation/animation.h"
+#include "core/components/derived/basetransform.h"
+#include "core/entity/derived/model/animation/animation.h"
 
-#include "core/entity/entityobject.h"
+#include "core/entity/base/entityobject.h"
 
 namespace plugin_filament_view {
 

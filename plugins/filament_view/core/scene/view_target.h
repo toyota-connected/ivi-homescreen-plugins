@@ -34,8 +34,7 @@
 #include "core/scene/camera/camera_manager.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "platform_views/platform_view.h"
-// TODO Move
-#include "viewer/settings.h"
+#include "core/include/settings.h"
 
 namespace plugin_filament_view {
 
@@ -66,8 +65,6 @@ class ViewTarget {
 
   filament::gltfio::FilamentAsset* getAsset() { return asset_; }
 
-  static bool getActualSize() { return actualSize; }
-
   void setInitialized() {
     if (initialized_)
       return;
@@ -85,10 +82,6 @@ class ViewTarget {
   void InitializeFilamentInternals(uint32_t width, uint32_t height);
 
  private:
-  static constexpr bool actualSize = false;
-  static constexpr bool originIsFarAway = false;
-  static constexpr float originDistance = 1.0f;
-
   void setupWaylandSubsurface();
 
   [[maybe_unused]] FlutterDesktopEngineState* state_;

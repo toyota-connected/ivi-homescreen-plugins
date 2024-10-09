@@ -15,7 +15,7 @@
  */
 #include "model_system.h"
 
-#include <core/components/collidable.h>
+#include <core/components/derived/collidable.h>
 #include <core/systems/ecsystems_manager.h>
 #include <curl_client/curl_client.h>
 #include <filament/filament/RenderableManager.h>

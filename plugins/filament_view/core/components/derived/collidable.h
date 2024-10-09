@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include "component.h"
+#include "core/components/base/component.h"
 #include "core/include/shapetypes.h"
 #include "core/scene/geometry/ray.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"

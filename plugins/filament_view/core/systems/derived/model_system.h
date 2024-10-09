@@ -23,9 +23,9 @@
 #include <future>
 #include <list>
 
-#include "core/entity/model/model.h"
+#include "core/entity/derived/model/model.h"
 #include "core/include/resource.h"
-#include "viewer/settings.h"
+#include "core/include/settings.h"
 
 #include "core/systems/base/ecsystem.h"
 

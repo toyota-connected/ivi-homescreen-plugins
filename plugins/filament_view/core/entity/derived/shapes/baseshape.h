@@ -26,12 +26,12 @@
 #include "core/scene/geometry/direction.h"
 #include "core/scene/material/material_definitions.h"
 
-#include "core/components/basetransform.h"
-#include "core/components/commonrenderable.h"
+#include "core/components/derived/basetransform.h"
+#include "core/components/derived/commonrenderable.h"
 
 #include "core/include/shapetypes.h"
 
-#include "core/entity/entityobject.h"
+#include "core/entity/base/entityobject.h"
 
 #include <filament/IndexBuffer.h>
 #include <filament/VertexBuffer.h>
