@@ -49,7 +49,7 @@ class IndirectLightSystem : public ECSystem {
       std::string url,
       double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromHdrAsset(
+  static std::future<Resource<std::string_view>> setIndirectLightFromHdrAsset(
       std::string path,
       double intensity);
 
@@ -57,11 +57,11 @@ class IndirectLightSystem : public ECSystem {
       std::string url,
       double intensity);
 
-  Resource<std::string_view> loadIndirectLightHdrFromFile(
+  static Resource<std::string_view> loadIndirectLightHdrFromFile(
       const std::string& asset_path,
       double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLight(
+  static std::future<Resource<std::string_view>> setIndirectLight(
       DefaultIndirectLight* indirectLight);
 
   // Disallow copy and assign.

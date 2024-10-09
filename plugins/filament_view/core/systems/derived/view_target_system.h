@@ -49,7 +49,8 @@ class ViewTargetSystem : public ECSystem {
   void vSetupViewTargetFromDesktopState(int32_t top,
                                         int32_t left,
                                         FlutterDesktopEngineState* state);
-  void vInitializeFilamentInternalsWithViewTargets(uint32_t width[], uint32_t height[]);
+  void vInitializeFilamentInternalsWithViewTargets(uint32_t width[],
+                                                   uint32_t height[]);
   void vKickOffFrameRenderingLoops();
   void vSetCameraManager(CameraManager* cameraManager);
   void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar);

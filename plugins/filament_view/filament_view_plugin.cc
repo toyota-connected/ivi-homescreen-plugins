@@ -21,11 +21,11 @@
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
+#include <core/systems/derived/model_system.h>
 #include <core/systems/derived/skybox_system.h>
 #include <core/systems/derived/view_target_system.h>
 #include <flutter/standard_message_codec.h>
 #include <asio/post.hpp>
-#include <core/systems/derived/model_system.h>
 
 #include "filament_scene.h"
 #include "messages.g.h"
@@ -52,7 +52,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     double width,
     double height,
     const std::vector<uint8_t>& params,
-    std::string assetDirectory,
+    const std::string& assetDirectory,
     FlutterDesktopEngineRef engine,
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
@@ -105,9 +105,10 @@ void FilamentViewPlugin::RegisterWithRegistrar(
         static_cast<int>(top), static_cast<int>(left), engine);
 
     // this binds to a filament view with the wayland surfaces created.
-  uint32_t widthArray[1] = {static_cast<uint32_t>(width)};
-  uint32_t heightArray[1] = {static_cast<uint32_t>(height)};
-    viewTargetSystem->vInitializeFilamentInternalsWithViewTargets(widthArray, heightArray);
+    uint32_t widthArray[1] = {static_cast<uint32_t>(width)};
+    uint32_t heightArray[1] = {static_cast<uint32_t>(height)};
+    viewTargetSystem->vInitializeFilamentInternalsWithViewTargets(widthArray,
+                                                                  heightArray);
 
     initPromise.set_value();
   });
@@ -140,7 +141,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
     auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
         ViewTargetSystem::StaticGetTypeID(),
-    "Filament ViewPlugin :: Second Lambda");
+        "Filament ViewPlugin :: Second Lambda");
     viewTargetSystem->vSetupMessageChannels(registrar);
 
     registrar->AddPlugin(std::move(plugin));
@@ -187,7 +188,7 @@ FilamentViewPlugin::FilamentViewPlugin(
     double width,
     double height,
     const std::vector<uint8_t>& params,
-    std::string assetDirectory,
+    const std::string& assetDirectory,
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context)
@@ -239,8 +240,7 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
 void FilamentViewPlugin::ToggleShapesInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  const auto sceneController = filamentScene_->getSceneController();
-  sceneController->vToggleAllShapesInScene(value);
+  SceneController::vToggleAllShapesInScene(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -354,11 +354,12 @@ void FilamentViewPlugin::ChangeToDefaultIndirectLight(
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
   if (plugin && plugin->filamentScene_) {
-    auto viewTargetSystem = ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-       ViewTargetSystem::StaticGetTypeID(),
-       "FilamentViewPlugin::on_resize");
+    auto viewTargetSystem =
+        ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+            ViewTargetSystem::StaticGetTypeID(),
+            "FilamentViewPlugin::on_resize");
 
-      viewTargetSystem->vResizeViewTarget(0, width, height);
+    viewTargetSystem->vResizeViewTarget(0, width, height);
   }
 }
 
@@ -376,11 +377,12 @@ void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
   if (plugin && plugin->filamentScene_) {
     auto sceneController = plugin->filamentScene_->getSceneController();
     if (sceneController) {
-        auto viewTargetSystem = ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-            ViewTargetSystem::StaticGetTypeID(),
-            "FilamentViewPlugin::on_resize");
+      auto viewTargetSystem =
+          ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+              ViewTargetSystem::StaticGetTypeID(),
+              "FilamentViewPlugin::on_resize");
 
-        viewTargetSystem->vSetViewTargetOffSet(0, left, top);
+      viewTargetSystem->vSetViewTargetOffSet(0, left, top);
     }
   }
 }

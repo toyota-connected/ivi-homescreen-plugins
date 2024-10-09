@@ -30,7 +30,7 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
     double width,
     double height,
     const std::vector<uint8_t>& params,
-    std::string assetDirectory,
+    const std::string& assetDirectory,
     FlutterDesktopEngineRef engine,
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
@@ -39,6 +39,6 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar),
       id, std::move(viewType), direction, top, left, width, height, params,
-      std::move(assetDirectory), engine, addListener, removeListener,
+      assetDirectory, engine, addListener, removeListener,
       platform_view_context);
 }

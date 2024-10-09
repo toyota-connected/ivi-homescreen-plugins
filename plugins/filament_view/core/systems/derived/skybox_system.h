@@ -29,39 +29,40 @@ class SkyboxSystem : public ECSystem {
 
   static std::future<void> Initialize();
 
-  void setDefaultSkybox();
+  static void setDefaultSkybox();
 
-  std::future<Resource<std::string_view>> setSkyboxFromHdrAsset(
+  static std::future<Resource<std::string_view>> setSkyboxFromHdrAsset(
       const std::string& path,
       bool showSun,
       bool shouldUpdateLight,
       float intensity);
 
-  std::future<Resource<std::string_view>> setSkyboxFromHdrUrl(
+  static std::future<Resource<std::string_view>> setSkyboxFromHdrUrl(
       const std::string& url,
       bool showSun,
       bool shouldUpdateLight,
       float intensity);
 
-  std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
+  static std::future<Resource<std::string_view>> setSkyboxFromKTXAsset(
       const std::string& path);
 
-  std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
+  static std::future<Resource<std::string_view>> setSkyboxFromKTXUrl(
       const std::string& url);
 
-  std::future<Resource<std::string_view>> setSkyboxFromColor(
+  static std::future<Resource<std::string_view>> setSkyboxFromColor(
       const std::string& color);
 
-  Resource<std::string_view> loadSkyboxFromHdrBuffer(
+  static Resource<std::string_view> loadSkyboxFromHdrBuffer(
       const std::vector<uint8_t>& buffer,
       bool showSun,
       bool shouldUpdateLight,
       float intensity);
 
-  Resource<std::string_view> loadSkyboxFromHdrFile(const std::string& assetPath,
-                                                   bool showSun,
-                                                   bool shouldUpdateLight,
-                                                   float intensity);
+  static Resource<std::string_view> loadSkyboxFromHdrFile(
+      const std::string& assetPath,
+      bool showSun,
+      bool shouldUpdateLight,
+      float intensity);
 
   void destroySkybox();
 

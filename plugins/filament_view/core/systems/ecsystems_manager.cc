@@ -144,12 +144,13 @@ std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
     // Note we should have a 'log once' base functionality in common
     // creating this inline for now.
     auto foundIter = m_mapOffThreadCallers.find(where);
-    if(foundIter ==  m_mapOffThreadCallers.end()) {
+    if (foundIter == m_mapOffThreadCallers.end()) {
       spdlog::info(
           "From {} "
           "You're calling to get a system from an off thread, undefined "
           "experience!"
-          " Use a message to do your work or grab the ecsystemmanager strand and "
+          " Use a message to do your work or grab the ecsystemmanager strand "
+          "and "
           "do your work.",
           where);
 

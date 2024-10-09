@@ -41,8 +41,9 @@ filament::View* ViewTargetSystem::getFilamentView(size_t nWhich) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(uint32_t width[]
-                                                                   , uint32_t height[]) {
+void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(
+    uint32_t width[],
+    uint32_t height[]) {
   int i = 0;
   for (auto& viewTarget : m_lstViewTargets) {
     viewTarget->InitializeFilamentInternals(width[i], height[i]);
@@ -81,15 +82,17 @@ void ViewTargetSystem::vSetupMessageChannels(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vResizeViewTarget(size_t nWhich, double width, double height) {
+void ViewTargetSystem::vResizeViewTarget(size_t nWhich,
+                                         double width,
+                                         double height) {
   m_lstViewTargets[nWhich]->resize(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetViewTargetOffSet(size_t nWhich, double left, double top) {
+void ViewTargetSystem::vSetViewTargetOffSet(size_t nWhich,
+                                            double left,
+                                            double top) {
   m_lstViewTargets[nWhich]->setOffset(left, top);
 }
-
-
 
 }  // namespace plugin_filament_view

@@ -49,7 +49,6 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
   auto future(promise->get_future());
 
   // Note: LightState to custom model viewer was done here.
-
   // todo copy values to internal var.
 
   if (!indirectLight) {
@@ -145,10 +144,11 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
                  .intensity(static_cast<float>(intensity))
                  .build(*engine);
 
-    auto prevIndirectLight = filamentSystem->getFilamentScene()->getIndirectLight();
-    if(prevIndirectLight) {
-        engine->destroy(prevIndirectLight);
-    }
+  auto prevIndirectLight =
+      filamentSystem->getFilamentScene()->getIndirectLight();
+  if (prevIndirectLight) {
+    engine->destroy(prevIndirectLight);
+  }
 
   filamentSystem->getFilamentScene()->setIndirectLight(ibl);
 
@@ -216,6 +216,17 @@ void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vShutdownSystem() {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "setIndirectLight");
+  const auto engine = filamentSystem->getFilamentEngine();
+
+  auto prevIndirectLight =
+      filamentSystem->getFilamentScene()->getIndirectLight();
+  if (prevIndirectLight) {
+    engine->destroy(prevIndirectLight);
+  }
+
   indirect_light_.reset();
 }
 

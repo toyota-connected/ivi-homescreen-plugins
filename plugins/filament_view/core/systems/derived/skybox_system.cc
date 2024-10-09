@@ -319,10 +319,10 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-        auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-        if(prevSkybox) {
-            engine->destroy(prevSkybox);
-        }
+      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+      if (prevSkybox) {
+        engine->destroy(prevSkybox);
+      }
 
       filamentSystem->getFilamentScene()->setSkybox(sky);
     }
@@ -377,10 +377,10 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-        auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-        if(prevSkybox) {
-            engine->destroy(prevSkybox);
-        }
+      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+      if (prevSkybox) {
+        engine->destroy(prevSkybox);
+      }
 
       filamentSystem->getFilamentScene()->setSkybox(sky);
     }
@@ -401,16 +401,17 @@ void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::vShutdownSystem() {
-    auto filamentSystem =
+  auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
-    const auto engine = filamentSystem->getFilamentEngine();
+  const auto engine = filamentSystem->getFilamentEngine();
 
-    auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-    if(prevSkybox) {
-        engine->destroy(prevSkybox);
-    }
+  auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
+  if (prevSkybox) {
+    engine->destroy(prevSkybox);
+  }
 }
+
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::DebugPrint() {
   spdlog::debug("{}::{}", __FILE__, __FUNCTION__);

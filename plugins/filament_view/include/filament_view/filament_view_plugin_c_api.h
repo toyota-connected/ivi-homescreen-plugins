@@ -35,7 +35,7 @@ FLUTTER_PLUGIN_EXPORT void FilamentViewPluginCApiRegisterWithRegistrar(
     double width,
     double height,
     const std::vector<uint8_t>& params,
-    std::string assetDirectory,
+    const std::string& assetDirectory,
     FlutterDesktopEngineRef engine,
     PlatformViewAddListener add_listener,
     PlatformViewRemoveListener remove_listener,

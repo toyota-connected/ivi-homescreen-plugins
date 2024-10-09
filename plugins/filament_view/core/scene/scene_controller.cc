@@ -92,7 +92,7 @@ void SceneController::setUpSkybox() {
           SkyboxSystem::StaticGetTypeID(), __FUNCTION__);
 
   if (!scene_->skybox_) {
-    skyboxSystem->setDefaultSkybox();
+    SkyboxSystem::setDefaultSkybox();
     // makeSurfaceViewTransparent();
   } else {
     auto skybox = scene_->skybox_.get();
@@ -101,27 +101,27 @@ void SceneController::setUpSkybox() {
       if (!hdr_skybox->assetPath_.empty()) {
         auto shouldUpdateLight =
             hdr_skybox->assetPath_ == scene_->indirect_light_->getAssetPath();
-        skyboxSystem->setSkyboxFromHdrAsset(
+        SkyboxSystem::setSkyboxFromHdrAsset(
             hdr_skybox->assetPath_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         auto shouldUpdateLight =
             hdr_skybox->url_ == scene_->indirect_light_->getUrl();
-        skyboxSystem->setSkyboxFromHdrUrl(
+        SkyboxSystem::setSkyboxFromHdrUrl(
             hdr_skybox->url_, hdr_skybox->showSun_, shouldUpdateLight,
             scene_->indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
       if (!kxt_skybox->assetPath_.empty()) {
-        skyboxSystem->setSkyboxFromKTXAsset(kxt_skybox->assetPath_);
+        SkyboxSystem::setSkyboxFromKTXAsset(kxt_skybox->assetPath_);
       } else if (!kxt_skybox->url_.empty()) {
-        skyboxSystem->setSkyboxFromKTXUrl(kxt_skybox->url_);
+        SkyboxSystem::setSkyboxFromKTXUrl(kxt_skybox->url_);
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
       auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
       if (!color_skybox->color_.empty()) {
-        skyboxSystem->setSkyboxFromColor(color_skybox->color_);
+        SkyboxSystem::setSkyboxFromColor(color_skybox->color_);
       }
     }
   }
@@ -173,7 +173,7 @@ void SceneController::ChangeIndirectLightProperties(int32_t intensity) {
       ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
           IndirectLightSystem::StaticGetTypeID(), __FUNCTION__);
 
-  indirectlightSystem->setIndirectLight(
+  IndirectLightSystem::setIndirectLight(
       dynamic_cast<DefaultIndirectLight*>(indirectLight));
 }
 
@@ -213,7 +213,7 @@ void SceneController::setUpIndirectLight() {
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      indirectlightSystem->setIndirectLight(
+      IndirectLightSystem::setIndirectLight(
           dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
       // Already called in the default constructor.
