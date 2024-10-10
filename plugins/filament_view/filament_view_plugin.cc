@@ -121,8 +121,6 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   // Safeguarded inside
   RunOnceCheckAndInitializeECSystems();
 
-  // Create a promise and future to synchronize initialization
-
   // Every time this method is called, we should create a new view target
   ECSMessage viewTargetCreationRequest;
   viewTargetCreationRequest.addData(ECSMessageType::ViewTargetCreateRequest,
@@ -139,12 +137,12 @@ void FilamentViewPlugin::RegisterWithRegistrar(
       static_cast<uint32_t>(height));
   ECSystemManager::GetInstance()->vRouteMessage(viewTargetCreationRequest);
 
-  std::promise<void> initPromise2;
-  std::future<void> initFuture2 = initPromise2.get_future();
+  std::promise<void> initPromise;
+  std::future<void> initFuture = initPromise.get_future();
 
-  // Safeguarded inside lambda
+  // Safeguarded to only be called once no matter how many times this method is called.
   if (postSetupDeserializer == nullptr) {
-    asio::post(strand, [=, &initPromise2]() mutable {
+    asio::post(strand, [=, &initPromise]() mutable {
       auto plugin = std::make_unique<FilamentViewPlugin>(
           id, std::move(viewType), direction, top, left, width, height, params,
           assetDirectory, addListener, removeListener, platform_view_context);
@@ -157,32 +155,26 @@ void FilamentViewPlugin::RegisterWithRegistrar(
       ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
       RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
 
-      // Set up collision system message channels if needed
-      auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(),
-          "Filament ViewPlugin :: Second Lambda");
-      if (collisionSystem != nullptr) {
-        collisionSystem->setupMessageChannels(registrar);
-      }
-
       registrar->AddPlugin(std::move(plugin));
 
       // making sure this is only called once!
       postSetupDeserializer->getSceneController()->vRunPostSetupLoad();
 
-      initPromise2.set_value();
+      initPromise.set_value();
     });
 
-    initFuture2.wait();
+    initFuture.wait();
   }
 
+  // Ok to be called infinite times.
   ECSMessage setupMessageChannels;
   setupMessageChannels.addData(ECSMessageType::SetupMessageChannels, registrar);
   ECSystemManager::GetInstance()->vRouteMessage(setupMessageChannels);
 
+  // Ok to be called infinite times.
   KickOffRenderingLoops();
 
-  spdlog::debug("Initialization completed");
+  SPDLOG_TRACE("Initialization completed");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

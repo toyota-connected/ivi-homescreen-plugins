@@ -319,6 +319,18 @@ void CollisionSystem::vInitSystem() {
 
         SendCollisionInformationCallback(hitList, requestor, type);
       });
+
+    vRegisterMessageHandler(
+    ECSMessageType::SetupMessageChannels, [this](const ECSMessage& msg) {
+      spdlog::debug("SetupMessageChannels");
+
+      auto registrar = msg.getData<flutter::PluginRegistrar*>(
+          ECSMessageType::SetupMessageChannels);
+
+      setupMessageChannels(registrar);
+
+      spdlog::debug("SetupMessageChannels Complete");
+    });
 }
 
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {}
