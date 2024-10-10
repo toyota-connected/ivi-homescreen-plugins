@@ -140,7 +140,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   std::promise<void> initPromise;
   std::future<void> initFuture = initPromise.get_future();
 
-  // Safeguarded to only be called once no matter how many times this method is called.
+  // Safeguarded to only be called once no matter how many times this method is
+  // called.
   if (postSetupDeserializer == nullptr) {
     asio::post(strand, [=, &initPromise]() mutable {
       auto plugin = std::make_unique<FilamentViewPlugin>(
