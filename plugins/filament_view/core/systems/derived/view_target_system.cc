@@ -21,13 +21,70 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vInitSystem() {}
+void ViewTargetSystem::vInitSystem() {
+  vRegisterMessageHandler(
+      ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
+        spdlog::debug("ViewTargetCreateRequest");
+
+        auto state = msg.getData<FlutterDesktopEngineState*>(
+            ECSMessageType::ViewTargetCreateRequest);
+        auto top = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
+        auto left =
+            msg.getData<int>(ECSMessageType::ViewTargetCreateRequestLeft);
+        auto width =
+            msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestWidth);
+        auto heigth = msg.getData<uint32_t>(
+            ECSMessageType::ViewTargetCreateRequestHeight);
+
+        auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
+        vInitializeFilamentInternalsWithViewTargets(nWhich, width, heigth);
+
+        if (m_poCamera != nullptr) {
+          vSetCameraFromSerializedData();
+        }
+
+        spdlog::debug("ViewTargetCreateRequest Complete");
+      });
+
+  vRegisterMessageHandler(
+      ECSMessageType::SetupMessageChannels, [this](const ECSMessage& msg) {
+        spdlog::debug("SetupMessageChannels");
+
+        auto registrar = msg.getData<flutter::PluginRegistrar*>(
+            ECSMessageType::SetupMessageChannels);
+        vSetupMessageChannels(registrar);
+
+        spdlog::debug("SetupMessageChannels Complete");
+      });
+
+  vRegisterMessageHandler(
+      ECSMessageType::ViewTargetStartRenderingLoops,
+      [this](const ECSMessage& msg) {
+        spdlog::debug("ViewTargetStartRenderingLoops");
+        vKickOffFrameRenderingLoops();
+        spdlog::debug("ViewTargetStartRenderingLoops Complete");
+      });
+
+  vRegisterMessageHandler(
+      ECSMessageType::SetCameraFromDeserializedLoad,
+      [this](const ECSMessage& msg) {
+        spdlog::debug("SetCameraFromDeserializedLoad");
+        m_poCamera =
+            msg.getData<Camera*>(ECSMessageType::SetCameraFromDeserializedLoad)
+                ->clone();
+        spdlog::debug("SetCameraFromDeserializedLoad Complete");
+
+        vSetCameraFromSerializedData();
+      });
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vShutdownSystem() {}
+void ViewTargetSystem::vShutdownSystem() {
+  m_poCamera.reset();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::DebugPrint() {}
@@ -42,13 +99,10 @@ filament::View* ViewTargetSystem::getFilamentView(size_t nWhich) const {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(
-    uint32_t width[],
-    uint32_t height[]) {
-  int i = 0;
-  for (auto& viewTarget : m_lstViewTargets) {
-    viewTarget->InitializeFilamentInternals(width[i], height[i]);
-    i++;
-  }
+    size_t nWhich,
+    uint32_t width,
+    uint32_t height) {
+  m_lstViewTargets[nWhich]->InitializeFilamentInternals(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -59,11 +113,14 @@ void ViewTargetSystem::vKickOffFrameRenderingLoops() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetCameraFromSerializedData(
-    std::unique_ptr<Camera> camera) {
-  // todo clone camera per view target (for now)
+void ViewTargetSystem::vSetCameraFromSerializedData() {
   for (auto& viewTarget : m_lstViewTargets) {
-    std::unique_ptr<Camera> clonedCamera = camera->clone();
+    // we might get request to add new view targets as they come online
+    // make sure we're not resetting older ones.
+    if (viewTarget->getCameraManager()->poGetPrimaryCamera() != nullptr)
+      continue;
+
+    std::unique_ptr<Camera> clonedCamera = m_poCamera->clone();
 
     viewTarget->vSetupCameraManagerWithDeserializedCamera(
         std::move(clonedCamera));
@@ -71,11 +128,12 @@ void ViewTargetSystem::vSetCameraFromSerializedData(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetupViewTargetFromDesktopState(
+size_t ViewTargetSystem::nSetupViewTargetFromDesktopState(
     int32_t top,
     int32_t left,
     FlutterDesktopEngineState* state) {
   m_lstViewTargets.emplace_back(std::make_unique<ViewTarget>(top, left, state));
+  return m_lstViewTargets.size() - 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

@@ -527,7 +527,8 @@ void CameraManager::onAction(int32_t action,
                              const double* point_data) {
   // We only care about updating the camera on action if we're set to use those
   // values.
-  if (primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures ||
+  if (primaryCamera_ == nullptr ||
+      primaryCamera_->eCustomCameraMode_ != Camera::InertiaAndGestures ||
       cameraManipulator_ == nullptr) {
     return;
   }

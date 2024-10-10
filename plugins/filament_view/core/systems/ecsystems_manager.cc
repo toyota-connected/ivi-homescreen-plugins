@@ -17,6 +17,7 @@ ECSystemManager* ECSystemManager::GetInstance() {
   return m_poInstance;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ECSystemManager::~ECSystemManager() {
   spdlog::debug("ECSystemManager~");
 }
@@ -25,7 +26,8 @@ ECSystemManager::~ECSystemManager() {
 ECSystemManager::ECSystemManager()
     : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
       work_(asio::make_work_guard(io_context_->get_executor())),
-      strand_(std::make_unique<asio::io_context::strand>(*io_context_)) {
+      strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
+      m_eCurrentState(RunState::NotInitialized) {
   vSetupThreadingInternals();
 }
 
@@ -62,6 +64,7 @@ void ECSystemManager::RunLoop() {
   // Initialize lastFrameTime to the current time
   auto lastFrameTime = std::chrono::steady_clock::now();
 
+  m_eCurrentState = RunState::Running;
   while (m_bIsRunning) {
     auto start = std::chrono::steady_clock::now();
 
@@ -94,6 +97,7 @@ void ECSystemManager::RunLoop() {
       std::this_thread::sleep_for(frameTime - elapsed);
     }
   }
+  m_eCurrentState = RunState::ShutdownStarted;
 
   m_bSpawnedThreadFinished = true;
 }
@@ -132,6 +136,9 @@ void ECSystemManager::vInitSystems() {
   for (const auto& system : m_vecSystems) {
     system->vInitSystem();
   }
+
+  m_eCurrentState = RunState::Initialized;
+
   //});
 }
 
@@ -213,6 +220,9 @@ void ECSystemManager::vShutdownSystems() {
     for (const auto& system : m_vecSystems) {
       system->vShutdownSystem();
     }
+
+    m_eCurrentState = RunState::Shutdown;
+    ;
   });
 }
 

@@ -46,13 +46,15 @@ class ViewTargetSystem : public ECSystem {
 
   [[nodiscard]] filament::View* getFilamentView(size_t nWhich) const;
 
-  void vSetupViewTargetFromDesktopState(int32_t top,
-                                        int32_t left,
-                                        FlutterDesktopEngineState* state);
-  void vInitializeFilamentInternalsWithViewTargets(uint32_t width[],
-                                                   uint32_t height[]);
+  // Returns the current iter that you put into the list.
+  size_t nSetupViewTargetFromDesktopState(int32_t top,
+                                          int32_t left,
+                                          FlutterDesktopEngineState* state);
+  void vInitializeFilamentInternalsWithViewTargets(size_t nWhich,
+                                                   uint32_t width,
+                                                   uint32_t height);
   void vKickOffFrameRenderingLoops();
-  void vSetCameraFromSerializedData(std::unique_ptr<Camera> camera);
+  void vSetCameraFromSerializedData();
   void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
   void vResizeViewTarget(size_t nWhich, double width, double height);
   void vSetViewTargetOffSet(size_t nWhich, double left, double top);
@@ -69,5 +71,7 @@ class ViewTargetSystem : public ECSystem {
 
  private:
   std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;
+
+  std::unique_ptr<Camera> m_poCamera;
 };
 }  // namespace plugin_filament_view

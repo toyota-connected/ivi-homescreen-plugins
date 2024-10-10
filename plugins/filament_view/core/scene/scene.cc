@@ -65,6 +65,7 @@ Scene::Scene(const std::string& flutter_assets_path,
 
 Scene::~Scene() {
   SPDLOG_TRACE("Scene::~Scene()");
+  camera_.reset();
 }
 
 void Scene::Print(const char* tag) const {

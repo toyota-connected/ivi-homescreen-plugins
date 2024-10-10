@@ -39,43 +39,19 @@ class Display;
 
 namespace plugin_filament_view {
 
-FilamentScene* postSetupDeserializer;
+FilamentScene* postSetupDeserializer = nullptr;
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void FilamentViewPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar* registrar,
-    int32_t id,
-    std::string viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
-    const std::vector<uint8_t>& params,
-    const std::string& assetDirectory,
-    FlutterDesktopEngineRef engine,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
-    void* platform_view_context) {
-  pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
-
-  // Create the ECSystemManager instance
+void RunOnceCheckAndInitializeECSystems() {
   auto ecsManager = ECSystemManager::GetInstance();
-  ecsManager->setConfigValue(kAssetPath, assetDirectory);
+
+  if (ecsManager->getRunState() != ECSystemManager::RunState::NotInitialized) {
+    return;
+  }
 
   // Get the strand from the ECSystemManager
   const auto& strand = *ecsManager->GetStrand();
 
-  /*bool bDebugAttached = false;
-  int i = 0;
-  while (!bDebugAttached) {
-    int breakhere = 0;
-    if (i++ == 100000000) {
-      bDebugAttached = true;
-    }
-  }*/
-
-  // Create a promise and future to synchronize initialization
   std::promise<void> initPromise;
   std::future<void> initFuture = initPromise.get_future();
 
@@ -95,85 +71,116 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
     ecsManager->vInitSystems();
 
-    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
-        ViewTargetSystem::StaticGetTypeID(),
-        "FilamenViewPlugin :: First Lambda");
-
-    // TODO, this needs to change to how many we have to initialize.
-    // This setups wayland subsurfaces.
-    viewTargetSystem->vSetupViewTargetFromDesktopState(
-        static_cast<int>(top), static_cast<int>(left), engine);
-
-    // this binds to a filament view with the wayland surfaces created.
-    uint32_t widthArray[1] = {static_cast<uint32_t>(width)};
-    uint32_t heightArray[1] = {static_cast<uint32_t>(height)};
-    viewTargetSystem->vInitializeFilamentInternalsWithViewTargets(widthArray,
-                                                                  heightArray);
-
     initPromise.set_value();
   });
 
   initFuture.wait();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void KickOffRenderingLoops() {
+  ECSMessage viewTargetStartRendering;
+  viewTargetStartRendering.addData(
+      ECSMessageType::ViewTargetStartRenderingLoops, true);
+  ECSystemManager::GetInstance()->vRouteMessage(viewTargetStartRendering);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::RegisterWithRegistrar(
+    flutter::PluginRegistrar* registrar,
+    int32_t id,
+    std::string viewType,
+    int32_t direction,
+    double top,
+    double left,
+    double width,
+    double height,
+    const std::vector<uint8_t>& params,
+    const std::string& assetDirectory,
+    FlutterDesktopEngineRef engine,
+    PlatformViewAddListener addListener,
+    PlatformViewRemoveListener removeListener,
+    void* platform_view_context) {
+  pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
+
+  auto ecsManager = ECSystemManager::GetInstance();
+  ecsManager->setConfigValue(kAssetPath, assetDirectory);
+
+  // Get the strand from the ECSystemManager
+  const auto& strand = *ecsManager->GetStrand();
+
+  /*bool bDebugAttached = false;
+  int i = 0;
+  while (!bDebugAttached) {
+    int breakhere = 0;
+    if (i++ == 10000000000) {
+      bDebugAttached = true;
+    }
+  }*/
+
+  // Safeguarded inside
+  RunOnceCheckAndInitializeECSystems();
+
+  // Create a promise and future to synchronize initialization
+
+  // Every time this method is called, we should create a new view target
+  ECSMessage viewTargetCreationRequest;
+  viewTargetCreationRequest.addData(ECSMessageType::ViewTargetCreateRequest,
+                                    engine);
+  viewTargetCreationRequest.addData(ECSMessageType::ViewTargetCreateRequestTop,
+                                    static_cast<int>(top));
+  viewTargetCreationRequest.addData(ECSMessageType::ViewTargetCreateRequestLeft,
+                                    static_cast<int>(left));
+  viewTargetCreationRequest.addData(
+      ECSMessageType::ViewTargetCreateRequestWidth,
+      static_cast<uint32_t>(width));
+  viewTargetCreationRequest.addData(
+      ECSMessageType::ViewTargetCreateRequestHeight,
+      static_cast<uint32_t>(height));
+  ECSystemManager::GetInstance()->vRouteMessage(viewTargetCreationRequest);
 
   std::promise<void> initPromise2;
   std::future<void> initFuture2 = initPromise2.get_future();
 
-  asio::post(strand, [=, &initPromise2]() mutable {
-    auto plugin = std::make_unique<FilamentViewPlugin>(
-        id, std::move(viewType), direction, top, left, width, height, params,
-        assetDirectory, addListener, removeListener, platform_view_context);
+  // Safeguarded inside lambda
+  if (postSetupDeserializer == nullptr) {
+    asio::post(strand, [=, &initPromise2]() mutable {
+      auto plugin = std::make_unique<FilamentViewPlugin>(
+          id, std::move(viewType), direction, top, left, width, height, params,
+          assetDirectory, addListener, removeListener, platform_view_context);
 
-    // Set up message channels and APIs
-    // TODO all these API's are not needed.
-    FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
-    ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
-    SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-    ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-    RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+      // Set up message channels and APIs
+      // TODO all these API's are not needed.
+      FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
+      ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+      SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+      ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+      RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
 
-    // Set up collision system message channels if needed
-    auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
-        CollisionSystem::StaticGetTypeID(),
-        "Filament ViewPlugin :: Second Lambda");
-    if (collisionSystem != nullptr) {
-      collisionSystem->setupMessageChannels(registrar);
-    }
+      // Set up collision system message channels if needed
+      auto collisionSystem = ecsManager->poGetSystemAs<CollisionSystem>(
+          CollisionSystem::StaticGetTypeID(),
+          "Filament ViewPlugin :: Second Lambda");
+      if (collisionSystem != nullptr) {
+        collisionSystem->setupMessageChannels(registrar);
+      }
 
-    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
-        ViewTargetSystem::StaticGetTypeID(),
-        "Filament ViewPlugin :: Second Lambda");
-    viewTargetSystem->vSetupMessageChannels(registrar);
+      registrar->AddPlugin(std::move(plugin));
 
-    registrar->AddPlugin(std::move(plugin));
+      // making sure this is only called once!
+      postSetupDeserializer->getSceneController()->vRunPostSetupLoad();
 
-    // Signal that initialization is complete
-    initPromise2.set_value();
-  });
+      initPromise2.set_value();
+    });
 
-  // Wait for the initialization to complete
-  initFuture2.wait();
+    initFuture2.wait();
+  }
 
-  // This should eventually get moved to a system loading process.
-  std::promise<void> initPromise3;
-  std::future<void> initFuture3 = initPromise3.get_future();
+  ECSMessage setupMessageChannels;
+  setupMessageChannels.addData(ECSMessageType::SetupMessageChannels, registrar);
+  ECSystemManager::GetInstance()->vRouteMessage(setupMessageChannels);
 
-  asio::post(strand, [=, &initPromise3]() mutable {
-    // This is really a deserialize type routine.
-    postSetupDeserializer->getSceneController()->vRunPostSetupLoad();
-
-    auto viewTargetSystem = ecsManager->poGetSystemAs<ViewTargetSystem>(
-        ViewTargetSystem::StaticGetTypeID(),
-        "Filament ViewPlugin :: third Lambda");
-
-    viewTargetSystem->vKickOffFrameRenderingLoops();
-
-    initPromise3.set_value();
-  });
-
-  initFuture3.wait();
-
-  ecsManager->DebugPrint();
-  ecsManager->StartRunLoop();
+  KickOffRenderingLoops();
 
   spdlog::debug("Initialization completed");
 }

@@ -54,11 +54,10 @@ void SceneController::vRunPostSetupLoad() {
   setUpIndirectLight();
   setUpShapes(shapes_.get());
 
-  auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
-
-  viewTargetSystem->vSetCameraFromSerializedData(std::move(scene_->camera_));
+  ECSMessage viewTargetCameraSet;
+  viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad,
+                              scene_->camera_.get());
+  ECSystemManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
 }
 
 SceneController::~SceneController() {

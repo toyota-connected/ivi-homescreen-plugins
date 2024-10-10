@@ -14,6 +14,15 @@ namespace plugin_filament_view {
 
 class ECSystemManager {
  public:
+  enum RunState {
+    NotInitialized,
+    Initialized,
+    Running,
+    ShutdownStarted,
+    Shutdown
+  };
+  RunState getRunState() const { return m_eCurrentState; }
+
   static ECSystemManager* GetInstance();
 
   ECSystemManager(const ECSystemManager&) = delete;
@@ -129,5 +138,7 @@ class ECSystemManager {
   std::map<std::string, std::any> m_mapConfigurationValues;
 
   std::map<std::string, int> m_mapOffThreadCallers;
+
+  RunState m_eCurrentState;
 };
 }  // namespace plugin_filament_view
