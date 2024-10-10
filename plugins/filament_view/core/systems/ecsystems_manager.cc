@@ -131,7 +131,7 @@ void ECSystemManager::vInitSystems() {
   // Note this is currently expected to be called from within
   // an already asio post, Leaving this commented out so you know
   // that you could change up the routine, but if you do
-  // it need sto ru non the main thread.
+  // it needs to run on the main thread.
   // asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
   for (const auto& system : m_vecSystems) {
     system->vInitSystem();

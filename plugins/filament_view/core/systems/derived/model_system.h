@@ -99,7 +99,7 @@ class ModelSystem : public ECSystem {
 
   // This is a reusable list of renderables for popping off
   // async load.
-  // NOTE If you change this size; the async update loop on teh system count
+  // NOTE If you change this size; the async update loop on the system count
   // needs to change.
   utils::Entity readyRenderables_[128];
 
