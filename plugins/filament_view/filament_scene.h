@@ -28,11 +28,11 @@
 
 namespace plugin_filament_view {
 
+// This should probably be renamed to a 'deserializer' something
+// that's all it currently does.
 class FilamentScene {
  public:
-  FilamentScene(PlatformView* platformView,
-                FlutterDesktopEngineState* state,
-                int32_t id,
+  FilamentScene(int32_t id,
                 const std::vector<uint8_t>& params,
                 const std::string& flutterAssetsPath);
 

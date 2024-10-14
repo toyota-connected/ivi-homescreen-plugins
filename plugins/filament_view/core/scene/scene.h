@@ -27,17 +27,12 @@
 namespace plugin_filament_view {
 
 class Camera;
-
-class CustomModelViewer;
-
 class IndirectLight;
-
 class Light;
-
 class SceneController;
-
 class SkyBox;
 
+// This is marked for cleanup.
 class Scene {
  public:
   Scene(const std::string& flutter_assets_path,
@@ -53,8 +48,6 @@ class Scene {
   Scene& operator=(const Scene&) = delete;
 
   friend class SceneController;
-
-  friend class CustomModelViewer;
 
  private:
   const std::string& flutterAssetsPath_;

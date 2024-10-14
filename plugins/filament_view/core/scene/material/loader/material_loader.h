@@ -3,13 +3,11 @@
 
 #include <future>
 
+#include <core/include/resource.h>
+#include <filament/Material.h>
 #include <asio/io_context_strand.hpp>
 
-#include "viewer/custom_model_viewer.h"
-
 namespace plugin_filament_view {
-
-class CustomModelViewer;
 
 class MaterialLoader {
  public:

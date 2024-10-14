@@ -31,10 +31,26 @@ class Exposure {
 
   void Print(const char* tag);
 
-  // Disallow copy and assign.
-  Exposure(const Exposure&) = delete;
+  Exposure(const Exposure& other)
+      : aperture_(other.aperture_),
+        shutterSpeed_(other.shutterSpeed_),
+        sensitivity_(other.sensitivity_),
+        exposure_(other.exposure_) {}
 
-  Exposure& operator=(const Exposure&) = delete;
+  Exposure& operator=(const Exposure& other) {
+    if (this == &other) {
+      return *this;
+    }
+    aperture_ = other.aperture_;
+    shutterSpeed_ = other.shutterSpeed_;
+    sensitivity_ = other.sensitivity_;
+    exposure_ = other.exposure_;
+    return *this;
+  }
+
+  [[nodiscard]] std::unique_ptr<Exposure> clone() const {
+    return std::make_unique<Exposure>(*this);  // Calls the copy constructor
+  }
 
   friend class CameraManager;
 

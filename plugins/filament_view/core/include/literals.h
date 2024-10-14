@@ -125,4 +125,7 @@ static constexpr char kCamera_Pan_angleCapY[] = "pan_angleCapY";
 static constexpr char kCamera_Zoom_minCap[] = "zoom_minCap";
 static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
 
+// Configuration values stored in ecsystems_manager for easier lookup
+static constexpr char kAssetPath[] = "assetPath";
+
 }  // namespace plugin_filament_view

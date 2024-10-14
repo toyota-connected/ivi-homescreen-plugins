@@ -35,10 +35,40 @@ class Projection {
 
   void Print(const char* tag);
 
-  // Disallow copy and assign.
-  Projection(const Projection&) = delete;
+  Projection(const Projection& other)  // NOLINT
+      : projection_(other.projection_),
+        left_(other.left_),
+        right_(other.right_),
+        bottom_(other.bottom_),
+        top_(other.top_),
+        near_(other.near_),
+        far_(other.far_),
+        fovInDegrees_(other.fovInDegrees_),
+        aspect_(other.aspect_),
+        fovDirection_(other.fovDirection_) {}
 
-  Projection& operator=(const Projection&) = delete;
+  // Implement the assignment operator for deep copy.
+  Projection& operator=(const Projection& other) {
+    if (this == &other) {
+      return *this;  // Handle self-assignment.
+    }
+    projection_ = other.projection_;
+    left_ = other.left_;
+    right_ = other.right_;
+    bottom_ = other.bottom_;
+    top_ = other.top_;
+    near_ = other.near_;
+    far_ = other.far_;
+    fovInDegrees_ = other.fovInDegrees_;
+    aspect_ = other.aspect_;
+    fovDirection_ = other.fovDirection_;
+    return *this;
+  }
+
+  // Add a clone method for creating a deep copy.
+  [[nodiscard]] std::unique_ptr<Projection> clone() const {
+    return std::make_unique<Projection>(*this);  // Calls the copy constructor
+  }
 
   static const char* getTextForType(::filament::Camera::Projection type);
 

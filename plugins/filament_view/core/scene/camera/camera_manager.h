@@ -29,21 +29,22 @@
 #include "core/scene/camera/exposure.h"
 #include "core/scene/camera/lens_projection.h"
 #include "core/scene/camera/projection.h"
+#include "core/scene/view_target.h"
 #include "touch_pair.h"
-#include "viewer/custom_model_viewer.h"
 
 namespace plugin_filament_view {
 
 using CameraManipulator = ::filament::camutils::Manipulator<float>;
 
 class Camera;
-class CustomModelViewer;
 class Exposure;
 class Projection;
+class ViewTarget;
 
+// CameraManager is a per 'view target' system
 class CameraManager {
  public:
-  explicit CameraManager();
+  explicit CameraManager(ViewTarget* poOwner);
 
   void setDefaultCamera();
 
@@ -60,7 +61,7 @@ class CameraManager {
                 size_t point_data_size,
                 const double* point_data);
 
-  static float calculateAspectRatio();
+  float calculateAspectRatio();
 
   void updateCameraManipulator(Camera* cameraInfo);
 
@@ -71,7 +72,7 @@ class CameraManager {
 
   void updateCameraOnResize(uint32_t width, uint32_t height);
 
-  std::future<Resource<std::string_view>> updateCamera(Camera* cameraInfo);
+  void updateCamera(Camera* cameraInfo);
 
   std::string updateExposure(Exposure* exposure);
 
@@ -178,6 +179,8 @@ class CameraManager {
   // Used with Camera Inertia / zoom
   filament::math::float3 currentVelocity_;
   filament::math::float2 initialTouchPosition_;
+
+  ViewTarget* m_poOwner;
 
   void endGesture();
   bool isOrbitGesture();

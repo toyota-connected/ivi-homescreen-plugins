@@ -23,7 +23,7 @@
 #include <memory>
 
 #include <gltfio/FilamentAsset.h>
-#include "core/components/basetransform.h"
+#include "core/components/derived/basetransform.h"
 
 namespace plugin_filament_view {
 

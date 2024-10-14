@@ -25,9 +25,7 @@
 
 namespace plugin_filament_view {
 
-FilamentScene::FilamentScene(PlatformView* platformView,
-                             FlutterDesktopEngineState* state,
-                             int32_t id,
+FilamentScene::FilamentScene(int32_t id,
                              const std::vector<uint8_t>& params,
                              const std::string& flutterAssetsPath) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
@@ -113,7 +111,7 @@ FilamentScene::FilamentScene(PlatformView* platformView,
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeManager::poDeserializeShapeFromData(
+        auto shape = ShapeSystem::poDeserializeShapeFromData(
             flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
 
         shapes->emplace_back(shape.release());
@@ -124,11 +122,10 @@ FilamentScene::FilamentScene(PlatformView* platformView,
                                                            it.second);
     }
   }
-  sceneController_ = std::make_unique<SceneController>(
-      platformView, state, flutterAssetsPath, models_.get(), scene_.get(),
-      shapes.get(), id);
 
-  SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
+  // platformView, state,
+  sceneController_ = std::make_unique<SceneController>(
+      std::move(models_), scene_.get(), std::move(shapes), id);
 }
 
 FilamentScene::~FilamentScene() {

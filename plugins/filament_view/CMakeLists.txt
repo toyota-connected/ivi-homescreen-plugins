@@ -77,46 +77,50 @@ add_library(plugin_filament_view STATIC
 
         filament_scene.cc
         core/scene/scene_controller.cc
-        core/components/basetransform.cc
-        core/components/commonrenderable.cc
-        core/components/collidable.cc
-        core/entity/model/animation/animation.cc
-        core/entity/model/animation/animation_manager.cc
-        core/systems/model_manager.cc
-        core/entity/model/model.cc
+        core/components/derived/basetransform.cc
+        core/components/derived/commonrenderable.cc
+        core/components/derived/collidable.cc
+        core/entity/derived/model/animation/animation.cc
+        core/entity/derived/model/animation/animation_manager.cc
+        core/systems/base/ecsystem.cc
+        core/systems/ecsystems_manager.cc
+        core/systems/derived/filament_system.cc
+        core/systems/derived/model_system.cc
+        core/entity/derived/model/model.cc
         core/scene/camera/camera.cc
         core/scene/camera/camera_manager.cc
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc
-        core/entity/entityobject.cc
+        core/entity/base/entityobject.cc
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
-        core/systems/collision_manager.cc
-        core/systems/debug_lines_manager.cc
+        core/systems/derived/collision_system.cc
+        core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
-        core/scene/indirect_light/indirect_light_manager.cc
+        core/systems/derived/indirect_light_system.cc
         core/utils/entitytransforms.cc
         core/utils/hdr_loader.cc
         core/scene/light/light.cc
-        core/scene/light/light_manager.cc
+        core/systems/derived/light_system.cc
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
-        core/scene/material/material_manager.cc
+        core/systems/derived/material_system.cc
         core/scene/material/material_definitions.cc
         core/scene/material/material_parameter.cc
         core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc
         core/scene/skybox/skybox.cc
-        core/scene/skybox/skybox_manager.cc
+        core/systems/derived/skybox_system.cc
         core/scene/scene.cc
-        core/entity/shapes/baseshape.cc
-        core/entity/shapes/cube.cc
-        core/entity/shapes/sphere.cc
-        core/entity/shapes/plane.cc
-        core/systems/shape_manager.cc
+        core/entity/derived/shapes/baseshape.cc
+        core/entity/derived/shapes/cube.cc
+        core/entity/derived/shapes/sphere.cc
+        core/entity/derived/shapes/plane.cc
+        core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
-        viewer/custom_model_viewer.cc
+        core/scene/view_target.cc
+        core/systems/derived/view_target_system.cc
 )
 
 target_include_directories(plugin_filament_view PUBLIC
