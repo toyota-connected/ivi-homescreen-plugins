@@ -16,10 +16,9 @@
 
 #pragma once
 
-#include <core/include/resource.h>
 #include <future>
-
-#include "core/systems/base/ecsystem.h"
+#include <core/include/resource.h>
+#include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {
 

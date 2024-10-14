@@ -16,12 +16,11 @@
 
 #pragma once
 
-#include <optional>
-
-#include <filament/Camera.h>
-
-#include "core/scene/camera/camera_manager.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+
+#include <optional>
+#include <filament/Camera.h>
+#include <core/scene/camera/camera_manager.h>
 
 namespace plugin_filament_view {
 

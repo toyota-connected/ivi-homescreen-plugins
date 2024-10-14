@@ -16,16 +16,14 @@
 
 #pragma once
 
+#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
-
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include "core/entity/derived/model/model.h"
-#include "core/scene/geometry/position.h"
-#include "math/vec3.h"
+#include <core/entity/derived/model/model.h>
+#include <math/vec3.h>
 
 namespace plugin_filament_view {
 

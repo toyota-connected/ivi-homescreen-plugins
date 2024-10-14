@@ -16,12 +16,12 @@
 
 #include "filament_scene.h"
 
+#include <core/scene/scene_controller.h>
 #include <core/utils/deserialize.h>
+#include <plugins/common/common.h>
 
 #include "shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 
-#include "core/scene/scene_controller.h"
-#include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 

@@ -16,12 +16,9 @@
 
 #pragma once
 
-#include "core/scene/scene_controller.h"
-#include "core/scene/view_target.h"
+#include <core/scene/scene_controller.h>
 
 namespace plugin_filament_view {
-
-class AnimationManager;
 
 class AnimationManager {
  public:

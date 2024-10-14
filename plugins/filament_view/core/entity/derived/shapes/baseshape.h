@@ -16,25 +16,17 @@
 
 #pragma once
 
-#include <core/scene/material/material_definitions.h>
-#include <core/systems/derived/material_system.h>
-#include <filament/math/quat.h>
-#include <utils/EntityManager.h>
-
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/scene/geometry/direction.h"
-#include "core/scene/material/material_definitions.h"
-
-#include "core/components/derived/basetransform.h"
-#include "core/components/derived/commonrenderable.h"
-
-#include "core/include/shapetypes.h"
-
-#include "core/entity/base/entityobject.h"
-
+#include <core/components/derived/basetransform.h>
+#include <core/components/derived/commonrenderable.h>
+#include <core/entity/base/entityobject.h>
+#include <core/include/shapetypes.h>
+#include <core/scene/geometry/direction.h>
+#include <core/systems/derived/material_system.h>
 #include <filament/IndexBuffer.h>
 #include <filament/VertexBuffer.h>
+#include <utils/EntityManager.h>
 
 namespace plugin_filament_view {
 

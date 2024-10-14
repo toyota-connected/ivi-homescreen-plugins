@@ -17,17 +17,16 @@
 #include "baseshape.h"
 
 #include <core/components/derived/collidable.h>
-#include <core/systems/derived/filament_system.h>
+#include <core/include/literals.h>
 #include <core/systems/ecsystems_manager.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/utils/deserialize.h>
+#include <core/utils/entitytransforms.h>
 #include <filament/RenderableManager.h>
+#include <filament/Scene.h>
 #include <math/norm.h>
 #include <math/vec3.h>
-
-#include "core/include/literals.h"
-#include "core/utils/deserialize.h"
-#include "plugins/common/common.h"
-
-#include "core/utils/entitytransforms.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view::shapes {
 

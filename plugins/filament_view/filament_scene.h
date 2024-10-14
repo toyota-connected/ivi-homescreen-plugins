@@ -18,13 +18,9 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <asio/io_context.hpp>
+#include <core/scene/scene_controller.h>
 #include <filament/Engine.h>
-#include <gltfio/AssetLoader.h>
-#include "asio/io_context.hpp"
-
-#include "core/scene/scene_controller.h"
-#include "flutter_desktop_engine_state.h"
-#include "platform_views/platform_view.h"
 
 namespace plugin_filament_view {
 

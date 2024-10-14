@@ -17,8 +17,6 @@
 
 #include <math/vec4.h>
 
-#include "plugins/common/common.h"
-
 namespace plugin_filament_view {
 using Color = ::filament::math::float4;
 

@@ -18,10 +18,6 @@
 
 #include <math/vec3.h>
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include <optional>
-
 namespace plugin_filament_view {
 
 typedef ::filament::math::float3 Direction;

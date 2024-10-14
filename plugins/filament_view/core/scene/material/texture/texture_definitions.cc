@@ -17,8 +17,7 @@
 #include "texture_definitions.h"
 
 #include <optional>
-
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

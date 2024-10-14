@@ -15,11 +15,11 @@
  */
 
 #include "texture_sampler.h"
-
 #include "enums/mag_filter.h"
 #include "enums/min_filter.h"
 #include "enums/wrap_mode.h"
-#include "plugins/common/common.h"
+
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

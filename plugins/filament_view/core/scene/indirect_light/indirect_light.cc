@@ -16,15 +16,9 @@
 
 #include "indirect_light.h"
 
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
-
-class DefaultIndirectLight;
-
-class KtxIndirectLight;
-
-class HdrIndirectLight;
 
 IndirectLight::IndirectLight(std::string assetPath,
                              std::string url,

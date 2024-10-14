@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
+
 #ifndef VIEWER_SETTINGS_H
 #define VIEWER_SETTINGS_H
 
@@ -39,7 +41,6 @@ namespace filament {
 using namespace color;
 
 class Skybox;
-
 class Renderer;
 
 namespace viewer {

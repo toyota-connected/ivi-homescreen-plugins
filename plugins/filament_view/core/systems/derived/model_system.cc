@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 #include "model_system.h"
+#include "collision_system.h"
+#include "filament_system.h"
 
+#include <algorithm>  // for max
+#include <sstream>
+#include <asio/post.hpp>
 #include <core/components/derived/collidable.h>
+#include <core/include/file_utils.h>
 #include <core/systems/ecsystems_manager.h>
+#include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
 #include <filament/filament/RenderableManager.h>
 #include <filament/filament/TransformManager.h>
 #include <filament/gltfio/ResourceLoader.h>
 #include <filament/gltfio/TextureProvider.h>
+#include <filament/gltfio/materials/uberarchive.h>
 #include <filament/utils/Slice.h>
-#include <algorithm>  // for max
-#include <asio/post.hpp>
-#include <sstream>
-
-#include "collision_system.h"
-#include "core/include/file_utils.h"
-#include "core/utils/entitytransforms.h"
-#include "filament/gltfio/materials/uberarchive.h"
-#include "filament_system.h"
 
 namespace plugin_filament_view {
 

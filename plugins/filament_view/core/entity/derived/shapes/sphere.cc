@@ -22,9 +22,8 @@
 #include <math/norm.h>
 #include <math/vec3.h>
 #include <vector>
-
-#include "core/utils/deserialize.h"
-#include "plugins/common/common.h"
+#include <core/utils/deserialize.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view::shapes {
 

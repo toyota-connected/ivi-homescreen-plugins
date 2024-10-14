@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include <memory>
-
+#include "texture_sampler.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "texture_sampler.h"
+#include <memory>
+
 
 namespace plugin_filament_view {
 class TextureDefinitions {

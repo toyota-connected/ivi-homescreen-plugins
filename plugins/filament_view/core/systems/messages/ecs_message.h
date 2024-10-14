@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 #pragma once
+
+#include "ecs_message_types.h"
+
 #include <any>
 #include <iostream>
 #include <stdexcept>
 #include <typeinfo>
 #include <unordered_map>
-
-#include "ecs_message_types.h"
 
 namespace plugin_filament_view {
 

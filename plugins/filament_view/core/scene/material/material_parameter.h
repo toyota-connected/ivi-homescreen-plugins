@@ -16,13 +16,14 @@
 
 #pragma once
 
+#include "texture/texture_definitions.h"
+#include "texture/texture_sampler.h"
+
 #include <math/vec4.h>
 #include <memory>
 
 #include <flutter/encodable_value.h>
 
-#include "texture/texture_definitions.h"
-#include "texture/texture_sampler.h"
 
 namespace plugin_filament_view {
 
