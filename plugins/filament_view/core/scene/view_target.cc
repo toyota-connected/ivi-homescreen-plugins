@@ -55,7 +55,8 @@ ViewTarget::ViewTarget(int32_t left,
       top_(top),
       callback_(nullptr),
       fanimator_(nullptr),
-      cameraManager_(nullptr) {
+      cameraManager_(nullptr),
+      m_LastTime(0) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 }
@@ -247,9 +248,6 @@ void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
   cameraManager_->setPrimaryCamera(std::move(camera));
 }
 
-// todo , change to member function and nonstatic
-static uint32_t G_LastTime = 0;
-
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
@@ -288,8 +286,8 @@ void ViewTarget::DrawFrame(uint32_t time) {
       doCameraFeatures(0);
     }
 
-    if (G_LastTime == 0) {
-      G_LastTime = time;
+    if (m_LastTime == 0) {
+      m_LastTime = time;
     }
 
     // Frames from Native to dart, currently run in order of
@@ -303,7 +301,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
 
     SendFrameViewCallback(
         kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
-                                      flutter::EncodableValue(G_LastTime))});
+                                      flutter::EncodableValue(m_LastTime))});
 
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -316,7 +314,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
       // render)
       //
       // Future tasking for making a more featured timing / frame info class.
-      uint32_t deltaTimeMS = time - G_LastTime;
+      uint32_t deltaTimeMS = time - m_LastTime;
       float timeSinceLastRenderedSec =
           static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
       if (timeSinceLastRenderedSec == 0.0f) {
@@ -349,7 +347,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
            std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
     }
 
-    G_LastTime = time;
+    m_LastTime = time;
   });
 }
 

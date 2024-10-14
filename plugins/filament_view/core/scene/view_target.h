@@ -138,6 +138,8 @@ class ViewTarget {
   // class similar to unitys, elapsedtime/total time etc.
   void doCameraFeatures(float fDeltaTime);
 
+  uint32_t m_LastTime = 0;
+
   std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
 };
 

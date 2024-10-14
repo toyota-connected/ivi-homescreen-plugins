@@ -59,7 +59,7 @@ void ViewTargetSystem::vInitSystem() {
 
   vRegisterMessageHandler(
       ECSMessageType::ViewTargetStartRenderingLoops,
-      [this](const ECSMessage& msg) {
+      [this](const ECSMessage& /*msg*/) {
         spdlog::debug("ViewTargetStartRenderingLoops");
         vKickOffFrameRenderingLoops();
         spdlog::debug("ViewTargetStartRenderingLoops Complete");
