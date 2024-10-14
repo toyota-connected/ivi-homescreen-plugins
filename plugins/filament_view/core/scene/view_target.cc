@@ -97,7 +97,7 @@ ViewTarget::~ViewTarget() {
 void ViewTarget::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
   auto channel_name = std::string("plugin.filament_view.frame_view");
-  if(frameViewCallback_ != nullptr) {
+  if (frameViewCallback_ != nullptr) {
     return;
   }
 
