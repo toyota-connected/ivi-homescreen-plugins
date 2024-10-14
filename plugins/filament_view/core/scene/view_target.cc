@@ -96,6 +96,9 @@ ViewTarget::~ViewTarget() {
 void ViewTarget::setupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
   auto channel_name = std::string("plugin.filament_view.frame_view");
+  if(frameViewCallback_ != nullptr) {
+    return;
+  }
 
   frameViewCallback_ = std::make_unique<flutter::MethodChannel<>>(
       plugin_registrar->messenger(), channel_name,
