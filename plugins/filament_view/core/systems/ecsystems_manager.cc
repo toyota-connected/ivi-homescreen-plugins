@@ -217,8 +217,12 @@ void ECSystemManager::DebugPrint() {
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vShutdownSystems() {
   asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
-    for (const auto& system : m_vecSystems) {
-      system->vShutdownSystem();
+    // we shutdown in reverse, until we have a 'system dependency tree' type of
+    // view, filament system (which is always the first system, needs to be
+    // shutdown last as its 'engine' varible is used in destruction for other
+    // systems
+    for (auto it = m_vecSystems.rbegin(); it != m_vecSystems.rend(); ++it) {
+      (*it)->vShutdownSystem();
     }
 
     m_eCurrentState = RunState::Shutdown;
