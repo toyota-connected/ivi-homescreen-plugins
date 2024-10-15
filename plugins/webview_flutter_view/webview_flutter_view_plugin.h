@@ -22,6 +22,7 @@
 
 #include "messages.g.h"
 
+#include <capi/cef_app_capi.h>
 #include <cef_app.h>
 #include <cef_client.h>
 #include <cef_render_handler.h>
@@ -153,9 +154,9 @@ class WebviewFlutterPlugin final : public flutter::Plugin,
   ~WebviewFlutterPlugin() override;
 
  private:
-  CefRefPtr<CefBrowser> browser_;
-  CefRefPtr<BrowserClient> browserClient_;
-  std::unique_ptr<RenderHandler> renderHandler_;
+  _cef_browser_t* browser_;
+  _cef_client_t* browserClient_;
+  std::unique_ptr<_cef_render_handler_t> renderHandler_;
 
  public:
   std::optional<FlutterError> Clear() override;
