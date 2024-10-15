@@ -16,16 +16,16 @@
 
 #include "indirect_light_system.h"
 
-#include <filesystem>
-#include <memory>
-#include <utility>
-#include <asio/post.hpp>
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <core/utils/hdr_loader.h>
 #include <filament/Texture.h>
 #include <plugins/common/common.h>
+#include <asio/post.hpp>
+#include <filesystem>
+#include <memory>
+#include <utility>
 
 namespace plugin_filament_view {
 

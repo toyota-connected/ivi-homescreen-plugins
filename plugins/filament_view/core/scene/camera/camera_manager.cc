@@ -18,15 +18,15 @@
 #include "touch_pair.h"
 
 #include <core/include/additionalmath.h>
-#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/view_target_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <core/utils/entitytransforms.h>
-#include <filament/math/mat4.h>
-#include <filament/math/TMatHelpers.h>
-#include <filament/math/vec4.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
+#include <filament/math/TMatHelpers.h>
+#include <filament/math/mat4.h>
+#include <filament/math/vec4.h>
 #include <plugins/common/common.h>
 
 #define USING_CAM_MANIPULATOR 0

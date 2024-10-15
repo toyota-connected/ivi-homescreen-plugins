@@ -16,10 +16,10 @@
 
 #include "camera.h"
 
-#include <memory>
 #include <core/include/literals.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
+#include <memory>
 
 namespace plugin_filament_view {
 Camera::Camera(const flutter::EncodableMap& params)
