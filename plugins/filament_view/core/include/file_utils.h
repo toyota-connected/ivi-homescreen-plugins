@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include <plugins/common/common.h>
 #include <filesystem>
 #include <fstream>
 #include <optional>
 #include <vector>
-#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

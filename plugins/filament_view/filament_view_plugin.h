@@ -20,9 +20,9 @@
 #include <memory>
 
 #include <filament_scene.h>
+#include <flutter/plugin_registrar.h>
 #include <flutter_homescreen.h>
 #include <messages.g.h>
-#include <flutter/plugin_registrar.h>
 #include <platform_views/platform_view.h>
 #include <wayland/display.h>
 

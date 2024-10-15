@@ -19,8 +19,8 @@
 #include <future>
 
 #include <core/include/resource.h>
-#include <core/scene/view_target.h>
 #include <core/scene/light/light.h>
+#include <core/scene/view_target.h>
 #include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {

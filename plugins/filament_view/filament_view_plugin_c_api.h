@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #ifndef FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 #define FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 
-#include <flutter_plugin_registrar.h>
 #include <flutter_homescreen.h>
+#include <flutter_plugin_registrar.h>
 #include <platform_views/platform_view_listener.h>
 
 #include <string>
