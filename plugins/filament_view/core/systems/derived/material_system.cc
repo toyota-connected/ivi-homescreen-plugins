@@ -172,25 +172,24 @@ void MaterialSystem::vInitSystem() {}
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+  const auto engine = filamentSystem->getFilamentEngine();
 
-    auto filamentSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-              FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
-    const auto engine = filamentSystem->getFilamentEngine();
+  for (auto iterMat : loadedTemplateMaterials_) {
+    engine->destroy(*iterMat.second.getData());
+  }
 
-    for (auto iterMat : loadedTemplateMaterials_) {
-        engine->destroy(*iterMat.second.getData());
-    }
+  for (auto iterTexture : loadedTextures_) {
+    engine->destroy(*iterTexture.second.getData());
+  }
 
-    for (auto iterTexture : loadedTextures_) {
-        engine->destroy(*iterTexture.second.getData());
-    }
+  loadedTemplateMaterials_.clear();
+  loadedTextures_.clear();
 
-    loadedTemplateMaterials_.clear();
-    loadedTextures_.clear();
-
-    materialLoader_.reset();
-    textureLoader_.reset();
+  materialLoader_.reset();
+  textureLoader_.reset();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
