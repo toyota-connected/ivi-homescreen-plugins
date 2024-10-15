@@ -22,8 +22,8 @@
 #include <utils/Entity.h>
 #include <memory>
 
-#include <gltfio/FilamentAsset.h>
 #include <core/components/derived/basetransform.h>
+#include <gltfio/FilamentAsset.h>
 
 namespace plugin_filament_view {
 

@@ -16,13 +16,13 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-#include <string>
 #include <core/scene/material/loader/material_loader.h>
 #include <core/scene/material/loader/texture_loader.h>
 #include <core/systems/base/ecsystem.h>
 #include <filament/MaterialInstance.h>
+#include <map>
+#include <memory>
+#include <string>
 
 namespace plugin_filament_view {
 

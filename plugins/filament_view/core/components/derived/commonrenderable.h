@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 #include <core/components/base/component.h>
+#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 namespace plugin_filament_view {
 

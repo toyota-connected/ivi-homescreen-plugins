@@ -15,8 +15,6 @@
  */
 #pragma once
 
-#include <future>
-#include <asio/io_context_strand.hpp>
 #include <core/entity/derived/model/model.h>
 #include <core/include/resource.h>
 #include <core/include/settings.h>
@@ -24,6 +22,8 @@
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
+#include <asio/io_context_strand.hpp>
+#include <future>
 
 namespace plugin_filament_view {
 

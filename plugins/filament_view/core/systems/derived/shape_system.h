@@ -18,10 +18,10 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <list>
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/systems/base/ecsystem.h>
 #include <core/systems/derived/material_system.h>
+#include <list>
 
 namespace plugin_filament_view {
 

@@ -20,7 +20,7 @@
 #include <sstream>
 
 namespace plugin_filament_view {
-  inline std::string generateUUID() {
+inline std::string generateUUID() {
   std::random_device rd;
   std::uniform_int_distribution<int> dist(0, 15);
   std::uniform_int_distribution<int> dist2(8, 11);
