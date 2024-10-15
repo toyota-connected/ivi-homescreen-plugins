@@ -134,7 +134,19 @@ void ShapeSystem::addShapesToScene(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vInitSystem() {}
+void ShapeSystem::vInitSystem() {
+  vRegisterMessageHandler(
+      ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
+        spdlog::debug("ToggleShapesInScene");
+
+        auto value = msg.getData<bool>(
+            ECSMessageType::ToggleShapesInScene);
+
+        vToggleAllShapesInScene(value);
+
+        spdlog::debug("ToggleShapesInScene Complete");
+      });
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}

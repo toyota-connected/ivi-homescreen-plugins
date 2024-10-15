@@ -306,6 +306,7 @@ void CollisionSystem::SendCollisionInformationCallback(
                            flutter::EncodableValue(encodableMap)));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
@@ -331,10 +332,29 @@ void CollisionSystem::vInitSystem() {
 
         spdlog::debug("SetupMessageChannels Complete");
       });
+
+    vRegisterMessageHandler(
+      ECSMessageType::ToggleDebugCollidableViewsInScene, [this](const ECSMessage& msg) {
+        spdlog::debug("ToggleDebugCollidableViewsInScene");
+
+        auto value = msg.getData<bool>(
+            ECSMessageType::ToggleDebugCollidableViewsInScene);
+
+          if (!value) {
+            vTurnOffRenderingOfCollidables();
+          } else {
+            vTurnOnRenderingOfCollidables();
+          }
+
+        spdlog::debug("ToggleDebugCollidableViewsInScene Complete");
+      });
+
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vShutdownSystem() {}
 
 }  // namespace plugin_filament_view

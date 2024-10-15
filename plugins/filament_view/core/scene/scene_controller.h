@@ -65,8 +65,6 @@ class SceneController {
 
   void ChangeIndirectLightProperties(int32_t intensity);
 
-  static void vToggleAllShapesInScene(bool bValue);
-
   void vRunPostSetupLoad();
 
  private:

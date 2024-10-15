@@ -240,28 +240,18 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
 void FilamentViewPlugin::ToggleShapesInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  SceneController::vToggleAllShapesInScene(value);
+    ECSMessage toggleMessage;
+    toggleMessage.addData(ECSMessageType::ToggleShapesInScene, value);
+    ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(),
-          "ToggleDebugCollidableViewsInScene");
-  if (collisionSystem == nullptr) {
-    spdlog::warn("Unable to toggle collision on/off, system is null");
-    return;
-  }
-
-  // Note this can probably become a message in the future, backlogged.
-  if (!value) {
-    collisionSystem->vTurnOffRenderingOfCollidables();
-  } else {
-    collisionSystem->vTurnOnRenderingOfCollidables();
-  }
+    ECSMessage toggleMessage;
+    toggleMessage.addData(ECSMessageType::ToggleDebugCollidableViewsInScene, value);
+    ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
