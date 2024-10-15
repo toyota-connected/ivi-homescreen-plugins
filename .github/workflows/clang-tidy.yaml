@@ -193,7 +193,7 @@ jobs:
       - name: clang-tidy
         working-directory: ${{github.workspace}}
         run: |
-          export FILE_LIST=$(find plugins -name '*.cc' -o -name '*.hpp' -o -name '*.h')
+          export FILE_LIST=$(find plugins -type d -name third_party -prune -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -print)
           echo $FILE_LIST
           clang18/bin/clang-tidy --warnings-as-errors='*,-bugprone-macro-parentheses' --quiet --export-fixes=tidy-results-suggested-fixes.txt $FILE_LIST 2> tidy-results-log.txt
 
