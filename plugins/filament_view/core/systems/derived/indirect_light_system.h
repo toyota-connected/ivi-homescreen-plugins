@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,10 @@
 
 #pragma once
 
-#include <filament/Engine.h>
-#include <filament/IndirectLight.h>
-#include <filament/LightManager.h>
-
-#include "core/scene/geometry/direction.h"
-#include "core/scene/geometry/position.h"
-#include "core/scene/indirect_light/indirect_light.h"
-#include "core/scene/view_target.h"
-#include "core/systems/base/ecsystem.h"
-#include "core/utils/ibl_profiler.h"
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+#include <core/scene/indirect_light/indirect_light.h>
+#include <core/scene/view_target.h>
+#include <core/systems/base/ecsystem.h>
+#include <core/utils/ibl_profiler.h>
 
 namespace plugin_filament_view {
 

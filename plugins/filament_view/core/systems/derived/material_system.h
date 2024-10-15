@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,11 @@
 
 #include <map>
 #include <memory>
-#include <mutex>
 #include <string>
-
+#include <core/scene/material/loader/material_loader.h>
+#include <core/scene/material/loader/texture_loader.h>
+#include <core/systems/base/ecsystem.h>
 #include <filament/MaterialInstance.h>
-
-#include "core/scene/material/loader/material_loader.h"
-#include "core/scene/material/loader/texture_loader.h"
-#include "core/systems/base/ecsystem.h"
 
 namespace plugin_filament_view {
 

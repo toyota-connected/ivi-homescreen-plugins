@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 #pragma once
 
-#include <core/include/resource.h>
 #include <future>
-
-#include "core/systems/base/ecsystem.h"
+#include <core/include/resource.h>
+#include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {
 

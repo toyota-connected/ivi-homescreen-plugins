@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 #pragma once
 
-#include <filament/LightManager.h>
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/scene/geometry/direction.h"
+#include <filament/LightManager.h>
 
 namespace plugin_filament_view {
 class Light {

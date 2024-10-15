@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,17 @@
 #pragma once
 
 #include "camera.h"
+#include "touch_pair.h"
 
 #include <camutils/Manipulator.h>
+#include <core/include/resource.h>
+#include <core/scene/view_target.h>
+#include <core/scene/camera/exposure.h>
+#include <core/scene/camera/lens_projection.h>
+#include <core/scene/camera/projection.h>
 #include <core/scene/geometry/ray.h>
 #include <filament/Camera.h>
-#include <filament/View.h>
-#include <filament/Viewport.h>
 #include <utils/EntityManager.h>
-
-#include "core/include/resource.h"
-#include "core/scene/camera/exposure.h"
-#include "core/scene/camera/lens_projection.h"
-#include "core/scene/camera/projection.h"
-#include "core/scene/view_target.h"
-#include "touch_pair.h"
 
 namespace plugin_filament_view {
 

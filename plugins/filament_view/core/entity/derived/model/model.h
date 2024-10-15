@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 #pragma once
 
-#include <core/components/derived/commonrenderable.h>
 #include <string>
-
+#include <core/components/derived/basetransform.h>
+#include <core/components/derived/commonrenderable.h>
+#include <core/entity/base/entityobject.h>
+#include <core/entity/derived/model/animation/animation.h>
 #include <gltfio/FilamentAsset.h>
-#include "core/components/derived/basetransform.h"
-#include "core/entity/derived/model/animation/animation.h"
-
-#include "core/entity/base/entityobject.h"
 
 namespace plugin_filament_view {
 

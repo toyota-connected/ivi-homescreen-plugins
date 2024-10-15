@@ -15,16 +15,10 @@
  */
 #pragma once
 
-#include "core/scene/view_target.h"
-
 #include <future>
-
 #include <filament/Texture.h>
-#include <image/LinearImage.h>
-
-#include <asio/io_context_strand.hpp>
-
-#include "core/scene/material/texture/texture_definitions.h"
+#include <core/include/resource.h>
+#include <core/scene/material/texture/texture_definitions.h>
 
 namespace plugin_filament_view {
 

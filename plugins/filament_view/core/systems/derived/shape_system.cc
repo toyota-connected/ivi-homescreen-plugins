@@ -15,17 +15,16 @@
  */
 
 #include "shape_system.h"
-
-#include <core/systems/ecsystems_manager.h>
-#include <filament/Engine.h>
-
-#include "core/entity/derived/shapes/baseshape.h"
-#include "core/entity/derived/shapes/cube.h"
-#include "core/entity/derived/shapes/plane.h"
-#include "core/entity/derived/shapes/sphere.h"
 #include "filament_system.h"
 
-#include "plugins/common/common.h"
+#include <core/entity/derived/shapes/baseshape.h>
+#include <core/entity/derived/shapes/cube.h>
+#include <core/entity/derived/shapes/plane.h>
+#include <core/entity/derived/shapes/sphere.h>
+#include <core/systems/ecsystems_manager.h>
+#include <filament/Engine.h>
+#include <filament/Scene.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
@@ -134,7 +133,18 @@ void ShapeSystem::addShapesToScene(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vInitSystem() {}
+void ShapeSystem::vInitSystem() {
+  vRegisterMessageHandler(
+      ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
+        spdlog::debug("ToggleShapesInScene");
+
+        auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
+
+        vToggleAllShapesInScene(value);
+
+        spdlog::debug("ToggleShapesInScene Complete");
+      });
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}

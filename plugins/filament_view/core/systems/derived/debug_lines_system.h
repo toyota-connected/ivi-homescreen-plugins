@@ -16,13 +16,13 @@
 
 #pragma once
 
+#include <list>
+#include <vector>
 #include <core/systems/base/ecsystem.h>
 #include <filament/Box.h>
 #include <filament/Engine.h>
 #include <math/vec3.h>
 #include <utils/EntityManager.h>
-#include <list>
-#include <vector>
 
 using ::utils::Entity;
 

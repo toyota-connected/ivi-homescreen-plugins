@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 #include "filament_view_plugin.h"
 
+#include <filament_scene.h>
+#include <messages.g.h>
+#include <asio/post.hpp>
+#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/debug_lines_system.h>
 #include <core/systems/derived/filament_system.h>
@@ -24,14 +28,8 @@
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/skybox_system.h>
 #include <core/systems/derived/view_target_system.h>
-#include <flutter/standard_message_codec.h>
-#include <asio/post.hpp>
+#include <plugins/common/common.h>
 
-#include "filament_scene.h"
-#include "messages.g.h"
-#include "plugins/common/common.h"
-
-#include "core/systems/ecsystems_manager.h"
 
 class FlutterView;
 
@@ -240,28 +238,19 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
 void FilamentViewPlugin::ToggleShapesInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  SceneController::vToggleAllShapesInScene(value);
+  ECSMessage toggleMessage;
+  toggleMessage.addData(ECSMessageType::ToggleShapesInScene, value);
+  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(),
-          "ToggleDebugCollidableViewsInScene");
-  if (collisionSystem == nullptr) {
-    spdlog::warn("Unable to toggle collision on/off, system is null");
-    return;
-  }
-
-  // Note this can probably become a message in the future, backlogged.
-  if (!value) {
-    collisionSystem->vTurnOffRenderingOfCollidables();
-  } else {
-    collisionSystem->vTurnOnRenderingOfCollidables();
-  }
+  ECSMessage toggleMessage;
+  toggleMessage.addData(ECSMessageType::ToggleDebugCollidableViewsInScene,
+                        value);
+  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

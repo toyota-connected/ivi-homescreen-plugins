@@ -15,10 +15,11 @@
  */
 #pragma once
 
-#include "core/components/base/component.h"
-#include "core/include/shapetypes.h"
-#include "core/scene/geometry/ray.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+
+#include <core/components/base/component.h>
+#include <core/include/shapetypes.h>
+#include <core/scene/geometry/ray.h>
 
 namespace plugin_filament_view {
 

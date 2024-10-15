@@ -17,8 +17,7 @@
 #pragma once
 
 #include <core/systems/base/ecsystem.h>
-#include <filament/Engine.h>
-#include "core/utils/ibl_profiler.h"
+#include <core/utils/ibl_profiler.h>
 
 namespace plugin_filament_view {
 

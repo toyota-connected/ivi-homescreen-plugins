@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,24 @@
 
 #pragma once
 
-#include <filament/Engine.h>
-#include <gltfio/AssetLoader.h>
-#include <gltfio/ResourceLoader.h>
-
-#include "core/entity/derived/model/animation/animation_manager.h"
-#include "core/entity/derived/model/model.h"
-#include "core/entity/derived/shapes/baseshape.h"
-#include "core/include/resource.h"
-#include "core/scene/view_target.h"
-#include "core/systems/derived/material_system.h"
-#include "core/systems/derived/shape_system.h"
-#include "core/utils/ibl_profiler.h"
-#include "flutter_desktop_engine_state.h"
-#include "platform_views/platform_view.h"
 #include "scene.h"
+
+#include <core/entity/derived/model/animation/animation_manager.h>
+#include <core/entity/derived/model/model.h>
+#include <core/entity/derived/shapes/baseshape.h>
+#include <core/systems/derived/shape_system.h>
+#include <flutter_desktop_engine_state.h>
 
 namespace plugin_filament_view {
 
 class Model;
 class Scene;
-class Animation;
 class AnimationManager;
-class CameraManager;
-class GroundManager;
 class ShapeSystem;
 
 namespace shapes {
 class BaseShape;
 }
-
-class IBLProfiler;
 
 // This is marked for cleanup.
 class SceneController {
@@ -64,8 +51,6 @@ class SceneController {
                              int32_t intensity);
 
   void ChangeIndirectLightProperties(int32_t intensity);
-
-  static void vToggleAllShapesInScene(bool bValue);
 
   void vRunPostSetupLoad();
 

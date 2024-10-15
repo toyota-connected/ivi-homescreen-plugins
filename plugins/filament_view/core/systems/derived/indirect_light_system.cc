@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,14 @@
 
 #include <filesystem>
 #include <memory>
-
-#include <core/include/literals.h>
-#include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
-#include <filament/Texture.h>
-#include <asio/post.hpp>
 #include <utility>
-
-#include "core/utils/hdr_loader.h"
-#include "plugins/common/common.h"
+#include <asio/post.hpp>
+#include <core/include/literals.h>
+#include <core/systems/ecsystems_manager.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/utils/hdr_loader.h>
+#include <filament/Texture.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

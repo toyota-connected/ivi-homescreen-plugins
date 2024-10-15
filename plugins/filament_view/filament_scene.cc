@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 #include "filament_scene.h"
 
+#include <core/scene/scene_controller.h>
 #include <core/utils/deserialize.h>
+#include <plugins/common/common.h>
 
 #include "shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 
-#include "core/scene/scene_controller.h"
-#include "plugins/common/common.h"
 
 namespace plugin_filament_view {
 

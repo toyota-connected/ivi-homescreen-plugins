@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 #include "light_system.h"
 
-#include <core/systems/derived/filament_system.h>
+#include <asio/post.hpp>
+#include <core/include/color.h>
 #include <core/systems/ecsystems_manager.h>
-
-#include "core/include/color.h"
-
+#include <core/systems/derived/filament_system.h>
 #include <filament/Color.h>
 #include <filament/LightManager.h>
-
-#include "asio/post.hpp"
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

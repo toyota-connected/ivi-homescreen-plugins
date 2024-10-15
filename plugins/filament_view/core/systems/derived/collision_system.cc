@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 #include "collision_system.h"
+#include "filament_system.h"
 
 #include <core/entity/derived/model/model.h>
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/ecsystems_manager.h>
-
-#include "filament_system.h"
-#include "plugins/common/common.h"
+#include <filament/Scene.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
@@ -306,6 +306,7 @@ void CollisionSystem::SendCollisionInformationCallback(
                            flutter::EncodableValue(encodableMap)));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
@@ -331,10 +332,29 @@ void CollisionSystem::vInitSystem() {
 
         spdlog::debug("SetupMessageChannels Complete");
       });
+
+  vRegisterMessageHandler(
+      ECSMessageType::ToggleDebugCollidableViewsInScene,
+      [this](const ECSMessage& msg) {
+        spdlog::debug("ToggleDebugCollidableViewsInScene");
+
+        auto value = msg.getData<bool>(
+            ECSMessageType::ToggleDebugCollidableViewsInScene);
+
+        if (!value) {
+          vTurnOffRenderingOfCollidables();
+        } else {
+          vTurnOnRenderingOfCollidables();
+        }
+
+        spdlog::debug("ToggleDebugCollidableViewsInScene Complete");
+      });
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vShutdownSystem() {}
 
 }  // namespace plugin_filament_view

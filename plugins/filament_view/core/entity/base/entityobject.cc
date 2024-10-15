@@ -16,9 +16,9 @@
 #include "entityobject.h"
 
 #include <utility>
-#include "core/include/literals.h"
-#include "core/utils/uuidGenerator.h"
-#include "plugins/common/common.h"
+#include <core/include/literals.h>
+#include <core/utils/uuidGenerator.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/scene/camera/camera.h"
-#include "core/scene/indirect_light/indirect_light.h"
-#include "core/scene/light/light.h"
-#include "core/scene/scene_controller.h"
-#include "core/scene/skybox/skybox.h"
+#include <core/scene/camera/camera.h>
+#include <core/scene/indirect_light/indirect_light.h>
+#include <core/scene/light/light.h>
+#include <core/scene/skybox/skybox.h>
 
 namespace plugin_filament_view {
 

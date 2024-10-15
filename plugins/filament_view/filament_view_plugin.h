@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#pragma once
 #ifndef FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_H_
 #define FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_H_
 
 #include <memory>
 
-#include <flutter/event_channel.h>
-#include <flutter/method_channel.h>
+#include <filament_scene.h>
+#include <flutter_homescreen.h>
+#include <messages.g.h>
 #include <flutter/plugin_registrar.h>
-#include <wayland-client.h>
-
-#include "filament_scene.h"
-#include "flutter_desktop_engine_state.h"
-#include "flutter_homescreen.h"
-#include "messages.g.h"
-#include "platform_views/platform_view.h"
-#include "view/flutter_view.h"
-#include "wayland/display.h"
+#include <platform_views/platform_view.h>
+#include <wayland/display.h>
 
 namespace plugin_filament_view {
 

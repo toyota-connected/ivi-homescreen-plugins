@@ -15,10 +15,8 @@
  */
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <typeinfo>
-#include <utility>
 
 namespace plugin_filament_view {
 class EntityObject;

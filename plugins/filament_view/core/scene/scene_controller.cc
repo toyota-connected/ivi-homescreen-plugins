@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,15 @@
 
 #include "scene_controller.h"
 
-#include <core/systems/ecsystems_manager.h>
-#include <core/utils/entitytransforms.h>
-#include <asio/post.hpp>
 #include <utility>
-
+#include <asio/post.hpp>
+#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/skybox_system.h>
-
-#include "core/systems/derived/filament_system.h"
-#include "core/systems/derived/view_target_system.h"
-
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
@@ -264,18 +258,6 @@ void SceneController::setUpShapes(
 
   // This method releases shapes,
   shapeSystem->addShapesToScene(shapes);
-}
-
-void SceneController::vToggleAllShapesInScene(bool bValue) {
-  auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-      ShapeSystem::StaticGetTypeID(), "setUpShapes");
-  if (shapeSystem == nullptr) {
-    SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
-    return;
-  }
-
-  // Could become a message
-  shapeSystem->vToggleAllShapesInScene(bValue);
 }
 
 void SceneController::loadModel(Model* model) {

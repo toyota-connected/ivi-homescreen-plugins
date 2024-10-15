@@ -1,9 +1,24 @@
+/*
+* Copyright 2020-2024 Toyota Connected North America
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "ecsystems_manager.h"
+
 #include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
 #include <thread>
-
-#include "ecsystems_manager.h"
 
 namespace plugin_filament_view {
 
@@ -217,8 +232,12 @@ void ECSystemManager::DebugPrint() {
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vShutdownSystems() {
   asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
-    for (const auto& system : m_vecSystems) {
-      system->vShutdownSystem();
+    // we shutdown in reverse, until we have a 'system dependency tree' type of
+    // view, filament system (which is always the first system, needs to be
+    // shutdown last as its 'engine' varible is used in destruction for other
+    // systems
+    for (auto it = m_vecSystems.rbegin(); it != m_vecSystems.rend(); ++it) {
+      (*it)->vShutdownSystem();
     }
 
     m_eCurrentState = RunState::Shutdown;

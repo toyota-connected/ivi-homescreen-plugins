@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <filament/MaterialInstance.h>
-#include <map>
-#include <memory>
-
+#include "material_parameter.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/include/resource.h"
-#include "material_parameter.h"
+#include <map>
+#include <memory>
+#include <core/include/resource.h>
+#include <filament/MaterialInstance.h>
 
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
