@@ -333,22 +333,22 @@ void CollisionSystem::vInitSystem() {
         spdlog::debug("SetupMessageChannels Complete");
       });
 
-    vRegisterMessageHandler(
-      ECSMessageType::ToggleDebugCollidableViewsInScene, [this](const ECSMessage& msg) {
+  vRegisterMessageHandler(
+      ECSMessageType::ToggleDebugCollidableViewsInScene,
+      [this](const ECSMessage& msg) {
         spdlog::debug("ToggleDebugCollidableViewsInScene");
 
         auto value = msg.getData<bool>(
             ECSMessageType::ToggleDebugCollidableViewsInScene);
 
-          if (!value) {
-            vTurnOffRenderingOfCollidables();
-          } else {
-            vTurnOnRenderingOfCollidables();
-          }
+        if (!value) {
+          vTurnOffRenderingOfCollidables();
+        } else {
+          vTurnOnRenderingOfCollidables();
+        }
 
         spdlog::debug("ToggleDebugCollidableViewsInScene Complete");
       });
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

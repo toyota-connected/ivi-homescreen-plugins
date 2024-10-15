@@ -240,18 +240,19 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
 void FilamentViewPlugin::ToggleShapesInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-    ECSMessage toggleMessage;
-    toggleMessage.addData(ECSMessageType::ToggleShapesInScene, value);
-    ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
+  ECSMessage toggleMessage;
+  toggleMessage.addData(ECSMessageType::ToggleShapesInScene, value);
+  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
     bool value,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-    ECSMessage toggleMessage;
-    toggleMessage.addData(ECSMessageType::ToggleDebugCollidableViewsInScene, value);
-    ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
+  ECSMessage toggleMessage;
+  toggleMessage.addData(ECSMessageType::ToggleDebugCollidableViewsInScene,
+                        value);
+  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

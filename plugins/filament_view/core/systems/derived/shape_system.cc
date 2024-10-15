@@ -139,8 +139,7 @@ void ShapeSystem::vInitSystem() {
       ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleShapesInScene");
 
-        auto value = msg.getData<bool>(
-            ECSMessageType::ToggleShapesInScene);
+        auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
 
         vToggleAllShapesInScene(value);
 
