@@ -26,7 +26,7 @@ jobs:
       - name: Run Clang-format
         working-directory: ${{github.workspace}}
         run: |
-          find plugins -name '*.cc' -o -name '*.hpp' -o -name '*.h' > clang-format-files
+          find plugins -type d -name third_party -prune -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -print > clang-format-files
           clang18/bin/clang-format -n --Werror --files=clang-format-files 2> clang-format-results.txt
 
       - name: Show results
