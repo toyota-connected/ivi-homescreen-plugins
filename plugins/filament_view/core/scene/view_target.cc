@@ -47,8 +47,8 @@ class FilamentViewPlugin;
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(int32_t left,
-                       int32_t top,
+ViewTarget::ViewTarget(int32_t top,
+                       int32_t left,
                        FlutterDesktopEngineState* state)
     : state_(state),
       left_(left),
