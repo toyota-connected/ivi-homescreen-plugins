@@ -93,6 +93,17 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   settings.windowless_rendering_enabled = true;
   settings.log_severity = LOGSEVERITY_VERBOSE;
   settings.command_line_args_disabled = true;
+  
+  std::string root_cache_path_str = std::string(CEF_ROOT) + "/.config/cef_user_data";
+  const char* root_cache_path = root_cache_path_str.c_str();
+  CefString(&settings.root_cache_path).FromASCII(root_cache_path);
+
+  std::string resource_path_str = std::string(CEF_ROOT) + "/Resources";
+  const char* resource_path = resource_path_str.c_str();
+  CefString(&settings.resources_dir_path).FromASCII(resource_path);
+
+  const char* browser_subprocess_path = "/usr/local/bin/webview_flutter_subprocess";
+  CefString(&settings.browser_subprocess_path).FromASCII(browser_subprocess_path);
 
   if (!CefInitialize(main_args, settings, nullptr, nullptr)) {
     spdlog::error("[webview_flutter] CefInitialize: false");
