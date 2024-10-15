@@ -15,12 +15,12 @@
  */
 #include "collidable.h"
 
-#include <algorithm>
-#include <list>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
+#include <algorithm>
+#include <list>
 
 namespace plugin_filament_view {
 

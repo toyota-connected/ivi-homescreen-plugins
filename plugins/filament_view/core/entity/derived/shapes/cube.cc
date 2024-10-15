@@ -16,13 +16,13 @@
 
 #include "cube.h"
 
+#include <core/utils/deserialize.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
 #include <math/mat3.h>
 #include <math/norm.h>
 #include <math/vec3.h>
-#include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view::shapes {

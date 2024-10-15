@@ -17,9 +17,6 @@
 #include "collision_system.h"
 #include "filament_system.h"
 
-#include <algorithm>  // for max
-#include <sstream>
-#include <asio/post.hpp>
 #include <core/components/derived/collidable.h>
 #include <core/include/file_utils.h>
 #include <core/systems/ecsystems_manager.h>
@@ -31,6 +28,9 @@
 #include <filament/gltfio/TextureProvider.h>
 #include <filament/gltfio/materials/uberarchive.h>
 #include <filament/utils/Slice.h>
+#include <algorithm>  // for max
+#include <asio/post.hpp>
+#include <sstream>
 
 namespace plugin_filament_view {
 

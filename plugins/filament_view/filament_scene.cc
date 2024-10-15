@@ -22,7 +22,6 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 
-
 namespace plugin_filament_view {
 
 FilamentScene::FilamentScene(int32_t id,

@@ -20,17 +20,17 @@
 #include <fstream>
 #include <sstream>
 
-#include <asio/post.hpp>
 #include <core/include/color.h>
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <core/utils/hdr_loader.h>
 #include <filament/IndirectLight.h>
 #include <filament/Scene.h>
 #include <filament/Skybox.h>
 #include <plugins/common/common.h>
 #include <plugins/common/curl_client/curl_client.h>
+#include <asio/post.hpp>
 
 namespace plugin_filament_view {
 

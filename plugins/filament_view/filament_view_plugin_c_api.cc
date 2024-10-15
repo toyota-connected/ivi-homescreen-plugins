@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "filament_view_plugin_c_api.h"
+#include <include/filament_view/filament_view_plugin_c_api.h>
 
 #include <flutter/plugin_registrar.h>
 

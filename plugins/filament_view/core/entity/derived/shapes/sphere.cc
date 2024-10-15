@@ -16,14 +16,14 @@
 
 #include "sphere.h"
 
+#include <core/utils/deserialize.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
 #include <math/norm.h>
 #include <math/vec3.h>
-#include <vector>
-#include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
+#include <vector>
 
 namespace plugin_filament_view::shapes {
 

@@ -16,9 +16,9 @@
 
 #include "animation.h"
 
-#include <filesystem>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
+#include <filesystem>
 
 namespace plugin_filament_view {
 Animation::Animation(const std::string& flutter_assets_path,

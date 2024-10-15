@@ -16,11 +16,9 @@
 
 #include "view_target.h"
 
-#include <utility>
-#include <asio/post.hpp>
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <filament/Renderer.h>
 #include <filament/SwapChain.h>
 #include <filament/View.h>
@@ -33,6 +31,8 @@
 #include <plugins/common/common.h>
 #include <view/flutter_view.h>
 #include <wayland/display.h>
+#include <asio/post.hpp>
+#include <utility>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;

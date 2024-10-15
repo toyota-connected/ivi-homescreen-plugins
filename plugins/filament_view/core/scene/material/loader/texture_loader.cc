@@ -15,14 +15,14 @@
  */
 #include "texture_loader.h"
 
-#include <memory>
-#include <stb_image.h>
 #include <core/include/file_utils.h>
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/ecsystems_manager.h>
 #include <imageio/ImageDecoder.h>
 #include <plugins/common/curl_client/curl_client.h>
+#include <stb_image.h>
+#include <memory>
 
 namespace plugin_filament_view {
 
