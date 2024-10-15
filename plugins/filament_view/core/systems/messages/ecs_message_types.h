@@ -33,7 +33,10 @@ enum class ECSMessageType {
 
   ViewTargetStartRenderingLoops,
 
-  SetCameraFromDeserializedLoad
+  SetCameraFromDeserializedLoad,
+
+  ToggleShapesInScene,
+  ToggleDebugCollidableViewsInScene
 };
 
 }

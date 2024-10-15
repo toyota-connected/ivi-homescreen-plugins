@@ -260,18 +260,6 @@ void SceneController::setUpShapes(
   shapeSystem->addShapesToScene(shapes);
 }
 
-void SceneController::vToggleAllShapesInScene(bool bValue) {
-  auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-      ShapeSystem::StaticGetTypeID(), "setUpShapes");
-  if (shapeSystem == nullptr) {
-    SPDLOG_WARN("{} called before shapeManager created.", __FUNCTION__);
-    return;
-  }
-
-  // Could become a message
-  shapeSystem->vToggleAllShapesInScene(bValue);
-}
-
 void SceneController::loadModel(Model* model) {
   auto ecsManager = ECSystemManager::GetInstance();
   const auto& strand = *ecsManager->GetStrand();
