@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-#include "core/systems/derived/material_system.h"
+#include "material_system.h"
 
 #include <core/scene/material/material_definitions.h>
-
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

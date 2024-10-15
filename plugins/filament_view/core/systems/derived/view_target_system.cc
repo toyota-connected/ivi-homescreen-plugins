@@ -15,8 +15,8 @@
  */
 
 #include "view_target_system.h"
-#include "core/scene/view_target.h"
-#include "plugins/common/common.h"
+#include <core/scene/view_target.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
+
 #ifndef FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 #define FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 
 #include <flutter_plugin_registrar.h>
-#include "flutter_homescreen.h"
-#include "platform_views/platform_view_listener.h"
+#include <flutter_homescreen.h>
+#include <platform_views/platform_view_listener.h>
 
 #include <string>
 #include <vector>

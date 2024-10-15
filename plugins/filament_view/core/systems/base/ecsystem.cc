@@ -21,10 +21,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "plugins/common/common.h"
-
-#include "core/systems/messages/ecs_message.h"
-#include "core/systems/messages/ecs_message_types.h"
+#include <plugins/common/common.h>
+#include <core/systems/messages/ecs_message.h>
+#include <core/systems/messages/ecs_message_types.h>
 
 namespace plugin_filament_view {
 

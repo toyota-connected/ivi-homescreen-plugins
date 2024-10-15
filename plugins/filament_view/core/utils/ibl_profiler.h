@@ -16,11 +16,8 @@
 
 #pragma once
 
-#include <memory>
-
 #include <filament-iblprefilter/IBLPrefilterContext.h>
 #include <filament/Engine.h>
-#include <filament/Texture.h>
 
 namespace plugin_filament_view {
 /**

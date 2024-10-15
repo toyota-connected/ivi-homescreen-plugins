@@ -16,30 +16,20 @@
 
 #pragma once
 
-#include <functional>
-#include <future>
-
 #include <cstdint>
-
-#include <filament/Camera.h>
-#include <filament/Engine.h>
-#include <filament/Renderer.h>
-#include <filament/SwapChain.h>
-#include <filament/View.h>
-#include <gltfio/Animator.h>
-#include <gltfio/AssetLoader.h>
-#include <wayland-client.h>
+#include <flutter_desktop_plugin_registrar.h>
+#include <future>
 #include <asio/io_context_strand.hpp>
-
-#include "core/include/settings.h"
-#include "core/scene/camera/camera_manager.h"
-#include "flutter_desktop_plugin_registrar.h"
-#include "platform_views/platform_view.h"
+#include <core/include/settings.h>
+#include <core/scene/camera/camera_manager.h>
+#include <core/scene/camera/camera.h>
+#include <filament/Engine.h>
+#include <gltfio/AssetLoader.h>
 
 namespace plugin_filament_view {
 
+class Camera;
 class CameraManager;
-class Scene;
 
 class ViewTarget {
  public:
@@ -140,7 +130,7 @@ class ViewTarget {
 
   uint32_t m_LastTime = 0;
 
-  std::unique_ptr<plugin_filament_view::CameraManager> cameraManager_;
+  std::unique_ptr<CameraManager> cameraManager_;
 };
 
 }  // namespace plugin_filament_view

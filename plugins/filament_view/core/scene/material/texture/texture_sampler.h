@@ -16,10 +16,9 @@
 
 #pragma once
 
-#include <optional>
-
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <optional>
 #include <filament/TextureSampler.h>
 
 namespace plugin_filament_view {

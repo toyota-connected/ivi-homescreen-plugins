@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-#include "core/entity/derived/model/model.h"
-
-#include <core/components/derived/collidable.h>
+#include "model.h"
 
 #include <utility>
-
-#include "core/include/literals.h"
-#include "core/scene/scene.h"
-#include "core/utils/deserialize.h"
-#include "plugins/common/common.h"
+#include <core/components/derived/collidable.h>
+#include <core/include/literals.h>
+#include <core/scene/scene.h>
+#include <core/utils/deserialize.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

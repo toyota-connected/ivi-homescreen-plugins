@@ -19,8 +19,7 @@
 #include <sstream>
 
 #include <imageio/ImageDecoder.h>
-
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

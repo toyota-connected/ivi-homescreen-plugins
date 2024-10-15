@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "core/scene/material/loader/material_loader.h"
+#include "material_loader.h"
 
+#include <core/include/file_utils.h>
 #include <core/include/literals.h>
-#include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
-
-#include "core/include/file_utils.h"
-#include "plugins/common/curl_client/curl_client.h"
+#include <core/systems/derived/filament_system.h>
+#include <plugins/common/curl_client/curl_client.h>
 
 namespace plugin_filament_view {
 

@@ -15,15 +15,13 @@
  */
 #pragma once
 
-#include <asio/io_context_strand.hpp>
+#include <future>
 #include <map>
 #include <memory>
-#include <vector>
-
-#include <future>
 #include <shared_mutex>
-
-#include "core/systems/base/ecsystem.h"
+#include <vector>
+#include <asio/io_context_strand.hpp>
+#include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {
 

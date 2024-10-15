@@ -16,19 +16,19 @@
 
 #pragma once
 
-#include <memory>
-
-#include <camutils/Manipulator.h>
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
-
-#include "core/scene/geometry/position.h"
 #include "exposure.h"
 #include "lens_projection.h"
 #include "projection.h"
 
-namespace plugin_filament_view {
-class Exposure;
+#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <memory>
+
+#include <camutils/Manipulator.h>
+
+namespace plugin_filament_view {
+
+class Exposure;
 class Projection;
 
 class Camera {

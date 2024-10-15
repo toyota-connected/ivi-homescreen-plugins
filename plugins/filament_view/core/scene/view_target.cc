@@ -16,22 +16,23 @@
 
 #include "view_target.h"
 
-#include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
-#include <wayland-client.h>
-#include <asio/post.hpp>
 #include <utility>
-
-#include "plugins/common/common.h"
-#include "view/flutter_view.h"
-#include "wayland/display.h"
-
+#include <asio/post.hpp>
+#include <core/include/literals.h>
+#include <core/systems/ecsystems_manager.h>
+#include <core/systems/derived/filament_system.h>
+#include <filament/Renderer.h>
+#include <filament/SwapChain.h>
+#include <filament/View.h>
+#include <filament/Viewport.h>
 #include <flutter/basic_message_channel.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
-
-#include "core/include/literals.h"
+#include <gltfio/Animator.h>
+#include <plugins/common/common.h>
+#include <view/flutter_view.h>
+#include <wayland/display.h>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;

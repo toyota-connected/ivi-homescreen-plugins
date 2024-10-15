@@ -16,10 +16,9 @@
 
 #pragma once
 
-#include <filament/LightManager.h>
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/scene/geometry/direction.h"
+#include <filament/LightManager.h>
 
 namespace plugin_filament_view {
 class Light {

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 #include "filament_system.h"
-#include <filament/Renderer.h>
-#include <filament/View.h>
 
-#include "core/systems/ecsystems_manager.h"
-#include "plugins/common/common.h"
+#include <core/systems/ecsystems_manager.h>
+#include <filament/Renderer.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

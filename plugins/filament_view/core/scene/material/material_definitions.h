@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <filament/MaterialInstance.h>
-#include <map>
-#include <memory>
-
+#include "material_parameter.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include "core/include/resource.h"
-#include "material_parameter.h"
+#include <map>
+#include <memory>
+#include <core/include/resource.h>
+#include <filament/MaterialInstance.h>
 
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 

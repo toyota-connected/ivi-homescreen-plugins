@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include <math/vec3.h>
-
+#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 #include "direction.h"
 #include "position.h"
-#include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+
+#include <math/vec3.h>
 
 namespace plugin_filament_view {
 

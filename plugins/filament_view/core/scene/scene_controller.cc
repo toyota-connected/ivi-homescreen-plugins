@@ -16,21 +16,15 @@
 
 #include "scene_controller.h"
 
-#include <core/systems/ecsystems_manager.h>
-#include <core/utils/entitytransforms.h>
-#include <asio/post.hpp>
 #include <utility>
-
+#include <asio/post.hpp>
+#include <core/systems/ecsystems_manager.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/skybox_system.h>
-
-#include "core/systems/derived/filament_system.h"
-#include "core/systems/derived/view_target_system.h"
-
-#include "plugins/common/common.h"
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 

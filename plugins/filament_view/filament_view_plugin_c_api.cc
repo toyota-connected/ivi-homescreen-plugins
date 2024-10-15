@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "include/filament_view/filament_view_plugin_c_api.h"
+#include "filament_view_plugin_c_api.h"
 
 #include <flutter/plugin_registrar.h>
 
 #include <core/systems/ecsystems_manager.h>
-#include "filament_view_plugin.h"
+#include <filament_view_plugin.h>
 
 void FilamentViewPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar,

@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#ifndef PIGEON_MESSAGES_G_H_
-#define PIGEON_MESSAGES_G_H_
-
-#include <flutter/binary_messenger.h>
-#include <flutter/encodable_value.h>
-#include <flutter/standard_method_codec.h>
+#ifndef FILAMENT_VIEW_MESSAGES_G_H_
+#define FILAMENT_VIEW_MESSAGES_G_H_
 
 #include <map>
 #include <optional>
 #include <string>
 #include <utility>
-
+#include <flutter/binary_messenger.h>
+#include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
 
 namespace plugin_filament_view {

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ecsystems_manager.h"
+
 #include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
 #include <thread>
-
-#include "ecsystems_manager.h"
 
 namespace plugin_filament_view {
 
