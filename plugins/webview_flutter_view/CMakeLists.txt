@@ -50,9 +50,10 @@ target_link_directories(plugin_webview_flutter_view PUBLIC
         ${CEF_ROOT}/${CEF_BUILD_TYPE}
 )
 
+add_dependencies(plugin_webview_flutter_view libcef_dll_wrapper)
+
 target_link_libraries(plugin_webview_flutter_view PRIVATE
         flutter
         platform_homescreen
-        cef
         libcef_dll_wrapper
 )
