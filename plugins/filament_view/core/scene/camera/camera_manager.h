@@ -21,11 +21,11 @@
 
 #include <camutils/Manipulator.h>
 #include <core/include/resource.h>
-#include <core/scene/view_target.h>
 #include <core/scene/camera/exposure.h>
 #include <core/scene/camera/lens_projection.h>
 #include <core/scene/camera/projection.h>
 #include <core/scene/geometry/ray.h>
+#include <core/scene/view_target.h>
 #include <filament/Camera.h>
 #include <utils/EntityManager.h>
 

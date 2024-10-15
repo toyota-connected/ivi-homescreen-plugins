@@ -18,8 +18,8 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <optional>
 #include <filament/TextureSampler.h>
+#include <optional>
 
 namespace plugin_filament_view {
 

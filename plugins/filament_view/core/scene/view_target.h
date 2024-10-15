@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include <cstdint>
-#include <flutter_desktop_plugin_registrar.h>
-#include <future>
-#include <asio/io_context_strand.hpp>
 #include <core/include/settings.h>
-#include <core/scene/camera/camera_manager.h>
 #include <core/scene/camera/camera.h>
+#include <core/scene/camera/camera_manager.h>
 #include <filament/Engine.h>
+#include <flutter_desktop_plugin_registrar.h>
 #include <gltfio/AssetLoader.h>
+#include <asio/io_context_strand.hpp>
+#include <cstdint>
+#include <future>
 
 namespace plugin_filament_view {
 
@@ -33,7 +33,7 @@ class CameraManager;
 
 class ViewTarget {
  public:
-  ViewTarget(int32_t left, int32_t top, FlutterDesktopEngineState* state);
+  ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
   ~ViewTarget();
 

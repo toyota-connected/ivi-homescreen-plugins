@@ -15,8 +15,10 @@
  */
 
 #include "material_system.h"
+#include "filament_system.h"
 
 #include <core/scene/material/material_definitions.h>
+#include <core/systems/ecsystems_manager.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -168,7 +170,27 @@ void MaterialSystem::vInitSystem() {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vShutdownSystem() {}
+void MaterialSystem::vShutdownSystem() {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+  const auto engine = filamentSystem->getFilamentEngine();
+
+  for (auto iterMat : loadedTemplateMaterials_) {
+    engine->destroy(*iterMat.second.getData());
+  }
+
+  for (auto iterTexture : loadedTextures_) {
+    engine->destroy(*iterTexture.second.getData());
+  }
+
+  loadedTemplateMaterials_.clear();
+  loadedTextures_.clear();
+
+  materialLoader_.reset();
+  textureLoader_.reset();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::DebugPrint() {
   spdlog::debug("{}::{}", __FILE__, __FUNCTION__);

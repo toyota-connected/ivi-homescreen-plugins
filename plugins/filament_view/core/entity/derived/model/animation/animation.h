@@ -18,12 +18,12 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <core/entity/derived/model/model.h>
+#include <math/vec3.h>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
-#include <core/entity/derived/model/model.h>
-#include <math/vec3.h>
 
 namespace plugin_filament_view {
 

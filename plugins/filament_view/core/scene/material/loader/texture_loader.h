@@ -15,10 +15,10 @@
  */
 #pragma once
 
-#include <future>
-#include <filament/Texture.h>
 #include <core/include/resource.h>
 #include <core/scene/material/texture/texture_definitions.h>
+#include <filament/Texture.h>
+#include <future>
 
 namespace plugin_filament_view {
 
