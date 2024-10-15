@@ -33,7 +33,7 @@ class CameraManager;
 
 class ViewTarget {
  public:
-  ViewTarget(int32_t left, int32_t top, FlutterDesktopEngineState* state);
+  ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
   ~ViewTarget();
 
