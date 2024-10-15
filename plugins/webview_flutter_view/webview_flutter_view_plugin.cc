@@ -51,8 +51,8 @@ RenderHandler::RenderHandler() = default;
 RenderHandler::~RenderHandler() = default;
 
 void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> /* browser */,
-                                CefRect&  rect ) {
-  spdlog::debug("[webivew_flutter] GetViewRect");  
+                                CefRect& rect) {
+  spdlog::debug("[webivew_flutter] GetViewRect");
   rect.width = 800;
   rect.height = 600;
 }
@@ -64,7 +64,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> /* browser */,
                             int width,
                             int height) {
   spdlog::debug("[webivew_flutter] OnPaint, width: {}, height: {}", width,
-               height);
+                height);
 }
 
 void RenderHandler::OnAcceleratedPaint(
@@ -90,13 +90,11 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   std::filesystem::path libcef_file_path(libcef_path_str);
   spdlog::debug("[webview_flutter] cef_load_library");
   int cef_load_ok = cef_load_library(libcef_path_str.c_str());
-  if(!cef_load_ok)
-  {
+  if (!cef_load_ok) {
     exit(-1);
   }
   spdlog::debug("[webview_flutter] cef_load_library OK!");
 
-  
   cef_main_args_t main_args = {static_cast<int>(args.size()), args.data()};
 
   // Specify CEF global settings here.
@@ -105,18 +103,24 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   settings.no_sandbox = false;
   settings.windowless_rendering_enabled = true;
   settings.log_severity = LOGSEVERITY_VERBOSE;
-  //settings.command_line_args_disabled = true;
+  // settings.command_line_args_disabled = true;
 
-  std::string root_cache_path_str = std::string(CEF_ROOT) + "/.config/cef_user_data";
+  std::string root_cache_path_str =
+      std::string(CEF_ROOT) + "/.config/cef_user_data";
   const char* root_cache_path = root_cache_path_str.c_str();
-  cef_string_ascii_to_utf16(root_cache_path, strlen(root_cache_path), &settings.root_cache_path);
+  cef_string_ascii_to_utf16(root_cache_path, strlen(root_cache_path),
+                            &settings.root_cache_path);
 
   std::string resource_path_str = std::string(CEF_ROOT) + "/Resources";
   const char* resource_path = resource_path_str.c_str();
-  cef_string_ascii_to_utf16(resource_path, strlen(resource_path), &settings.resources_dir_path);
+  cef_string_ascii_to_utf16(resource_path, strlen(resource_path),
+                            &settings.resources_dir_path);
 
-  const char* browser_subprocess_path = "/usr/local/bin/webview_flutter_subprocess";
-  cef_string_ascii_to_utf16(browser_subprocess_path, strlen(browser_subprocess_path), &settings.browser_subprocess_path);
+  const char* browser_subprocess_path =
+      "/usr/local/bin/webview_flutter_subprocess";
+  cef_string_ascii_to_utf16(browser_subprocess_path,
+                            strlen(browser_subprocess_path),
+                            &settings.browser_subprocess_path);
 
   settings.size = sizeof(_cef_settings_t);
 
@@ -130,7 +134,7 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   spdlog::debug("[webview_flutter] --CefInitialize");
 
   cef_window_info_t window_info;
-  window_info.windowless_rendering_enabled = 0; 
+  window_info.windowless_rendering_enabled = 0;
   const cef_window_info_t window_const = window_info;
 
   renderHandler_ = std::make_unique<_cef_render_handler_t>();
@@ -140,13 +144,13 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
 
   cef_string_t browser_url_cef_str = {0};
   const char* browser_url = "https://deanm.github.io/pre3d/monster.html";
-  cef_string_ascii_to_utf16(browser_url, strlen(browser_url), &browser_url_cef_str);
+  cef_string_ascii_to_utf16(browser_url, strlen(browser_url),
+                            &browser_url_cef_str);
 
   spdlog::debug("[webview_flutter] CreateBrowserSync++");
   browser_ = cef_browser_host_create_browser_sync(
-      &window_info, browserClient_,
-      &settings.browser_subprocess_path, &browserSettings, nullptr,
-      nullptr);
+      &window_info, browserClient_, &settings.browser_subprocess_path,
+      &browserSettings, nullptr, nullptr);
   spdlog::debug("[webview_flutter] CreateBrowserSync--");
 }
 
@@ -240,7 +244,8 @@ std::optional<FlutterError> WebviewFlutterPlugin::Create(int64_t instance_id) {
 
 std::optional<FlutterError> WebviewFlutterPlugin::DeleteAllData(
     int64_t instance_id) {
-  spdlog::debug("[webview_flutter] DeleteAllData, instance_id: {}", instance_id);
+  spdlog::debug("[webview_flutter] DeleteAllData, instance_id: {}",
+                instance_id);
   return std::nullopt;
 }
 
@@ -276,7 +281,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::LoadUrl(
     const std::string& url,
     const flutter::EncodableMap& headers) {
   spdlog::debug("[webview_flutter] LoadUrl, instance_id: {}, url: {}",
-               instance_id, url);
+                instance_id, url);
   if (!headers.empty()) {
     plugin_common::Encodable::PrintFlutterEncodableMap("headers", headers);
   }
@@ -288,7 +293,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::PostUrl(
     const std::string& url,
     const std::vector<uint8_t>& /* data */) {
   spdlog::debug("[webview_flutter] PostUrl: instance_id: {}, url: {}",
-               instance_id, url);
+                instance_id, url);
   return std::nullopt;
 }
 
@@ -349,7 +354,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::Create(
     int64_t instance_id,
     const std::string& channel_name) {
   spdlog::debug("[webview_flutter] Create, instance_id: {}, channel_name: {}",
-               instance_id, channel_name);
+                instance_id, channel_name);
   return std::nullopt;
 }
 
@@ -362,7 +367,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::ScrollTo(int64_t instance_id,
                                                            int64_t x,
                                                            int64_t y) {
   spdlog::debug("[webview_flutter] ScrollTo, instance_id: {}, x: {}, y: {}",
-               instance_id, x, y);
+                instance_id, x, y);
   return std::nullopt;
 }
 
@@ -370,7 +375,7 @@ std::optional<FlutterError> WebviewFlutterPlugin::ScrollBy(int64_t instance_id,
                                                            int64_t x,
                                                            int64_t y) {
   spdlog::debug("[webview_flutter] ScrollBy, instance_id: {}, x: {}, y: {}",
-               instance_id, x, y);
+                instance_id, x, y);
   return std::nullopt;
 }
 
@@ -387,14 +392,14 @@ ErrorOr<int64_t> WebviewFlutterPlugin::GetScrollY(int64_t instance_id) {
 ErrorOr<WebViewPoint> WebviewFlutterPlugin::GetScrollPosition(
     int64_t instance_id) {
   spdlog::debug("[webview_flutter] GetScrollPosition, instance_id: {}",
-               instance_id);
+                instance_id);
   return {WebViewPoint{0, 0}};
 }
 
 std::optional<FlutterError>
 WebviewFlutterPlugin::SetWebContentsDebuggingEnabled(bool enabled) {
   spdlog::debug("[webview_flutter] SetWebContentsDebuggingEnabled, enabled: {}",
-               enabled);
+                enabled);
   return std::nullopt;
 }
 
@@ -528,8 +533,9 @@ WebviewFlutterPlugin::SetMediaPlaybackRequiresUserGesture(int64_t instance_id,
 std::optional<FlutterError> WebviewFlutterPlugin::SetSupportZoom(
     int64_t instance_id,
     bool support) {
-  spdlog::debug("[webview_flutter] SetSupportZoom, instance_id: {}, support: {}",
-               instance_id, support);
+  spdlog::debug(
+      "[webview_flutter] SetSupportZoom, instance_id: {}, support: {}",
+      instance_id, support);
   return std::nullopt;
 }
 
@@ -546,8 +552,9 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetLoadWithOverviewMode(
 std::optional<FlutterError> WebviewFlutterPlugin::SetUseWideViewPort(
     int64_t instance_id,
     bool use) {
-  spdlog::debug("[webview_flutter] SetUseWideViewPort, instance_id: {}, use: {}",
-               instance_id, use);
+  spdlog::debug(
+      "[webview_flutter] SetUseWideViewPort, instance_id: {}, use: {}",
+      instance_id, use);
   return std::nullopt;
 }
 
@@ -582,14 +589,14 @@ std::optional<FlutterError> WebviewFlutterPlugin::SetTextZoom(
     int64_t instance_id,
     int64_t text_zoom) {
   spdlog::debug("[webview_flutter] SetTextZoom, instance_id: {}, text_zoom: {}",
-               instance_id, text_zoom);
+                instance_id, text_zoom);
   return std::nullopt;
 }
 
 ErrorOr<std::string> WebviewFlutterPlugin::GetUserAgentString(
     int64_t instance_id) {
   spdlog::debug("[webview_flutter] GetUserAgentString, instance_id: {}",
-               instance_id);
+                instance_id);
   return {""};
 }
 
@@ -661,7 +668,7 @@ WebviewFlutterPlugin::SetSynchronousReturnValueForOnJsPrompt(
 std::optional<FlutterError> WebviewFlutterPlugin::AttachInstance(
     int64_t instance_identifier) {
   spdlog::debug("[webview_flutter] AttachInstance, instance_identifier: {}",
-               instance_identifier);
+                instance_identifier);
   return std::nullopt;
 }
 
@@ -679,7 +686,7 @@ void WebviewFlutterPlugin::RemoveAllCookies(
     int64_t identifier,
     const std::function<void(ErrorOr<bool> reply)> result) {
   spdlog::debug("[webview_flutter] RemoveAllCookies, identifier: {}",
-               identifier);
+                identifier);
   result(true);
 }
 
@@ -718,7 +725,7 @@ void WebviewPlatformView::on_set_offset(const double left,
     plugin->top_ = static_cast<int32_t>(top);
     if (plugin->subsurface_) {
       spdlog::debug("[webview_flutter] SetOffset: left: {}, top: {}",
-                   plugin->left_, plugin->top_);
+                    plugin->left_, plugin->top_);
       wl_subsurface_set_position(plugin->subsurface_, plugin->left_,
                                  plugin->top_);
       if (!plugin->callback_) {
