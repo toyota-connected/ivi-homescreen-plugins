@@ -86,7 +86,7 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   // args.push_back("--enable-logging=stderr");
   args.push_back("--v=1");
 
-  std::string libcef_path_str = std::string(CEF_ROOT) + "/Release/libcef.so";
+  std::string libcef_path_str = "libcef.so";
   std::filesystem::path libcef_file_path(libcef_path_str);
   spdlog::debug("[webview_flutter] cef_load_library");
   int cef_load_ok = cef_load_library(libcef_path_str.c_str());
@@ -129,24 +129,17 @@ WebviewFlutterPlugin::WebviewFlutterPlugin() {
   }
   spdlog::debug("[webview_flutter] --CefInitialize");
 
-
-  spdlog::debug("[webview_flutter] Create and Configure Window");
   cef_window_info_t window_info;
   window_info.windowless_rendering_enabled = 0; 
   const cef_window_info_t window_const = window_info;
 
-  spdlog::debug("[webview_flutter] Create renderHandler");
   renderHandler_ = std::make_unique<_cef_render_handler_t>();
-  spdlog::debug("[webview_flutter] Create browserClient");
-  // browserClient_ = std::make_unique<_cef_client_t>();
 
-  spdlog::debug("[webview_flutter] Set browser settings");
   _cef_browser_settings_t browserSettings;
   browserSettings.windowless_frame_rate = 60;  // 30 is default
 
   cef_string_t browser_url_cef_str = {0};
   const char* browser_url = "https://deanm.github.io/pre3d/monster.html";
-  spdlog::debug("[webview_flutter] Build url string");
   cef_string_ascii_to_utf16(browser_url, strlen(browser_url), &browser_url_cef_str);
 
   spdlog::debug("[webview_flutter] CreateBrowserSync++");
