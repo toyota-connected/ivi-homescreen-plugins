@@ -20,6 +20,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Projection::Projection(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Projection::Projection");
   for (auto& it : params) {
@@ -71,10 +72,11 @@ Projection::Projection(const flutter::EncodableMap& params) {
     }
   }
   SPDLOG_TRACE("--Projection::Projection");
-  Print("Projection");
+  DebugPrint("Projection");
 }
 
-void Projection::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void Projection::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Projection)", tag);
   if (projection_.has_value()) {
@@ -110,6 +112,7 @@ void Projection::Print(const char* tag) {
   spdlog::debug("++++++++");
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* Projection::getTextForType(::filament::Camera::Projection type) {
   return (const char*[]){
       kTypePerspective,
@@ -117,6 +120,7 @@ const char* Projection::getTextForType(::filament::Camera::Projection type) {
   }[static_cast<int>(type)];
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Camera::Projection Projection::getTypeForText(
     const std::string& type) {
   if (type == kTypePerspective)
@@ -124,6 +128,7 @@ const char* Projection::getTextForType(::filament::Camera::Projection type) {
   return ::filament::Camera::Projection::ORTHO;
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* Projection::getTextForFov(::filament::Camera::Fov fov) {
   return (const char*[]){
       kFovVertical,
@@ -131,6 +136,7 @@ const char* Projection::getTextForFov(::filament::Camera::Fov fov) {
   }[static_cast<int>(fov)];
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Camera::Fov Projection::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
     return ::filament::Camera::Fov::VERTICAL;

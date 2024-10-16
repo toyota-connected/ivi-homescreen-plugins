@@ -38,12 +38,14 @@ using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
 
+////////////////////////////////////////////////////////////////////////////
 Cube::Cube(const std::string& flutter_assets_path,
            const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////
 bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
                                std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
@@ -55,6 +57,7 @@ bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices for outside, 24 for inside)
   static const float vertices[] = {
@@ -430,6 +433,7 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Cube::createSingleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices, 4 per face)
   static const float vertices[] = {
@@ -670,6 +674,7 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Cube::DebugPrint(const char* tag) const {
   BaseShape::DebugPrint(tag);
 }

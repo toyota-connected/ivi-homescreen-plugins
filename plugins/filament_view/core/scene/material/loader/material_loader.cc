@@ -26,8 +26,10 @@ namespace plugin_filament_view {
 using ::filament::RgbType;
 using ::filament::math::float3;
 
+////////////////////////////////////////////////////////////////////////////
 MaterialLoader::MaterialLoader() = default;
 
+////////////////////////////////////////////////////////////////////////////
 // This function does NOT set default parameter values.
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
@@ -53,6 +55,7 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
       "Could not load material from asset.");
 }
 
+////////////////////////////////////////////////////////////////////////////
 Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
     const std::string& url) {
   plugin_common_curl::CurlClient client;
@@ -79,6 +82,7 @@ Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
       "Could not load material from asset.");
 }
 
+////////////////////////////////////////////////////////////////////////////
 void MaterialLoader::PrintMaterialInformation(
     const ::filament::Material* material) {
   spdlog::info("Material Informaton {}", material->getName());

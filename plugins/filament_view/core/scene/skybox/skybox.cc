@@ -20,11 +20,13 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Skybox::Skybox(std::string assetPath, std::string url, std::string color)
     : assetPath_(std::move(assetPath)),
       url_(std::move(url)),
       color_(std::move(color)) {}
 
+////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<Skybox> Skybox::Deserialize(
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Skybox::Skybox");

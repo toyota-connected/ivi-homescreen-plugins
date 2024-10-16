@@ -25,6 +25,7 @@ static constexpr char kTypeColor[] = "COLOR";
 static constexpr char kTypeNormal[] = "NORMAL";
 static constexpr char kTypeData[] = "DATA";
 
+////////////////////////////////////////////////////////////////////////////
 TextureDefinitions::TextureDefinitions(TextureType type,
                                        std::string assetPath,
                                        std::string url,
@@ -34,6 +35,7 @@ TextureDefinitions::TextureDefinitions(TextureType type,
       type_(type),
       sampler_(sampler) {}
 
+////////////////////////////////////////////////////////////////////////////
 TextureDefinitions::~TextureDefinitions() {
   delete sampler_;
 }
@@ -49,6 +51,7 @@ std::string TextureDefinitions::szGetTextureDefinitionLookupName() const {
   return "Unknown";
 }
 
+////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Texture::Texture");
@@ -91,6 +94,7 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
       sampler.has_value() ? sampler.value().get() : nullptr);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void TextureDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("++++++++ (Texture) ++++++++");
   spdlog::debug("{} ", tag);
@@ -108,6 +112,7 @@ void TextureDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("-------- (Texture) --------");
 }
 
+////////////////////////////////////////////////////////////////////////////
 TextureDefinitions::TextureType TextureDefinitions::getType(
     const std::string& type) {
   if (type == kTypeColor) {
@@ -122,6 +127,7 @@ TextureDefinitions::TextureType TextureDefinitions::getType(
   assert(false);
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* TextureDefinitions::getTextForType(
     TextureDefinitions::TextureType type) {
   return (const char*[]){

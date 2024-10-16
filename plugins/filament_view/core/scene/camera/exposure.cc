@@ -20,6 +20,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Exposure::Exposure(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Exposure::Exposure");
   for (auto& it : params) {
@@ -49,10 +50,11 @@ Exposure::Exposure(const flutter::EncodableMap& params) {
     }
   }
   SPDLOG_TRACE("--Exposure::Exposure");
-  Print("Exposure");
+  DebugPrint("Exposure");
 }
 
-void Exposure::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void Exposure::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Exposure)", tag);
   if (aperture_.has_value()) {

@@ -149,6 +149,25 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vInitSystem() {
   setDefaultLight();
+
+  vRegisterMessageHandler(
+      ECSMessageType::ChangeSceneLightProperties,
+      [this](const ECSMessage& msg) {
+        spdlog::debug("ChangeSceneLightProperties");
+
+        auto colorValue = msg.getData<std::string>(
+            ECSMessageType::ChangeSceneLightPropertiesColorValue);
+
+        auto intensityValue = msg.getData<float>(
+            ECSMessageType::ChangeSceneLightPropertiesIntensity);
+
+        defaultlight_->ChangeColor(colorValue);
+        defaultlight_->ChangeIntensity(intensityValue);
+
+        changeLight(defaultlight_.get());
+
+        spdlog::debug("ChangeSceneLightProperties Complete");
+      });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

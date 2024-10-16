@@ -42,6 +42,7 @@ using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
 
+////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape()
     : EntityObject("unset name tbd"),
       m_poVertexBuffer(nullptr),
@@ -51,6 +52,7 @@ BaseShape::BaseShape()
       m_poMaterialInstance(
           Resource<::filament::MaterialInstance*>::Error("Unset")) {}
 
+////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const std::string& flutter_assets_path,
                      const flutter::EncodableMap& params)
     : EntityObject("unset name tbd"),
@@ -96,11 +98,13 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////
 BaseShape::~BaseShape() {
   vRemoveEntityFromScene();
   vDestroyBuffers();
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -124,6 +128,7 @@ void BaseShape::vDestroyBuffers() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 // Unique that we don't want to copy all components, as shapes can have
 // collidables, which would make a cascading collidable chain
 void BaseShape::CloneToOther(BaseShape& other) const {
@@ -153,6 +158,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
       std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
@@ -209,6 +215,7 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
   // to filament for when the building is complete. Further R&D is needed.
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::vRemoveEntityFromScene() {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
@@ -224,6 +231,7 @@ void BaseShape::vRemoveEntityFromScene() {
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::vAddEntityToScene() {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
@@ -238,10 +246,12 @@ void BaseShape::vAddEntityToScene() {
   filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::DebugPrint() const {
   vDebugPrintComponents();
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++ (Shape) ++++++++");
   spdlog::debug("Tag {} ID {} Type {} Wireframe {}", tag, id,

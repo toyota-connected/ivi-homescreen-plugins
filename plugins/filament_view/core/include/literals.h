@@ -80,6 +80,15 @@ static constexpr char kReceiveShadows[] = "receiveShadows";
 static constexpr char kCastShadows[] = "castShadows";
 static constexpr char kDirection[] = "direction";
 static constexpr char kLength[] = "length";
+static constexpr char kModel[] = "model";
+static constexpr char kModels[] = "models";
+static constexpr char kFallback[] = "fallback";
+static constexpr char kScene[] = "scene";
+static constexpr char kShapes[] = "shapes";
+static constexpr char kSkybox[] = "skybox";
+static constexpr char kLight[] = "light";
+static constexpr char kIndirectLight[] = "indirectLight";
+static constexpr char kCamera[] = "camera";
 
 // specific collidable values:
 static constexpr char kCollidable[] = "collidable";

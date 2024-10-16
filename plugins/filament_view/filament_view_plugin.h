@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include <filament_scene.h>
+#include <core/scene/serialization/scene_text_deserializer.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_homescreen.h>
 #include <messages.g.h>
@@ -165,8 +165,6 @@ class FilamentViewPlugin : public flutter::Plugin,
   void* platformViewsContext_;
   PlatformViewRemoveListener removeListener_;
   const std::string flutterAssetsPath_;
-
-  std::unique_ptr<FilamentScene> filamentScene_;
 
   static void on_resize(double width, double height, void* data);
   static void on_set_direction(int32_t direction, void* data);

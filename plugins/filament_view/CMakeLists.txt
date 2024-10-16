@@ -75,8 +75,7 @@ add_library(plugin_filament_view STATIC
         filament_view_plugin.cc
         messages.g.cc
 
-        filament_scene.cc
-        core/scene/scene_controller.cc
+        core/scene/serialization/scene_text_deserializer.cc
         core/components/derived/basetransform.cc
         core/components/derived/commonrenderable.cc
         core/components/derived/collidable.cc
@@ -95,6 +94,7 @@ add_library(plugin_filament_view STATIC
         core/entity/base/entityobject.cc
         core/scene/geometry/ray.cc
         core/scene/geometry/size.cc
+        core/scene/serialization/scene_text_deserializer.cc
         core/systems/derived/collision_system.cc
         core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
@@ -112,7 +112,6 @@ add_library(plugin_filament_view STATIC
         core/scene/material/texture/texture_sampler.cc
         core/scene/skybox/skybox.cc
         core/systems/derived/skybox_system.cc
-        core/scene/scene.cc
         core/entity/derived/shapes/baseshape.cc
         core/entity/derived/shapes/cube.cc
         core/entity/derived/shapes/sphere.cc

@@ -21,6 +21,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Light::Light(float colorTemperature,
              float intensity,
              ::filament::math::float3 direction,
@@ -32,6 +33,7 @@ Light::Light(float colorTemperature,
   castShadows_ = castShadows;
 }
 
+////////////////////////////////////////////////////////////////////////////
 Light::Light(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   for (auto& it : params) {
@@ -96,7 +98,8 @@ Light::Light(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
-void Light::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void Light::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Light)", tag);
 
@@ -147,6 +150,7 @@ void Light::Print(const char* tag) {
   spdlog::debug("++++++++");
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::LightManager::Type Light::textToLightType(const std::string& type) {
   if (type == "SUN") {
     return ::filament::LightManager::Type::SUN;
@@ -166,6 +170,7 @@ void Light::Print(const char* tag) {
   return ::filament::LightManager::Type::DIRECTIONAL;
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* Light::lightTypeToText(::filament::LightManager::Type type) {
   switch (type) {
     case ::filament::LightManager::Type::SUN:

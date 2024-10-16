@@ -30,7 +30,7 @@ class Light {
 
   explicit Light(const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   static ::filament::LightManager::Type textToLightType(
       const std::string& type);

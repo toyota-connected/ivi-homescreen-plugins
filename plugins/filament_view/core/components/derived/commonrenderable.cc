@@ -21,6 +21,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 CommonRenderable::CommonRenderable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       m_bCullingOfObjectEnabled(true),
@@ -34,6 +35,7 @@ CommonRenderable::CommonRenderable(const flutter::EncodableMap& params)
                                           false);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void CommonRenderable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Culling Enabled: {}", m_bCullingOfObjectEnabled);
   spdlog::debug(tabPrefix + "Receive Shadows: {}", m_bReceiveShadows);

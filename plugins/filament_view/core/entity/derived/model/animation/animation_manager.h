@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <core/scene/scene_controller.h>
-
+#include <string>
+#include <vector>
 namespace plugin_filament_view {
 
 class AnimationManager {

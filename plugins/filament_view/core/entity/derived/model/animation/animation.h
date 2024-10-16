@@ -32,7 +32,7 @@ class Animation {
   Animation(const std::string& flutter_assets_path,
             const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   [[nodiscard]] bool GetAutoPlay() const { return auto_play_; }
 

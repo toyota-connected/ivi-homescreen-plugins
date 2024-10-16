@@ -27,21 +27,25 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialParameter(std::string name,
                                      MaterialType type,
                                      MaterialTextureValue value)
     : name_(std::move(name)), type_(type), textureValue_(std::move(value)) {}
 
+////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialParameter(std::string name,
                                      MaterialType type,
                                      MaterialFloatValue value)
     : name_(std::move(name)), type_(type), fValue_(value) {}
 
+////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialParameter(std::string name,
                                      MaterialType type,
                                      MaterialColorValue value)
     : name_(std::move(name)), type_(type), colorValue_(value) {}
 
+////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     const std::string& /* flutter_assets_path */,
     const flutter::EncodableMap& params) {
@@ -110,8 +114,10 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////
 MaterialParameter::~MaterialParameter() = default;
 
+////////////////////////////////////////////////////////////////////////////
 void MaterialParameter::DebugPrint(const char* tag) {
   spdlog::debug("++++++++ (MaterialParameter) ++++++++");
   spdlog::debug("tag {} name {} type {} ", tag, name_, getTextForType(type_));
@@ -130,6 +136,7 @@ void MaterialParameter::DebugPrint(const char* tag) {
   spdlog::debug("-------- (MaterialParameter) --------");
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* MaterialParameter::getTextForType(
     MaterialParameter::MaterialType type) {
   return (const char*[]){
@@ -138,6 +145,7 @@ const char* MaterialParameter::getTextForType(
   }[static_cast<int>(type)];
 }
 
+////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialType MaterialParameter::getTypeForText(
     const std::string& type) {
   // TODO Change to map for faster lookup
@@ -165,6 +173,7 @@ MaterialParameter::MaterialType MaterialParameter::getTypeForText(
   return MaterialType::INT;
 }
 
+////////////////////////////////////////////////////////////////////////////
 MaterialColorValue MaterialParameter::HexToColorFloat4(const std::string& hex) {
   // Ensure the string starts with '#' and is the correct length
   if (hex[0] != '#' || hex.length() != 9) {

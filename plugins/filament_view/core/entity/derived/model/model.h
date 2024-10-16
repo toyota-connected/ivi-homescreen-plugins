@@ -66,6 +66,9 @@ class Model : public EntityObject {
     return m_poCommonRenderable.lock();
   }
 
+  [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
+  [[nodiscard]] std::string szGetURLPath() const { return url_; }
+
  protected:
   std::string assetPath_;
   std::string url_;
@@ -114,6 +117,9 @@ class GltfModel final : public Model {
 
   friend class ModelManager;
   friend class SceneController;
+
+  [[nodiscard]] std::string szGetPrefix() const { return pathPrefix_; }
+  [[nodiscard]] std::string szGetPostfix() const { return pathPostfix_; }
 
  private:
   std::string pathPrefix_;

@@ -23,6 +23,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++TextureSampler::TextureSampler");
   for (auto& it : params) {
@@ -60,6 +61,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("--TextureSampler::TextureSampler");
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::TextureSampler::MagFilter TextureSampler::getMagFilter() const {
   if (mag_ == kMagFilterNearest) {
     return ::filament::TextureSampler::MagFilter::NEAREST;
@@ -67,6 +69,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   return ::filament::TextureSampler::MagFilter::LINEAR;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::TextureSampler::MinFilter TextureSampler::getMinFilter() const {
   if (min_ == kMinFilterNearest) {
     return ::filament::TextureSampler::MinFilter::NEAREST;
@@ -92,6 +95,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   return ::filament::TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::TextureSampler::WrapMode TextureSampler::getWrapModeR() const {
   if (wrapR_ == KWrapModeClampToEdge) {
     return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
@@ -104,6 +108,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::TextureSampler::WrapMode TextureSampler::getWrapModeS() const {
   if (wrapS_ == KWrapModeClampToEdge) {
     return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
@@ -116,6 +121,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::TextureSampler::WrapMode TextureSampler::getWrapModeT() const {
   if (wrapT_ == KWrapModeClampToEdge) {
     return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
@@ -128,6 +134,7 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
+////////////////////////////////////////////////////////////////////////////
 void TextureSampler::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (TextureSampler)", tag);

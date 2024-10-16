@@ -21,6 +21,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 BaseTransform::BaseTransform(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       m_f3CenterPosition(0, 0, 0),
@@ -38,6 +39,7 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
                                           filament::math::quatf(0, 0, 0, 1));
 }
 
+////////////////////////////////////////////////////////////////////////////
 void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Center Position: x={}, y={}, z={}",
                 m_f3CenterPosition.x, m_f3CenterPosition.y,

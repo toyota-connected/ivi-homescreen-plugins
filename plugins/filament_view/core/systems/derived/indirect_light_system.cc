@@ -207,6 +207,19 @@ IndirectLightSystem::setIndirectLightFromHdrUrl(std::string url,
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vInitSystem() {
   setDefaultIndirectLight();
+
+  vRegisterMessageHandler(
+      ECSMessageType::ChangeSceneIndirectLightProperties,
+      [this](const ECSMessage& msg) {
+        spdlog::debug("ChangeSceneIndirectLightProperties");
+
+        auto intensityValue = msg.getData<float>(
+            ECSMessageType::ChangeSceneIndirectLightPropertiesIntensity);
+        indirect_light_->setIntensity(intensityValue);
+        setIndirectLight(indirect_light_.get());
+
+        spdlog::debug("ChangeSceneIndirectLightProperties Complete");
+      });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

@@ -19,6 +19,8 @@
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
+
+////////////////////////////////////////////////////////////////////////////
 Size::Size(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Size::Size");
   for (auto& it : params) {
@@ -41,13 +43,15 @@ Size::Size(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("--Size::Size");
 }
 
+////////////////////////////////////////////////////////////////////////////
 Size::Size(double x, double y, double z) {
   x_ = x;
   y_ = y;
   z_ = z;
 }
 
-void Size::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void Size::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Size)", tag);
   if (x_.has_value()) {

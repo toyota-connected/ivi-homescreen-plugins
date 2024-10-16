@@ -155,14 +155,11 @@ void DebugLinesSystem::vUpdate(float fElapsedTime) {
 void DebugLinesSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
-        spdlog::debug("DebugLine message received.");
+        SPDLOG_TRACE("Adding debug line: ");
         Ray rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
-        spdlog::debug("Adding debug line: ");
 
         vAddLine(rayInfo.f3GetPosition(),
                  rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
-
-        spdlog::debug("Debug line added.");
       });
 }
 
@@ -175,8 +172,9 @@ void DebugLinesSystem::vShutdownSystem() {
 void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
                                 ::filament::math::float3 endPoint,
                                 float secondsTimeout) {
-  if (m_bCurrentlyDrawingDebugLines == false)
+  if (m_bCurrentlyDrawingDebugLines == false) {
     return;
+  }
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
