@@ -16,16 +16,17 @@
 
 #include "filament_view_plugin.h"
 
+#include <core/scene/serialization/scene_text_deserializer.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/debug_lines_system.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
+#include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
 #include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecsystems_manager.h>
-#include <filament_scene.h>
 #include <messages.g.h>
 #include <plugins/common/common.h>
 #include <asio/post.hpp>
@@ -36,7 +37,9 @@ class Display;
 
 namespace plugin_filament_view {
 
-FilamentScene* postSetupDeserializer = nullptr;
+std::unique_ptr<SceneTextDeserializer> sceneTextDeserializer;
+SceneTextDeserializer* postSetupDeserializer = nullptr;
+bool m_bHasSetupRegistrar = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void RunOnceCheckAndInitializeECSystems() {
@@ -83,6 +86,40 @@ void KickOffRenderingLoops() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+void DeserializeDataAndSetupMessageChannels(
+    flutter::PluginRegistrar* registrar,
+    const std::vector<uint8_t>& params) {
+  auto ecsManager = ECSystemManager::GetInstance();
+
+  // Get the strand from the ECSystemManager
+  const auto& strand = *ecsManager->GetStrand();
+
+  std::promise<void> initPromise;
+  std::future<void> initFuture = initPromise.get_future();
+
+  // Safeguarded to only be called once no matter how many times this method is
+  // called.
+  if (postSetupDeserializer == nullptr) {
+    asio::post(strand, [=, &initPromise]() mutable {
+      sceneTextDeserializer = std::make_unique<SceneTextDeserializer>(params);
+      postSetupDeserializer = sceneTextDeserializer.get();
+
+      // making sure this is only called once!
+      postSetupDeserializer->vRunPostSetupLoad();
+
+      initPromise.set_value();
+    });
+
+    initFuture.wait();
+  }
+
+  // Ok to be called infinite times.
+  ECSMessage setupMessageChannels;
+  setupMessageChannels.addData(ECSMessageType::SetupMessageChannels, registrar);
+  ECSystemManager::GetInstance()->vRouteMessage(setupMessageChannels);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar* registrar,
     int32_t id,
@@ -102,9 +139,6 @@ void FilamentViewPlugin::RegisterWithRegistrar(
 
   auto ecsManager = ECSystemManager::GetInstance();
   ecsManager->setConfigValue(kAssetPath, assetDirectory);
-
-  // Get the strand from the ECSystemManager
-  const auto& strand = *ecsManager->GetStrand();
 
   /*bool bDebugAttached = false;
   int i = 0;
@@ -134,40 +168,27 @@ void FilamentViewPlugin::RegisterWithRegistrar(
       static_cast<uint32_t>(height));
   ECSystemManager::GetInstance()->vRouteMessage(viewTargetCreationRequest);
 
-  std::promise<void> initPromise;
-  std::future<void> initFuture = initPromise.get_future();
+  // Safeguarded to only be called once internal
+  DeserializeDataAndSetupMessageChannels(registrar, params);
 
-  // Safeguarded to only be called once no matter how many times this method is
-  // called.
-  if (postSetupDeserializer == nullptr) {
-    asio::post(strand, [=, &initPromise]() mutable {
-      auto plugin = std::make_unique<FilamentViewPlugin>(
-          id, std::move(viewType), direction, top, left, width, height, params,
-          assetDirectory, addListener, removeListener, platform_view_context);
+  if (!m_bHasSetupRegistrar) {
+    m_bHasSetupRegistrar = true;
 
-      // Set up message channels and APIs
-      // TODO all these API's are not needed.
-      FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
-      ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
-      SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-      ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
-      RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+    //
+    auto plugin = std::make_unique<FilamentViewPlugin>(
+        id, std::move(viewType), direction, top, left, width, height, params,
+        assetDirectory, addListener, removeListener, platform_view_context);
 
-      registrar->AddPlugin(std::move(plugin));
+    // Set up message channels and APIs
+    // TODO all these API's are not needed.
+    FilamentViewApi::SetUp(registrar->messenger(), plugin.get(), id);
+    ModelStateChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
+    SceneStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+    ShapeStateApi::SetUp(registrar->messenger(), plugin.get(), id);
+    RendererChannelApi::SetUp(registrar->messenger(), plugin.get(), id);
 
-      // making sure this is only called once!
-      postSetupDeserializer->getSceneController()->vRunPostSetupLoad();
-
-      initPromise.set_value();
-    });
-
-    initFuture.wait();
+    registrar->AddPlugin(std::move(plugin));
   }
-
-  // Ok to be called infinite times.
-  ECSMessage setupMessageChannels;
-  setupMessageChannels.addData(ECSMessageType::SetupMessageChannels, registrar);
-  ECSystemManager::GetInstance()->vRouteMessage(setupMessageChannels);
 
   // Ok to be called infinite times.
   KickOffRenderingLoops();
@@ -184,8 +205,8 @@ FilamentViewPlugin::FilamentViewPlugin(
     double left,
     double width,
     double height,
-    const std::vector<uint8_t>& params,
-    const std::string& assetDirectory,
+    const std::vector<uint8_t>& /*params*/,
+    const std::string& /*assetDirectory*/,
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context)
@@ -200,10 +221,9 @@ FilamentViewPlugin::FilamentViewPlugin(
       platformViewsContext_(platform_view_context),
       removeListener_(removeListener) {
   SPDLOG_TRACE("++FilamentViewPlugin::FilamentViewPlugin");
-  filamentScene_ = std::make_unique<FilamentScene>(id, params, assetDirectory);
+
   addListener(platformViewsContext_, id, &platform_view_listener_, this);
 
-  postSetupDeserializer = filamentScene_.get();
   SPDLOG_TRACE("--FilamentViewPlugin::FilamentViewPlugin");
 }
 
@@ -229,8 +249,13 @@ void FilamentViewPlugin::ChangeDirectLightByIndex(
     std::string color,
     int32_t intensity,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  const auto sceneController = filamentScene_->getSceneController();
-  sceneController->ChangeLightProperties(index, color, intensity);
+  ECSMessage lightData;
+  lightData.addData(ECSMessageType::ChangeSceneLightProperties, index);
+  lightData.addData(ECSMessageType::ChangeSceneLightPropertiesColorValue,
+                    color);
+  lightData.addData(ECSMessageType::ChangeSceneLightPropertiesIntensity,
+                    static_cast<float>(intensity));
+  ECSystemManager::GetInstance()->vRouteMessage(lightData);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -348,7 +373,7 @@ void FilamentViewPlugin::ChangeToDefaultIndirectLight(
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin && plugin->filamentScene_) {
+  if (plugin) {
     auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -369,7 +394,7 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin && plugin->filamentScene_) {
+  if (plugin) {
     auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -386,7 +411,7 @@ void FilamentViewPlugin::on_touch(int32_t action,
                                   const double* point_data,
                                   void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin && plugin->filamentScene_) {
+  if (plugin) {
     auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -400,8 +425,8 @@ void FilamentViewPlugin::on_touch(int32_t action,
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* data) {
   auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin && plugin->filamentScene_) {
-    plugin->filamentScene_.reset();
+  if (plugin) {
+    // Todo ? Note? Should we destroy all systems here?
   }
 }
 

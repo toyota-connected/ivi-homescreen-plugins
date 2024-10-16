@@ -24,6 +24,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Collidable::Collidable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       m_f3CenterPosition({0}),
@@ -90,6 +91,7 @@ Collidable::Collidable(const flutter::EncodableMap& params)
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Collidable Debug Info:");
 
@@ -120,6 +122,7 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
                 m_f3ExtentsSize.y, m_f3ExtentsSize.z);
 }
 
+////////////////////////////////////////////////////////////////////////////
 bool Collidable::bDoesIntersect(const Ray& ray,
                                 ::filament::math::float3& hitPosition) const {
   // Extract relevant data

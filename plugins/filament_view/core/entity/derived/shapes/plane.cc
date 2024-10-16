@@ -38,12 +38,14 @@ using ::filament::math::packSnorm16;
 using ::filament::math::short4;
 using ::utils::Entity;
 
+////////////////////////////////////////////////////////////////////////////
 Plane::Plane(const std::string& flutter_assets_path,
              const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////
 bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
@@ -56,6 +58,7 @@ bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Plane::createDoubleSidedPlane(::filament::Engine* engine_) {
   // Vertices for a plane (4 vertices for each side, 8 in total)
   static constexpr float vertices[] = {
@@ -163,6 +166,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Plane::createSingleSidedPlane(::filament::Engine* engine_) {
   // Vertices for a single-sided plane (4 vertices)
   static constexpr float vertices[] = {
@@ -238,6 +242,7 @@ void Plane::createSingleSidedPlane(::filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Plane::DebugPrint(const char* tag) const {
   BaseShape::DebugPrint(tag);
 }

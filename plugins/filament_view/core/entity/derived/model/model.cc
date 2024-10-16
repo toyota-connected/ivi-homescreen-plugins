@@ -18,13 +18,13 @@
 
 #include <core/components/derived/collidable.h>
 #include <core/include/literals.h>
-#include <core/scene/scene.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 #include <utility>
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 Model::Model(std::string assetPath,
              std::string url,
              Model* fallback,
@@ -56,6 +56,7 @@ Model::Model(std::string assetPath,
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 GlbModel::GlbModel(std::string assetPath,
                    std::string url,
                    Model* fallback,
@@ -71,6 +72,7 @@ GlbModel::GlbModel(std::string assetPath,
             std::move(poCommonRenderable),
             params) {}
 
+////////////////////////////////////////////////////////////////////////////
 GltfModel::GltfModel(std::string assetPath,
                      std::string url,
                      std::string pathPrefix,
@@ -90,6 +92,7 @@ GltfModel::GltfModel(std::string assetPath,
       pathPrefix_(std::move(pathPrefix)),
       pathPostfix_(std::move(pathPostfix)) {}
 
+////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
                                           const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Model::Model");
@@ -99,7 +102,6 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   std::optional<std::string> pathPrefix;
   std::optional<std::string> pathPostfix;
   std::optional<std::string> url;
-  std::unique_ptr<Scene> scene;
   bool is_glb = false;
 
   auto oTransform = std::make_shared<BaseTransform>(params);
@@ -129,7 +131,7 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
       pathPostfix = std::get<std::string>(it.second);
     } else if (key == "scene" &&
                std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      scene = std::make_unique<Scene>(flutterAssetsPath, it.second);
+      spdlog::warn("Scenes are no longer valid off of a model node.");
     } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Model] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
@@ -154,6 +156,7 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
       params);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Model::DebugPrint() const {
   vDebugPrintComponents();
 }

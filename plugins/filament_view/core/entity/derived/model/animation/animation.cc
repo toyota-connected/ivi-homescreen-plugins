@@ -51,7 +51,7 @@ Animation::Animation(const std::string& flutter_assets_path,
   }
 }
 
-void Animation::Print(const char* tag) {
+void Animation::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Animation)", tag);
   spdlog::debug("\tname: [{}]", name_);

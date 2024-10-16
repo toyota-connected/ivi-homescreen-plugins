@@ -20,6 +20,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 IndirectLight::IndirectLight(std::string assetPath,
                              std::string url,
                              float intensity)
@@ -27,8 +28,10 @@ IndirectLight::IndirectLight(std::string assetPath,
       url_(std::move(url)),
       intensity_(intensity) {}
 
+////////////////////////////////////////////////////////////////////////////
 IndirectLight::~IndirectLight() = default;
 
+////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
     const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++IndirectLight::Deserialize");
@@ -88,13 +91,15 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
   return nullptr;
 }
 
-void IndirectLight::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void IndirectLight::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Light)", tag);
   spdlog::debug("\tintensity: {}", intensity_);
 }
 
-void DefaultIndirectLight::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void DefaultIndirectLight::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (DefaultIndirectLight)", tag);
   spdlog::debug("\tintensity: {}", intensity_);

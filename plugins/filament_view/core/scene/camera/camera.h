@@ -35,13 +35,14 @@ class Camera {
  public:
   explicit Camera(const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   Camera(const Camera& other)
       : mode_(other.mode_),
         eCustomCameraMode_(other.eCustomCameraMode_),
         forceSingleFrameUpdate_(other.forceSingleFrameUpdate_),
         fCurrentOrbitAngle_(other.fCurrentOrbitAngle_),
+        fovDirection_(),
         inertia_rotationSpeed_(other.inertia_rotationSpeed_),
         inertia_velocityFactor_(other.inertia_velocityFactor_),
         inertia_decayFactor_(other.inertia_decayFactor_),

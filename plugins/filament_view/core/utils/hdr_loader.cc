@@ -27,6 +27,7 @@ using namespace filament;
 using namespace image;
 using namespace utils;
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* HDRLoader::deleteImageAndLogError(
     image::LinearImage* image) {
   spdlog::error("Unable to create Filament Texture from HDR image.");
@@ -34,6 +35,7 @@ using namespace utils;
   return nullptr;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* HDRLoader::createTextureFromImage(
     ::filament::Engine* engine,
     image::LinearImage* image) {
@@ -70,6 +72,7 @@ using namespace utils;
   return texture;
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* HDRLoader::createTexture(::filament::Engine* engine,
                                               const std::string& asset_path,
                                               const std::string& name) {
@@ -79,6 +82,7 @@ using namespace utils;
   return createTextureFromImage(engine, image);
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* HDRLoader::createTexture(
     ::filament::Engine* engine,
     const std::vector<uint8_t>& buffer,

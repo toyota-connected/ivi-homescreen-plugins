@@ -20,9 +20,11 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(float focalLength, float aspect)
     : focalLength_(focalLength), aspect_(aspect), near_(0.0f), far_(0.0f) {}
 
+////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++LensProjection::LensProjection");
   for (auto& it : params) {
@@ -56,10 +58,11 @@ LensProjection::LensProjection(const flutter::EncodableMap& params) {
     }
   }
   SPDLOG_TRACE("--LensProjection::LensProjection");
-  Print("LensProjection");
+  DebugPrint("LensProjection");
 }
 
-void LensProjection::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void LensProjection::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (LensProjection)", tag);
   spdlog::debug("\tfocalLength: {}", focalLength_);

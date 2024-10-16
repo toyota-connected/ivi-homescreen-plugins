@@ -35,8 +35,10 @@ using ::filament::math::float3;
 using ::filament::math::mat3f;
 using ::utils::Entity;
 
+////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere() : slices_(20), stacks_(20) {}
 
+////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere(const std::string& flutter_assets_path,
                const flutter::EncodableMap& params)
     : BaseShape(flutter_assets_path, params), stacks_(20), slices_(20) {
@@ -54,6 +56,7 @@ Sphere::Sphere(const std::string& flutter_assets_path,
                                           defaultSlices);
 }
 
+////////////////////////////////////////////////////////////////////////////
 bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
                                  std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
@@ -70,6 +73,7 @@ bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
@@ -167,12 +171,14 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Sphere::CloneToOther(BaseShape& other) const {
   BaseShape::CloneToOther(other);
 
@@ -182,6 +188,7 @@ void Sphere::CloneToOther(BaseShape& other) const {
   otherShape->stacks_ = stacks_;
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Sphere::DebugPrint(const char* tag) const {
   BaseShape::DebugPrint(tag);
 

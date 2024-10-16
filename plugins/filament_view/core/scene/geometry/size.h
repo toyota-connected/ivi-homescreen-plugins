@@ -28,7 +28,7 @@ class Size {
 
   Size(double x, double y, double z);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   // Disallow copy and assign.
   Size(const Size&) = delete;

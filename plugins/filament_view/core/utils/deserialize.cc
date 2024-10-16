@@ -17,6 +17,7 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::math::float3 Deserialize::Format3(
     const flutter::EncodableMap& map) {
   double x, y, z = 0.0f;
@@ -37,6 +38,7 @@ namespace plugin_filament_view {
   return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
   double x, y, z, w = 0.0f;
   w = 1.0f;
@@ -60,6 +62,7 @@ namespace plugin_filament_view {
           static_cast<float>(z)};
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Deserialize::DecodeParameterWithDefault(
     const char* key,
     std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
@@ -75,6 +78,7 @@ void Deserialize::DecodeParameterWithDefault(
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Deserialize::DecodeParameterWithDefault(
     const char* key,
     filament::math::float3* out_value,
@@ -90,6 +94,7 @@ void Deserialize::DecodeParameterWithDefault(
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Deserialize::DecodeParameterWithDefault(
     const char* key,
     filament::math::quatf* out_value,
@@ -105,6 +110,7 @@ void Deserialize::DecodeParameterWithDefault(
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Deserialize::DecodeParameterWithDefault(
     const char* key,
     double* out_value,
@@ -118,6 +124,7 @@ void Deserialize::DecodeParameterWithDefault(
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
 void Deserialize::DecodeParameterWithDefaultInt64(
     const char* key,
     int64_t* out_value,

@@ -36,7 +36,14 @@ enum class ECSMessageType {
   SetCameraFromDeserializedLoad,
 
   ToggleShapesInScene,
-  ToggleDebugCollidableViewsInScene
+  ToggleDebugCollidableViewsInScene,
+
+  ChangeSceneLightProperties,
+  ChangeSceneLightPropertiesColorValue,
+  ChangeSceneLightPropertiesIntensity,
+
+  ChangeSceneIndirectLightProperties,
+  ChangeSceneIndirectLightPropertiesIntensity,
 };
 
 }

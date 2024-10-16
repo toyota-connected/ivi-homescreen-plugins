@@ -26,8 +26,10 @@
 
 namespace plugin_filament_view {
 
+////////////////////////////////////////////////////////////////////////////
 TextureLoader::TextureLoader() = default;
 
+////////////////////////////////////////////////////////////////////////////
 inline ::filament::backend::TextureFormat internalFormat(
     const TextureDefinitions::TextureType type) {
   switch (type) {
@@ -41,6 +43,7 @@ inline ::filament::backend::TextureFormat internalFormat(
   throw std::runtime_error("Invalid texture type");
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* TextureLoader::createTextureFromImage(
     const std::string& file_path,
     const TextureDefinitions::TextureType type) {
@@ -78,6 +81,7 @@ inline ::filament::backend::TextureFormat internalFormat(
   return texture;
 }
 
+////////////////////////////////////////////////////////////////////////////
 Resource<::filament::Texture*> TextureLoader::loadTexture(
     TextureDefinitions* texture) {
   if (!texture) {
@@ -119,12 +123,14 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
       "You must provide texture images asset path or url.");
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* TextureLoader::loadTextureFromStream(
     const std::string& file_path,
     const TextureDefinitions::TextureType type) {
   return createTextureFromImage(file_path, type);
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::Texture* TextureLoader::loadTextureFromUrl(
     const std::string& url,
     const TextureDefinitions::TextureType type) {

@@ -22,6 +22,7 @@
 #include <memory>
 
 namespace plugin_filament_view {
+////////////////////////////////////////////////////////////////////////////
 Camera::Camera(const flutter::EncodableMap& params)
     : inertia_rotationSpeed_(0.05f),
       inertia_velocityFactor_(0.2f),
@@ -240,17 +241,18 @@ Camera::Camera(const flutter::EncodableMap& params)
   SPDLOG_TRACE("--Camera::Camera");
 }
 
-void Camera::Print(const char* tag) {
+////////////////////////////////////////////////////////////////////////////
+void Camera::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Camera)", tag);
   if (exposure_) {
-    exposure_->Print("\texposure");
+    exposure_->DebugPrint("\texposure");
   }
   if (projection_) {
-    projection_->Print("\tprojection");
+    projection_->DebugPrint("\tprojection");
   }
   if (lensProjection_) {
-    lensProjection_->Print("\tlensProjection");
+    lensProjection_->DebugPrint("\tlensProjection");
   }
   if (farPlane_.has_value()) {
     spdlog::debug("\tfarPlane: {}", farPlane_.value());
@@ -325,6 +327,7 @@ void Camera::Print(const char* tag) {
   spdlog::debug("++++++++");
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* Camera::getTextForMode(::filament::camutils::Mode mode) {
   return (const char*[]){
       kModeOrbit,
@@ -333,6 +336,7 @@ const char* Camera::getTextForMode(::filament::camutils::Mode mode) {
   }[static_cast<int>(mode)];
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::camutils::Mode Camera::getModeForText(const std::string& mode) {
   if (mode == kModeMap) {
     return ::filament::camutils::Mode::MAP;
@@ -343,6 +347,7 @@ const char* Camera::getTextForMode(::filament::camutils::Mode mode) {
   return ::filament::camutils::Mode::ORBIT;
 }
 
+////////////////////////////////////////////////////////////////////////////
 const char* Camera::getTextForFov(::filament::camutils::Fov fov) {
   return (const char*[]){
       kFovVertical,
@@ -350,6 +355,7 @@ const char* Camera::getTextForFov(::filament::camutils::Fov fov) {
   }[static_cast<int>(fov)];
 }
 
+////////////////////////////////////////////////////////////////////////////
 ::filament::camutils::Fov Camera::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
     return ::filament::camutils::Fov::VERTICAL;

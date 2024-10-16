@@ -39,6 +39,10 @@ class Skybox {
 
   [[nodiscard]] const std::string& getColor() const { return color_; }
 
+  [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
+  [[nodiscard]] std::string szGetURLPath() const { return url_; }
+  [[nodiscard]] std::string szGetColor() const { return color_; }
+
  protected:
   std::string assetPath_;
   std::string url_;

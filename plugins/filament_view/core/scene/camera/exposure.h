@@ -29,7 +29,7 @@ class Exposure {
  public:
   explicit Exposure(const flutter::EncodableMap& params);
 
-  void Print(const char* tag);
+  void DebugPrint(const char* tag);
 
   Exposure(const Exposure& other)
       : aperture_(other.aperture_),
