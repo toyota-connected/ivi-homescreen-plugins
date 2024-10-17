@@ -274,6 +274,7 @@ void CameraManager::updateCamera(const Camera* cameraInfo) {
   SPDLOG_DEBUG("++CameraManager::updateCamera");
 
   updateExposure(cameraInfo->exposure_.get());
+  // ReSharper disable once CppExpressionWithoutSideEffects
   updateProjection(cameraInfo->projection_.get());
   updateLensProjection(cameraInfo->lensProjection_.get());
   updateCameraShift(cameraInfo->shift_.get());
