@@ -42,8 +42,8 @@ using ::filament::gltfio::ResourceLoader;
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::destroyAllAssetsOnModels() {
   for (const auto& [fst, snd] : m_mapszpoAssets) {
-    destroyAsset(snd->getAsset());
-    delete snd;
+    destroyAsset(snd->getAsset());  // NOLINT
+    delete snd;                     // NOLINT
   }
   m_mapszpoAssets.clear();
 }
@@ -229,7 +229,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
     count = asset->popRenderables(nullptr, 0);
   }
 
-  if (auto lightEntities = asset->getLightEntities()) {
+  if ([[maybe_unused]] auto lightEntities = asset->getLightEntities()) {
     filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
                                                     sizeof(*lightEntities));
   }

@@ -282,8 +282,7 @@ void SceneTextDeserializer::setUpSkybox() {
     SkyboxSystem::setDefaultSkybox();
     // makeSurfaceViewTransparent();
   } else {
-    auto skybox = skybox_.get();
-    if (dynamic_cast<HdrSkybox*>(skybox)) {
+    if (auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
       if (auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
           !hdr_skybox->szGetAssetPath().empty()) {
         const auto shouldUpdateLight =
@@ -340,8 +339,8 @@ void SceneTextDeserializer::setUpIndirectLight() {
     // This was called in the constructor of indirectLightManager_ anyway.
     // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
   } else {
-    auto indirectLight = indirect_light_.get();
-    if (dynamic_cast<KtxIndirectLight*>(indirectLight)) {
+    if (auto indirectLight = indirect_light_.get();
+        dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         plugin_filament_view::IndirectLightSystem::setIndirectLightFromKtxAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());

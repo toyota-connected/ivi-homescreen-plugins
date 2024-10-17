@@ -107,30 +107,29 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   auto oTransform = std::make_shared<BaseTransform>(params);
   auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
-  for (const auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    if (auto key = std::get<std::string>(it.first);
+    if (auto key = std::get<std::string>(fst);
         key == "animation" &&
-        std::holds_alternative<flutter::EncodableMap>(it.second)) {
+        std::holds_alternative<flutter::EncodableMap>(snd)) {
       animation = std::make_unique<Animation>(
-          flutterAssetsPath, std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "assetPath" &&
-               std::holds_alternative<std::string>(it.second)) {
-      assetPath = std::get<std::string>(it.second);
-    } else if (key == "isGlb" && std::holds_alternative<bool>(it.second)) {
-      is_glb = std::get<bool>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url = std::get<std::string>(it.second);
+          flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
+    } else if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath = std::get<std::string>(snd);
+    } else if (key == "isGlb" && std::holds_alternative<bool>(snd)) {
+      is_glb = std::get<bool>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url = std::get<std::string>(snd);
     } else if (key == "pathPrefix" &&
-               std::holds_alternative<std::string>(it.second)) {
-      pathPrefix = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      pathPrefix = std::get<std::string>(snd);
     } else if (key == "pathPostfix" &&
-               std::holds_alternative<std::string>(it.second)) {
-      pathPostfix = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      pathPostfix = std::get<std::string>(snd);
     } else if (key == "scene" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
       spdlog::warn("Scenes are no longer valid off of a model node.");
     } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Model] Unhandled Parameter");

@@ -46,9 +46,9 @@ void EntityObject::DeserializeNameAndGlobalGuid(
   if (auto itName = params.find(flutter::EncodableValue(kName));
       itName != params.end() && !itName->second.IsNull()) {
     // they're requesting entity be named what they want.
-    std::string requestedName = std::get<std::string>(itName->second);
 
-    if (!requestedName.empty()) {
+    if (auto requestedName = std::get<std::string>(itName->second);
+        !requestedName.empty()) {
       vOverrideName(requestedName);
       SPDLOG_INFO("OVERRIDING NAME: {}", requestedName);
     }
@@ -58,8 +58,8 @@ void EntityObject::DeserializeNameAndGlobalGuid(
       itGUID != params.end() && !itGUID->second.IsNull()) {
     // they're requesting entity have a guid they desire.
     // Note! There's no clash checking here.
-    std::string requestedGlobalGUID = std::get<std::string>(itGUID->second);
-    if (!requestedGlobalGUID.empty()) {
+    if (auto requestedGlobalGUID = std::get<std::string>(itGUID->second);
+        !requestedGlobalGUID.empty()) {
       vOverrideGlobalGuid(requestedGlobalGUID);
       SPDLOG_INFO("OVERRIDING GLOBAL GUID: {}", requestedGlobalGUID);
     }

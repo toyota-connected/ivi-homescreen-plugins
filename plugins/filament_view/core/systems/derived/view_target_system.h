@@ -65,7 +65,7 @@ class ViewTargetSystem : public ECSystem {
                 size_t point_data_size,
                 const double* point_data);
 
-  void vChangePrimaryCameraMode(size_t nWhich, std::string szValue);
+  void vChangePrimaryCameraMode(size_t nWhich, const std::string& szValue);
   void vResetInertiaCameraToDefaultValues(size_t nWhich);
   void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue);
 

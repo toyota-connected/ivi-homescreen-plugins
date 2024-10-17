@@ -371,7 +371,7 @@ void FilamentViewPlugin::ChangeToDefaultIndirectLight(
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -391,7 +391,7 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -407,7 +407,7 @@ void FilamentViewPlugin::on_touch(int32_t action,
                                   size_t point_data_size,
                                   const double* point_data,
                                   void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -420,7 +420,7 @@ void FilamentViewPlugin::on_touch(int32_t action,
 }
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     // Todo ? Note? Should we destroy all systems here?
   }
 }

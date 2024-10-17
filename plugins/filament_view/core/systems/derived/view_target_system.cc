@@ -170,7 +170,7 @@ void ViewTargetSystem::vOnTouch(size_t nWhich,
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vChangePrimaryCameraMode(size_t nWhich,
-                                                std::string szValue) {
+                                                const std::string& szValue) {
   m_lstViewTargets[nWhich]->getCameraManager()->ChangePrimaryCameraMode(
       szValue);
 }

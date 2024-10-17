@@ -168,8 +168,8 @@ Camera::Camera(const flutter::EncodableMap& params)
       }
     } else if (key == "mode") {
       if (std::holds_alternative<std::string>(snd)) {
-        auto modeType = std::get<std::string>(snd);
-        if (modeType == kModeAutoOrbit) {
+        if (auto modeType = std::get<std::string>(snd);
+            modeType == kModeAutoOrbit) {
           eCustomCameraMode_ = AutoOrbit;
         } else if (modeType == kModeInertiaAndGestures) {
           eCustomCameraMode_ = InertiaAndGestures;
