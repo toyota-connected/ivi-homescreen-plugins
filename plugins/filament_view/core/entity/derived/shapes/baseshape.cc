@@ -88,8 +88,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   // if we have collidable data request, we need to build that component, as its
   // optional
-  auto it = params.find(flutter::EncodableValue(kCollidable));
-  if (it != params.end() && !it->second.IsNull()) {
+  if (auto it = params.find(flutter::EncodableValue(kCollidable));
+      it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
@@ -106,7 +106,7 @@ BaseShape::~BaseShape() {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
   const auto filamentEngine = filamentSystem->getFilamentEngine();
@@ -143,14 +143,14 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
                                      other);
 
-  std::shared_ptr<Component> componentBT =
+  const std::shared_ptr<Component> componentBT =
       GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
-  std::shared_ptr<BaseTransform> baseTransformPtr =
+  const std::shared_ptr<BaseTransform> baseTransformPtr =
       std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
-  std::shared_ptr<Component> componentCR =
+  const std::shared_ptr<Component> componentCR =
       GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
-  std::shared_ptr<CommonRenderable> commonRenderablePtr =
+  const std::shared_ptr<CommonRenderable> commonRenderablePtr =
       std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
   other.m_poBaseTransform = std::weak_ptr<BaseTransform>(baseTransformPtr);
@@ -176,7 +176,7 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
         .castShadows(false)
         .build(*engine_, *m_poEntity);
   } else {
-    auto materialSystem =
+    const auto materialSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
             MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
 
@@ -216,14 +216,14 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vRemoveEntityFromScene() {
+void BaseShape::vRemoveEntityFromScene() const {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
                 __FILE__, __FUNCTION__);
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");
@@ -232,14 +232,14 @@ void BaseShape::vRemoveEntityFromScene() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vAddEntityToScene() {
+void BaseShape::vAddEntityToScene() const {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
                 __FUNCTION__);
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");

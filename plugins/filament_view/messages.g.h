@@ -118,7 +118,7 @@ class FilamentViewApi {
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void ChangeCameraMode(
-      std::string value,
+      std::string szValue,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
 
   virtual void vResetInertiaCameraToDefaultValues(

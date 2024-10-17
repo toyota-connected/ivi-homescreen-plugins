@@ -63,21 +63,19 @@ Camera::Camera(const flutter::EncodableMap& params)
   Deserialize::DecodeParameterWithDefault(kCamera_Zoom_maxCap, &zoom_maxCap_,
                                           params, 10.0f);
 
-  for (const auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-
-    if (key == "exposure") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
-        exposure_ = std::make_unique<Exposure>(
-            std::get<flutter::EncodableMap>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+  for (const auto& [fst, snd] : params) {
+    if (auto key = std::get<std::string>(fst); key == "exposure") {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
+        exposure_ =
+            std::make_unique<Exposure>(std::get<flutter::EncodableMap>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         exposure_ = std::make_unique<Exposure>(flutter::EncodableMap{});
       }
     } else if (key == "projection") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
-        projection_ = std::make_unique<Projection>(
-            std::get<flutter::EncodableMap>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
+        projection_ =
+            std::make_unique<Projection>(std::get<flutter::EncodableMap>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flutter::EncodableMap map = {
             {flutter::EncodableValue("focalLength"), flutter::EncodableValue()},
             {flutter::EncodableValue("aspect"), flutter::EncodableValue()},
@@ -86,10 +84,10 @@ Camera::Camera(const flutter::EncodableMap& params)
         projection_ = std::make_unique<Projection>(map);
       }
     } else if (key == "lensProjection") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         lensProjection_ = std::make_unique<LensProjection>(
-            std::get<flutter::EncodableMap>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+            std::get<flutter::EncodableMap>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flutter::EncodableMap map = {
             {flutter::EncodableValue("focalLength"), flutter::EncodableValue()},
             {flutter::EncodableValue("aspect"), flutter::EncodableValue()},
@@ -98,138 +96,138 @@ Camera::Camera(const flutter::EncodableMap& params)
         lensProjection_ = std::make_unique<LensProjection>(map);
       }
     } else if (key == "flightMaxMoveSpeed") {
-      if (std::holds_alternative<double>(it.second)) {
-        flightMaxMoveSpeed_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        flightMaxMoveSpeed_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flightMaxMoveSpeed_ = 10;
       }
     } else if (key == "flightMoveDamping") {
-      if (std::holds_alternative<double>(it.second)) {
-        flightMoveDamping_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        flightMoveDamping_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flightMoveDamping_ = 15.0;
       }
     } else if (key == "flightSpeedSteps") {
-      if (std::holds_alternative<int64_t>(it.second)) {
-        flightSpeedSteps_ = std::get<int64_t>(it.second);
+      if (std::holds_alternative<int64_t>(snd)) {
+        flightSpeedSteps_ = std::get<int64_t>(snd);
       } else {
         flightSpeedSteps_ = 80;
       }
     } else if (key == "flightStartOrientation") {
-      if (std::holds_alternative<flutter::EncodableList>(it.second)) {
-        auto list = std::get<flutter::EncodableList>(it.second);
+      if (std::holds_alternative<flutter::EncodableList>(snd)) {
+        auto list = std::get<flutter::EncodableList>(snd);
         flightStartOrientation_ = std::make_unique<std::vector<float>>();
         for (const auto& item : list) {
           flightStartOrientation_->emplace_back(std::get<double>(item));
         }
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flightStartOrientation_ = std::make_unique<std::vector<float>>();
         flightStartOrientation_->push_back(0);
         flightStartOrientation_->push_back(0);
       }
     } else if (key == "flightStartPosition") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         flightStartPosition_ = std::make_unique<::filament::math::float3>(
-            Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
+            Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
 
         current_zoom_radius_ = flightStartPosition_->x;
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         flightStartPosition_ =
             std::make_unique<::filament::math::float3>(0, 0, 0);
       }
     } else if (key == "fovDirection") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        fovDirection_ = getFovForText(std::get<std::string>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<std::string>(snd)) {
+        fovDirection_ = getFovForText(std::get<std::string>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         fovDirection_ = ::filament::camutils::Fov::VERTICAL;
       }
     } else if (key == "fovDegrees") {
-      if (std::holds_alternative<double>(it.second)) {
-        fovDegrees_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        fovDegrees_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         fovDegrees_ = 33;
       }
     } else if (key == "farPlane") {
-      if (std::holds_alternative<double>(it.second)) {
-        farPlane_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        farPlane_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         farPlane_ = 5000;
       }
     } else if (key == "groundPlane") {
       groundPlane_ = std::make_unique<std::vector<float>>();
-      if (std::holds_alternative<flutter::EncodableList>(it.second)) {
-        auto list = std::get<flutter::EncodableList>(it.second);
+      if (std::holds_alternative<flutter::EncodableList>(snd)) {
+        auto list = std::get<flutter::EncodableList>(snd);
         for (const auto& item : list) {
           groundPlane_->emplace_back(std::get<double>(item));
         }
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         groundPlane_->push_back(0);
         groundPlane_->push_back(0);
         groundPlane_->push_back(1);
         groundPlane_->push_back(0);
       }
     } else if (key == "mode") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        auto modeType = std::get<std::string>(it.second);
+      if (std::holds_alternative<std::string>(snd)) {
+        auto modeType = std::get<std::string>(snd);
         if (modeType == kModeAutoOrbit) {
-          eCustomCameraMode_ = CustomCameraMode::AutoOrbit;
+          eCustomCameraMode_ = AutoOrbit;
         } else if (modeType == kModeInertiaAndGestures) {
-          eCustomCameraMode_ = CustomCameraMode::InertiaAndGestures;
+          eCustomCameraMode_ = InertiaAndGestures;
         } else {
           mode_ = getModeForText(modeType);
         }
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         mode_ = ::filament::camutils::Mode::ORBIT;
       }
     } else if (key == "orbitHomePosition") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         orbitHomePosition_ = std::make_unique<::filament::math::float3>(
-            Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
+            Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
       }
     } else if (key == "orbitSpeed") {
-      if (std::holds_alternative<flutter::EncodableList>(it.second)) {
-        auto list = std::get<flutter::EncodableList>(it.second);
+      if (std::holds_alternative<flutter::EncodableList>(snd)) {
+        auto list = std::get<flutter::EncodableList>(snd);
         orbitSpeed_ = std::make_unique<std::vector<float>>();
         for (const auto& item : list) {
           orbitSpeed_->emplace_back(std::get<double>(item));
         }
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         orbitSpeed_ = std::make_unique<std::vector<float>>();
         orbitSpeed_->push_back(0.01f);
         orbitSpeed_->push_back(0.01f);
       }
-    } else if (key == "scaling" && !it.second.IsNull() &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
-      auto list = std::get<flutter::EncodableList>(it.second);
+    } else if (key == "scaling" && !snd.IsNull() &&
+               std::holds_alternative<flutter::EncodableList>(snd)) {
+      auto list = std::get<flutter::EncodableList>(snd);
       scaling_ = std::make_unique<std::vector<double>>();
       for (const auto& item : list) {
         scaling_->emplace_back(std::get<double>(item));
       }
-    } else if (key == "shift" && !it.second.IsNull() &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
-      auto list = std::get<flutter::EncodableList>(it.second);
+    } else if (key == "shift" && !snd.IsNull() &&
+               std::holds_alternative<flutter::EncodableList>(snd)) {
+      auto list = std::get<flutter::EncodableList>(snd);
       shift_ = std::make_unique<std::vector<double>>();
       for (const auto& item : list) {
         shift_->emplace_back(std::get<double>(item));
       }
     } else if (key == "targetPosition") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         targetPosition_ = std::make_unique<::filament::math::float3>(
-            Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+            Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         targetPosition_ = std::make_unique<::filament::math::float3>(0, 0, 0);
       }
     } else if (key == "upVector") {
-      if (std::holds_alternative<flutter::EncodableMap>(it.second)) {
+      if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         upVector_ = std::make_unique<::filament::math::float3>(
-            Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+            Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         upVector_ = std::make_unique<::filament::math::float3>(0, 1, 0);
       }
     } else if (key == "zoomSpeed") {
-      if (std::holds_alternative<double>(it.second)) {
-        zoomSpeed_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        zoomSpeed_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         zoomSpeed_ = 0.01;
       }
     } /*else if (!it.second.IsNull()) {

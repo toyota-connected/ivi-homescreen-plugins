@@ -57,11 +57,11 @@ using namespace utils;
 
   Texture::PixelBufferDescriptor::Callback freeCallback =
       [](void* /* buf */, size_t, void* userdata) {
-        delete (LinearImage*)userdata;
+        delete static_cast<LinearImage*>(userdata);
       };
 
   Texture::PixelBufferDescriptor pbd(
-      (void const*)image->getPixelRef(),
+      (image->getPixelRef()),
       image->getWidth() * image->getHeight() * 3 * sizeof(float),
       Texture::PixelBufferDescriptor::PixelDataFormat::RGB,
       Texture::PixelBufferDescriptor::PixelDataType::FLOAT, freeCallback,

@@ -43,7 +43,7 @@ bool m_bHasSetupRegistrar = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void RunOnceCheckAndInitializeECSystems() {
-  auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecsManager = ECSystemManager::GetInstance();
 
   if (ecsManager->getRunState() != ECSystemManager::RunState::NotInitialized) {
     return;
@@ -89,7 +89,7 @@ void KickOffRenderingLoops() {
 void DeserializeDataAndSetupMessageChannels(
     flutter::PluginRegistrar* registrar,
     const std::vector<uint8_t>& params) {
-  auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecsManager = ECSystemManager::GetInstance();
 
   // Get the strand from the ECSystemManager
   const auto& strand = *ecsManager->GetStrand();
@@ -281,7 +281,7 @@ void FilamentViewPlugin::ToggleDebugCollidableViewsInScene(
 void FilamentViewPlugin::ChangeCameraMode(
     std::string szValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  auto viewTargetSystem =
+  const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
           ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -291,7 +291,7 @@ void FilamentViewPlugin::ChangeCameraMode(
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  auto viewTargetSystem =
+  const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
           ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -302,8 +302,7 @@ void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
 void FilamentViewPlugin::SetCameraRotation(
     float fValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {
-  // TODO
-  auto viewTargetSystem =
+  const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
           ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -372,9 +371,8 @@ void FilamentViewPlugin::ChangeToDefaultIndirectLight(
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
-  auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin) {
-    auto viewTargetSystem =
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+    const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
             "FilamentViewPlugin::on_resize");
@@ -393,9 +391,8 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
-  auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin) {
-    auto viewTargetSystem =
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+    const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
             "FilamentViewPlugin::on_resize");
@@ -410,9 +407,8 @@ void FilamentViewPlugin::on_touch(int32_t action,
                                   size_t point_data_size,
                                   const double* point_data,
                                   void* data) {
-  auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin) {
-    auto viewTargetSystem =
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
+    const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
             "FilamentViewPlugin::on_touch");
@@ -424,18 +420,16 @@ void FilamentViewPlugin::on_touch(int32_t action,
 }
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* data) {
-  auto plugin = static_cast<FilamentViewPlugin*>(data);
-  if (plugin) {
+  if (auto plugin = static_cast<FilamentViewPlugin*>(data)) {
     // Todo ? Note? Should we destroy all systems here?
   }
 }
 
-const struct platform_view_listener
-    FilamentViewPlugin::platform_view_listener_ = {
-        .resize = on_resize,
-        .set_direction = on_set_direction,
-        .set_offset = on_set_offset,
-        .on_touch = on_touch,
-        .dispose = on_dispose};
+const platform_view_listener FilamentViewPlugin::platform_view_listener_ = {
+    .resize = on_resize,
+    .set_direction = on_set_direction,
+    .set_offset = on_set_offset,
+    .on_touch = on_touch,
+    .dispose = on_dispose};
 
 }  // namespace plugin_filament_view

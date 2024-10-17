@@ -55,6 +55,8 @@ std::future<void> SkyboxSystem::Initialize() {
                            .color({1.0f, 1.0f, 1.0f, 1.0f})
                            .build(*engine);
     filamentSystem->getFilamentScene()->setSkybox(whiteSkybox);
+
+    promise->set_value();
   });
 
   return future;
@@ -174,7 +176,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
   SPDLOG_DEBUG("Skybox loading KTX Asset: {}", asset_path.c_str());
   asio::post(strand_, [&, promise, asset_path] {
     std::ifstream stream(asset_path, std::ios::in | std::ios::binary);
-    std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(stream)),
+    std::vector<uint8_t> buffer((std::istreambuf_iterator(stream)),
                                 std::istreambuf_iterator<char>());
     if (!buffer.empty()) {
 #if 0  // TODO
@@ -319,8 +321,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-      if (prevSkybox) {
+      if (auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox()) {
         engine->destroy(prevSkybox);
       }
 
@@ -377,8 +378,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-      if (prevSkybox) {
+      if (auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox()) {
         engine->destroy(prevSkybox);
       }
 
@@ -406,8 +406,7 @@ void SkyboxSystem::vShutdownSystem() {
           FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-  if (prevSkybox) {
+  if (auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox()) {
     engine->destroy(prevSkybox);
   }
 }

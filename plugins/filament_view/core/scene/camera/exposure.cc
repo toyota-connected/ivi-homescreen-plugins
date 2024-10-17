@@ -23,29 +23,28 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Exposure::Exposure(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Exposure::Exposure");
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "aperture") {
-      if (std::holds_alternative<double>(it.second)) {
-        aperture_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+  for (const auto& [fst, snd] : params) {
+    if (auto key = std::get<std::string>(fst); key == "aperture") {
+      if (std::holds_alternative<double>(snd)) {
+        aperture_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         aperture_ = 16.0f;
       }
     } else if (key == "sensitivity") {
-      if (std::holds_alternative<double>(it.second)) {
-        sensitivity_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        sensitivity_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         sensitivity_ = 100.0f;
       }
     } else if (key == "shutterSpeed") {
-      if (std::holds_alternative<double>(it.second)) {
-        shutterSpeed_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<double>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        shutterSpeed_ = std::get<double>(snd);
+      } else if (std::holds_alternative<double>(snd)) {
         shutterSpeed_ = 1.0f / 125.0f;
       }
     } else if (key == "exposure") {
-      if (std::holds_alternative<double>(it.second)) {
-        exposure_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        exposure_ = std::get<double>(snd);
       }
     }
   }

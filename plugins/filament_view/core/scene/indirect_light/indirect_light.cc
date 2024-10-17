@@ -41,21 +41,19 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
   std::optional<std::string> url;
   std::optional<double> intensity;
 
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "assetPath" && std::holds_alternative<std::string>(it.second)) {
-      assetPath = std::get<std::string>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url = std::get<std::string>(it.second);
-    } else if (key == "intensity" &&
-               std::holds_alternative<double>(it.second)) {
-      intensity = std::get<double>(it.second);
-    } else if (key == "lightType" &&
-               std::holds_alternative<int32_t>(it.second)) {
-      type = std::get<int32_t>(it.second);
+    if (auto key = std::get<std::string>(fst);
+        key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath = std::get<std::string>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url = std::get<std::string>(snd);
+    } else if (key == "intensity" && std::holds_alternative<double>(snd)) {
+      intensity = std::get<double>(snd);
+    } else if (key == "lightType" && std::holds_alternative<int32_t>(snd)) {
+      type = std::get<int32_t>(snd);
     } /*else if (!it.second.IsNull()) {
       spdlog::debug("[IndirectLight] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),

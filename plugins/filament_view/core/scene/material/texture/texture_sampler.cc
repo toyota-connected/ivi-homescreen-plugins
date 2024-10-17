@@ -26,36 +26,30 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++TextureSampler::TextureSampler");
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "min" && std::holds_alternative<std::string>(it.second)) {
-      min_ = std::get<std::string>(it.second);
-    } else if (key == "mag" && std::holds_alternative<std::string>(it.second)) {
-      mag_ = std::get<std::string>(it.second);
-    } else if (key == "wrap" &&
-               std::holds_alternative<std::string>(it.second)) {
-      wrapR_ = std::get<std::string>(it.second);
-      wrapS_ = std::get<std::string>(it.second);
-      wrapT_ = std::get<std::string>(it.second);
-    } else if (key == "wrapR" &&
-               std::holds_alternative<std::string>(it.second)) {
-      wrapR_ = std::get<std::string>(it.second);
-    } else if (key == "wrapS" &&
-               std::holds_alternative<std::string>(it.second)) {
-      wrapS_ = std::get<std::string>(it.second);
-    } else if (key == "wrapT" &&
-               std::holds_alternative<std::string>(it.second)) {
-      wrapT_ = std::get<std::string>(it.second);
-    } else if (key == "anisotropy" &&
-               std::holds_alternative<double>(it.second)) {
-      anisotropy_ = std::get<double>(it.second);
-    } else if (!it.second.IsNull()) {
+    auto key = std::get<std::string>(fst);
+    if (key == "min" && std::holds_alternative<std::string>(snd)) {
+      min_ = std::get<std::string>(snd);
+    } else if (key == "mag" && std::holds_alternative<std::string>(snd)) {
+      mag_ = std::get<std::string>(snd);
+    } else if (key == "wrap" && std::holds_alternative<std::string>(snd)) {
+      wrapR_ = std::get<std::string>(snd);
+      wrapS_ = std::get<std::string>(snd);
+      wrapT_ = std::get<std::string>(snd);
+    } else if (key == "wrapR" && std::holds_alternative<std::string>(snd)) {
+      wrapR_ = std::get<std::string>(snd);
+    } else if (key == "wrapS" && std::holds_alternative<std::string>(snd)) {
+      wrapS_ = std::get<std::string>(snd);
+    } else if (key == "wrapT" && std::holds_alternative<std::string>(snd)) {
+      wrapT_ = std::get<std::string>(snd);
+    } else if (key == "anisotropy" && std::holds_alternative<double>(snd)) {
+      anisotropy_ = std::get<double>(snd);
+    } else if (!snd.IsNull()) {
       spdlog::debug("[TextureSampler] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   SPDLOG_TRACE("--TextureSampler::TextureSampler");

@@ -41,9 +41,9 @@ using ::filament::gltfio::ResourceLoader;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::destroyAllAssetsOnModels() {
-  for (const auto& model : m_mapszpoAssets) {
-    destroyAsset(model.second->getAsset());
-    delete model.second;
+  for (const auto& [fst, snd] : m_mapszpoAssets) {
+    destroyAsset(snd->getAsset());
+    delete snd;
   }
   m_mapszpoAssets.clear();
 }
@@ -107,8 +107,8 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 
   auto& rcm = engine->getRenderableManager();
 
-  utils::Slice<Entity> const listOfRenderables{
-      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                       asset->getRenderableEntityCount()};
 
   for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
@@ -169,8 +169,8 @@ void ModelSystem::loadModelGltf(
 
   auto& rcm = engine->getRenderableManager();
 
-  utils::Slice<Entity> const listOfRenderables{
-      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                       asset->getRenderableEntityCount()};
 
   for (auto entity : listOfRenderables) {
     auto ri = rcm.getInstance(entity);
@@ -212,8 +212,8 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
 
     asset->popRenderables(readyRenderables_, maxToPop);
 
-    utils::Slice<Entity> const listOfRenderables{
-        asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                         asset->getRenderableEntityCount()};
 
     for (auto entity : listOfRenderables) {
       auto ri = rcm.getInstance(entity);
@@ -229,8 +229,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
     count = asset->popRenderables(nullptr, 0);
   }
 
-  auto lightEntities = asset->getLightEntities();
-  if (lightEntities) {
+  if (auto lightEntities = asset->getLightEntities()) {
     filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
                                                     sizeof(*lightEntities));
   }
@@ -247,8 +246,8 @@ void ModelSystem::updateAsyncAssetLoading() {
   // eventually settle
   float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
-  for (const auto& asset : m_mapszpoAssets) {
-    populateSceneWithAsyncLoadedAssets(asset.second);
+  for (const auto& [fst, snd] : m_mapszpoAssets) {
+    populateSceneWithAsyncLoadedAssets(snd);
 
     if (percentComplete != 1.0f) {
       continue;
@@ -266,13 +265,12 @@ void ModelSystem::updateAsyncAssetLoading() {
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
-    if (asset.second->HasComponentByStaticTypeID(
-            Collidable::StaticGetTypeID()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(asset.first)) {
+    if (snd->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
+        !collisionSystem->bHasEntityObjectRepresentation(fst)) {
       // I don't think this needs to become a message; as an async load
       // gives us un-deterministic throughput; it can't be replicated with a
       // messaging structure, and we have to wait till the load is done.
-      collisionSystem->vAddCollidable(asset.second);
+      collisionSystem->vAddCollidable(snd);
     }  // end make collision
   }  // end foreach
 }  // end method

@@ -57,8 +57,8 @@ inline ::filament::backend::TextureFormat internalFormat(
 
   ::filament::Texture* texture =
       ::filament::Texture::Builder()
-          .width(uint32_t(w))
-          .height(uint32_t(h))
+          .width(static_cast<uint32_t>(w))
+          .height(static_cast<uint32_t>(h))
           .levels(1)  // TODO should be param, backlogged
           .format(internalFormat(type))
           .sampler(::filament::Texture::Sampler::SAMPLER_2D)
@@ -70,10 +70,11 @@ inline ::filament::backend::TextureFormat internalFormat(
   }
 
   ::filament::Texture::PixelBufferDescriptor pbd(
-      data, size_t(w * h * 4),
+      data, static_cast<size_t>(w * h * 4),
       ::filament::Texture::PixelBufferDescriptor::PixelDataFormat::RGBA,
       ::filament::Texture::PixelBufferDescriptor::PixelDataType::UBYTE,
-      (::filament::Texture::PixelBufferDescriptor::Callback)&stbi_image_free);
+      reinterpret_cast<::filament::Texture::PixelBufferDescriptor::Callback>(
+          &stbi_image_free));
 
   texture->setImage(*engine, 0, std::move(pbd));
   texture->generateMipmaps(*engine);

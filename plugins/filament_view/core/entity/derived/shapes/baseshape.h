@@ -59,8 +59,8 @@ class BaseShape : public EntityObject {
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
                                    std::shared_ptr<Entity> entityObject) = 0;
 
-  void vRemoveEntityFromScene();
-  void vAddEntityToScene();
+  void vRemoveEntityFromScene() const;
+  void vAddEntityToScene() const;
 
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer;

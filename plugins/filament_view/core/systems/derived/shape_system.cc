@@ -57,12 +57,11 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   ShapeType type;
 
   // Find the "shapeType" key in the mapData
-  auto it = mapData.find(flutter::EncodableValue("shapeType"));
-  if (it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
-    int32_t typeValue = std::get<int32_t>(it->second);
-
+  if (auto it = mapData.find(flutter::EncodableValue("shapeType"));
+      it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
     // Check if the value is within the valid range of the ShapeType enum
-    if (typeValue > static_cast<int32_t>(ShapeType::Unset) &&
+    if (int32_t typeValue = std::get<int32_t>(it->second);
+        typeValue > static_cast<int32_t>(ShapeType::Unset) &&
         typeValue < static_cast<int32_t>(ShapeType::Max)) {
       type = static_cast<ShapeType>(typeValue);
     } else {

@@ -47,9 +47,9 @@ FLUTTER_PLUGIN_EXPORT void FilamentViewPluginCApiRegisterWithRegistrar(
     const std::vector<uint8_t>& params,
     const std::string& assetDirectory,
     FlutterDesktopEngineRef engine,
-    PlatformViewAddListener add_listener,
-    PlatformViewRemoveListener remove_listener,
-    void* platform_views_context);
+    PlatformViewAddListener addlistener,
+    PlatformViewRemoveListener removelistener,
+    void* platform_view_context);
 
 #if defined(__cplusplus)
 }  // extern "C"

@@ -30,12 +30,12 @@ Collidable::Collidable(const flutter::EncodableMap& params)
       m_f3CenterPosition({0}),
       m_eShapeType(ShapeType::Cube),
       m_f3ExtentsSize({1}) {
-  auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
-
   // Check if the key exists and if the value is an EncodableMap
-  if (itCollidableSpecific != params.end()) {
+  if (auto itCollidableSpecific =
+          params.find(flutter::EncodableValue(kCollidable));
+      itCollidableSpecific != params.end()) {
     try {
-      auto collidableSpecificParams =
+      const auto collidableSpecificParams =
           std::get<flutter::EncodableMap>(itCollidableSpecific->second);
 
       // Deserialize the collision layer, defaulting to 0
@@ -142,11 +142,9 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       float a = dot(rayDirection, rayDirection);
       float b = 2.0f * dot(oc, rayDirection);
       float c = dot(oc, oc) - radius * radius;
-      float discriminant = b * b - 4 * a * c;
 
-      if (discriminant > 0) {
-        float t = (-b - sqrt(discriminant)) / (2.0f * a);
-        if (t > 0) {
+      if (float discriminant = b * b - 4 * a * c; discriminant > 0) {
+        if (float t = (-b - sqrt(discriminant)) / (2.0f * a); t > 0) {
           hitPosition = rayOrigin + t * rayDirection;
           SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGlobalGuid());
           return true;  // Ray hits the sphere
@@ -170,8 +168,9 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       if (tymin > tymax)
         std::swap(tymin, tymax);
 
-      if ((tmin > tymax) || (tymin > tmax))
+      if (tmin > tymax || tymin > tmax) {
         return false;
+      }
 
       if (tymin > tmin)
         tmin = tymin;
@@ -183,13 +182,14 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       if (tzmin > tzmax)
         std::swap(tzmin, tzmax);
 
-      if ((tmin > tzmax) || (tzmin > tmax))
+      if (tmin > tzmax || tzmin > tmax) {
         return false;
+      }
 
       if (tzmin > tmin)
         tmin = tzmin;
-      if (tzmax < tmax)
-        tmax = tzmax;
+      /*if (tzmax < tmax)
+        tmax = tzmax;*/
 
       if (tmin > 0) {
         hitPosition = rayOrigin + tmin * rayDirection;
@@ -203,20 +203,17 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       // Quad-ray intersection
       filament::math::float3 planeNormal = {
           0.0f, 1.0f, 0.0f};  // Assuming quad is aligned with the Y-axis
-      float denom = dot(rayDirection, planeNormal);
-      if (fabs(denom) > 1e-6) {
+      if (float denom = dot(rayDirection, planeNormal); fabs(denom) > 1e-6) {
         // Check if ray is not parallel to the plane
-        float t = dot(center - rayOrigin, planeNormal) / denom;
-        if (t >= 0) {
+        if (float t = dot(center - rayOrigin, planeNormal) / denom; t >= 0) {
           // Compute the intersection point
           hitPosition = rayOrigin + t * rayDirection;
 
           // Check if the intersection point is within the quad bounds
-          filament::math::float3 localHit = hitPosition - center;
-
           // Assuming the quad is axis-aligned and centered at `center` with
           // extents `extents`
-          if (fabs(localHit.x) <= extents.x * 0.5f &&
+          if (filament::math::float3 localHit = hitPosition - center;
+              fabs(localHit.x) <= extents.x * 0.5f &&
               fabs(localHit.z) <= extents.z * 0.5f) {
             SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGlobalGuid());
             return true;  // Ray hits the quad

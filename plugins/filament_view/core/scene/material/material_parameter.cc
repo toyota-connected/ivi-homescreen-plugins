@@ -57,30 +57,28 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   std::optional<MaterialColorValue> colorValue;
   std::optional<flutter::EncodableMap> encodMapValue;
 
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull()) {
+  for (const auto& [fst, snd] : params) {
+    auto key = std::get<std::string>(fst);
+    if (snd.IsNull()) {
       SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {} {}",
                    key, __FILE__, __FUNCTION__);
       continue;
     }
 
-    if (key == "name" && std::holds_alternative<std::string>(it.second)) {
-      name = std::get<std::string>(it.second);
-    } else if (key == "type" &&
-               std::holds_alternative<std::string>(it.second)) {
-      type = getTypeForText(std::get<std::string>(it.second));
+    if (key == "name" && std::holds_alternative<std::string>(snd)) {
+      name = std::get<std::string>(snd);
+    } else if (key == "type" && std::holds_alternative<std::string>(snd)) {
+      type = getTypeForText(std::get<std::string>(snd));
     } else if (key == "value" && type == MaterialType::FLOAT) {
-      fValue = std::get<double>(it.second);
+      fValue = std::get<double>(snd);
     } else if (key == "value" && type == MaterialType::COLOR) {
       // color comes across a a radix string #FFFFFFFF
-      colorValue = HexToColorFloat4(std::get<std::string>(it.second));
+      colorValue = HexToColorFloat4(std::get<std::string>(snd));
     } else if (key == "value" && type == MaterialType::TEXTURE) {
-      encodMapValue = std::get<flutter::EncodableMap>(it.second);
-    } else if (!it.second.IsNull()) {
+      encodMapValue = std::get<flutter::EncodableMap>(snd);
+    } else if (!snd.IsNull()) {
       spdlog::debug("[MaterialParameter] Unhandled Parameter {} ", key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 

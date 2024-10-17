@@ -60,15 +60,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     return;
   }
 
-  auto originalCollidable = dynamic_cast<Collidable*>(
+  const auto originalCollidable = dynamic_cast<Collidable*>(
       collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
           .get());
 
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
     // if its a shape
-    auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
-    if (originalShape != nullptr) {
+    if (auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
+        originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
       originalCollidable->SetExtentsSize(
           originalShape->m_poBaseTransform.lock()->GetExtentsSize());
@@ -80,8 +80,8 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;
   if (dynamic_cast<Model*>(collidable)) {
-    auto ourModelObject = dynamic_cast<Model*>(collidable);
-    auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
+    const auto ourModelObject = dynamic_cast<Model*>(collidable);
+    const auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
 
     newShape = new shapes::Cube();
     newShape->m_bDoubleSided = false;
@@ -92,15 +92,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     ourModelObject->vShallowCopyComponentToOther(
         CommonRenderable::StaticGetTypeID(), *newShape);
 
-    std::shared_ptr<Component> componentBT =
+    const std::shared_ptr<Component> componentBT =
         newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
-    std::shared_ptr<BaseTransform> baseTransformPtr =
+    const std::shared_ptr<BaseTransform> baseTransformPtr =
         std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
-    std::shared_ptr<Component> componentCR =
+    const std::shared_ptr<Component> componentCR =
         newShape->GetComponentByStaticTypeID(
             CommonRenderable::StaticGetTypeID());
-    std::shared_ptr<CommonRenderable> commonRenderablePtr =
+    const std::shared_ptr<CommonRenderable> commonRenderablePtr =
         std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
     newShape->m_poBaseTransform =
@@ -128,15 +128,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
     newShape = new shapes::Sphere();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Plane*>(collidable)) {
     auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
     newShape = new shapes::Plane();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   }
 
   if (newShape == nullptr) {
@@ -181,16 +181,16 @@ void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vTurnOnRenderingOfCollidables() {
-  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
-    collidable.second->vRemoveEntityFromScene();
+void CollisionSystem::vTurnOnRenderingOfCollidables() const {
+  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
+    snd->vRemoveEntityFromScene();
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vTurnOffRenderingOfCollidables() {
-  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
-    collidable.second->vAddEntityToScene();
+void CollisionSystem::vTurnOffRenderingOfCollidables() const {
+  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
+    snd->vAddEntityToScene();
   }
 }
 
@@ -310,7 +310,7 @@ void CollisionSystem::SendCollisionInformationCallback(
 void CollisionSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
-        Ray rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
+        auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
         auto requestor =
             msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
         auto type = msg.getData<CollisionEventType>(

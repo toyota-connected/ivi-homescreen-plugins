@@ -24,29 +24,26 @@ namespace plugin_filament_view {
 Animation::Animation(const std::string& flutter_assets_path,
                      const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "autoPlay" && std::holds_alternative<bool>(it.second)) {
-      auto_play_ = std::get<bool>(it.second);
-    } else if (key == "index" && std::holds_alternative<int32_t>(it.second)) {
-      index_ = std::optional<int32_t>{std::get<int32_t>(it.second)};
-    } else if (key == "name" &&
-               std::holds_alternative<std::string>(it.second)) {
-      name_ = std::get<std::string>(it.second);
-    } else if (key == "assetPath" &&
-               std::holds_alternative<std::string>(it.second)) {
-      asset_path_ = std::get<std::string>(it.second);
+    auto key = std::get<std::string>(fst);
+    if (key == "autoPlay" && std::holds_alternative<bool>(snd)) {
+      auto_play_ = std::get<bool>(snd);
+    } else if (key == "index" && std::holds_alternative<int32_t>(snd)) {
+      index_ = std::optional{std::get<int32_t>(snd)};
+    } else if (key == "name" && std::holds_alternative<std::string>(snd)) {
+      name_ = std::get<std::string>(snd);
+    } else if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      asset_path_ = std::get<std::string>(snd);
     } else if (key == "centerPosition" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
-      center_position_ = std::make_unique<::filament::math::float3>(
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-    } else if (!it.second.IsNull()) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
+      center_position_ = std::make_unique<filament::math::float3>(
+          Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
+    } else if (!snd.IsNull()) {
       spdlog::debug("[Animation] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 }
@@ -61,9 +58,8 @@ void Animation::DebugPrint(const char* tag) {
   spdlog::debug("\tautoPlay: {}", auto_play_);
   spdlog::debug("\tasset_path: [{}]", asset_path_);
   const std::filesystem::path asset_folder(flutterAssetsPath_);
-  spdlog::debug(
-      "\tasset_path {} valid",
-      std::filesystem::exists(asset_folder / asset_path_) ? "is" : "is not");
+  spdlog::debug("\tasset_path {} valid",
+                exists(asset_folder / asset_path_) ? "is" : "is not");
   // TODO  center_position_->Print("\tcenterPosition:");
   spdlog::debug("++++++++");
 }

@@ -20,19 +20,20 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 ::filament::math::float3 Deserialize::Format3(
     const flutter::EncodableMap& map) {
-  double x, y, z = 0.0f;
+  double x = 0, y = 0, z = 0.0f;
 
-  for (auto& it : map) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : map) {
+    if (snd.IsNull() || !std::holds_alternative<double>(snd))
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "x" && std::holds_alternative<double>(it.second)) {
-      x = std::get<double>(it.second);
-    } else if (key == "y" && std::holds_alternative<double>(it.second)) {
-      y = std::get<double>(it.second);
-    } else if (key == "z" && std::holds_alternative<double>(it.second)) {
-      z = std::get<double>(it.second);
+    auto currValue = std::get<double>(snd);
+
+    if (auto key = std::get<std::string>(fst); key == "x") {
+      x = currValue;
+    } else if (key == "y") {
+      y = currValue;
+    } else if (key == "z") {
+      z = currValue;
     }
   }
   return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
@@ -40,22 +41,22 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 ::filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
-  double x, y, z, w = 0.0f;
+  double x = 0, y = 0, z = 0, w = 0.0f;
   w = 1.0f;
 
-  for (auto& it : map) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : map) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "x" && std::holds_alternative<double>(it.second)) {
-      x = std::get<double>(it.second);
-    } else if (key == "y" && std::holds_alternative<double>(it.second)) {
-      y = std::get<double>(it.second);
-    } else if (key == "z" && std::holds_alternative<double>(it.second)) {
-      z = std::get<double>(it.second);
-    } else if (key == "w" && std::holds_alternative<double>(it.second)) {
-      w = std::get<double>(it.second);
+    if (auto key = std::get<std::string>(fst);
+        key == "x" && std::holds_alternative<double>(snd)) {
+      x = std::get<double>(snd);
+    } else if (key == "y" && std::holds_alternative<double>(snd)) {
+      y = std::get<double>(snd);
+    } else if (key == "z" && std::holds_alternative<double>(snd)) {
+      z = std::get<double>(snd);
+    } else if (key == "w" && std::holds_alternative<double>(snd)) {
+      w = std::get<double>(snd);
     }
   }
   return {static_cast<float>(w), static_cast<float>(x), static_cast<float>(y),
@@ -68,8 +69,8 @@ void Deserialize::DecodeParameterWithDefault(
     std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
     const flutter::EncodableMap& params,
     const std::string& flutter_assets_path) {
-  auto it = params.find(flutter::EncodableValue(key));
-  if (it != params.end() &&
+  if (auto it = params.find(flutter::EncodableValue(key));
+      it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     out_value = std::make_unique<MaterialDefinitions>(
         flutter_assets_path, std::get<flutter::EncodableMap>(it->second));
@@ -84,8 +85,8 @@ void Deserialize::DecodeParameterWithDefault(
     filament::math::float3* out_value,
     const flutter::EncodableMap& params,
     const filament::math::float3& default_value) {
-  auto it = params.find(flutter::EncodableValue(key));
-  if (it != params.end() &&
+  if (auto it = params.find(flutter::EncodableValue(key));
+      it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value =
         Deserialize::Format3(std::get<flutter::EncodableMap>(it->second));
@@ -100,8 +101,8 @@ void Deserialize::DecodeParameterWithDefault(
     filament::math::quatf* out_value,
     const flutter::EncodableMap& params,
     const filament::math::quatf& default_value) {
-  auto it = params.find(flutter::EncodableValue(key));
-  if (it != params.end() &&
+  if (auto it = params.find(flutter::EncodableValue(key));
+      it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value =
         Deserialize::Format4(std::get<flutter::EncodableMap>(it->second));
@@ -116,8 +117,8 @@ void Deserialize::DecodeParameterWithDefault(
     double* out_value,
     const flutter::EncodableMap& params,
     const double& default_value) {
-  auto it = params.find(flutter::EncodableValue(key));
-  if (it != params.end() && std::holds_alternative<double>(it->second)) {
+  if (auto it = params.find(flutter::EncodableValue(key));
+      it != params.end() && std::holds_alternative<double>(it->second)) {
     *out_value = std::get<double>(it->second);
   } else {
     *out_value = default_value;
@@ -130,8 +131,8 @@ void Deserialize::DecodeParameterWithDefaultInt64(
     int64_t* out_value,
     const flutter::EncodableMap& params,
     const int64_t& default_value) {
-  auto it = params.find(flutter::EncodableValue(key));
-  if (it != params.end() && std::holds_alternative<int64_t>(it->second)) {
+  if (auto it = params.find(flutter::EncodableValue(key));
+      it != params.end() && std::holds_alternative<int64_t>(it->second)) {
     *out_value = std::get<int64_t>(it->second);
   } else {
     *out_value = default_value;

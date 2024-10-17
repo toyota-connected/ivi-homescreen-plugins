@@ -81,7 +81,7 @@ class FilamentViewPlugin : public flutter::Plugin,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void ChangeCameraMode(
-      std::string value,
+      std::string szValue,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
   void vResetInertiaCameraToDefaultValues(

@@ -84,8 +84,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     return Resource<::filament::MaterialInstance*>::Error("Material not found");
   }
 
-  Resource<filament::Material*> materialToInstanceFrom =
-      Resource<::filament::Material*>::Error("Unset");
+  Resource<filament::Material*> materialToInstanceFrom;
 
   // In case of multi material load on <load>
   // we dont want to reload the same material several times and have collision
@@ -93,8 +92,9 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
   std::lock_guard lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
-  auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
-  if (materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
+  if (auto materialToInstanceFromIter =
+          loadedTemplateMaterials_.find(lookupName);
+      materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
     SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
@@ -133,8 +133,8 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
       // see if the asset path is already in our map of saved textures
       const auto assetPath = materialParam->getTextureValueAssetPath();
-      auto foundAsset = loadedTextures_.find(assetPath);
-      if (foundAsset != loadedTextures_.end()) {
+      if (auto foundAsset = loadedTextures_.find(assetPath);
+          foundAsset != loadedTextures_.end()) {
         // it exists already, don't need to load it.
         continue;
       }
@@ -176,12 +176,12 @@ void MaterialSystem::vShutdownSystem() {
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  for (auto iterMat : loadedTemplateMaterials_) {
-    engine->destroy(*iterMat.second.getData());
+  for (auto [fst, snd] : loadedTemplateMaterials_) {
+    engine->destroy(*snd.getData());
   }
 
-  for (auto iterTexture : loadedTextures_) {
-    engine->destroy(*iterTexture.second.getData());
+  for (auto [fst, snd] : loadedTextures_) {
+    engine->destroy(*snd.getData());
   }
 
   loadedTemplateMaterials_.clear();

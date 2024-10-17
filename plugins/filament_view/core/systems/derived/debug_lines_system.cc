@@ -102,7 +102,7 @@ void DebugLine::vCleanup(filament::Engine* engine) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-DebugLinesSystem::DebugLinesSystem() : m_bCurrentlyDrawingDebugLines(false) {}
+DebugLinesSystem::DebugLinesSystem() {}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::DebugPrint() {
@@ -111,7 +111,7 @@ void DebugLinesSystem::DebugPrint() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -129,7 +129,7 @@ void DebugLinesSystem::vCleanup() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vUpdate(float fElapsedTime) {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -156,7 +156,7 @@ void DebugLinesSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("Adding debug line: ");
-        Ray rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
+        const auto rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
 
         vAddLine(rayInfo.f3GetPosition(),
                  rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);

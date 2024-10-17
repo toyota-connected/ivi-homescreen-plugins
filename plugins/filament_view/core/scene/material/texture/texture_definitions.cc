@@ -60,26 +60,24 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
   std::optional<TextureType> type;
   std::optional<std::unique_ptr<TextureSampler>> sampler;
 
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "assetPath" && std::holds_alternative<std::string>(it.second)) {
-      assetPath = std::get<std::string>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url = std::get<std::string>(it.second);
-    } else if (key == "type" &&
-               std::holds_alternative<std::string>(it.second)) {
-      type = getType(std::get<std::string>(it.second));
+    auto key = std::get<std::string>(fst);
+    if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath = std::get<std::string>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url = std::get<std::string>(snd);
+    } else if (key == "type" && std::holds_alternative<std::string>(snd)) {
+      type = getType(std::get<std::string>(snd));
     } else if (key == "sampler" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
       sampler = std::make_unique<TextureSampler>(
-          std::get<flutter::EncodableMap>(it.second));
-    } else if (!it.second.IsNull()) {
+          std::get<flutter::EncodableMap>(snd));
+    } else if (!snd.IsNull()) {
       spdlog::debug("[Texture] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   if (!type.has_value()) {

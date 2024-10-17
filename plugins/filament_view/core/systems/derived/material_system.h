@@ -63,7 +63,7 @@ class MaterialSystem : public ECSystem {
       MaterialDefinitions* materialDefinition);
   Resource<::filament::MaterialInstance*> setupMaterialInstance(
       ::filament::Material* materialResult,
-      const MaterialDefinitions* materialDefinition);
+      const MaterialDefinitions* materialDefinitions);
 
   // this map contains the loaded materials from disk, that are not actively
   // used but instead copies (instances) are made of, then the instances are

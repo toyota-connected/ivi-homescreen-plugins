@@ -56,8 +56,7 @@ ViewTarget::ViewTarget(int32_t top,
       top_(top),
       callback_(nullptr),
       fanimator_(nullptr),
-      cameraManager_(nullptr),
-      m_LastTime(0) {
+      cameraManager_(nullptr) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 }
@@ -259,8 +258,8 @@ void ViewTarget::SendFrameViewCallback(
   }
 
   flutter::EncodableMap encodableMap;
-  for (const auto& arg : args) {
-    encodableMap[flutter::EncodableValue(arg.first)] = arg.second;
+  for (const auto& [fst, snd] : args) {
+    encodableMap[flutter::EncodableValue(fst)] = snd;
   }
 
   frameViewCallback_->InvokeMethod(methodName,
@@ -278,7 +277,7 @@ const wl_callback_listener ViewTarget::frame_listener = {.done = OnFrame};
  * rendered
  */
 void ViewTarget::DrawFrame(uint32_t time) {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time]() {
+  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time] {
     static bool bonce = true;
     if (bonce) {
       bonce = false;

@@ -51,9 +51,9 @@ void SceneTextDeserializer::vDeserializeRootLevel(
   const auto& creationParams =
       std::get_if<flutter::EncodableMap>(decoded.get());
 
-  for (const auto& it : *creationParams) {
-    auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull()) {
+  for (const auto& [fst, snd] : *creationParams) {
+    auto key = std::get<std::string>(fst);
+    if (snd.IsNull()) {
       SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {} {}", key.c_str(),
                    __FILE__, __FUNCTION__);
       continue;
@@ -63,11 +63,11 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       spdlog::warn("Loading Single Model - Deprecated Functionality {}", key);
 
       auto deserializedModel = Model::Deserialize(
-          flutterAssetsPath, std::get<flutter::EncodableMap>(it.second));
+          flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
       if (deserializedModel == nullptr) {
         // load fallback
         auto fallbackToDeserialize =
-            Deserialize::DeserializeParameter(kFallback, it.second);
+            Deserialize::DeserializeParameter(kFallback, snd);
         deserializedModel = Model::Deserialize(
             flutterAssetsPath,
             std::get<flutter::EncodableMap>(fallbackToDeserialize));
@@ -78,10 +78,10 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       }
       models_.emplace_back(std::move(deserializedModel));
     } else if (key == kModels &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
+               std::holds_alternative<flutter::EncodableList>(snd)) {
       SPDLOG_TRACE("Loading Multiple Models {}", key);
 
-      auto list = std::get<flutter::EncodableList>(it.second);
+      auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& iter : list) {
         if (iter.IsNull()) {
           spdlog::warn("CreationParamName unable to cast {}", key.c_str());
@@ -106,10 +106,10 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       }
 
     } else if (key == kScene) {
-      vDeserializeSceneLevel(it.second, flutterAssetsPath);
+      vDeserializeSceneLevel(snd, flutterAssetsPath);
     } else if (key == kShapes &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
-      auto list = std::get<flutter::EncodableList>(it.second);
+               std::holds_alternative<flutter::EncodableList>(snd)) {
+      auto list = std::get<flutter::EncodableList>(snd);
 
       for (const auto& iter : list) {
         if (iter.IsNull()) {
@@ -124,8 +124,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
     } else {
       spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}",
                    key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 }
@@ -134,9 +133,9 @@ void SceneTextDeserializer::vDeserializeRootLevel(
 void SceneTextDeserializer::vDeserializeSceneLevel(
     const flutter::EncodableValue& params,
     const std::string& /*flutterAssetsPath*/) {
-  for (auto& it : std::get<flutter::EncodableMap>(params)) {
-    auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull()) {
+  for (const auto& [fst, snd] : std::get<flutter::EncodableMap>(params)) {
+    auto key = std::get<std::string>(fst);
+    if (snd.IsNull()) {
       SPDLOG_WARN(
           "vDeserializeSceneLevel Param ITER is null key:{} file:{} "
           "function:{}",
@@ -146,11 +145,11 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
 
     // everything in this loop looks to make sure its a map, we can continue
     // on if its not.
-    if (!std::holds_alternative<flutter::EncodableMap>(it.second)) {
+    if (!std::holds_alternative<flutter::EncodableMap>(snd)) {
       continue;
     }
 
-    auto encodableMap = std::get<flutter::EncodableMap>(it.second);
+    auto encodableMap = std::get<flutter::EncodableMap>(snd);
 
     if (key == kSkybox) {
       skybox_ = Skybox::Deserialize(encodableMap);
@@ -164,11 +163,10 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
       spdlog::warn(
           "Specifying a ground is no longer supporting, a ground is now a "
           "plane in shapes.");
-    } else if (!it.second.IsNull()) {
+    } else if (!snd.IsNull()) {
       spdlog::debug("[SceneTextDeserializer] Unhandled Parameter {}",
                     key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 }
@@ -235,7 +233,7 @@ void SceneTextDeserializer::loadModel(Model* model) {
   auto ecsManager = ECSystemManager::GetInstance();
   const auto& strand = *ecsManager->GetStrand();
 
-  asio::post(strand, [=]() {
+  asio::post(strand, [=] {
     auto modelSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
             ModelSystem::StaticGetTypeID(), "loadModel");
@@ -286,9 +284,9 @@ void SceneTextDeserializer::setUpSkybox() {
   } else {
     auto skybox = skybox_.get();
     if (dynamic_cast<HdrSkybox*>(skybox)) {
-      auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
-      if (!hdr_skybox->szGetAssetPath().empty()) {
-        auto shouldUpdateLight =
+      if (auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
+          !hdr_skybox->szGetAssetPath().empty()) {
+        const auto shouldUpdateLight =
             hdr_skybox->szGetAssetPath() == indirect_light_->getAssetPath();
         SkyboxSystem::setSkyboxFromHdrAsset(
             hdr_skybox->szGetAssetPath(), hdr_skybox->getShowSun(),
@@ -301,15 +299,15 @@ void SceneTextDeserializer::setUpSkybox() {
             shouldUpdateLight, indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
-      auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
-      if (!kxt_skybox->szGetAssetPath().empty()) {
+      if (auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
+          !kxt_skybox->szGetAssetPath().empty()) {
         SkyboxSystem::setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
       } else if (!kxt_skybox->szGetURLPath().empty()) {
         SkyboxSystem::setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
-      auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
-      if (!color_skybox->szGetColor().empty()) {
+      if (auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
+          !color_skybox->szGetColor().empty()) {
         SkyboxSystem::setSkyboxFromColor(color_skybox->szGetColor());
       }
     }

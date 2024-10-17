@@ -36,57 +36,53 @@ Light::Light(float colorTemperature,
 ////////////////////////////////////////////////////////////////////////////
 Light::Light(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-    if (it.second.IsNull()) {
+  for (const auto& [fst, snd] : params) {
+    auto key = std::get<std::string>(fst);
+    if (snd.IsNull()) {
       SPDLOG_WARN("Light Param ITER is null key:{} file:{} function:{}", key,
                   __FILE__, __FUNCTION__);
       continue;
     }
 
-    if (key == "type" && std::holds_alternative<std::string>(it.second)) {
-      type_ = textToLightType(std::get<std::string>(it.second));
-    } else if (key == "color" &&
-               std::holds_alternative<std::string>(it.second)) {
-      color_ = std::get<std::string>(it.second);
+    if (key == "type" && std::holds_alternative<std::string>(snd)) {
+      type_ = textToLightType(std::get<std::string>(snd));
+    } else if (key == "color" && std::holds_alternative<std::string>(snd)) {
+      color_ = std::get<std::string>(snd);
       SPDLOG_DEBUG("color: {}", color_.value());
     } else if (key == "colorTemperature" &&
-               std::holds_alternative<double>(it.second)) {
-      colorTemperature_ = std::get<double>(it.second);
-    } else if (key == "intensity" &&
-               std::holds_alternative<double>(it.second)) {
-      intensity_ = std::get<double>(it.second);
+               std::holds_alternative<double>(snd)) {
+      colorTemperature_ = std::get<double>(snd);
+    } else if (key == "intensity" && std::holds_alternative<double>(snd)) {
+      intensity_ = std::get<double>(snd);
     } else if (key == "position" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
       position_ = std::make_unique<::filament::math::float3>(
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
+          Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
     } else if (key == "direction" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
       direction_ = std::make_unique<::filament::math::float3>(
-          Deserialize::Format3(std::get<flutter::EncodableMap>(it.second)));
-    } else if (key == "castLight" && std::holds_alternative<bool>(it.second)) {
-      castLight_ = std::get<bool>(it.second);
-    } else if (key == "castShadows" &&
-               std::holds_alternative<bool>(it.second)) {
-      castShadows_ = std::get<bool>(it.second);
-    } else if (key == "falloffRadius" &&
-               std::holds_alternative<double>(it.second)) {
-      falloffRadius_ = std::get<double>(it.second);
+          Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
+    } else if (key == "castLight" && std::holds_alternative<bool>(snd)) {
+      castLight_ = std::get<bool>(snd);
+    } else if (key == "castShadows" && std::holds_alternative<bool>(snd)) {
+      castShadows_ = std::get<bool>(snd);
+    } else if (key == "falloffRadius" && std::holds_alternative<double>(snd)) {
+      falloffRadius_ = std::get<double>(snd);
     } else if (key == "spotLightConeInner" &&
-               std::holds_alternative<double>(it.second)) {
-      spotLightConeInner_ = std::get<double>(it.second);
-    } else if (key == "spotLightConeOuter" && !it.second.IsNull() &&
-               std::holds_alternative<double>(it.second)) {
-      spotLightConeOuter_ = std::get<double>(it.second);
-    } else if (key == "sunAngularRadius" && !it.second.IsNull() &&
-               std::holds_alternative<double>(it.second)) {
-      sunAngularRadius_ = std::get<double>(it.second);
-    } else if (key == "sunHaloSize" && !it.second.IsNull() &&
-               std::holds_alternative<double>(it.second)) {
-      sunHaloSize_ = std::get<double>(it.second);
-    } else if (key == "sunHaloFalloff" && !it.second.IsNull() &&
-               std::holds_alternative<double>(it.second)) {
-      sunHaloFalloff_ = std::get<double>(it.second);
+               std::holds_alternative<double>(snd)) {
+      spotLightConeInner_ = std::get<double>(snd);
+    } else if (key == "spotLightConeOuter" && !snd.IsNull() &&
+               std::holds_alternative<double>(snd)) {
+      spotLightConeOuter_ = std::get<double>(snd);
+    } else if (key == "sunAngularRadius" && !snd.IsNull() &&
+               std::holds_alternative<double>(snd)) {
+      sunAngularRadius_ = std::get<double>(snd);
+    } else if (key == "sunHaloSize" && !snd.IsNull() &&
+               std::holds_alternative<double>(snd)) {
+      sunHaloSize_ = std::get<double>(snd);
+    } else if (key == "sunHaloFalloff" && !snd.IsNull() &&
+               std::holds_alternative<double>(snd)) {
+      sunHaloFalloff_ = std::get<double>(snd);
     } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Light] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),

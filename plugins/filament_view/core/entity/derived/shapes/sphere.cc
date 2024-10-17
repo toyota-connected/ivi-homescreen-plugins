@@ -36,7 +36,7 @@ using ::filament::math::mat3f;
 using ::utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere() : slices_(20), stacks_(20) {}
+Sphere::Sphere() : stacks_(20), slices_(20) {}
 
 ////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere(const std::string& flutter_assets_path,
@@ -81,19 +81,18 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
   float sectorStep =
       2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
   float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
-  float sectorAngle, stackAngle;
 
   // Generate vertices, normals, and UVs for the outer surface
   for (int i = 0; i <= stacks; ++i) {
-    stackAngle = static_cast<float>(M_PI) / 2.0f -
-                 static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    float xy = cosf(stackAngle);                     // r * cos(u)
-    float z = sinf(stackAngle);                      // r * sin(u)
+    float stackAngle = static_cast<float>(M_PI) / 2.0f -
+                       static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
+    float xy = cosf(stackAngle);                           // r * cos(u)
+    float z = sinf(stackAngle);                            // r * sin(u)
     float v = static_cast<float>(i) /
               static_cast<float>(stacks);  // Latitude, y-axis UV
 
     for (int j = 0; j <= sectors; ++j) {
-      sectorAngle = static_cast<float>(j) * sectorStep;  // from 0 to 2pi
+      float sectorAngle = static_cast<float>(j) * sectorStep;  // from 0 to 2pi
       float x = xy * cosf(sectorAngle);  // x = r * cos(u) * cos(v)
       float y = xy * sinf(sectorAngle);  // y = r * cos(u) * sin(v)
       float u = static_cast<float>(j) /

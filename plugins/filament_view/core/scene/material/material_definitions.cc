@@ -31,37 +31,36 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
                                          const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
+  for (const auto& [fst, snd] : params) {
+    auto key = std::get<std::string>(fst);
     SPDLOG_TRACE("Material Param {}", key);
 
-    if (it.second.IsNull() && key != "url") {
+    if (snd.IsNull() && key != "url") {
       SPDLOG_WARN("Material Param Second mapping is null {}", key);
       continue;
     }
 
-    if (it.second.IsNull() && key == "url") {
+    if (snd.IsNull() && key == "url") {
       SPDLOG_TRACE("Material Param URL mapping is null {}", key);
       continue;
     }
 
-    if (key == "assetPath" && std::holds_alternative<std::string>(it.second)) {
-      assetPath_ = std::get<std::string>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url_ = std::get<std::string>(it.second);
+    if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath_ = std::get<std::string>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url_ = std::get<std::string>(snd);
     } else if (key == "parameters" &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
-      auto list = std::get<flutter::EncodableList>(it.second);
+               std::holds_alternative<flutter::EncodableList>(snd)) {
+      auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& it_ : list) {
         auto parameter = MaterialParameter::Deserialize(
             flutter_assets_path, std::get<flutter::EncodableMap>(it_));
         parameters_.insert(
             std::pair(parameter->szGetParameterName(), std::move(parameter)));
       }
-    } else if (!it.second.IsNull()) {
+    } else if (!snd.IsNull()) {
       spdlog::debug("[Material] Unhandled Parameter {}", key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
@@ -69,8 +68,8 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::~MaterialDefinitions() {
-  for (auto& item : parameters_) {
-    item.second.reset();
+  for (auto& [fst, snd] : parameters_) {
+    snd.reset();
   }
   parameters_.clear();
 }
@@ -91,9 +90,9 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   }
   spdlog::debug("ParamCount: [{}]", parameters_.size());
 
-  for (const auto& param : parameters_) {
-    if (param.second != nullptr)
-      param.second->DebugPrint("\tparameter");
+  for (const auto& [fst, snd] : parameters_) {
+    if (snd != nullptr)
+      snd->DebugPrint("\tparameter");
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");
@@ -115,10 +114,10 @@ std::vector<MaterialParameter*>
 MaterialDefinitions::vecGetTextureMaterialParameters() const {
   std::vector<MaterialParameter*> returnVector;
 
-  for (const auto& param : parameters_) {
+  for (const auto& [fst, snd] : parameters_) {
     // Check if the type is TEXTURE
-    if (param.second->type_ == MaterialParameter::MaterialType::TEXTURE) {
-      returnVector.push_back(param.second.get());
+    if (snd->type_ == MaterialParameter::MaterialType::TEXTURE) {
+      returnVector.push_back(snd.get());
     }
   }
 

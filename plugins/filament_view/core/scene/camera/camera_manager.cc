@@ -90,7 +90,7 @@ std::string CameraManager::updateExposure(Exposure* exposure) {
   if (!exposure) {
     return "Exposure not found";
   }
-  auto e = exposure;
+  const auto e = exposure;
   if (e->exposure_.has_value()) {
     SPDLOG_DEBUG("[setExposure] exposure: {}", e->exposure_.value());
     camera_->setExposure(e->exposure_.value());
@@ -113,7 +113,7 @@ std::string CameraManager::updateProjection(Projection* projection) {
   if (!projection) {
     return "Projection not found";
   }
-  auto p = projection;
+  const auto p = projection;
   if (p->projection_.has_value() && p->left_.has_value() &&
       p->right_.has_value() && p->top_.has_value() && p->bottom_.has_value()) {
     const auto project = p->projection_.value();
@@ -238,8 +238,8 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   if (cameraInfo->flightStartOrientation_) {
     const auto flightStartOrientation =
         cameraInfo->flightStartOrientation_.get();
-    auto pitch = flightStartOrientation->at(0);  // 0f;
-    auto yaw = flightStartOrientation->at(1);    // 0f;
+    const auto pitch = flightStartOrientation->at(0);  // 0f;
+    const auto yaw = flightStartOrientation->at(1);    // 0f;
     manipulatorBuilder.flightStartOrientation(pitch, yaw);
   }
 
@@ -255,15 +255,6 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
   if (cameraInfo->flightMaxMoveSpeed_.has_value()) {
     manipulatorBuilder.flightMaxMoveSpeed(
         cameraInfo->flightMaxMoveSpeed_.value());
-  }
-
-  if (cameraInfo->groundPlane_) {
-    const auto groundPlane = cameraInfo->groundPlane_.get();
-    auto a = groundPlane->at(0);
-    auto b = groundPlane->at(1);
-    auto c = groundPlane->at(2);
-    auto d = groundPlane->at(3);
-    manipulatorBuilder.groundPlane(a, b, c, d);
   }
 
   auto filamentSystem =
@@ -376,9 +367,8 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
     currentVelocity_.y = 0.0f;
 
     // Update camera position around the center
-    if ((currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f &&
-         currentVelocity_.z == 0.0f) &&
-        !isPanGesture()) {
+    if (currentVelocity_.x == 0.0f && currentVelocity_.y == 0.0f &&
+        currentVelocity_.z == 0.0f && !isPanGesture()) {
       return;
     }
 
@@ -500,16 +490,16 @@ bool CameraManager::isZoomGesture() {
 ////////////////////////////////////////////////////////////////////////////
 Ray CameraManager::oGetRayInformationFromOnTouchPosition(
     TouchPair touch) const {
-  auto castingValues = aGetRayInformationFromOnTouchPosition(touch);
+  auto [fst, snd] = aGetRayInformationFromOnTouchPosition(touch);
   constexpr float defaultLength = 1000.0f;
-  Ray returnRay(castingValues.first, castingValues.second, defaultLength);
+  Ray returnRay(fst, snd, defaultLength);
   return returnRay;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 std::pair<filament::math::float3, filament::math::float3>
 CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
           "CameraManager::aGetRayInformationFromOnTouchPosition");
@@ -519,8 +509,11 @@ CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
   // Note at time of writing on a 800*600 resolution this seems like the 10%
   // edges aren't super accurate this might need to be looked at more.
 
-  float ndcX = (2.0f * (float)touch.x()) / (float)viewport.width - 1.0f;
-  float ndcY = 1.0f - (2.0f * (float)touch.y()) / (float)viewport.height;
+  float ndcX = (2.0f * static_cast<float>(touch.x())) /
+                   static_cast<float>(viewport.width) -
+               1.0f;
+  float ndcY = 1.0f - (2.0f * static_cast<float>(touch.y())) /
+                          static_cast<float>(viewport.height);
   ndcY = -ndcY;
 
   filament::math::vec4<float> rayClip(ndcX, ndcY, -1.0f, 1.0f);

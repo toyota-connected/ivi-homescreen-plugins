@@ -48,8 +48,8 @@ class CollisionSystem : public ECSystem {
   CollisionSystem(const CollisionSystem&) = delete;
   CollisionSystem& operator=(const CollisionSystem&) = delete;
 
-  void vTurnOnRenderingOfCollidables();
-  void vTurnOffRenderingOfCollidables();
+  void vTurnOnRenderingOfCollidables() const;
+  void vTurnOffRenderingOfCollidables() const;
 
   void vUpdate(float fElapsedTime) override;
 

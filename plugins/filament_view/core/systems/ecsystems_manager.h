@@ -80,7 +80,7 @@ class ECSystemManager {
   void vUpdate(float deltaTime);
   void vShutdownSystems();
 
-  void DebugPrint();
+  void DebugPrint() const;
 
   void StartRunLoop();
   void StopRunLoop();

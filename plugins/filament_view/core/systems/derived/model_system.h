@@ -45,7 +45,7 @@ class ModelSystem : public ECSystem {
                      std::function<const ::filament::backend::BufferDescriptor&(
                          std::string uri)>& callback);
 
-  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szName);
+  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szGUID);
 
   void updateAsyncAssetLoading();
 

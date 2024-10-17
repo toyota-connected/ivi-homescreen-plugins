@@ -48,8 +48,8 @@ Model::Model(std::string assetPath,
 
   // if we have collidable data request, we need to build that component, as its
   // optional
-  auto it = params.find(flutter::EncodableValue(kCollidable));
-  if (it != params.end() && !it->second.IsNull()) {
+  if (auto it = params.find(flutter::EncodableValue(kCollidable));
+      it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
@@ -111,8 +111,8 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
     if (it.second.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "animation" &&
+    if (auto key = std::get<std::string>(it.first);
+        key == "animation" &&
         std::holds_alternative<flutter::EncodableMap>(it.second)) {
       animation = std::make_unique<Animation>(
           flutterAssetsPath, std::get<flutter::EncodableMap>(it.second));

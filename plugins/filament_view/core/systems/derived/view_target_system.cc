@@ -91,7 +91,7 @@ void ViewTargetSystem::DebugPrint() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 filament::View* ViewTargetSystem::getFilamentView(size_t nWhich) const {
-  if (nWhich < 0 || nWhich >= m_lstViewTargets.size())
+  if (nWhich >= m_lstViewTargets.size())
     return nullptr;
 
   return m_lstViewTargets[nWhich]->getFilamentView();

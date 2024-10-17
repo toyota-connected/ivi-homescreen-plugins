@@ -60,7 +60,7 @@ bool Cube::bInitAndCreateShape(::filament::Engine* engine_,
 ////////////////////////////////////////////////////////////////////////////
 void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices for outside, 24 for inside)
-  static const float vertices[] = {
+  static constexpr float vertices[] = {
       // Outside Front face
       -0.5f, -0.5f, 0.5f,  // Vertex 0
       0.5f, -0.5f, 0.5f,   // Vertex 1
@@ -135,7 +135,7 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
   };
 
   // UV coordinates for each face (same for inside and outside)
-  static const float uvCoords[] = {
+  static constexpr float uvCoords[] = {
       // Outside Front face
       0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
       // Outside Back face
@@ -436,7 +436,7 @@ void Cube::createDoubleSidedCube(::filament::Engine* engine_) {
 ////////////////////////////////////////////////////////////////////////////
 void Cube::createSingleSidedCube(::filament::Engine* engine_) {
   // Vertices for a cube (24 vertices, 4 per face)
-  static const float vertices[] = {
+  static constexpr float vertices[] = {
       // Front face
       -0.5f, -0.5f, 0.5f,  // Vertex 0
       0.5f, -0.5f, 0.5f,   // Vertex 1
@@ -475,7 +475,7 @@ void Cube::createSingleSidedCube(::filament::Engine* engine_) {
   };
 
   // UV coordinates for each face (24 UVs, 4 per face)
-  static const float uvCoords[] = {
+  static constexpr float uvCoords[] = {
       // Front face
       0.0f, 0.0f,  // Vertex 0
       1.0f, 0.0f,  // Vertex 1
