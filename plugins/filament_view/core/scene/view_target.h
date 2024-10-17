@@ -68,12 +68,12 @@ class ViewTarget {
   void InitializeFilamentInternals(uint32_t width, uint32_t height);
 
   void vSetupCameraManagerWithDeserializedCamera(
-      std::unique_ptr<Camera> camera);
+      std::unique_ptr<Camera> camera) const;
 
   void vOnTouch(int32_t action,
                 int32_t point_count,
                 size_t point_data_size,
-                const double* point_data);
+                const double* point_data) const;
 
   [[nodiscard]] CameraManager* getCameraManager() const {
     return cameraManager_.get();
@@ -114,7 +114,7 @@ class ViewTarget {
   void SendFrameViewCallback(
       const std::string& methodName,
       std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
-          args);
+          args) const;
 
   static void OnFrame(void* data, wl_callback* callback, uint32_t time);
 
@@ -126,7 +126,7 @@ class ViewTarget {
 
   // elapsed time / deltatime needs to be moved to its own global namespace like
   // class similar to unitys, elapsedtime/total time etc.
-  void doCameraFeatures(float fDeltaTime);
+  void doCameraFeatures(float fDeltaTime) const;
 
   uint32_t m_LastTime = 0;
 

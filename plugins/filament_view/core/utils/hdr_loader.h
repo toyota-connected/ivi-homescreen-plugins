@@ -36,7 +36,8 @@ class HDRLoader {
       const std::string& name = "memory.hdr");
 
  private:
-  static ::filament::Texture* deleteImageAndLogError(image::LinearImage* image);
+  static ::filament::Texture* deleteImageAndLogError(
+      const image::LinearImage* image);
 
   static ::filament::Texture* createTextureFromImage(::filament::Engine* engine,
                                                      image::LinearImage* image);

@@ -23,21 +23,21 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Size::Size(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Size::Size");
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull() || !std::holds_alternative<double>(snd))
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "x" && std::holds_alternative<double>(it.second)) {
-      x_ = std::get<double>(it.second);
-    } else if (key == "y" && std::holds_alternative<double>(it.second)) {
-      y_ = std::get<double>(it.second);
-    } else if (key == "z" && std::holds_alternative<double>(it.second)) {
-      z_ = std::get<double>(it.second);
-    } else if (!it.second.IsNull()) {
+    auto key = std::get<std::string>(fst);
+    auto value = std::get<double>(snd);
+    if (key == "x") {
+      x_ = value;
+    } else if (key == "y") {
+      y_ = value;
+    } else if (key == "z") {
+      z_ = value;
+    } else if (!snd.IsNull()) {
       spdlog::debug("[Size] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   SPDLOG_TRACE("--Size::Size");

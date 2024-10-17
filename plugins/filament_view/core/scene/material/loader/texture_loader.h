@@ -30,7 +30,7 @@ class TextureLoader {
   ~TextureLoader() = default;
 
   static Resource<::filament::Texture*> loadTexture(
-      TextureDefinitions* texture);
+      const TextureDefinitions* texture);
 
   // Disallow copy and assign.
   TextureLoader(const TextureLoader&) = delete;

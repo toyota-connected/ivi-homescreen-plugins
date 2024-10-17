@@ -22,19 +22,19 @@
 #include <filament_view_plugin.h>
 
 void FilamentViewPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar,
-    int32_t id,
+    const FlutterDesktopPluginRegistrarRef registrar,
+    const int32_t id,
     std::string viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
+    const int32_t direction,
+    const double top,
+    const double left,
+    const double width,
+    const double height,
     const std::vector<uint8_t>& params,
     const std::string& assetDirectory,
-    FlutterDesktopEngineRef engine,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
+    const FlutterDesktopEngineRef engine,
+    const PlatformViewAddListener addListener,
+    const PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
   plugin_filament_view::FilamentViewPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
@@ -59,8 +59,9 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
       platform_view_context);*/
 
   // after we're done doing setup, kick off the run loops
-  auto ecsManager = plugin_filament_view::ECSystemManager::GetInstance();
-  if (ecsManager->getRunState() ==
+  if (const auto ecsManager =
+          plugin_filament_view::ECSystemManager::GetInstance();
+      ecsManager->getRunState() ==
       plugin_filament_view::ECSystemManager::RunState::Initialized) {
     ecsManager->DebugPrint();
     ecsManager->StartRunLoop();

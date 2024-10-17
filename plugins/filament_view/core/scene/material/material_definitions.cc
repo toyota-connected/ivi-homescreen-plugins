@@ -23,45 +23,44 @@
 
 namespace plugin_filament_view {
 
-using MinFilter = ::filament::TextureSampler::MinFilter;
-using MagFilter = ::filament::TextureSampler::MagFilter;
+using MinFilter = filament::TextureSampler::MinFilter;
+using MagFilter = filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
                                          const flutter::EncodableMap& params)
     : flutterAssetsPath_(flutter_assets_path) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
+  for (const auto& [fst, snd] : params) {
+    auto key = std::get<std::string>(fst);
     SPDLOG_TRACE("Material Param {}", key);
 
-    if (it.second.IsNull() && key != "url") {
+    if (snd.IsNull() && key != "url") {
       SPDLOG_WARN("Material Param Second mapping is null {}", key);
       continue;
     }
 
-    if (it.second.IsNull() && key == "url") {
+    if (snd.IsNull() && key == "url") {
       SPDLOG_TRACE("Material Param URL mapping is null {}", key);
       continue;
     }
 
-    if (key == "assetPath" && std::holds_alternative<std::string>(it.second)) {
-      assetPath_ = std::get<std::string>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url_ = std::get<std::string>(it.second);
+    if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath_ = std::get<std::string>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url_ = std::get<std::string>(snd);
     } else if (key == "parameters" &&
-               std::holds_alternative<flutter::EncodableList>(it.second)) {
-      auto list = std::get<flutter::EncodableList>(it.second);
+               std::holds_alternative<flutter::EncodableList>(snd)) {
+      auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& it_ : list) {
         auto parameter = MaterialParameter::Deserialize(
             flutter_assets_path, std::get<flutter::EncodableMap>(it_));
         parameters_.insert(
             std::pair(parameter->szGetParameterName(), std::move(parameter)));
       }
-    } else if (!it.second.IsNull()) {
+    } else if (!snd.IsNull()) {
       spdlog::debug("[Material] Unhandled Parameter {}", key.c_str());
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
@@ -69,8 +68,8 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::~MaterialDefinitions() {
-  for (auto& item : parameters_) {
-    item.second.reset();
+  for (auto& [fst, snd] : parameters_) {
+    snd.reset();
   }
   parameters_.clear();
 }
@@ -81,19 +80,18 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("{}", tag);
   if (!assetPath_.empty()) {
     spdlog::debug("assetPath: [{}]", assetPath_);
-    std::filesystem::path asset_folder(flutterAssetsPath_);
-    spdlog::debug(
-        "asset_path {} valid",
-        std::filesystem::exists(asset_folder / assetPath_) ? "is" : "is not");
+    const std::filesystem::path asset_folder(flutterAssetsPath_);
+    spdlog::debug("asset_path {} valid",
+                  exists(asset_folder / assetPath_) ? "is" : "is not");
   }
   if (!url_.empty()) {
     spdlog::debug("url: [{}]", url_);
   }
   spdlog::debug("ParamCount: [{}]", parameters_.size());
 
-  for (const auto& param : parameters_) {
-    if (param.second != nullptr)
-      param.second->DebugPrint("\tparameter");
+  for (const auto& [fst, snd] : parameters_) {
+    if (snd != nullptr)
+      snd->DebugPrint("\tparameter");
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");
@@ -115,10 +113,10 @@ std::vector<MaterialParameter*>
 MaterialDefinitions::vecGetTextureMaterialParameters() const {
   std::vector<MaterialParameter*> returnVector;
 
-  for (const auto& param : parameters_) {
+  for (const auto& [fst, snd] : parameters_) {
     // Check if the type is TEXTURE
-    if (param.second->type_ == MaterialParameter::MaterialType::TEXTURE) {
-      returnVector.push_back(param.second.get());
+    if (snd->type_ == MaterialParameter::MaterialType::TEXTURE) {
+      returnVector.push_back(snd.get());
     }
   }
 
@@ -127,13 +125,13 @@ MaterialDefinitions::vecGetTextureMaterialParameters() const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
-    const ::filament::Material* materialResult,
+    const filament::Material* materialResult,
     filament::MaterialInstance* materialInstance,
     const TextureMap& loadedTextures) const {
-  auto count = materialResult->getParameterCount();
-  std::vector<::filament::Material::ParameterInfo> parameters(count);
+  const auto count = materialResult->getParameterCount();
+  std::vector<filament::Material::ParameterInfo> parameters(count);
 
-  auto actual = materialResult->getParameters(parameters.data(), count);
+  const auto actual = materialResult->getParameters(parameters.data(), count);
   assert(count == actual && actual == parameters.size());
 
   for (const auto& param : parameters) {
@@ -151,11 +149,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
       }
       SPDLOG_TRACE("Setting material param {}", param.name);
 
-      // Should probably check to make sure the two types match as well
-      // TODO
-      auto& parameterType = iter->second->type_;
-
-      switch (parameterType) {
+      switch (iter->second->type_) {
         case MaterialParameter::MaterialType::COLOR: {
           materialInstance->setParameter(param.name, filament::RgbaType::LINEAR,
                                          iter->second->colorValue_.value());
@@ -181,10 +175,10 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
 
           // sampler will be on 'our' deserialized
           // texturedefinitions->texture_sampler
-          auto textureSampler = iter->second->getTextureSampler();
+          const auto textureSampler = iter->second->getTextureSampler();
 
-          ::filament::TextureSampler sampler(MinFilter::LINEAR,
-                                             MagFilter::LINEAR);
+          filament::TextureSampler sampler(MinFilter::LINEAR,
+                                           MagFilter::LINEAR);
 
           if (textureSampler != nullptr) {
             // SPDLOG_INFO("Overloading filtering options with set param
@@ -211,7 +205,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
             continue;
           }
 
-          auto texture = foundResource->second.getData().value();
+          const auto texture = foundResource->second.getData().value();
           materialInstance->setParameter(param.name, texture, sampler);
         } break;
 

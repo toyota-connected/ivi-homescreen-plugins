@@ -21,40 +21,42 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-LensProjection::LensProjection(float focalLength, float aspect)
-    : focalLength_(focalLength), aspect_(aspect), near_(0.0f), far_(0.0f) {}
+LensProjection::LensProjection(const float cameraFocalLength, float aspect)
+    : focalLength_(cameraFocalLength),
+      aspect_(aspect),
+      near_(0.0f),
+      far_(0.0f) {}
 
 ////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++LensProjection::LensProjection");
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
+  for (const auto& [fst, snd] : params) {
+    auto key = std::get<std::string>(fst);
     if (key == "focalLength") {
-      if (std::holds_alternative<double>(it.second)) {
-        focalLength_ = static_cast<float>(std::get<double>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        focalLength_ = static_cast<float>(std::get<double>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         focalLength_ = 28.0f;
       }
     } else if (key == "aspect") {
-      if (std::holds_alternative<double>(it.second)) {
-        aspect_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        aspect_ = std::get<double>(snd);
       }
     } else if (key == "near") {
-      if (std::holds_alternative<double>(it.second)) {
-        near_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        near_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         near_ = 0.05;  // 5 cm
       }
     } else if (key == "far") {
-      if (std::holds_alternative<double>(it.second)) {
-        far_ = std::get<double>(it.second);
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
+      if (std::holds_alternative<double>(snd)) {
+        far_ = std::get<double>(snd);
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         far_ = 1000.0;  // 1 km
       }
-    } else if (!it.second.IsNull()) {
+    } else if (!snd.IsNull()) {
       spdlog::debug("[LensProjection] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
   SPDLOG_TRACE("--LensProjection::LensProjection");

@@ -27,16 +27,16 @@
 
 namespace plugin_filament_view::shapes {
 
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::utils::Entity;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere() : slices_(20), stacks_(20) {}
+Sphere::Sphere() : stacks_(20), slices_(20) {}
 
 ////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere(const std::string& flutter_assets_path,
@@ -57,7 +57,7 @@ Sphere::Sphere(const std::string& flutter_assets_path,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
+bool Sphere::bInitAndCreateShape(filament::Engine* engine_,
                                  std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
@@ -74,28 +74,29 @@ bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
+void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
-  float sectorStep =
+  const float sectorStep =
       2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
-  float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
-  float sectorAngle, stackAngle;
+  const float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
 
   // Generate vertices, normals, and UVs for the outer surface
   for (int i = 0; i <= stacks; ++i) {
-    stackAngle = static_cast<float>(M_PI) / 2.0f -
-                 static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    float xy = cosf(stackAngle);                     // r * cos(u)
-    float z = sinf(stackAngle);                      // r * sin(u)
+    const float stackAngle =
+        static_cast<float>(M_PI) / 2.0f -
+        static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
+    const float xy = cosf(stackAngle);      // r * cos(u)
+    float z = sinf(stackAngle);             // r * sin(u)
     float v = static_cast<float>(i) /
               static_cast<float>(stacks);  // Latitude, y-axis UV
 
     for (int j = 0; j <= sectors; ++j) {
-      sectorAngle = static_cast<float>(j) * sectorStep;  // from 0 to 2pi
-      float x = xy * cosf(sectorAngle);  // x = r * cos(u) * cos(v)
-      float y = xy * sinf(sectorAngle);  // y = r * cos(u) * sin(v)
+      const float sectorAngle =
+          static_cast<float>(j) * sectorStep;  // from 0 to 2pi
+      float x = xy * cosf(sectorAngle);        // x = r * cos(u) * cos(v)
+      float y = xy * sinf(sectorAngle);        // y = r * cos(u) * sin(v)
       float u = static_cast<float>(j) /
                 static_cast<float>(sectors);  // Longitude, x-axis UV
 
@@ -158,7 +159,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
                                      uvs_.size() * sizeof(float) * 2));
 
   // Create the index buffer
-  auto indexCount = static_cast<unsigned int>(indices_.size());
+  const auto indexCount = static_cast<unsigned int>(indices_.size());
   m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
                         .bufferType(IndexBuffer::IndexType::USHORT)
@@ -172,7 +173,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/) {
+void Sphere::createDoubleSidedSphere(filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");
@@ -182,7 +183,7 @@ void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/) {
 void Sphere::CloneToOther(BaseShape& other) const {
   BaseShape::CloneToOther(other);
 
-  auto otherShape = dynamic_cast<Sphere*>(&other);
+  const auto otherShape = dynamic_cast<Sphere*>(&other);
 
   otherShape->slices_ = slices_;
   otherShape->stacks_ = stacks_;

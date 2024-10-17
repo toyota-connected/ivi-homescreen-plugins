@@ -35,6 +35,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
+/// TODO Need to look into destruction between here and scene deserializer
 void SkyboxSystem::destroySkybox() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -45,16 +46,18 @@ std::future<void> SkyboxSystem::Initialize() {
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_, [&, promise] {
-    auto filamentSystem =
+  post(strand_, [&, promise] {
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "SKyboxManager::Init::Lambda");
     const auto engine = filamentSystem->getFilamentEngine();
 
-    auto whiteSkybox = ::filament::Skybox::Builder()
-                           .color({1.0f, 1.0f, 1.0f, 1.0f})
-                           .build(*engine);
+    const auto whiteSkybox = filament::Skybox::Builder()
+                                 .color({1.0f, 1.0f, 1.0f, 1.0f})
+                                 .build(*engine);
     filamentSystem->getFilamentScene()->setSkybox(whiteSkybox);
+
+    promise->set_value();
   });
 
   return future;
@@ -69,7 +72,7 @@ void SkyboxSystem::setDefaultSkybox() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::setTransparentSkybox() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "setTransparentSkybox");
 
@@ -93,7 +96,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
   std::filesystem::path asset_path = assetPath;
 
   asset_path /= path;
-  if (path.empty() || !std::filesystem::exists(asset_path)) {
+  if (path.empty() || !exists(asset_path)) {
     promise->set_value(
         Resource<std::string_view>::Error("Skybox Asset path is not valid"));
   }
@@ -101,11 +104,11 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_,
-             [&, promise, asset_path, showSun, shouldUpdateLight, intensity] {
-               promise->set_value(loadSkyboxFromHdrFile(
-                   asset_path, showSun, shouldUpdateLight, intensity));
-             });
+  post(strand_,
+       [&, promise, asset_path, showSun, shouldUpdateLight, intensity] {
+         promise->set_value(loadSkyboxFromHdrFile(
+             asset_path, showSun, shouldUpdateLight, intensity));
+       });
 
   SPDLOG_TRACE("--SkyboxManager::setSkyboxFromHdrAsset");
   return future;
@@ -131,10 +134,10 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
       *ECSystemManager::GetInstance()->GetStrand());
 
   SPDLOG_DEBUG("Skybox downloading HDR Asset: {}", url.c_str());
-  asio::post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
+  post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
     plugin_common_curl::CurlClient client;
     // todo client.Init(url, {}, {});
-    auto buffer = client.RetrieveContentAsVector();
+    const auto buffer = client.RetrieveContentAsVector();
     if (client.GetCode() != CURLE_OK) {
       promise->set_value(Resource<std::string_view>::Error(
           "Couldn't load skybox from " + url));
@@ -164,7 +167,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
 
   std::filesystem::path asset_path = assetPath;
   asset_path /= path;
-  if (path.empty() || !std::filesystem::exists(asset_path)) {
+  if (path.empty() || !exists(asset_path)) {
     promise->set_value(
         Resource<std::string_view>::Error("KTX Asset path is not valid"));
   }
@@ -172,9 +175,9 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
       *ECSystemManager::GetInstance()->GetStrand());
 
   SPDLOG_DEBUG("Skybox loading KTX Asset: {}", asset_path.c_str());
-  asio::post(strand_, [&, promise, asset_path] {
+  post(strand_, [&, promise, asset_path] {
     std::ifstream stream(asset_path, std::ios::in | std::ios::binary);
-    std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(stream)),
+    std::vector<uint8_t> buffer((std::istreambuf_iterator(stream)),
                                 std::istreambuf_iterator<char>());
     if (!buffer.empty()) {
 #if 0  // TODO
@@ -210,7 +213,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(
 
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
-  asio::post(strand_, [&, promise, url] {
+  post(strand_, [&, promise, url] {
     plugin_common_curl::CurlClient client;
 
     // TODO client.Init(url, {}, {});
@@ -257,15 +260,15 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_, [&, promise, color] {
-    auto filamentSystem =
+  post(strand_, [&, promise, color] {
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "setSkyboxFromColor");
     const auto engine = filamentSystem->getFilamentEngine();
 
-    auto colorArray = colorOf(color);
-    auto skybox =
-        ::filament::Skybox::Builder().color(colorArray).build(*engine);
+    const auto colorArray = colorOf(color);
+    const auto skybox =
+        filament::Skybox::Builder().color(colorArray).build(*engine);
     filamentSystem->getFilamentScene()->setSkybox(skybox);
     promise->set_value(Resource<std::string_view>::Success(
         "Loaded environment successfully from color"));
@@ -278,12 +281,12 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
 ////////////////////////////////////////////////////////////////////////////////////
 Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
     const std::string& assetPath,
-    bool showSun,
-    bool shouldUpdateLight,
-    float intensity) {
-  ::filament::Texture* texture;
+    const bool showSun,
+    const bool shouldUpdateLight,
+    const float intensity) {
+  filament::Texture* texture;
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrFile");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -294,33 +297,33 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
-    auto skyboxTexture =
+    const auto skyboxTexture =
         filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
     engine->destroy(texture);
 
     if (skyboxTexture) {
-      auto sky = ::filament::Skybox::Builder()
-                     .environment(skyboxTexture)
-                     .showSun(showSun)
-                     .build(*engine);
+      const auto sky = filament::Skybox::Builder()
+                           .environment(skyboxTexture)
+                           .showSun(showSun)
+                           .build(*engine);
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        auto reflections =
+        const auto reflections =
             filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
-        auto ibl = ::filament::IndirectLight::Builder()
-                       .reflections(reflections)
-                       .intensity(intensity)
-                       .build(*engine);
+        const auto ibl = filament::IndirectLight::Builder()
+                             .reflections(reflections)
+                             .intensity(intensity)
+                             .build(*engine);
         // destroy the previous IBl
-        auto indirectLight =
+        const auto indirectLight =
             filamentSystem->getFilamentScene()->getIndirectLight();
         engine->destroy(indirectLight);
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-      if (prevSkybox) {
+      if (const auto prevSkybox =
+              filamentSystem->getFilamentScene()->getSkybox()) {
         engine->destroy(prevSkybox);
       }
 
@@ -336,12 +339,12 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
 ////////////////////////////////////////////////////////////////////////////////////
 Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
     const std::vector<uint8_t>& buffer,
-    bool showSun,
-    bool shouldUpdateLight,
-    float intensity) {
-  ::filament::Texture* texture;
+    const bool showSun,
+    const bool shouldUpdateLight,
+    const float intensity) {
+  filament::Texture* texture;
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -352,33 +355,33 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
     return Resource<std::string_view>::Error("Could not decode HDR buffer");
   }
   if (texture) {
-    auto skyboxTexture =
+    const auto skyboxTexture =
         filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
     engine->destroy(texture);
 
     if (skyboxTexture) {
-      auto sky = ::filament::Skybox::Builder()
-                     .environment(skyboxTexture)
-                     .showSun(showSun)
-                     .build(*engine);
+      const auto sky = filament::Skybox::Builder()
+                           .environment(skyboxTexture)
+                           .showSun(showSun)
+                           .build(*engine);
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        auto reflections =
+        const auto reflections =
             filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
-        auto ibl = ::filament::IndirectLight::Builder()
-                       .reflections(reflections)
-                       .intensity(intensity)
-                       .build(*engine);
+        const auto ibl = filament::IndirectLight::Builder()
+                             .reflections(reflections)
+                             .intensity(intensity)
+                             .build(*engine);
         // destroy the previous IBl
-        auto indirectLight =
+        const auto indirectLight =
             filamentSystem->getFilamentScene()->getIndirectLight();
         engine->destroy(indirectLight);
         filamentSystem->getFilamentScene()->setIndirectLight(ibl);
       }
 
-      auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-      if (prevSkybox) {
+      if (const auto prevSkybox =
+              filamentSystem->getFilamentScene()->getSkybox()) {
         engine->destroy(prevSkybox);
       }
 
@@ -401,13 +404,12 @@ void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::vShutdownSystem() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox();
-  if (prevSkybox) {
+  if (const auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox()) {
     engine->destroy(prevSkybox);
   }
 }

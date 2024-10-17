@@ -23,51 +23,50 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Projection::Projection(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Projection::Projection");
-  for (auto& it : params) {
-    auto key = std::get<std::string>(it.first);
-    if (key == "projection") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        projection_ = getTypeForText(std::get<std::string>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
-        projection_ = ::filament::Camera::Projection::ORTHO;
+  for (const auto& [fst, snd] : params) {
+    if (auto key = std::get<std::string>(fst); key == "projection") {
+      if (std::holds_alternative<std::string>(snd)) {
+        projection_ = getTypeForText(std::get<std::string>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
+        projection_ = filament::Camera::Projection::ORTHO;
       }
     } else if (key == "left") {
-      if (std::holds_alternative<double>(it.second)) {
-        left_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        left_ = std::get<double>(snd);
       }
     } else if (key == "right") {
-      if (std::holds_alternative<double>(it.second)) {
-        right_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        right_ = std::get<double>(snd);
       }
     } else if (key == "bottom") {
-      if (std::holds_alternative<double>(it.second)) {
-        bottom_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        bottom_ = std::get<double>(snd);
       }
     } else if (key == "top") {
-      if (std::holds_alternative<double>(it.second)) {
-        top_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        top_ = std::get<double>(snd);
       }
     } else if (key == "near") {
-      if (std::holds_alternative<double>(it.second)) {
-        near_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        near_ = std::get<double>(snd);
       }
     } else if (key == "far") {
-      if (std::holds_alternative<double>(it.second)) {
-        far_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        far_ = std::get<double>(snd);
       }
     } else if (key == "fovInDegrees") {
-      if (std::holds_alternative<double>(it.second)) {
-        fovInDegrees_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        fovInDegrees_ = std::get<double>(snd);
       }
     } else if (key == "aspect") {
-      if (std::holds_alternative<double>(it.second)) {
-        aspect_ = std::get<double>(it.second);
+      if (std::holds_alternative<double>(snd)) {
+        aspect_ = std::get<double>(snd);
       }
     } else if (key == "direction") {
-      if (std::holds_alternative<std::string>(it.second)) {
-        fovDirection_ = getFovForText(std::get<std::string>(it.second));
-      } else if (std::holds_alternative<std::monostate>(it.second)) {
-        fovDirection_ = ::filament::Camera::Fov::HORIZONTAL;
+      if (std::holds_alternative<std::string>(snd)) {
+        fovDirection_ = getFovForText(std::get<std::string>(snd));
+      } else if (std::holds_alternative<std::monostate>(snd)) {
+        fovDirection_ = filament::Camera::Fov::HORIZONTAL;
       }
     }
   }
@@ -113,7 +112,7 @@ void Projection::DebugPrint(const char* tag) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* Projection::getTextForType(::filament::Camera::Projection type) {
+const char* Projection::getTextForType(filament::Camera::Projection type) {
   return (const char*[]){
       kTypePerspective,
       kTypeOrtho,
@@ -121,15 +120,15 @@ const char* Projection::getTextForType(::filament::Camera::Projection type) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::Camera::Projection Projection::getTypeForText(
+filament::Camera::Projection Projection::getTypeForText(
     const std::string& type) {
   if (type == kTypePerspective)
-    return ::filament::Camera::Projection::PERSPECTIVE;
-  return ::filament::Camera::Projection::ORTHO;
+    return filament::Camera::Projection::PERSPECTIVE;
+  return filament::Camera::Projection::ORTHO;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* Projection::getTextForFov(::filament::Camera::Fov fov) {
+const char* Projection::getTextForFov(filament::Camera::Fov fov) {
   return (const char*[]){
       kFovVertical,
       kFovHorizontal,
@@ -137,14 +136,14 @@ const char* Projection::getTextForFov(::filament::Camera::Fov fov) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::Camera::Fov Projection::getFovForText(const std::string& fov) {
+filament::Camera::Fov Projection::getFovForText(const std::string& fov) {
   if (fov == kFovVertical) {
-    return ::filament::Camera::Fov::VERTICAL;
+    return filament::Camera::Fov::VERTICAL;
   }
   if (fov == kFovHorizontal) {
-    return ::filament::Camera::Fov::HORIZONTAL;
+    return filament::Camera::Fov::HORIZONTAL;
   }
-  return ::filament::Camera::Fov::HORIZONTAL;
+  return filament::Camera::Fov::HORIZONTAL;
 }
 
 }  // namespace plugin_filament_view

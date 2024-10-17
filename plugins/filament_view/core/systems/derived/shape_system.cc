@@ -29,10 +29,10 @@
 namespace plugin_filament_view {
 
 using shapes::BaseShape;
-using ::utils::Entity;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
+void ShapeSystem::vToggleAllShapesInScene(const bool bValue) const {
   if (bValue) {
     for (const auto& shape : shapes_) {
       shape->vAddEntityToScene();
@@ -57,12 +57,11 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   ShapeType type;
 
   // Find the "shapeType" key in the mapData
-  auto it = mapData.find(flutter::EncodableValue("shapeType"));
-  if (it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
-    int32_t typeValue = std::get<int32_t>(it->second);
-
+  if (const auto it = mapData.find(flutter::EncodableValue("shapeType"));
+      it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
     // Check if the value is within the valid range of the ShapeType enum
-    if (typeValue > static_cast<int32_t>(ShapeType::Unset) &&
+    if (int32_t typeValue = std::get<int32_t>(it->second);
+        typeValue > static_cast<int32_t>(ShapeType::Unset) &&
         typeValue < static_cast<int32_t>(ShapeType::Max)) {
       type = static_cast<ShapeType>(typeValue);
     } else {
@@ -99,7 +98,7 @@ void ShapeSystem::addShapesToScene(
     shape->DebugPrint("Add shapes to scene");
   }*/
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "addShapesToScene");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -113,7 +112,7 @@ void ShapeSystem::addShapesToScene(
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
-    auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+    auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity);
 
@@ -138,7 +137,8 @@ void ShapeSystem::vInitSystem() {
       ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleShapesInScene");
 
-        auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
+        const auto value =
+            msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
 
         vToggleAllShapesInScene(value);
 

@@ -36,27 +36,24 @@ std::unique_ptr<Skybox> Skybox::Deserialize(
   std::optional<bool> showSun;
   std::optional<int32_t> skyboxType;
 
-  for (auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "assetPath" && std::holds_alternative<std::string>(it.second)) {
-      assetPath = std::get<std::string>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url = std::get<std::string>(it.second);
-    } else if (key == "color" &&
-               std::holds_alternative<std::string>(it.second)) {
-      color = std::get<std::string>(it.second);
-    } else if (key == "showSun" && std::holds_alternative<bool>(it.second)) {
-      showSun = std::get<bool>(it.second);
-    } else if (key == "skyboxType" &&
-               std::holds_alternative<int32_t>(it.second)) {
-      skyboxType = std::get<int32_t>(it.second);
-    } else if (!it.second.IsNull()) {
+    auto key = std::get<std::string>(fst);
+    if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath = std::get<std::string>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url = std::get<std::string>(snd);
+    } else if (key == "color" && std::holds_alternative<std::string>(snd)) {
+      color = std::get<std::string>(snd);
+    } else if (key == "showSun" && std::holds_alternative<bool>(snd)) {
+      showSun = std::get<bool>(snd);
+    } else if (key == "skyboxType" && std::holds_alternative<int32_t>(snd)) {
+      skyboxType = std::get<int32_t>(snd);
+    } else if (!snd.IsNull()) {
       spdlog::debug("[SkyBox] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
+      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 

@@ -25,8 +25,8 @@ namespace plugin_filament_view {
 void FilamentSystem::vInitSystem() {
   spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
 
-  fengine_ = ::filament::Engine::create(::filament::Engine::Backend::VULKAN);
-  iblProfiler_ = std::make_unique<plugin_filament_view::IBLProfiler>(fengine_);
+  fengine_ = filament::Engine::create(filament::Engine::Backend::VULKAN);
+  iblProfiler_ = std::make_unique<IBLProfiler>(fengine_);
   frenderer_ = fengine_->createRenderer();
   fscene_ = fengine_->createScene();
 
@@ -44,7 +44,7 @@ void FilamentSystem::vShutdownSystem() {
   fengine_->destroy(frenderer_);
 
   iblProfiler_.reset();
-  ::filament::Engine::destroy(&fengine_);
+  filament::Engine::destroy(&fengine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

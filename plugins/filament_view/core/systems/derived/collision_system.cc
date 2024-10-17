@@ -60,15 +60,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     return;
   }
 
-  auto originalCollidable = dynamic_cast<Collidable*>(
+  const auto originalCollidable = dynamic_cast<Collidable*>(
       collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
           .get());
 
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
     // if its a shape
-    auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
-    if (originalShape != nullptr) {
+    if (const auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
+        originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
       originalCollidable->SetExtentsSize(
           originalShape->m_poBaseTransform.lock()->GetExtentsSize());
@@ -80,8 +80,8 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;
   if (dynamic_cast<Model*>(collidable)) {
-    auto ourModelObject = dynamic_cast<Model*>(collidable);
-    auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
+    const auto ourModelObject = dynamic_cast<Model*>(collidable);
+    const auto ourAABB = ourModelObject->getAsset()->getBoundingBox();
 
     newShape = new shapes::Cube();
     newShape->m_bDoubleSided = false;
@@ -92,15 +92,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     ourModelObject->vShallowCopyComponentToOther(
         CommonRenderable::StaticGetTypeID(), *newShape);
 
-    std::shared_ptr<Component> componentBT =
+    const std::shared_ptr<Component> componentBT =
         newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
-    std::shared_ptr<BaseTransform> baseTransformPtr =
+    const std::shared_ptr<BaseTransform> baseTransformPtr =
         std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
-    std::shared_ptr<Component> componentCR =
+    const std::shared_ptr<Component> componentCR =
         newShape->GetComponentByStaticTypeID(
             CommonRenderable::StaticGetTypeID());
-    std::shared_ptr<CommonRenderable> commonRenderablePtr =
+    const std::shared_ptr<CommonRenderable> commonRenderablePtr =
         std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
     newShape->m_poBaseTransform =
@@ -126,17 +126,17 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
       originalCollidable->SetExtentsSize(ourAABB.extent());
     }
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
     newShape = new shapes::Sphere();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Plane*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
     newShape = new shapes::Plane();
-    originalObject->CloneToOther(*dynamic_cast<shapes::BaseShape*>(newShape));
+    originalObject->CloneToOther(*newShape);
   }
 
   if (newShape == nullptr) {
@@ -149,7 +149,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   newShape->m_bIsWireframe = true;
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "vAddCollidable");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -157,7 +157,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
 
-  auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+  const auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
   newShape->bInitAndCreateShape(engine, oEntity);
   poFilamentScene->addEntity(*oEntity);
@@ -172,7 +172,7 @@ void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
 
   // Remove from collidablesDebugDrawingRepresentation_
-  auto iter =
+  const auto iter =
       collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
   if (iter != collidablesDebugDrawingRepresentation_.end()) {
     delete iter->second;
@@ -181,16 +181,16 @@ void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vTurnOnRenderingOfCollidables() {
-  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
-    collidable.second->vRemoveEntityFromScene();
+void CollisionSystem::vTurnOnRenderingOfCollidables() const {
+  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
+    snd->vRemoveEntityFromScene();
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vTurnOffRenderingOfCollidables() {
-  for (auto& collidable : collidablesDebugDrawingRepresentation_) {
-    collidable.second->vAddEntityToScene();
+void CollisionSystem::vTurnOffRenderingOfCollidables() const {
+  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
+    snd->vAddEntityToScene();
   }
 }
 
@@ -250,8 +250,8 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   // Sort hit results by distance from the ray's origin
   hitResults.sort([&rayCast](const HitResult& a, const HitResult& b) {
     // Calculate the squared distance to avoid the cost of sqrt
-    auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
-    auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
+    const auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
+    const auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
 
     // Sort in ascending order (closest hit first)
     return distanceA < distanceB;
@@ -273,9 +273,9 @@ void CollisionSystem::setupMessageChannels(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::SendCollisionInformationCallback(
-    std::list<HitResult>& lstHitResults,
+    const std::list<HitResult>& lstHitResults,
     std::string sourceQuery,
-    CollisionEventType eType) const {
+    const CollisionEventType eType) const {
   if (collisionInfoCallback_ == nullptr) {
     return;
   }
@@ -310,13 +310,13 @@ void CollisionSystem::SendCollisionInformationCallback(
 void CollisionSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
-        Ray rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
-        auto requestor =
+        auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
+        const auto requestor =
             msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
-        auto type = msg.getData<CollisionEventType>(
+        const auto type = msg.getData<CollisionEventType>(
             ECSMessageType::CollisionRequestType);
 
-        auto hitList = lstCheckForCollidable(rayInfo, 0);
+        const auto hitList = lstCheckForCollidable(rayInfo, 0);
 
         SendCollisionInformationCallback(hitList, requestor, type);
       });
@@ -325,7 +325,7 @@ void CollisionSystem::vInitSystem() {
       ECSMessageType::SetupMessageChannels, [this](const ECSMessage& msg) {
         spdlog::debug("SetupMessageChannels");
 
-        auto registrar = msg.getData<flutter::PluginRegistrar*>(
+        const auto registrar = msg.getData<flutter::PluginRegistrar*>(
             ECSMessageType::SetupMessageChannels);
 
         setupMessageChannels(registrar);
@@ -338,7 +338,7 @@ void CollisionSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         spdlog::debug("ToggleDebugCollidableViewsInScene");
 
-        auto value = msg.getData<bool>(
+        const auto value = msg.getData<bool>(
             ECSMessageType::ToggleDebugCollidableViewsInScene);
 
         if (!value) {

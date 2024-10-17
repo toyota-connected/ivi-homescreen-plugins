@@ -38,7 +38,7 @@ class MaterialSystem : public ECSystem {
   ~MaterialSystem() override;
 
   Resource<::filament::MaterialInstance*> getMaterialInstance(
-      MaterialDefinitions* materialDefinitions);
+      const MaterialDefinitions* materialDefinitions);
 
   // Disallow copy and assign.
   MaterialSystem(const MaterialSystem&) = delete;
@@ -60,10 +60,10 @@ class MaterialSystem : public ECSystem {
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
   static Resource<::filament::Material*> loadMaterialFromResource(
-      MaterialDefinitions* materialDefinition);
-  Resource<::filament::MaterialInstance*> setupMaterialInstance(
-      ::filament::Material* materialResult,
       const MaterialDefinitions* materialDefinition);
+  Resource<::filament::MaterialInstance*> setupMaterialInstance(
+      const ::filament::Material* materialResult,
+      const MaterialDefinitions* materialDefinitions) const;
 
   // this map contains the loaded materials from disk, that are not actively
   // used but instead copies (instances) are made of, then the instances are

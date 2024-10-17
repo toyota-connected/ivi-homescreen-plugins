@@ -34,7 +34,7 @@ class ModelSystem : public ECSystem {
   ModelSystem() = default;
 
   void destroyAllAssetsOnModels();
-  void destroyAsset(filament::gltfio::FilamentAsset* asset);
+  void destroyAsset(const filament::gltfio::FilamentAsset* asset) const;
 
   void loadModelGlb(Model* poOurModel,
                     const std::vector<uint8_t>& buffer,
@@ -45,7 +45,7 @@ class ModelSystem : public ECSystem {
                      std::function<const ::filament::backend::BufferDescriptor&(
                          std::string uri)>& callback);
 
-  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szName);
+  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szGUID);
 
   void updateAsyncAssetLoading();
 
@@ -105,7 +105,7 @@ class ModelSystem : public ECSystem {
   // not actively used, to be moved
   std::vector<float> morphWeights_;
 
-  void populateSceneWithAsyncLoadedAssets(Model* model);
+  void populateSceneWithAsyncLoadedAssets(const Model* model);
 
   using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
   void handleFile(

@@ -48,16 +48,15 @@ class FilamentViewPlugin;
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(int32_t top,
-                       int32_t left,
+ViewTarget::ViewTarget(const int32_t top,
+                       const int32_t left,
                        FlutterDesktopEngineState* state)
     : state_(state),
       left_(left),
       top_(top),
       callback_(nullptr),
       fanimator_(nullptr),
-      cameraManager_(nullptr),
-      m_LastTime(0) {
+      cameraManager_(nullptr) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 }
@@ -74,7 +73,7 @@ ViewTarget::~ViewTarget() {
     callback_ = nullptr;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -160,7 +159,8 @@ void ViewTarget::setupWaylandSubsurface() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
+void ViewTarget::InitializeFilamentInternals(const uint32_t width,
+                                             const uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   native_window_ = {.display = display_,
@@ -169,7 +169,7 @@ void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
                     .width = width,
                     .height = height};
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
 
@@ -186,7 +186,7 @@ void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
 void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -196,23 +196,23 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   fview_->setVisibleLayers(0x4, 0x4);
   fview_->setViewport({0, 0, width, height});
 
-  fview_->setBlendMode(::filament::View::BlendMode::TRANSLUCENT);
+  fview_->setBlendMode(filament::View::BlendMode::TRANSLUCENT);
 
   // on mobile, better use lower quality color buffer
-  ::filament::View::RenderQuality renderQuality{};
-  renderQuality.hdrColorBuffer = ::filament::View::QualityLevel::MEDIUM;
+  filament::View::RenderQuality renderQuality{};
+  renderQuality.hdrColorBuffer = filament::View::QualityLevel::MEDIUM;
   fview_->setRenderQuality(renderQuality);
 
   // dynamic resolution often helps a lot
   fview_->setDynamicResolutionOptions(
-      {.enabled = true, .quality = ::filament::View::QualityLevel::MEDIUM});
+      {.enabled = true, .quality = filament::View::QualityLevel::MEDIUM});
 
   // MSAA is needed with dynamic resolution MEDIUM
   fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
   // fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
-  fview_->setAntiAliasing(::filament::View::AntiAliasing::FXAA);
+  fview_->setAntiAliasing(filament::View::AntiAliasing::FXAA);
   // fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
@@ -241,7 +241,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 }
 
 void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
-    std::unique_ptr<Camera> camera) {
+    std::unique_ptr<Camera> camera) const {
   // Note right now cameraManager creates a default camera on startup; if we're
   // immediately setting it to a different one; that's extra work that shouldn't
   // be done. Backlogged
@@ -252,20 +252,19 @@ void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
-    std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
-        args) {
+    std::initializer_list<std::pair<const char*, EncodableValue>> args) const {
   if (frameViewCallback_ == nullptr) {
     return;
   }
 
-  flutter::EncodableMap encodableMap;
-  for (const auto& arg : args) {
-    encodableMap[flutter::EncodableValue(arg.first)] = arg.second;
+  EncodableMap encodableMap;
+  for (const auto& [fst, snd] : args) {
+    encodableMap[EncodableValue(fst)] = snd;
   }
 
-  frameViewCallback_->InvokeMethod(methodName,
-                                   std::make_unique<flutter::EncodableValue>(
-                                       flutter::EncodableValue(encodableMap)));
+  frameViewCallback_->InvokeMethod(
+      methodName,
+      std::make_unique<EncodableValue>(EncodableValue(encodableMap)));
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -278,7 +277,7 @@ const wl_callback_listener ViewTarget::frame_listener = {.done = OnFrame};
  * rendered
  */
 void ViewTarget::DrawFrame(uint32_t time) {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time]() {
+  post(*ECSystemManager::GetInstance()->GetStrand(), [&, time] {
     static bool bonce = true;
     if (bonce) {
       bonce = false;
@@ -301,10 +300,10 @@ void ViewTarget::DrawFrame(uint32_t time) {
     // drawing a frame.
 
     SendFrameViewCallback(
-        kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
-                                      flutter::EncodableValue(m_LastTime))});
+        kUpdateFrame,
+        {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))});
 
-    auto filamentSystem =
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "DrawFrame");
 
@@ -315,7 +314,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
       // render)
       //
       // Future tasking for making a more featured timing / frame info class.
-      uint32_t deltaTimeMS = time - m_LastTime;
+      const uint32_t deltaTimeMS = time - m_LastTime;
       float timeSinceLastRenderedSec =
           static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
       if (timeSinceLastRenderedSec == 0.0f) {
@@ -326,16 +325,16 @@ void ViewTarget::DrawFrame(uint32_t time) {
       SendFrameViewCallback(
           kPreRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
 
       doCameraFeatures(timeSinceLastRenderedSec);
 
       SendFrameViewCallback(
           kRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
 
       filamentSystem->getFilamentRenderer()->render(fview_);
 
@@ -344,8 +343,8 @@ void ViewTarget::DrawFrame(uint32_t time) {
       SendFrameViewCallback(
           kPostRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
     }
 
     m_LastTime = time;
@@ -378,20 +377,20 @@ void ViewTarget::OnFrame(void* data,
 }
 
 /////////////////////////////////////////////////////////////////////////
-void ViewTarget::doCameraFeatures(float fDeltaTime) {
+void ViewTarget::doCameraFeatures(const float fDeltaTime) const {
   if (cameraManager_ == nullptr)
     return;
   cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::setOffset(double left, double top) {
+void ViewTarget::setOffset(const double left, const double top) {
   left_ = static_cast<int32_t>(left);
   top_ = static_cast<int32_t>(top);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::resize(double width, double height) {
+void ViewTarget::resize(const double width, const double height) {
   fview_->setViewport({left_, top_, static_cast<uint32_t>(width),
                        static_cast<uint32_t>(height)});
 
@@ -400,23 +399,24 @@ void ViewTarget::resize(double width, double height) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vOnTouch(int32_t action,
-                          int32_t point_count,
-                          size_t point_data_size,
-                          const double* point_data) {
+void ViewTarget::vOnTouch(const int32_t action,
+                          const int32_t point_count,
+                          const size_t point_data_size,
+                          const double* point_data) const {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   // if action is 0, then on 'first' touch, cast ray from camera;
-  auto viewport = fview_->getViewport();
-  auto touch =
+  const auto viewport = fview_->getViewport();
+  const auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
 
   static constexpr int ACTION_DOWN = 0;
 
   if (action == ACTION_DOWN) {
-    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    const auto rayInfo =
+        cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
 
     ECSMessage rayInformation;
     rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
@@ -427,7 +427,7 @@ void ViewTarget::vOnTouch(int32_t action,
     collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
                              std::string(__FUNCTION__));
     collisionRequest.addData(ECSMessageType::CollisionRequestType,
-                             CollisionEventType::eNativeOnTouchBegin);
+                             eNativeOnTouchBegin);
     ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 

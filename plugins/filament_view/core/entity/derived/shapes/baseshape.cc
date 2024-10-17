@@ -30,17 +30,17 @@
 
 namespace plugin_filament_view::shapes {
 
-using ::filament::Aabb;
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::mat4f;
-using ::filament::math::packSnorm16;
-using ::filament::math::short4;
-using ::utils::Entity;
+using filament::Aabb;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using filament::math::mat4f;
+using filament::math::packSnorm16;
+using filament::math::short4;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape()
@@ -50,7 +50,7 @@ BaseShape::BaseShape()
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
-          Resource<::filament::MaterialInstance*>::Error("Unset")) {}
+          Resource<filament::MaterialInstance*>::Error("Unset")) {}
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const std::string& flutter_assets_path,
@@ -61,7 +61,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
-          Resource<::filament::MaterialInstance*>::Error("Unset")) {
+          Resource<filament::MaterialInstance*>::Error("Unset")) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
@@ -80,7 +80,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
                                               ShapeType::Unset);
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
-                                          filament::math::float3(0, 0, 0));
+                                          float3(0, 0, 0));
   Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
                                           params, flutter_assets_path);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
@@ -88,8 +88,8 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   // if we have collidable data request, we need to build that component, as its
   // optional
-  auto it = params.find(flutter::EncodableValue(kCollidable));
-  if (it != params.end() && !it->second.IsNull()) {
+  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
+      it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
@@ -106,7 +106,7 @@ BaseShape::~BaseShape() {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
   const auto filamentEngine = filamentSystem->getFilamentEngine();
@@ -115,7 +115,7 @@ void BaseShape::vDestroyBuffers() {
       m_poMaterialInstance.getData() != nullptr) {
     filamentEngine->destroy(m_poMaterialInstance.getData().value());
     m_poMaterialInstance =
-        Resource<::filament::MaterialInstance*>::Error("Unset");
+        Resource<filament::MaterialInstance*>::Error("Unset");
   }
 
   if (m_poVertexBuffer) {
@@ -143,14 +143,14 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
                                      other);
 
-  std::shared_ptr<Component> componentBT =
+  const std::shared_ptr<Component> componentBT =
       GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
-  std::shared_ptr<BaseTransform> baseTransformPtr =
+  const std::shared_ptr<BaseTransform> baseTransformPtr =
       std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
-  std::shared_ptr<Component> componentCR =
+  const std::shared_ptr<Component> componentCR =
       GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
-  std::shared_ptr<CommonRenderable> commonRenderablePtr =
+  const std::shared_ptr<CommonRenderable> commonRenderablePtr =
       std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
   other.m_poBaseTransform = std::weak_ptr<BaseTransform>(baseTransformPtr);
@@ -159,7 +159,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
+void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   if (m_bIsWireframe) {
@@ -176,7 +176,7 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
         .castShadows(false)
         .build(*engine_, *m_poEntity);
   } else {
-    auto materialSystem =
+    const auto materialSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
             MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
 
@@ -216,14 +216,14 @@ void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vRemoveEntityFromScene() {
+void BaseShape::vRemoveEntityFromScene() const {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
                 __FILE__, __FUNCTION__);
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");
@@ -232,14 +232,14 @@ void BaseShape::vRemoveEntityFromScene() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vAddEntityToScene() {
+void BaseShape::vAddEntityToScene() const {
   if (m_poEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
                 __FUNCTION__);
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");

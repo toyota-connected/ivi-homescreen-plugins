@@ -23,73 +23,73 @@
 
 namespace plugin_filament_view {
 
-using ::filament::RgbType;
-using ::filament::math::float3;
+using filament::RgbType;
+using filament::math::float3;
 
 ////////////////////////////////////////////////////////////////////////////
 MaterialLoader::MaterialLoader() = default;
 
 ////////////////////////////////////////////////////////////////////////////
 // This function does NOT set default parameter values.
-Resource<::filament::Material*> MaterialLoader::loadMaterialFromAsset(
+Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
   const auto assetPath =
       ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
-  auto buffer = readBinaryFile(path, assetPath);
+  const auto buffer = readBinaryFile(path, assetPath);
 
   if (!buffer.empty()) {
-    auto filamentSystem =
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "loadMaterialFromAsset");
     const auto engine = filamentSystem->getFilamentEngine();
 
-    auto material = ::filament::Material::Builder()
-                        .package(buffer.data(), buffer.size())
-                        .build(*engine);
+    const auto material = filament::Material::Builder()
+                              .package(buffer.data(), buffer.size())
+                              .build(*engine);
 
-    return Resource<::filament::Material*>::Success(material);
+    return Resource<filament::Material*>::Success(material);
   }
 
   SPDLOG_ERROR("Could not load material from asset.");
-  return Resource<::filament::Material*>::Error(
+  return Resource<filament::Material*>::Error(
       "Could not load material from asset.");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Resource<::filament::Material*> MaterialLoader::loadMaterialFromUrl(
+Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(
     const std::string& url) {
   plugin_common_curl::CurlClient client;
   // TODO client.Init(url);
-  std::vector<uint8_t> buffer = client.RetrieveContentAsVector();
+  const std::vector<uint8_t> buffer = client.RetrieveContentAsVector();
   if (client.GetCode() != CURLE_OK) {
-    return Resource<::filament::Material*>::Error(
+    return Resource<filament::Material*>::Error(
         "Failed to load material from " + url);
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadMaterialFromUrl");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (!buffer.empty()) {
-    auto material = ::filament::Material::Builder()
-                        .package(buffer.data(), buffer.size())
-                        .build(*engine);
-    return Resource<::filament::Material*>::Success(material);
+    const auto material = filament::Material::Builder()
+                              .package(buffer.data(), buffer.size())
+                              .build(*engine);
+    return Resource<filament::Material*>::Success(material);
   }
 
-  return Resource<::filament::Material*>::Error(
+  return Resource<filament::Material*>::Error(
       "Could not load material from asset.");
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void MaterialLoader::PrintMaterialInformation(
-    const ::filament::Material* material) {
+    const filament::Material* material) {
   spdlog::info("Material Informaton {}", material->getName());
   size_t paramCount = material->getParameterCount();
   spdlog::info("Material Informaton {}", paramCount);
 
-  auto InfoList = new filament::Material::ParameterInfo[paramCount];
+  const auto InfoList = new filament::Material::ParameterInfo[paramCount];
   material->getParameters(InfoList, paramCount);
 
   for (size_t i = 0; i < paramCount; ++i) {

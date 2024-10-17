@@ -25,8 +25,8 @@ namespace plugin_filament_view {
 CommonRenderable::CommonRenderable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       m_bCullingOfObjectEnabled(true),
-      m_bCastShadows(false),
-      m_bReceiveShadows(false) {
+      m_bReceiveShadows(false),
+      m_bCastShadows(false) {
   Deserialize::DecodeParameterWithDefault(
       kCullingEnabled, &m_bCullingOfObjectEnabled, params, true);
   Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows,

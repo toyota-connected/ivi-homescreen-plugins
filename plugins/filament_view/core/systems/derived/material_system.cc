@@ -39,8 +39,8 @@ MaterialSystem::~MaterialSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
-    MaterialDefinitions* materialDefinition) {
+Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
+    const MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
   if (!materialDefinition->szGetMaterialAssetPath().empty()) {
     // THIS does NOT set default a parameter values
@@ -53,39 +53,38 @@ Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
         materialDefinition->szGetMaterialURLPath());
   }
 
-  return Resource<::filament::Material*>::Error(
+  return Resource<filament::Material*>::Error(
       "You must provide material asset path or url");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
-    ::filament::Material* materialResult,
-    const MaterialDefinitions* materialDefinitions) {
+Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
+    const filament::Material* materialResult,
+    const MaterialDefinitions* materialDefinitions) const {
   if (!materialResult) {
     SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
-    return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
+    return Resource<filament::MaterialInstance*>::Error("argument is NULL");
   }
 
-  auto materialInstance = materialResult->createInstance();
+  const auto materialInstance = materialResult->createInstance();
   materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
       materialResult, materialInstance, loadedTextures_);
 
-  return Resource<::filament::MaterialInstance*>::Success(materialInstance);
+  return Resource<filament::MaterialInstance*>::Success(materialInstance);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
-    MaterialDefinitions* materialDefinitions) {
+Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
+    const MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
     SPDLOG_ERROR(
         "--Bad MaterialDefinitions Result "
         "MaterialManager::getMaterialInstance");
-    return Resource<::filament::MaterialInstance*>::Error("Material not found");
+    return Resource<filament::MaterialInstance*>::Error("Material not found");
   }
 
-  Resource<filament::Material*> materialToInstanceFrom =
-      Resource<::filament::Material*>::Error("Unset");
+  Resource<filament::Material*> materialToInstanceFrom;
 
   // In case of multi material load on <load>
   // we dont want to reload the same material several times and have collision
@@ -93,8 +92,9 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
   std::lock_guard lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
-  auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
-  if (materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
+  if (const auto materialToInstanceFromIter =
+          loadedTemplateMaterials_.find(lookupName);
+      materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
     SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
@@ -103,7 +103,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     if (materialToInstanceFrom.getStatus() != Status::Success) {
       spdlog::error(
           "--Bad Material Result MaterialManager::getMaterialInstance");
-      return Resource<::filament::MaterialInstance*>::Error(
+      return Resource<filament::MaterialInstance*>::Error(
           materialToInstanceFrom.getMessage());
     }
 
@@ -114,9 +114,9 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
   // here we need to see if any & all textures that are requested on the
   // material be loaded before we create an instance of it.
-  auto materialsRequiredTextures =
+  const auto materialsRequiredTextures =
       materialDefinitions->vecGetTextureMaterialParameters();
-  for (auto materialParam : materialsRequiredTextures) {
+  for (const auto materialParam : materialsRequiredTextures) {
     try {
       // Call the getTextureValue method
       const auto& textureValue = materialParam->getTextureValue();
@@ -133,8 +133,8 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
       // see if the asset path is already in our map of saved textures
       const auto assetPath = materialParam->getTextureValueAssetPath();
-      auto foundAsset = loadedTextures_.find(assetPath);
-      if (foundAsset != loadedTextures_.end()) {
+      if (auto foundAsset = loadedTextures_.find(assetPath);
+          foundAsset != loadedTextures_.end()) {
         // it exists already, don't need to load it.
         continue;
       }
@@ -144,7 +144,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
       if (loadedTexture.getStatus() != Status::Success) {
         spdlog::error("Unable to load texture from {}", assetPath);
-        Resource<::filament::Texture*>::Error(
+        Resource<filament::Texture*>::Error(
             materialToInstanceFrom.getMessage());
         continue;
       }
@@ -158,7 +158,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     }
   }
 
-  auto materialInstance = setupMaterialInstance(
+  const auto materialInstance = setupMaterialInstance(
       materialToInstanceFrom.getData().value(), materialDefinitions);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
@@ -171,17 +171,17 @@ void MaterialSystem::vInitSystem() {}
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  for (auto iterMat : loadedTemplateMaterials_) {
-    engine->destroy(*iterMat.second.getData());
+  for (auto [fst, snd] : loadedTemplateMaterials_) {
+    engine->destroy(*snd.getData());
   }
 
-  for (auto iterTexture : loadedTextures_) {
-    engine->destroy(*iterTexture.second.getData());
+  for (auto [fst, snd] : loadedTextures_) {
+    engine->destroy(*snd.getData());
   }
 
   loadedTemplateMaterials_.clear();

@@ -40,9 +40,9 @@ ECSystemManager::~ECSystemManager() {
 ////////////////////////////////////////////////////////////////////////////
 ECSystemManager::ECSystemManager()
     : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
-      work_(asio::make_work_guard(io_context_->get_executor())),
+      work_(make_work_guard(io_context_->get_executor())),
       strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
-      m_eCurrentState(RunState::NotInitialized) {
+      m_eCurrentState(NotInitialized) {
   vSetupThreadingInternals();
 }
 
@@ -61,8 +61,8 @@ void ECSystemManager::StartRunLoop() {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vSetupThreadingInternals() {
-  filament_api_thread_ = std::thread([&]() { io_context_->run(); });
-  asio::post(*strand_, [&] {
+  filament_api_thread_ = std::thread([&] { io_context_->run(); });
+  post(*strand_, [&] {
     filament_api_thread_id_ = pthread_self();
 
     pthread_setname_np(pthread_self(), "ECSystemManagerThreadRunner");
@@ -74,12 +74,12 @@ void ECSystemManager::vSetupThreadingInternals() {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::RunLoop() {
-  const std::chrono::milliseconds frameTime(16);  // ~1/60 second
+  constexpr std::chrono::milliseconds frameTime(16);  // ~1/60 second
 
   // Initialize lastFrameTime to the current time
   auto lastFrameTime = std::chrono::steady_clock::now();
 
-  m_eCurrentState = RunState::Running;
+  m_eCurrentState = Running;
   while (m_bIsRunning) {
     auto start = std::chrono::steady_clock::now();
 
@@ -88,7 +88,7 @@ void ECSystemManager::RunLoop() {
 
     if (!isHandlerExecuting.load()) {
       // Use asio::post to schedule work on the main thread (API thread)
-      asio::post(*strand_, [elapsedTime = elapsedTime.count(), this] {
+      post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
           ExecuteOnMainThread(
@@ -105,14 +105,14 @@ void ECSystemManager::RunLoop() {
     lastFrameTime = start;
 
     auto end = std::chrono::steady_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
 
     // Sleep for the remaining time in the frame
-    if (elapsed < frameTime) {
+    if (std::chrono::duration<double> elapsed = end - start;
+        elapsed < frameTime) {
       std::this_thread::sleep_for(frameTime - elapsed);
     }
   }
-  m_eCurrentState = RunState::ShutdownStarted;
+  m_eCurrentState = ShutdownStarted;
 
   m_bSpawnedThreadFinished = true;
 }
@@ -137,7 +137,7 @@ void ECSystemManager::StopRunLoop() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::ExecuteOnMainThread(float elapsedTime) {
+void ECSystemManager::ExecuteOnMainThread(const float elapsedTime) {
   vUpdate(elapsedTime);
 }
 
@@ -152,21 +152,21 @@ void ECSystemManager::vInitSystems() {
     system->vInitSystem();
   }
 
-  m_eCurrentState = RunState::Initialized;
+  m_eCurrentState = Initialized;
 
   //});
 }
 
 ////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
-    size_t systemTypeID,
+    const size_t systemTypeID,
     const std::string& where) {
-  auto callingThread = pthread_self();
-  if (callingThread != filament_api_thread_id_) {
+  if (const auto callingThread = pthread_self();
+      callingThread != filament_api_thread_id_) {
     // Note we should have a 'log once' base functionality in common
     // creating this inline for now.
-    auto foundIter = m_mapOffThreadCallers.find(where);
-    if (foundIter == m_mapOffThreadCallers.end()) {
+    if (const auto foundIter = m_mapOffThreadCallers.find(where);
+        foundIter == m_mapOffThreadCallers.end()) {
       spdlog::info(
           "From {} "
           "You're calling to get a system from an off thread, undefined "
@@ -180,7 +180,7 @@ std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
     }
   }
 
-  std::unique_lock<std::mutex> lock(vecSystemsMutex);
+  std::unique_lock lock(vecSystemsMutex);
   for (const auto& system : m_vecSystems) {
     if (system->GetTypeID() == systemTypeID) {
       return system;
@@ -191,18 +191,18 @@ std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
-  std::unique_lock<std::mutex> lock(vecSystemsMutex);
+  std::unique_lock lock(vecSystemsMutex);
   spdlog::debug("Adding system at address {}",
                 static_cast<void*>(system.get()));
   m_vecSystems.push_back(std::move(system));
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vUpdate(float deltaTime) {
+void ECSystemManager::vUpdate(const float deltaTime) {
   // Copy systems under mutex
   std::vector<std::shared_ptr<ECSystem>> systemsCopy;
   {
-    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    std::unique_lock lock(vecSystemsMutex);
 
     // Copy the systems vector
     systemsCopy = m_vecSystems;
@@ -220,7 +220,7 @@ void ECSystemManager::vUpdate(float deltaTime) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::DebugPrint() {
+void ECSystemManager::DebugPrint() const {
   for (const auto& system : m_vecSystems) {
     spdlog::debug(
         "ECSystemManager:: DebugPrintProcessing system at address {}, "
@@ -231,7 +231,7 @@ void ECSystemManager::DebugPrint() {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vShutdownSystems() {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
+  post(*GetInstance()->GetStrand(), [&] {
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
@@ -240,8 +240,7 @@ void ECSystemManager::vShutdownSystems() {
       (*it)->vShutdownSystem();
     }
 
-    m_eCurrentState = RunState::Shutdown;
-    ;
+    m_eCurrentState = Shutdown;
   });
 }
 

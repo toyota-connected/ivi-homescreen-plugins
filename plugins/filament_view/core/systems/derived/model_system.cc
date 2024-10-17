@@ -34,27 +34,28 @@
 
 namespace plugin_filament_view {
 
-using ::filament::gltfio::AssetConfiguration;
-using ::filament::gltfio::AssetLoader;
-using ::filament::gltfio::ResourceConfiguration;
-using ::filament::gltfio::ResourceLoader;
+using filament::gltfio::AssetConfiguration;
+using filament::gltfio::AssetLoader;
+using filament::gltfio::ResourceConfiguration;
+using filament::gltfio::ResourceLoader;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::destroyAllAssetsOnModels() {
-  for (const auto& model : m_mapszpoAssets) {
-    destroyAsset(model.second->getAsset());
-    delete model.second;
+  for (const auto& [fst, snd] : m_mapszpoAssets) {
+    destroyAsset(snd->getAsset());  // NOLINT
+    delete snd;                     // NOLINT
   }
   m_mapszpoAssets.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
+void ModelSystem::destroyAsset(
+    const filament::gltfio::FilamentAsset* asset) const {
   if (!asset) {
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -66,7 +67,7 @@ void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
 ////////////////////////////////////////////////////////////////////////////////////
 filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
     const std::string& szGUID) {
-  auto iter = m_mapszpoAssets.find(szGUID);
+  const auto iter = m_mapszpoAssets.find(szGUID);
   if (iter == m_mapszpoAssets.end()) {
     return nullptr;
   }
@@ -91,7 +92,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
     return;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -107,11 +108,11 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 
   auto& rcm = engine->getRenderableManager();
 
-  utils::Slice<Entity> const listOfRenderables{
-      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                       asset->getRenderableEntityCount()};
 
-  for (auto entity : listOfRenderables) {
-    auto ri = rcm.getInstance(entity);
+  for (const auto entity : listOfRenderables) {
+    const auto ri = rcm.getInstance(entity);
     rcm.setCastShadows(
         ri, poOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
     rcm.setReceiveShadows(
@@ -136,7 +137,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 void ModelSystem::loadModelGltf(
     Model* poOurModel,
     const std::vector<uint8_t>& buffer,
-    std::function<const ::filament::backend::BufferDescriptor&(
+    std::function<const filament::backend::BufferDescriptor&(
         std::string uri)>& /* callback */) {
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
@@ -145,8 +146,9 @@ void ModelSystem::loadModelGltf(
     return;
   }
 
-  auto uri_data = asset->getResourceUris();
-  auto uris = std::vector(uri_data, uri_data + asset->getResourceUriCount());
+  const auto uri_data = asset->getResourceUris();
+  const auto uris =
+      std::vector(uri_data, uri_data + asset->getResourceUriCount());
   for (const auto uri : uris) {
     SPDLOG_DEBUG("resource uri: {}", uri);
 #if 0   // TODO
@@ -162,18 +164,18 @@ void ModelSystem::loadModelGltf(
   // modelViewer->setAnimator(asset->getInstance()->getAnimator());
   asset->releaseSourceData();
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadModelGltf");
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
 
-  utils::Slice<Entity> const listOfRenderables{
-      asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                       asset->getRenderableEntityCount()};
 
-  for (auto entity : listOfRenderables) {
-    auto ri = rcm.getInstance(entity);
+  for (const auto entity : listOfRenderables) {
+    const auto ri = rcm.getInstance(entity);
     rcm.setCastShadows(
         ri, poOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
     rcm.setReceiveShadows(
@@ -188,8 +190,8 @@ void ModelSystem::loadModelGltf(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
-  auto filamentSystem =
+void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
   const auto engine = filamentSystem->getFilamentEngine();
@@ -212,11 +214,11 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
 
     asset->popRenderables(readyRenderables_, maxToPop);
 
-    utils::Slice<Entity> const listOfRenderables{
-        asset->getRenderableEntities(), asset->getRenderableEntityCount()};
+    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
+                                         asset->getRenderableEntityCount()};
 
-    for (auto entity : listOfRenderables) {
-      auto ri = rcm.getInstance(entity);
+    for (const auto entity : listOfRenderables) {
+      const auto ri = rcm.getInstance(entity);
       rcm.setCastShadows(ri,
                          model->GetCommonRenderable()->IsCastShadowsEnabled());
       rcm.setReceiveShadows(
@@ -229,8 +231,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
     count = asset->popRenderables(nullptr, 0);
   }
 
-  auto lightEntities = asset->getLightEntities();
-  if (lightEntities) {
+  if ([[maybe_unused]] auto lightEntities = asset->getLightEntities()) {
     filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
                                                     sizeof(*lightEntities));
   }
@@ -245,10 +246,10 @@ void ModelSystem::updateAsyncAssetLoading() {
   // load, then load that physics data onto a collidable if required. This gives
   // us visuals without collidbales in a scene with <tons> of objects; but would
   // eventually settle
-  float percentComplete = resourceLoader_->asyncGetLoadProgress();
+  const float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
-  for (const auto& asset : m_mapszpoAssets) {
-    populateSceneWithAsyncLoadedAssets(asset.second);
+  for (const auto& [fst, snd] : m_mapszpoAssets) {
+    populateSceneWithAsyncLoadedAssets(snd);
 
     if (percentComplete != 1.0f) {
       continue;
@@ -266,13 +267,12 @@ void ModelSystem::updateAsyncAssetLoading() {
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
-    if (asset.second->HasComponentByStaticTypeID(
-            Collidable::StaticGetTypeID()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(asset.first)) {
+    if (snd->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
+        !collisionSystem->bHasEntityObjectRepresentation(fst)) {
       // I don't think this needs to become a message; as an async load
       // gives us un-deterministic throughput; it can't be replicated with a
       // messaging structure, and we have to wait till the load is done.
-      collisionSystem->vAddCollidable(asset.second);
+      collisionSystem->vAddCollidable(snd);
     }  // end make collision
   }  // end foreach
 }  // end method
@@ -292,9 +292,9 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
     const auto assetPath =
         ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-    asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
+    post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
       try {
-        auto buffer = readBinaryFile(path, assetPath);
+        const auto buffer = readBinaryFile(path, assetPath);
         handleFile(poOurModel, buffer, path, isFallback, promise);
       } catch (const std::exception& e) {
         std::cerr << "Lambda Exception " << e.what() << '\n';
@@ -318,16 +318,16 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(),
-             [&, poOurModel, promise, url = std::move(url), isFallback] {
-               plugin_common_curl::CurlClient client;
-               auto buffer = client.RetrieveContentAsVector();
-               if (client.GetCode() != CURLE_OK) {
-                 promise->set_value(Resource<std::string_view>::Error(
-                     "Couldn't load Glb from " + url));
-               }
-               handleFile(poOurModel, buffer, url, isFallback, promise);
-             });
+  post(*ECSystemManager::GetInstance()->GetStrand(),
+       [&, poOurModel, promise, url = std::move(url), isFallback] {
+         plugin_common_curl::CurlClient client;
+         const auto buffer = client.RetrieveContentAsVector();
+         if (client.GetCode() != CURLE_OK) {
+           promise->set_value(Resource<std::string_view>::Error(
+               "Couldn't load Glb from " + url));
+         }
+         handleFile(poOurModel, buffer, url, isFallback, promise);
+       });
   return promise_future;
 }
 
@@ -375,7 +375,7 @@ std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vInitSystem() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -385,7 +385,7 @@ void ModelSystem::vInitSystem() {
     return;
   }
 
-  materialProvider_ = ::filament::gltfio::createUbershaderProvider(
+  materialProvider_ = filament::gltfio::createUbershaderProvider(
       engine, UBERARCHIVE_DEFAULT_DATA,
       static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
 
@@ -402,7 +402,7 @@ void ModelSystem::vInitSystem() {
   resourceConfiguration.normalizeSkinningWeights = true;
   resourceLoader_ = new ResourceLoader(resourceConfiguration);
 
-  auto decoder = filament::gltfio::createStbProvider(engine);
+  const auto decoder = filament::gltfio::createStbProvider(engine);
   resourceLoader_->addTextureProvider("image/png", decoder);
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
 }

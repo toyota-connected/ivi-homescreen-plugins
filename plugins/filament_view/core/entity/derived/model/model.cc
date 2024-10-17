@@ -48,8 +48,8 @@ Model::Model(std::string assetPath,
 
   // if we have collidable data request, we need to build that component, as its
   // optional
-  auto it = params.find(flutter::EncodableValue(kCollidable));
-  if (it != params.end() && !it->second.IsNull()) {
+  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
+      it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
@@ -107,30 +107,29 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   auto oTransform = std::make_shared<BaseTransform>(params);
   auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
-  for (const auto& it : params) {
-    if (it.second.IsNull())
+  for (const auto& [fst, snd] : params) {
+    if (snd.IsNull())
       continue;
 
-    auto key = std::get<std::string>(it.first);
-    if (key == "animation" &&
-        std::holds_alternative<flutter::EncodableMap>(it.second)) {
+    if (auto key = std::get<std::string>(fst);
+        key == "animation" &&
+        std::holds_alternative<flutter::EncodableMap>(snd)) {
       animation = std::make_unique<Animation>(
-          flutterAssetsPath, std::get<flutter::EncodableMap>(it.second));
-    } else if (key == "assetPath" &&
-               std::holds_alternative<std::string>(it.second)) {
-      assetPath = std::get<std::string>(it.second);
-    } else if (key == "isGlb" && std::holds_alternative<bool>(it.second)) {
-      is_glb = std::get<bool>(it.second);
-    } else if (key == "url" && std::holds_alternative<std::string>(it.second)) {
-      url = std::get<std::string>(it.second);
+          flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
+    } else if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
+      assetPath = std::get<std::string>(snd);
+    } else if (key == "isGlb" && std::holds_alternative<bool>(snd)) {
+      is_glb = std::get<bool>(snd);
+    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
+      url = std::get<std::string>(snd);
     } else if (key == "pathPrefix" &&
-               std::holds_alternative<std::string>(it.second)) {
-      pathPrefix = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      pathPrefix = std::get<std::string>(snd);
     } else if (key == "pathPostfix" &&
-               std::holds_alternative<std::string>(it.second)) {
-      pathPostfix = std::get<std::string>(it.second);
+               std::holds_alternative<std::string>(snd)) {
+      pathPostfix = std::get<std::string>(snd);
     } else if (key == "scene" &&
-               std::holds_alternative<flutter::EncodableMap>(it.second)) {
+               std::holds_alternative<flutter::EncodableMap>(snd)) {
       spdlog::warn("Scenes are no longer valid off of a model node.");
     } /*else if (!it.second.IsNull()) {
       spdlog::debug("[Model] Unhandled Parameter");
@@ -140,14 +139,14 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   }
 
   if (is_glb) {
-    return std::make_unique<plugin_filament_view::GlbModel>(
+    return std::make_unique<GlbModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", nullptr,
         animation ? animation.release() : nullptr, oTransform,
         oCommonRenderable, params);
   }
 
-  return std::make_unique<plugin_filament_view::GltfModel>(
+  return std::make_unique<GltfModel>(
       assetPath.has_value() ? std::move(assetPath.value()) : "",
       url.has_value() ? std::move(url.value()) : "",
       pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",

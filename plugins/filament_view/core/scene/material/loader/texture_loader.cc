@@ -30,38 +30,38 @@ namespace plugin_filament_view {
 TextureLoader::TextureLoader() = default;
 
 ////////////////////////////////////////////////////////////////////////////
-inline ::filament::backend::TextureFormat internalFormat(
+inline filament::backend::TextureFormat internalFormat(
     const TextureDefinitions::TextureType type) {
   switch (type) {
     case TextureDefinitions::TextureType::COLOR:
-      return ::filament::backend::TextureFormat::SRGB8_A8;
+      return filament::backend::TextureFormat::SRGB8_A8;
     case TextureDefinitions::TextureType::NORMAL:
     case TextureDefinitions::TextureType::DATA:
-      return ::filament::backend::TextureFormat::RGBA8;
+      return filament::backend::TextureFormat::RGBA8;
   }
 
   throw std::runtime_error("Invalid texture type");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::Texture* TextureLoader::createTextureFromImage(
+filament::Texture* TextureLoader::createTextureFromImage(
     const std::string& file_path,
     const TextureDefinitions::TextureType type) {
   int w, h, n;
-  unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
+  const unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  ::filament::Texture* texture =
-      ::filament::Texture::Builder()
-          .width(uint32_t(w))
-          .height(uint32_t(h))
+  filament::Texture* texture =
+      filament::Texture::Builder()
+          .width(static_cast<uint32_t>(w))
+          .height(static_cast<uint32_t>(h))
           .levels(1)  // TODO should be param, backlogged
           .format(internalFormat(type))
-          .sampler(::filament::Texture::Sampler::SAMPLER_2D)
+          .sampler(filament::Texture::Sampler::SAMPLER_2D)
           .build(*engine);
 
   if (!texture) {
@@ -69,11 +69,12 @@ inline ::filament::backend::TextureFormat internalFormat(
     return nullptr;
   }
 
-  ::filament::Texture::PixelBufferDescriptor pbd(
-      data, size_t(w * h * 4),
-      ::filament::Texture::PixelBufferDescriptor::PixelDataFormat::RGBA,
-      ::filament::Texture::PixelBufferDescriptor::PixelDataType::UBYTE,
-      (::filament::Texture::PixelBufferDescriptor::Callback)&stbi_image_free);
+  filament::Texture::PixelBufferDescriptor pbd(
+      data, static_cast<size_t>(w * h * 4),
+      filament::Texture::PixelBufferDescriptor::PixelDataFormat::RGBA,
+      filament::Texture::PixelBufferDescriptor::PixelDataType::UBYTE,
+      reinterpret_cast<filament::Texture::PixelBufferDescriptor::Callback>(
+          &stbi_image_free));
 
   texture->setImage(*engine, 0, std::move(pbd));
   texture->generateMipmaps(*engine);
@@ -82,11 +83,11 @@ inline ::filament::backend::TextureFormat internalFormat(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Resource<::filament::Texture*> TextureLoader::loadTexture(
-    TextureDefinitions* texture) {
+Resource<filament::Texture*> TextureLoader::loadTexture(
+    const TextureDefinitions* texture) {
   if (!texture) {
     spdlog::error("Texture not found");
-    return Resource<::filament::Texture*>::Error(
+    return Resource<filament::Texture*>::Error(
         "Invalid filament_view texture passed into into loadTexture.");
   }
 
@@ -94,22 +95,22 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
     const auto assetPath =
         ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-    auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
+    const auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
-      return Resource<::filament::Texture*>::Error(
+      return Resource<filament::Texture*>::Error(
           "Could not load texture from asset.");
     }
-    auto loadedTexture = loadTextureFromStream(file_path, texture->type_);
+    const auto loadedTexture = loadTextureFromStream(file_path, texture->type_);
     if (!loadedTexture) {
-      return Resource<::filament::Texture*>::Error(
+      return Resource<filament::Texture*>::Error(
           "Could not load texture from asset on disk.");
     }
-    return Resource<::filament::Texture*>::Success(loadedTexture);
+    return Resource<filament::Texture*>::Success(loadedTexture);
   }
 
   if (!texture->url_.empty()) {
-    return Resource<::filament::Texture*>::Error("URL Not implemented.");
+    return Resource<filament::Texture*>::Error("URL Not implemented.");
     /*auto loadedTexture = loadTextureFromUrl(texture->url_, texture->type_);
     if(!loadedTexture) {
       return Resource<::filament::Texture*>::Error(
@@ -119,19 +120,19 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
   }
 
   spdlog::error("You must provide texture images asset path or url");
-  return Resource<::filament::Texture*>::Error(
+  return Resource<filament::Texture*>::Error(
       "You must provide texture images asset path or url.");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::Texture* TextureLoader::loadTextureFromStream(
+filament::Texture* TextureLoader::loadTextureFromStream(
     const std::string& file_path,
     const TextureDefinitions::TextureType type) {
   return createTextureFromImage(file_path, type);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::Texture* TextureLoader::loadTextureFromUrl(
+filament::Texture* TextureLoader::loadTextureFromUrl(
     const std::string& url,
     const TextureDefinitions::TextureType type) {
   plugin_common_curl::CurlClient client;
@@ -141,7 +142,7 @@ Resource<::filament::Texture*> TextureLoader::loadTexture(
     spdlog::error("Failed to load texture from {}", url);
     return nullptr;
   }
-  std::string str(buffer.begin(), buffer.end());
+  const std::string str(buffer.begin(), buffer.end());
   return loadTextureFromStream(str, type);
 }
 

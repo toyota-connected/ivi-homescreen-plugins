@@ -41,7 +41,7 @@ class ShapeSystem : public ECSystem {
   ShapeSystem& operator=(const ShapeSystem&) = delete;
 
   // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(bool bValue);
+  void vToggleAllShapesInScene(bool bValue) const;
 
   void vRemoveAllShapesInScene();
 
