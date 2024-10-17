@@ -189,13 +189,13 @@ void ModelStateChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.model_state_channel_" << id;
     const auto channel =
-        std::make_unique<flutter::MethodChannel<EncodableValue>>(
+        std::make_unique<flutter::MethodChannel<>>(
             binary_messenger, ss.str().c_str(),
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const MethodCall<EncodableValue>& methodCall,
-             std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<>& methodCall,
+             std::unique_ptr<MethodResult<>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {
@@ -216,13 +216,13 @@ void SceneStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.scene_state_" << id;
     const auto channel =
-        std::make_unique<flutter::MethodChannel<EncodableValue>>(
+        std::make_unique<flutter::MethodChannel<>>(
             binary_messenger, ss.str().c_str(),
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const MethodCall<EncodableValue>& methodCall,
-             std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<>& methodCall,
+             std::unique_ptr<MethodResult<>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {
@@ -243,13 +243,13 @@ void ShapeStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.shape_state_" << id;
     const auto channel =
-        std::make_unique<flutter::MethodChannel<EncodableValue>>(
+        std::make_unique<flutter::MethodChannel<>>(
             binary_messenger, ss.str().c_str(),
             &flutter::StandardMethodCodec::GetInstance());
     if (api != nullptr) {
       channel->SetMethodCallHandler(
-          [](const MethodCall<EncodableValue>& methodCall,
-             std::unique_ptr<MethodResult<EncodableValue>> result) {
+          [](const MethodCall<>& methodCall,
+             std::unique_ptr<MethodResult<>> result) {
             if (methodCall.method_name() == "listen") {
               result->Success();
             } else {

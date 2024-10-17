@@ -196,7 +196,7 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
 void EntityTransforms::vApplyScale(const std::shared_ptr<Entity>& poEntity,
                                    const filament::math::float3& scale,
                                    filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -219,7 +219,7 @@ void EntityTransforms::vApplyScale(const std::shared_ptr<Entity>& poEntity,
 void EntityTransforms::vApplyRotation(const std::shared_ptr<Entity>& poEntity,
                                       const filament::math::quatf& rotation,
                                       filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -243,7 +243,7 @@ void EntityTransforms::vApplyTranslate(
     const std::shared_ptr<Entity>& poEntity,
     const filament::math::float3& translation,
     filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -267,7 +267,7 @@ void EntityTransforms::vApplyTranslate(
 void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
                                        const filament::math::mat4f& transform,
                                        filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -284,7 +284,7 @@ void EntityTransforms::vApplyTransform(
     const filament::math::float3& scale,
     const filament::math::float3& translation,
     filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -306,7 +306,7 @@ void EntityTransforms::vApplyTransform(
 void EntityTransforms::vApplyShear(const std::shared_ptr<Entity>& poEntity,
                                    const filament::math::float3& shear,
                                    filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -328,7 +328,7 @@ void EntityTransforms::vApplyShear(const std::shared_ptr<Entity>& poEntity,
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vResetTransform(const std::shared_ptr<Entity>& poEntity,
                                        filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();
@@ -343,7 +343,7 @@ void EntityTransforms::vResetTransform(const std::shared_ptr<Entity>& poEntity,
 filament::math::mat4f EntityTransforms::oGetCurrentTransform(
     const std::shared_ptr<Entity>& poEntity,
     filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return identity4x4();
 
   const auto& transformManager = engine->getTransformManager();
@@ -358,7 +358,7 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
                                     filament::math::float3& target,
                                     filament::math::float3& up,
                                     filament::Engine* engine) {
-  if (!(*poEntity))
+  if (!*poEntity)
     return;
 
   auto& transformManager = engine->getTransformManager();

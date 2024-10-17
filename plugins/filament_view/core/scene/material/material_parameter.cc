@@ -148,23 +148,23 @@ MaterialParameter::MaterialType MaterialParameter::getTypeForText(
   // TODO Change to map for faster lookup
   if (type == kColor) {
     return MaterialType::COLOR;
-  } else if (type == kBool) {
+  } if (type == kBool) {
     return MaterialType::BOOL;
-  } else if (type == kBoolVector) {
+  } if (type == kBoolVector) {
     return MaterialType::BOOL_VECTOR;
-  } else if (type == kFloat) {
+  } if (type == kFloat) {
     return MaterialType::FLOAT;
-  } else if (type == kFloatVector) {
+  } if (type == kFloatVector) {
     return MaterialType::FLOAT_VECTOR;
-  } else if (type == kInt) {
+  } if (type == kInt) {
     return MaterialType::INT;
-  } else if (type == kIntVector) {
+  } if (type == kIntVector) {
     return MaterialType::INT_VECTOR;
-  } else if (type == kMat3) {
+  } if (type == kMat3) {
     return MaterialType::MAT3;
-  } else if (type == kMat4) {
+  } if (type == kMat4) {
     return MaterialType::MAT4;
-  } else if (type == kTexture) {
+  } if (type == kTexture) {
     return MaterialType::TEXTURE;
   }
   return MaterialType::INT;

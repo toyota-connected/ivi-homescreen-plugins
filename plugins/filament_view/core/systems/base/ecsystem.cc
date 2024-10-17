@@ -31,7 +31,7 @@ namespace plugin_filament_view {
 // Send a message to the system
 void ECSystem::vSendMessage(const ECSMessage& msg) {
   SPDLOG_TRACE("[vSendMessage] Attempting to acquire messagesMutex");
-  std::unique_lock<std::mutex> lock(messagesMutex);
+  std::unique_lock lock(messagesMutex);
   SPDLOG_TRACE("[vSendMessage] messagesMutex acquired");
   messageQueue_.push(msg);
   SPDLOG_TRACE("[vSendMessage] Message pushed to queue. Queue size: {}",
@@ -43,7 +43,7 @@ void ECSystem::vSendMessage(const ECSMessage& msg) {
 void ECSystem::vRegisterMessageHandler(ECSMessageType type,
                                        const ECSMessageHandler& handler) {
   SPDLOG_TRACE("[vRegisterMessageHandler] Attempting to acquire handlersMutex");
-  std::unique_lock<std::mutex> lock(handlersMutex);
+  std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vRegisterMessageHandler] handlersMutex acquired");
   handlers_[type].push_back(handler);
   SPDLOG_TRACE(
@@ -56,7 +56,7 @@ void ECSystem::vRegisterMessageHandler(ECSMessageType type,
 void ECSystem::vUnregisterMessageHandler(ECSMessageType type) {
   SPDLOG_TRACE(
       "[vUnregisterMessageHandler] Attempting to acquire handlersMutex");
-  std::unique_lock<std::mutex> lock(handlersMutex);
+  std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vUnregisterMessageHandler] handlersMutex acquired");
   handlers_.erase(type);
   SPDLOG_TRACE(
@@ -68,7 +68,7 @@ void ECSystem::vUnregisterMessageHandler(ECSMessageType type) {
 // Clear all message handlers
 void ECSystem::vClearMessageHandlers() {
   SPDLOG_TRACE("[vClearMessageHandlers] Attempting to acquire handlersMutex");
-  std::unique_lock<std::mutex> lock(handlersMutex);
+  std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vClearMessageHandlers] handlersMutex acquired");
   handlers_.clear();
   SPDLOG_TRACE("[vClearMessageHandlers] All handlers cleared");
@@ -81,7 +81,7 @@ void ECSystem::vProcessMessages() {
   std::queue<ECSMessage> messagesToProcess;
 
   {
-    std::unique_lock<std::mutex> lock(messagesMutex);
+    std::unique_lock lock(messagesMutex);
     SPDLOG_TRACE("[vProcessMessages] messagesMutex acquired");
     std::swap(messageQueue_, messagesToProcess);
     SPDLOG_TRACE(
@@ -107,7 +107,7 @@ void ECSystem::vHandleMessage(const ECSMessage& msg) {
   SPDLOG_TRACE("[vHandleMessage] Attempting to acquire handlersMutex");
   std::vector<ECSMessageHandler> handlersToInvoke;
   {
-    std::unique_lock<std::mutex> lock(handlersMutex);
+    std::unique_lock lock(handlersMutex);
     SPDLOG_TRACE("[vHandleMessage] handlersMutex acquired");
     for (const auto& [type, handlerList] : handlers_) {
       if (msg.hasData(type)) {
