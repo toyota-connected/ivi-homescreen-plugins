@@ -44,6 +44,9 @@ void LightSystem::setDefaultLight() {
 std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
+  // Use the copy assignment operator to copy the contents
+  *defaultlight_ = *light;
+
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
