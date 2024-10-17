@@ -127,7 +127,7 @@ void DebugLinesSystem::vCleanup() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vUpdate(float fElapsedTime) {
+void DebugLinesSystem::vUpdate(const float fElapsedTime) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vUpdate");

@@ -118,7 +118,7 @@ IndirectLightSystem::setIndirectLightFromKtxUrl(std::string url,
 ////////////////////////////////////////////////////////////////////////////////////
 Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
-    double intensity) {
+    const double intensity) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadIndirectLightHdrFromFile");

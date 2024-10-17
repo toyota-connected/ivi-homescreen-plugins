@@ -44,7 +44,7 @@ namespace plugin_filament_view {
 
 void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                             FilamentViewApi* api,
-                            int32_t id) {
+                            const int32_t id) {
   {
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.channel_" << id;
@@ -183,8 +183,8 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 void ModelStateChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                                 FilamentViewApi* api,
-                                 int32_t id) {
+                                 const FilamentViewApi* api,
+                                 const int32_t id) {
   {
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.model_state_channel_" << id;
@@ -208,8 +208,8 @@ void ModelStateChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 void SceneStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                          FilamentViewApi* api,
-                          int32_t id) {
+                          const FilamentViewApi* api,
+                          const int32_t id) {
   {
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.scene_state_" << id;
@@ -233,8 +233,8 @@ void SceneStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 void ShapeStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                          FilamentViewApi* api,
-                          int32_t id) {
+                          const FilamentViewApi* api,
+                          const int32_t id) {
   {
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.shape_state_" << id;
@@ -258,8 +258,8 @@ void ShapeStateApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 void RendererChannelApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                               FilamentViewApi* api,
-                               int32_t id) {
+                               const FilamentViewApi* api,
+                               const int32_t id) {
   {
     std::stringstream ss;
     ss << "io.sourcya.playx.3d.scene.renderer_channel_" << id;

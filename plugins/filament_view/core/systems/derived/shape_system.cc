@@ -32,7 +32,7 @@ using shapes::BaseShape;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
+void ShapeSystem::vToggleAllShapesInScene(const bool bValue) const {
   if (bValue) {
     for (const auto& shape : shapes_) {
       shape->vAddEntityToScene();

@@ -21,7 +21,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-LensProjection::LensProjection(float cameraFocalLength, float aspect)
+LensProjection::LensProjection(const float cameraFocalLength, float aspect)
     : focalLength_(cameraFocalLength),
       aspect_(aspect),
       near_(0.0f),

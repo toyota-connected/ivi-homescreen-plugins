@@ -49,7 +49,8 @@ void ModelSystem::destroyAllAssetsOnModels() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::destroyAsset(filament::gltfio::FilamentAsset* asset) {
+void ModelSystem::destroyAsset(
+    const filament::gltfio::FilamentAsset* asset) const {
   if (!asset) {
     return;
   }
@@ -189,7 +190,7 @@ void ModelSystem::loadModelGltf(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::populateSceneWithAsyncLoadedAssets(Model* model) {
+void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);

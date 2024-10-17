@@ -167,7 +167,7 @@ filament::LightManager::Type Light::textToLightType(const std::string& type) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* Light::lightTypeToText(filament::LightManager::Type type) {
+const char* Light::lightTypeToText(const filament::LightManager::Type type) {
   switch (type) {
     case filament::LightManager::Type::SUN:
       return "SUN";

@@ -23,7 +23,7 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 IndirectLight::IndirectLight(std::string assetPath,
                              std::string url,
-                             float intensity)
+                             const float intensity)
     : assetPath_(std::move(assetPath)),
       url_(std::move(url)),
       intensity_(intensity) {}

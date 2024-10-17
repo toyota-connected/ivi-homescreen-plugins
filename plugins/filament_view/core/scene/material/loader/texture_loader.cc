@@ -84,7 +84,7 @@ filament::Texture* TextureLoader::createTextureFromImage(
 
 ////////////////////////////////////////////////////////////////////////////
 Resource<filament::Texture*> TextureLoader::loadTexture(
-    TextureDefinitions* texture) {
+    const TextureDefinitions* texture) {
   if (!texture) {
     spdlog::error("Texture not found");
     return Resource<filament::Texture*>::Error(

@@ -257,7 +257,7 @@ class ModelStateChannelApi {
   // Sets up an instance of `ModelStateChannelApi` to handle messages
   // through the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api,
+                    const FilamentViewApi* api,
                     int32_t id);
 
   static flutter::EncodableValue WrapError(std::string_view error_message);
@@ -284,7 +284,7 @@ class SceneStateApi {
   // Sets up an instance of `SceneStateApi` to handle messages
   // through the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api,
+                    const FilamentViewApi* api,
                     int32_t id);
 
   static flutter::EncodableValue WrapError(std::string_view error_message);
@@ -311,7 +311,7 @@ class ShapeStateApi {
   // Sets up an instance of `ShapeStateApi` to handle messages
   // through the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api,
+                    const FilamentViewApi* api,
                     int32_t id);
 
   static flutter::EncodableValue WrapError(std::string_view error_message);
@@ -338,7 +338,7 @@ class RendererChannelApi {
   // Sets up an instance of `RendererChannelApi` to handle messages
   // through the `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api,
+                    const FilamentViewApi* api,
                     int32_t id);
 
   static flutter::EncodableValue WrapError(std::string_view error_message);

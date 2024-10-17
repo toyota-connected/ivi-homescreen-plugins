@@ -47,7 +47,7 @@ class TouchPair {
   };
 
   float separation() { return distance(pt0_, pt1_); };
-  filament::math::float2 midpoint() { return mix(pt0_, pt1_, 0.5f); };
+  filament::math::float2 midpoint() const { return mix(pt0_, pt1_, 0.5f); };
   int x() { return static_cast<int>(midpoint().x); }
   int y() { return static_cast<int>(midpoint().y); }
 

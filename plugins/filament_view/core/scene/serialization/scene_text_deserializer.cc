@@ -186,7 +186,7 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void SceneTextDeserializer::setUpLoadingModels() {
+void SceneTextDeserializer::setUpLoadingModels() const {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   // animationManager_ = std::make_unique<AnimationManager>();
 

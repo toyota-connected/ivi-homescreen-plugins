@@ -35,6 +35,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
+/// TODO Need to look into destruction between here and scene deserializer
 void SkyboxSystem::destroySkybox() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -280,9 +281,9 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
 ////////////////////////////////////////////////////////////////////////////////////
 Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
     const std::string& assetPath,
-    bool showSun,
-    bool shouldUpdateLight,
-    float intensity) {
+    const bool showSun,
+    const bool shouldUpdateLight,
+    const float intensity) {
   filament::Texture* texture;
 
   const auto filamentSystem =
@@ -338,9 +339,9 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
 ////////////////////////////////////////////////////////////////////////////////////
 Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
     const std::vector<uint8_t>& buffer,
-    bool showSun,
-    bool shouldUpdateLight,
-    float intensity) {
+    const bool showSun,
+    const bool shouldUpdateLight,
+    const float intensity) {
   filament::Texture* texture;
 
   const auto filamentSystem =

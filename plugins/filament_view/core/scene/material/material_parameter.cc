@@ -29,13 +29,13 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialParameter(std::string name,
-                                     MaterialType type,
+                                     const MaterialType type,
                                      MaterialTextureValue value)
     : name_(std::move(name)), type_(type), textureValue_(std::move(value)) {}
 
 ////////////////////////////////////////////////////////////////////////////
 MaterialParameter::MaterialParameter(std::string name,
-                                     MaterialType type,
+                                     const MaterialType type,
                                      MaterialFloatValue value)
     : name_(std::move(name)), type_(type), fValue_(value) {}
 

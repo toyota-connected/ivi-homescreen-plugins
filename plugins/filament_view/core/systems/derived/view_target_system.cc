@@ -91,7 +91,7 @@ void ViewTargetSystem::vShutdownSystem() {
 void ViewTargetSystem::DebugPrint() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-filament::View* ViewTargetSystem::getFilamentView(size_t nWhich) const {
+filament::View* ViewTargetSystem::getFilamentView(const size_t nWhich) const {
   if (nWhich >= m_lstViewTargets.size())
     return nullptr;
 
@@ -100,21 +100,21 @@ filament::View* ViewTargetSystem::getFilamentView(size_t nWhich) const {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(
-    size_t nWhich,
-    uint32_t width,
-    uint32_t height) {
+    const size_t nWhich,
+    const uint32_t width,
+    const uint32_t height) const {
   m_lstViewTargets[nWhich]->InitializeFilamentInternals(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vKickOffFrameRenderingLoops() {
+void ViewTargetSystem::vKickOffFrameRenderingLoops() const {
   for (const auto& viewTarget : m_lstViewTargets) {
     viewTarget->setInitialized();
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetCameraFromSerializedData() {
+void ViewTargetSystem::vSetCameraFromSerializedData() const {
   for (const auto& viewTarget : m_lstViewTargets) {
     // we might get request to add new view targets as they come online
     // make sure we're not resetting older ones.
@@ -139,53 +139,55 @@ size_t ViewTargetSystem::nSetupViewTargetFromDesktopState(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vSetupMessageChannels(
-    flutter::PluginRegistrar* plugin_registrar) {
+    flutter::PluginRegistrar* plugin_registrar) const {
   for (const auto& viewTarget : m_lstViewTargets) {
     viewTarget->setupMessageChannels(plugin_registrar);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vResizeViewTarget(size_t nWhich,
-                                         double width,
-                                         double height) {
+void ViewTargetSystem::vResizeViewTarget(const size_t nWhich,
+                                         const double width,
+                                         const double height) const {
   m_lstViewTargets[nWhich]->resize(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetViewTargetOffSet(size_t nWhich,
-                                            double left,
-                                            double top) {
+void ViewTargetSystem::vSetViewTargetOffSet(const size_t nWhich,
+                                            const double left,
+                                            const double top) const {
   m_lstViewTargets[nWhich]->setOffset(left, top);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vOnTouch(size_t nWhich,
-                                int32_t action,
-                                int32_t point_count,
-                                size_t point_data_size,
-                                const double* point_data) {
+void ViewTargetSystem::vOnTouch(const size_t nWhich,
+                                const int32_t action,
+                                const int32_t point_count,
+                                const size_t point_data_size,
+                                const double* point_data) const {
   m_lstViewTargets[nWhich]->vOnTouch(action, point_count, point_data_size,
                                      point_data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vChangePrimaryCameraMode(size_t nWhich,
-                                                const std::string& szValue) {
+void ViewTargetSystem::vChangePrimaryCameraMode(
+    const size_t nWhich,
+    const std::string& szValue) const {
   m_lstViewTargets[nWhich]->getCameraManager()->ChangePrimaryCameraMode(
       szValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vResetInertiaCameraToDefaultValues(size_t nWhich) {
+void ViewTargetSystem::vResetInertiaCameraToDefaultValues(
+    const size_t nWhich) const {
   m_lstViewTargets[nWhich]
       ->getCameraManager()
       ->vResetInertiaCameraToDefaultValues();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetCurrentCameraOrbitAngle(size_t nWhich,
-                                                   float fValue) {
+void ViewTargetSystem::vSetCurrentCameraOrbitAngle(const size_t nWhich,
+                                                   const float fValue) const {
   const auto camera =
       m_lstViewTargets[nWhich]->getCameraManager()->poGetPrimaryCamera();
   camera->vSetCurrentCameraOrbitAngle(fValue);

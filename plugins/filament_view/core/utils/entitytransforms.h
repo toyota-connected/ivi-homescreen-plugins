@@ -66,8 +66,8 @@ class EntityTransforms {
   static filament::math::mat4f oGetCurrentTransform(
       const std::shared_ptr<utils::Entity>& poEntity);
   static void vApplyLookAt(const std::shared_ptr<utils::Entity>& poEntity,
-                           filament::math::float3& target,
-                           filament::math::float3& up);
+                           const filament::math::float3& target,
+                           const filament::math::float3& up);
 
   // Static functions that take an engine as a parameter
   static void vApplyScale(const std::shared_ptr<utils::Entity>& poEntity,
@@ -97,12 +97,12 @@ class EntityTransforms {
       const std::shared_ptr<utils::Entity>& poEntity,
       ::filament::Engine* engine);
   static void vApplyLookAt(const std::shared_ptr<utils::Entity>& poEntity,
-                           filament::math::float3& target,
-                           filament::math::float3& up,
+                           const filament::math::float3& target,
+                           const filament::math::float3& up,
                            ::filament::Engine* engine);
-  static void vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+  static void vApplyTransform(const filament::gltfio::FilamentAsset* poAsset,
                               const BaseTransform& transform);
-  static void vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
+  static void vApplyTransform(const filament::gltfio::FilamentAsset* poAsset,
                               const BaseTransform& transform,
                               ::filament::Engine* engine);
 };

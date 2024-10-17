@@ -182,8 +182,8 @@ filament::math::mat4f EntityTransforms::oGetCurrentTransform(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
-                                    filament::math::float3& target,
-                                    filament::math::float3& up) {
+                                    const filament::math::float3& target,
+                                    const filament::math::float3& up) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "EntityTransforms");
@@ -357,8 +357,8 @@ filament::math::mat4f EntityTransforms::oGetCurrentTransform(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
-                                    filament::math::float3& target,
-                                    filament::math::float3& up,
+                                    const filament::math::float3& target,
+                                    const filament::math::float3& up,
                                     filament::Engine* engine) {
   if (!*poEntity)
     return;
@@ -378,9 +378,10 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
-                                       const BaseTransform& transform,
-                                       filament::Engine* engine) {
+void EntityTransforms::vApplyTransform(
+    const filament::gltfio::FilamentAsset* poAsset,
+    const BaseTransform& transform,
+    filament::Engine* engine) {
   auto& transformManager = engine->getTransformManager();
   const auto ei = transformManager.getInstance(poAsset->getRoot());
 
@@ -400,8 +401,9 @@ void EntityTransforms::vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(filament::gltfio::FilamentAsset* poAsset,
-                                       const BaseTransform& transform) {
+void EntityTransforms::vApplyTransform(
+    const filament::gltfio::FilamentAsset* poAsset,
+    const BaseTransform& transform) {
   if (!poAsset)
     return;
 

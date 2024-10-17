@@ -45,12 +45,12 @@ class CameraManager {
 
   void setDefaultCamera();
 
-  void lookAtDefaultPosition();
+  void lookAtDefaultPosition() const;
   void setCameraLookat(filament::math::float3 eye,
                        filament::math::float3 center,
-                       filament::math::float3 up);
+                       filament::math::float3 up) const;
 
-  void destroyCamera();
+  void destroyCamera() const;
 
   // Camera control
   void onAction(int32_t action,
@@ -58,9 +58,9 @@ class CameraManager {
                 size_t point_data_size,
                 const double* point_data);
 
-  float calculateAspectRatio();
+  [[nodiscard]] float calculateAspectRatio() const;
 
-  void updateCameraManipulator(Camera* cameraInfo);
+  void updateCameraManipulator(const Camera* cameraInfo);
 
   // for cameras flagged for auto-orbit, will auto orbit
   // with their properties. Auto-screenshot, render-to-texture
@@ -69,22 +69,22 @@ class CameraManager {
 
   void updateCameraOnResize(uint32_t width, uint32_t height);
 
-  void updateCamera(Camera* cameraInfo);
+  void updateCamera(const Camera* cameraInfo);
 
-  std::string updateExposure(Exposure* exposure);
+  std::string updateExposure(Exposure* exposure) const;
 
-  std::string updateProjection(Projection* projection);
+  bool updateProjection(const Projection* projection) const;
 
-  std::string updateLensProjection(LensProjection* lensProjection);
+  std::string updateLensProjection(const LensProjection* lensProjection);
 
   void updateCameraProjection();
 
-  std::string updateCameraShift(std::vector<double>* shift);
+  std::string updateCameraShift(std::vector<double>* shift) const;
 
-  std::string updateCameraScaling(std::vector<double>* scaling);
+  std::string updateCameraScaling(std::vector<double>* scaling) const;
 
   void setPrimaryCamera(std::unique_ptr<Camera> camera);
-  void ChangePrimaryCameraMode(const std::string& szValue);
+  void ChangePrimaryCameraMode(const std::string& szValue) const;
   // Passes weak ptr, dont keep a copy of this.
   Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
@@ -180,8 +180,8 @@ class CameraManager {
   ViewTarget* m_poOwner;
 
   void endGesture();
-  bool isOrbitGesture();
-  bool isPanGesture();
+  bool isOrbitGesture() const;
+  bool isPanGesture() const;
   bool isZoomGesture();
 };
 }  // namespace plugin_filament_view

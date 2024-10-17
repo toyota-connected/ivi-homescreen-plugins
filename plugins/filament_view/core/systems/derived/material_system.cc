@@ -40,7 +40,7 @@ MaterialSystem::~MaterialSystem() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
-    MaterialDefinitions* materialDefinition) {
+    const MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
   if (!materialDefinition->szGetMaterialAssetPath().empty()) {
     // THIS does NOT set default a parameter values
@@ -59,8 +59,8 @@ Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
-    filament::Material* materialResult,
-    const MaterialDefinitions* materialDefinitions) {
+    const filament::Material* materialResult,
+    const MaterialDefinitions* materialDefinitions) const {
   if (!materialResult) {
     SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
     return Resource<filament::MaterialInstance*>::Error("argument is NULL");
@@ -75,7 +75,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
-    MaterialDefinitions* materialDefinitions) {
+    const MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
     SPDLOG_ERROR(

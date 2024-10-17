@@ -273,9 +273,9 @@ void CollisionSystem::setupMessageChannels(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::SendCollisionInformationCallback(
-    std::list<HitResult>& lstHitResults,
+    const std::list<HitResult>& lstHitResults,
     std::string sourceQuery,
-    CollisionEventType eType) const {
+    const CollisionEventType eType) const {
   if (collisionInfoCallback_ == nullptr) {
     return;
   }
@@ -316,7 +316,7 @@ void CollisionSystem::vInitSystem() {
         const auto type = msg.getData<CollisionEventType>(
             ECSMessageType::CollisionRequestType);
 
-        auto hitList = lstCheckForCollidable(rayInfo, 0);
+        const auto hitList = lstCheckForCollidable(rayInfo, 0);
 
         SendCollisionInformationCallback(hitList, requestor, type);
       });

@@ -73,9 +73,10 @@ class CollisionSystem : public ECSystem {
                                              int64_t collisionLayer = 0) const;
 
   // this will send the hit information sent in to non-native (Dart) code.
-  void SendCollisionInformationCallback(std::list<HitResult>& lstHitResults,
-                                        std::string sourceQuery,
-                                        CollisionEventType eType) const;
+  void SendCollisionInformationCallback(
+      const std::list<HitResult>& lstHitResults,
+      std::string sourceQuery,
+      CollisionEventType eType) const;
 
   // Checks to see if we already has this guid in our mapping.
   [[nodiscard]] bool bHasEntityObjectRepresentation(

@@ -75,7 +75,7 @@ void CameraManager::setDefaultCamera() {
 ////////////////////////////////////////////////////////////////////////////
 void CameraManager::setCameraLookat(filament::math::float3 eye,
                                     filament::math::float3 center,
-                                    filament::math::float3 up) {
+                                    filament::math::float3 up) const {
   if (camera_ == nullptr) {
     SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {} {}",
                  __FILE__, __FUNCTION__, __LINE__);
@@ -86,7 +86,7 @@ void CameraManager::setCameraLookat(filament::math::float3 eye,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::string CameraManager::updateExposure(Exposure* exposure) {
+std::string CameraManager::updateExposure(Exposure* exposure) const {
   if (!exposure) {
     return "Exposure not found";
   }
@@ -109,9 +109,10 @@ std::string CameraManager::updateExposure(Exposure* exposure) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::string CameraManager::updateProjection(Projection* projection) {
+bool CameraManager::updateProjection(const Projection* projection) const {
   if (!projection) {
-    return "Projection not found";
+    SPDLOG_DEBUG("Projection not found");
+    return false;
   }
   const auto p = projection;
   if (p->projection_.has_value() && p->left_.has_value() &&
@@ -128,7 +129,7 @@ std::string CameraManager::updateProjection(Projection* projection) {
         "far: {}",
         left, right, bottom, top, near, far);
     camera_->setProjection(project, left, right, bottom, top, near, far);
-    return "Projection updated successfully";
+    return true;
   }
 
   if (p->fovInDegrees_.has_value() && p->fovDirection_.has_value()) {
@@ -145,14 +146,14 @@ std::string CameraManager::updateProjection(Projection* projection) {
         Projection::getTextForFov(fovDirection));
 
     camera_->setProjection(fovInDegrees, aspect, near, far, fovDirection);
-    return "Projection updated successfully";
+    return true;
   }
 
-  return "Projection info must be provided";
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::string CameraManager::updateCameraShift(std::vector<double>* shift) {
+std::string CameraManager::updateCameraShift(std::vector<double>* shift) const {
   if (!shift) {
     return "Camera shift not found";
   }
@@ -166,7 +167,8 @@ std::string CameraManager::updateCameraShift(std::vector<double>* shift) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::string CameraManager::updateCameraScaling(std::vector<double>* scaling) {
+std::string CameraManager::updateCameraScaling(
+    std::vector<double>* scaling) const {
   if (!scaling) {
     return "Camera scaling must be provided";
   }
@@ -180,7 +182,7 @@ std::string CameraManager::updateCameraScaling(std::vector<double>* scaling) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
+void CameraManager::updateCameraManipulator(const Camera* cameraInfo) {
   if (!cameraInfo) {
     return;
   }
@@ -268,7 +270,7 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::updateCamera(Camera* cameraInfo) {
+void CameraManager::updateCamera(const Camera* cameraInfo) {
   SPDLOG_DEBUG("++CameraManager::updateCamera");
 
   updateExposure(cameraInfo->exposure_.get());
@@ -310,14 +312,14 @@ void CameraManager::vResetInertiaCameraToDefaultValues() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::lookAtDefaultPosition() {
+void CameraManager::lookAtDefaultPosition() const {
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::ChangePrimaryCameraMode(const std::string& szValue) {
+void CameraManager::ChangePrimaryCameraMode(const std::string& szValue) const {
   if (szValue == Camera::kModeAutoOrbit) {
     primaryCamera_->eCustomCameraMode_ = Camera::AutoOrbit;
   } else if (szValue == Camera::kModeInertiaAndGestures) {
@@ -442,7 +444,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::destroyCamera() {
+void CameraManager::destroyCamera() const {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -463,12 +465,12 @@ void CameraManager::endGesture() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool CameraManager::isOrbitGesture() {
+bool CameraManager::isOrbitGesture() const {
   return tentativeOrbitEvents_.size() > kGestureConfidenceCount;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool CameraManager::isPanGesture() {
+bool CameraManager::isPanGesture() const {
   if (tentativePanEvents_.size() <= kGestureConfidenceCount) {
     return false;
   }
@@ -509,11 +511,11 @@ CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
   // Note at time of writing on a 800*600 resolution this seems like the 10%
   // edges aren't super accurate this might need to be looked at more.
 
-  float ndcX = (2.0f * static_cast<float>(touch.x())) /
-                   static_cast<float>(viewport.width) -
+  float ndcX = (2.0f * static_cast<float>(touch.x())) /  // NOLINT
+                   static_cast<float>(viewport.width) -  // NOLINT
                1.0f;
-  float ndcY = 1.0f - (2.0f * static_cast<float>(touch.y())) /
-                          static_cast<float>(viewport.height);
+  float ndcY = 1.0f - (2.0f * static_cast<float>(touch.y())) /  // NOLINT
+                          static_cast<float>(viewport.height);  // NOLINT
   ndcY = -ndcY;
 
   filament::math::vec4<float> rayClip(ndcX, ndcY, -1.0f, 1.0f);
@@ -535,7 +537,7 @@ CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
 
 ////////////////////////////////////////////////////////////////////////////
 void CameraManager::onAction(int32_t action,
-                             int32_t point_count,
+                             const int32_t point_count,
                              const size_t point_data_size,
                              const double* point_data) {
   // We only care about updating the camera on action if we're set to use those
@@ -675,7 +677,7 @@ void CameraManager::onAction(int32_t action,
 
 ////////////////////////////////////////////////////////////////////////////
 std::string CameraManager::updateLensProjection(
-    LensProjection* lensProjection) {
+    const LensProjection* lensProjection) {
   if (!lensProjection) {
     return "Lens projection not found";
   }
@@ -704,7 +706,7 @@ void CameraManager::updateCameraProjection() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-float CameraManager::calculateAspectRatio() {
+float CameraManager::calculateAspectRatio() const {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(),
@@ -716,7 +718,8 @@ float CameraManager::calculateAspectRatio() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::updateCameraOnResize(uint32_t width, uint32_t height) {
+void CameraManager::updateCameraOnResize(const uint32_t width,
+                                         const uint32_t height) {
   cameraManipulator_->setViewport(static_cast<int>(width),
                                   static_cast<int>(height));
   updateCameraProjection();

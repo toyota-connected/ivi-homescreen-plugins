@@ -26,7 +26,7 @@ static constexpr char kTypeNormal[] = "NORMAL";
 static constexpr char kTypeData[] = "DATA";
 
 ////////////////////////////////////////////////////////////////////////////
-TextureDefinitions::TextureDefinitions(TextureType type,
+TextureDefinitions::TextureDefinitions(const TextureType type,
                                        std::string assetPath,
                                        std::string url,
                                        TextureSampler* sampler)
@@ -126,7 +126,7 @@ TextureDefinitions::TextureType TextureDefinitions::getType(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* TextureDefinitions::getTextForType(TextureType type) {
+const char* TextureDefinitions::getTextForType(const TextureType type) {
   return (const char*[]){
       kTypeColor,
       kTypeNormal,

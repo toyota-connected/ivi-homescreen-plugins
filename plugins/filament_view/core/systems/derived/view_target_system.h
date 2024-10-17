@@ -52,22 +52,23 @@ class ViewTargetSystem : public ECSystem {
                                           FlutterDesktopEngineState* state);
   void vInitializeFilamentInternalsWithViewTargets(size_t nWhich,
                                                    uint32_t width,
-                                                   uint32_t height);
-  void vKickOffFrameRenderingLoops();
-  void vSetCameraFromSerializedData();
-  void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
-  void vResizeViewTarget(size_t nWhich, double width, double height);
-  void vSetViewTargetOffSet(size_t nWhich, double left, double top);
+                                                   uint32_t height) const;
+  void vKickOffFrameRenderingLoops() const;
+  void vSetCameraFromSerializedData() const;
+  void vSetupMessageChannels(flutter::PluginRegistrar* plugin_registrar) const;
+  void vResizeViewTarget(size_t nWhich, double width, double height) const;
+  void vSetViewTargetOffSet(size_t nWhich, double left, double top) const;
 
   void vOnTouch(size_t nWhich,
                 int32_t action,
                 int32_t point_count,
                 size_t point_data_size,
-                const double* point_data);
+                const double* point_data) const;
 
-  void vChangePrimaryCameraMode(size_t nWhich, const std::string& szValue);
-  void vResetInertiaCameraToDefaultValues(size_t nWhich);
-  void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue);
+  void vChangePrimaryCameraMode(size_t nWhich,
+                                const std::string& szValue) const;
+  void vResetInertiaCameraToDefaultValues(size_t nWhich) const;
+  void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue) const;
 
  private:
   std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;

@@ -137,7 +137,7 @@ void ECSystemManager::StopRunLoop() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::ExecuteOnMainThread(float elapsedTime) {
+void ECSystemManager::ExecuteOnMainThread(const float elapsedTime) {
   vUpdate(elapsedTime);
 }
 
@@ -159,7 +159,7 @@ void ECSystemManager::vInitSystems() {
 
 ////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
-    size_t systemTypeID,
+    const size_t systemTypeID,
     const std::string& where) {
   if (const auto callingThread = pthread_self();
       callingThread != filament_api_thread_id_) {
@@ -198,7 +198,7 @@ void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vUpdate(float deltaTime) {
+void ECSystemManager::vUpdate(const float deltaTime) {
   // Copy systems under mutex
   std::vector<std::shared_ptr<ECSystem>> systemsCopy;
   {

@@ -28,7 +28,7 @@ using namespace image;
 using namespace utils;
 
 ////////////////////////////////////////////////////////////////////////////
-Texture* HDRLoader::deleteImageAndLogError(LinearImage* image) {
+Texture* HDRLoader::deleteImageAndLogError(const LinearImage* image) {
   spdlog::error("Unable to create Filament Texture from HDR image.");
   delete image;
   return nullptr;

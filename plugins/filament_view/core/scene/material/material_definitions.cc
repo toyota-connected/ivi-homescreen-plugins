@@ -149,11 +149,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
       }
       SPDLOG_TRACE("Setting material param {}", param.name);
 
-      // Should probably check to make sure the two types match as well
-      // TODO
-      const auto& parameterType = iter->second->type_;
-
-      switch (parameterType) {
+      switch (iter->second->type_) {
         case MaterialParameter::MaterialType::COLOR: {
           materialInstance->setParameter(param.name, filament::RgbaType::LINEAR,
                                          iter->second->colorValue_.value());

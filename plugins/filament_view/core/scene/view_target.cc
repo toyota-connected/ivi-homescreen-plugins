@@ -48,8 +48,8 @@ class FilamentViewPlugin;
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(int32_t top,
-                       int32_t left,
+ViewTarget::ViewTarget(const int32_t top,
+                       const int32_t left,
                        FlutterDesktopEngineState* state)
     : state_(state),
       left_(left),
@@ -159,7 +159,8 @@ void ViewTarget::setupWaylandSubsurface() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
+void ViewTarget::InitializeFilamentInternals(const uint32_t width,
+                                             const uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   native_window_ = {.display = display_,
@@ -240,7 +241,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 }
 
 void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
-    std::unique_ptr<Camera> camera) {
+    std::unique_ptr<Camera> camera) const {
   // Note right now cameraManager creates a default camera on startup; if we're
   // immediately setting it to a different one; that's extra work that shouldn't
   // be done. Backlogged
@@ -251,7 +252,7 @@ void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
-    std::initializer_list<std::pair<const char*, EncodableValue>> args) {
+    std::initializer_list<std::pair<const char*, EncodableValue>> args) const {
   if (frameViewCallback_ == nullptr) {
     return;
   }
@@ -376,20 +377,20 @@ void ViewTarget::OnFrame(void* data,
 }
 
 /////////////////////////////////////////////////////////////////////////
-void ViewTarget::doCameraFeatures(float fDeltaTime) {
+void ViewTarget::doCameraFeatures(const float fDeltaTime) const {
   if (cameraManager_ == nullptr)
     return;
   cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::setOffset(double left, double top) {
+void ViewTarget::setOffset(const double left, const double top) {
   left_ = static_cast<int32_t>(left);
   top_ = static_cast<int32_t>(top);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::resize(double width, double height) {
+void ViewTarget::resize(const double width, const double height) {
   fview_->setViewport({left_, top_, static_cast<uint32_t>(width),
                        static_cast<uint32_t>(height)});
 
@@ -398,10 +399,10 @@ void ViewTarget::resize(double width, double height) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vOnTouch(int32_t action,
-                          int32_t point_count,
-                          size_t point_data_size,
-                          const double* point_data) {
+void ViewTarget::vOnTouch(const int32_t action,
+                          const int32_t point_count,
+                          const size_t point_data_size,
+                          const double* point_data) const {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
