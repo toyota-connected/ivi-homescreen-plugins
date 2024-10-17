@@ -37,9 +37,54 @@ class Light {
 
   static const char* lightTypeToText(::filament::LightManager::Type type);
 
-  // Disallow copy and assign.
-  Light(const Light&) = delete;
-  Light& operator=(const Light&) = delete;
+  // Copy constructor for shallow copy
+  Light(const Light& other)
+      : type_(other.type_),
+        color_(other.color_),
+        colorTemperature_(other.colorTemperature_),
+        intensity_(other.intensity_),
+        position_(other.position_ ? std::make_unique<::filament::math::float3>(
+                                        *other.position_)
+                                  : nullptr),
+        direction_(
+            other.direction_
+                ? std::make_unique<::filament::math::float3>(*other.direction_)
+                : nullptr),
+        castLight_(other.castLight_),
+        castShadows_(other.castShadows_),
+        falloffRadius_(other.falloffRadius_),
+        spotLightConeInner_(other.spotLightConeInner_),
+        spotLightConeOuter_(other.spotLightConeOuter_),
+        sunAngularRadius_(other.sunAngularRadius_),
+        sunHaloSize_(other.sunHaloSize_),
+        sunHaloFalloff_(other.sunHaloFalloff_) {}
+
+  // Copy assignment operator for shallow copy
+  Light& operator=(const Light& other) {
+    if (this != &other) {
+      type_ = other.type_;
+      color_ = other.color_;
+      colorTemperature_ = other.colorTemperature_;
+      intensity_ = other.intensity_;
+      position_ =
+          other.position_
+              ? std::make_unique<::filament::math::float3>(*other.position_)
+              : nullptr;
+      direction_ =
+          other.direction_
+              ? std::make_unique<::filament::math::float3>(*other.direction_)
+              : nullptr;
+      castLight_ = other.castLight_;
+      castShadows_ = other.castShadows_;
+      falloffRadius_ = other.falloffRadius_;
+      spotLightConeInner_ = other.spotLightConeInner_;
+      spotLightConeOuter_ = other.spotLightConeOuter_;
+      sunAngularRadius_ = other.sunAngularRadius_;
+      sunHaloSize_ = other.sunHaloSize_;
+      sunHaloFalloff_ = other.sunHaloFalloff_;
+    }
+    return *this;
+  }
 
   friend class LightSystem;
 

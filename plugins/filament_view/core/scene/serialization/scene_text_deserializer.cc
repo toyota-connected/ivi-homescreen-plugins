@@ -323,7 +323,8 @@ void SceneTextDeserializer::setUpLight() {
   auto lightSystem = ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
       LightSystem::StaticGetTypeID(), __FUNCTION__);
 
-  // TODO make sure this is copied over
+  // Note, currently copied over in the changeLight function, for multi-lights
+  // we'll need to expand this functionality .
   if (!lights_.empty()) {
     lightSystem->changeLight(lights_[0].get());
   } else {
