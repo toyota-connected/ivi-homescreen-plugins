@@ -68,7 +68,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
       builder.rotation(indirectLight->rotation_.value());
     }
 
-    auto filamentSystem =
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "setIndirectLight");
     const auto engine = filamentSystem->getFilamentEngine();
@@ -119,7 +119,7 @@ IndirectLightSystem::setIndirectLightFromKtxUrl(std::string url,
 Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
     double intensity) {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "loadIndirectLightHdrFromFile");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -130,19 +130,19 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
   } catch (...) {
     return Resource<std::string_view>::Error("Could not decode HDR file");
   }
-  auto skyboxTexture =
+  const auto skyboxTexture =
       filamentSystem->getIBLProfiler()->createCubeMapTexture(texture);
   engine->destroy(texture);
 
-  auto reflections =
+  const auto reflections =
       filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
 
-  auto ibl = filament::IndirectLight::Builder()
-                 .reflections(reflections)
-                 .intensity(static_cast<float>(intensity))
-                 .build(*engine);
+  const auto ibl = filament::IndirectLight::Builder()
+                       .reflections(reflections)
+                       .intensity(static_cast<float>(intensity))
+                       .build(*engine);
 
-  auto prevIndirectLight =
+  const auto prevIndirectLight =
       filamentSystem->getFilamentScene()->getIndirectLight();
   if (prevIndirectLight) {
     engine->destroy(prevIndirectLight);
@@ -212,7 +212,7 @@ void IndirectLightSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         spdlog::debug("ChangeSceneIndirectLightProperties");
 
-        auto intensityValue = msg.getData<float>(
+        const auto intensityValue = msg.getData<float>(
             ECSMessageType::ChangeSceneIndirectLightPropertiesIntensity);
         indirect_light_->setIntensity(intensityValue);
         setIndirectLight(indirect_light_.get());
@@ -226,12 +226,12 @@ void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vShutdownSystem() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "setIndirectLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  auto prevIndirectLight =
+  const auto prevIndirectLight =
       filamentSystem->getFilamentScene()->getIndirectLight();
   if (prevIndirectLight) {
     engine->destroy(prevIndirectLight);

@@ -444,7 +444,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 ////////////////////////////////////////////////////////////////////////////
 void CameraManager::destroyCamera() {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "destroyCamera");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -472,8 +472,8 @@ bool CameraManager::isPanGesture() {
   if (tentativePanEvents_.size() <= kGestureConfidenceCount) {
     return false;
   }
-  auto oldest = tentativePanEvents_.front().midpoint();
-  auto newest = tentativePanEvents_.back().midpoint();
+  const auto oldest = tentativePanEvents_.front().midpoint();
+  const auto newest = tentativePanEvents_.back().midpoint();
   return distance(oldest, newest) > kPanConfidenceDistance;
 }
 
@@ -482,8 +482,8 @@ bool CameraManager::isZoomGesture() {
   if (tentativeZoomEvents_.size() <= kGestureConfidenceCount) {
     return false;
   }
-  auto oldest = tentativeZoomEvents_.front().separation();
-  auto newest = tentativeZoomEvents_.back().separation();
+  const auto oldest = tentativeZoomEvents_.front().separation();
+  const auto newest = tentativeZoomEvents_.back().separation();
   return std::abs(newest - oldest) > kZoomConfidenceDistance;
 }
 
@@ -584,8 +584,8 @@ void CameraManager::onAction(int32_t action,
       // UPDATE EXISTING GESTURE
 
       if (currentGesture_ == Gesture::ZOOM) {
-        auto d0 = previousTouch_.separation();
-        auto d1 = touch.separation();
+        const auto d0 = previousTouch_.separation();
+        const auto d1 = touch.separation();
         cameraManipulator_->scroll(touch.x(), touch.y(),
                                    (d0 - d1) * kZoomSpeed);
 
@@ -613,10 +613,11 @@ void CameraManager::onAction(int32_t action,
       }
 
       // Calculate the delta movement
-      filament::math::float2 currentPosition = {touch.x(), touch.y()};
-      filament::math::float2 delta = currentPosition - initialTouchPosition_;
+      const filament::math::float2 currentPosition = {touch.x(), touch.y()};
+      const filament::math::float2 delta =
+          currentPosition - initialTouchPosition_;
 
-      auto velocityFactor =
+      const auto velocityFactor =
           static_cast<float>(primaryCamera_->inertia_velocityFactor_);
 
       if (isOrbitGesture()) {
@@ -645,10 +646,10 @@ void CameraManager::onAction(int32_t action,
             delta.x * velocityFactor * .01f;
 
         // Convert your angle caps from degrees to radians
-        float pitchCapRadians =
+        const float pitchCapRadians =
             static_cast<float>(primaryCamera_->pan_angleCapX_) *
             degreesToRadians;
-        float yawCapRadians =
+        const float yawCapRadians =
             static_cast<float>(primaryCamera_->pan_angleCapY_) *
             degreesToRadians;
 
@@ -679,12 +680,12 @@ std::string CameraManager::updateLensProjection(
     return "Lens projection not found";
   }
 
-  float lensProjectionFocalLength = lensProjection->getFocalLength();
+  const float lensProjectionFocalLength = lensProjection->getFocalLength();
   if (cameraFocalLength_ != lensProjectionFocalLength)
     cameraFocalLength_ = lensProjectionFocalLength;
-  auto aspect = lensProjection->getAspect().has_value()
-                    ? lensProjection->getAspect().value()
-                    : calculateAspectRatio();
+  const auto aspect = lensProjection->getAspect().has_value()
+                          ? lensProjection->getAspect().value()
+                          : calculateAspectRatio();
   camera_->setLensProjection(
       lensProjectionFocalLength, aspect,
       lensProjection->getNear().has_value() ? lensProjection->getNear().value()
@@ -696,8 +697,8 @@ std::string CameraManager::updateLensProjection(
 
 ////////////////////////////////////////////////////////////////////////////
 void CameraManager::updateCameraProjection() {
-  auto aspect = calculateAspectRatio();
-  auto lensProjection = new LensProjection(cameraFocalLength_, aspect);
+  const auto aspect = calculateAspectRatio();
+  const auto lensProjection = new LensProjection(cameraFocalLength_, aspect);
   updateLensProjection(lensProjection);
   delete lensProjection;
 }

@@ -48,9 +48,9 @@ filament::Texture* TextureLoader::createTextureFromImage(
     const std::string& file_path,
     const TextureDefinitions::TextureType type) {
   int w, h, n;
-  unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
+  const unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -95,13 +95,13 @@ Resource<filament::Texture*> TextureLoader::loadTexture(
     const auto assetPath =
         ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-    auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
+    const auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
       return Resource<filament::Texture*>::Error(
           "Could not load texture from asset.");
     }
-    auto loadedTexture = loadTextureFromStream(file_path, texture->type_);
+    const auto loadedTexture = loadTextureFromStream(file_path, texture->type_);
     if (!loadedTexture) {
       return Resource<filament::Texture*>::Error(
           "Could not load texture from asset on disk.");
@@ -142,7 +142,7 @@ filament::Texture* TextureLoader::loadTextureFromUrl(
     spdlog::error("Failed to load texture from {}", url);
     return nullptr;
   }
-  std::string str(buffer.begin(), buffer.end());
+  const std::string str(buffer.begin(), buffer.end());
   return loadTextureFromStream(str, type);
 }
 

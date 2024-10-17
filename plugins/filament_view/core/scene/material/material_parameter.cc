@@ -121,7 +121,7 @@ void MaterialParameter::DebugPrint(const char* tag) {
   spdlog::debug("tag {} name {} type {} ", tag, name_, getTextForType(type_));
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
-      auto texture =
+      const auto texture =
           std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value())
               .get();
       if (texture) {
@@ -148,23 +148,32 @@ MaterialParameter::MaterialType MaterialParameter::getTypeForText(
   // TODO Change to map for faster lookup
   if (type == kColor) {
     return MaterialType::COLOR;
-  } if (type == kBool) {
+  }
+  if (type == kBool) {
     return MaterialType::BOOL;
-  } if (type == kBoolVector) {
+  }
+  if (type == kBoolVector) {
     return MaterialType::BOOL_VECTOR;
-  } if (type == kFloat) {
+  }
+  if (type == kFloat) {
     return MaterialType::FLOAT;
-  } if (type == kFloatVector) {
+  }
+  if (type == kFloatVector) {
     return MaterialType::FLOAT_VECTOR;
-  } if (type == kInt) {
+  }
+  if (type == kInt) {
     return MaterialType::INT;
-  } if (type == kIntVector) {
+  }
+  if (type == kIntVector) {
     return MaterialType::INT_VECTOR;
-  } if (type == kMat3) {
+  }
+  if (type == kMat3) {
     return MaterialType::MAT3;
-  } if (type == kMat4) {
+  }
+  if (type == kMat4) {
     return MaterialType::MAT4;
-  } if (type == kTexture) {
+  }
+  if (type == kTexture) {
     return MaterialType::TEXTURE;
   }
   return MaterialType::INT;

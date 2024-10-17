@@ -53,7 +53,7 @@ void RunOnceCheckAndInitializeECSystems() {
   const auto& strand = *ecsManager->GetStrand();
 
   std::promise<void> initPromise;
-  std::future<void> initFuture = initPromise.get_future();
+  const std::future<void> initFuture = initPromise.get_future();
 
   // Post the initialization code to the strand
   post(strand, [=, &initPromise]() mutable {
@@ -95,7 +95,7 @@ void DeserializeDataAndSetupMessageChannels(
   const auto& strand = *ecsManager->GetStrand();
 
   std::promise<void> initPromise;
-  std::future<void> initFuture = initPromise.get_future();
+  const std::future<void> initFuture = initPromise.get_future();
 
   // Safeguarded to only be called once no matter how many times this method is
   // called.
@@ -137,7 +137,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     void* platform_view_context) {
   pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
 
-  auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecsManager = ECSystemManager::GetInstance();
   ecsManager->setConfigValue(kAssetPath, assetDirectory);
 
   /*bool bDebugAttached = false;
@@ -371,7 +371,7 @@ void FilamentViewPlugin::ChangeToDefaultIndirectLight(
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_resize(double width, double height, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
+  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -391,7 +391,7 @@ void FilamentViewPlugin::on_set_direction(int32_t direction, void* data) {
 
 // TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_set_offset(double left, double top, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
+  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -407,7 +407,7 @@ void FilamentViewPlugin::on_touch(int32_t action,
                                   size_t point_data_size,
                                   const double* point_data,
                                   void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
+  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
             ViewTargetSystem::StaticGetTypeID(),
@@ -420,7 +420,7 @@ void FilamentViewPlugin::on_touch(int32_t action,
 }
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* data) {
-  if (auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
+  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     // Todo ? Note? Should we destroy all systems here?
   }
 }

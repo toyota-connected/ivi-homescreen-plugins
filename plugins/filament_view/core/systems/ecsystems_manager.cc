@@ -161,11 +161,11 @@ void ECSystemManager::vInitSystems() {
 std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
     size_t systemTypeID,
     const std::string& where) {
-  if (auto callingThread = pthread_self();
+  if (const auto callingThread = pthread_self();
       callingThread != filament_api_thread_id_) {
     // Note we should have a 'log once' base functionality in common
     // creating this inline for now.
-    if (auto foundIter = m_mapOffThreadCallers.find(where);
+    if (const auto foundIter = m_mapOffThreadCallers.find(where);
         foundIter == m_mapOffThreadCallers.end()) {
       spdlog::info(
           "From {} "

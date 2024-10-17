@@ -73,7 +73,7 @@ ViewTarget::~ViewTarget() {
     callback_ = nullptr;
   }
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -168,7 +168,7 @@ void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
                     .width = width,
                     .height = height};
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
 
@@ -185,7 +185,7 @@ void ViewTarget::InitializeFilamentInternals(uint32_t width, uint32_t height) {
 void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
@@ -302,7 +302,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
         kUpdateFrame,
         {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))});
 
-    auto filamentSystem =
+    const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
             FilamentSystem::StaticGetTypeID(), "DrawFrame");
 
@@ -313,7 +313,7 @@ void ViewTarget::DrawFrame(uint32_t time) {
       // render)
       //
       // Future tasking for making a more featured timing / frame info class.
-      uint32_t deltaTimeMS = time - m_LastTime;
+      const uint32_t deltaTimeMS = time - m_LastTime;
       float timeSinceLastRenderedSec =
           static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
       if (timeSinceLastRenderedSec == 0.0f) {
@@ -407,14 +407,15 @@ void ViewTarget::vOnTouch(int32_t action,
           FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   // if action is 0, then on 'first' touch, cast ray from camera;
-  auto viewport = fview_->getViewport();
-  auto touch =
+  const auto viewport = fview_->getViewport();
+  const auto touch =
       TouchPair(point_count, point_data_size, point_data, viewport.height);
 
   static constexpr int ACTION_DOWN = 0;
 
   if (action == ACTION_DOWN) {
-    auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    const auto rayInfo =
+        cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
 
     ECSMessage rayInformation;
     rayInformation.addData(ECSMessageType::DebugLine, rayInfo);

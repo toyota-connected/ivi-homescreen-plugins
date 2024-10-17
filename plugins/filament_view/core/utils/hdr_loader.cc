@@ -52,7 +52,7 @@ Texture* HDRLoader::createTextureFromImage(Engine* engine, LinearImage* image) {
     return deleteImageAndLogError(image);
   }
 
-  Texture::PixelBufferDescriptor::Callback freeCallback =
+  const Texture::PixelBufferDescriptor::Callback freeCallback =
       [](void* /* buf */, size_t, void* userdata) {
         delete static_cast<LinearImage*>(userdata);
       };
@@ -83,7 +83,7 @@ Texture* HDRLoader::createTexture(Engine* engine,
 Texture* HDRLoader::createTexture(Engine* engine,
                                   const std::vector<uint8_t>& buffer,
                                   const std::string& name) {
-  std::string str(buffer.begin(), buffer.end());
+  const std::string str(buffer.begin(), buffer.end());
   std::istringstream ins(str);
   auto* image = new LinearImage(ImageDecoder::decode(ins, name));
   return createTextureFromImage(engine, image);

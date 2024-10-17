@@ -43,7 +43,7 @@ void EntityObject::vOverrideGlobalGuid(const std::string& global_guid) {
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::DeserializeNameAndGlobalGuid(
     const flutter::EncodableMap& params) {
-  if (auto itName = params.find(flutter::EncodableValue(kName));
+  if (const auto itName = params.find(flutter::EncodableValue(kName));
       itName != params.end() && !itName->second.IsNull()) {
     // they're requesting entity be named what they want.
 
@@ -54,7 +54,7 @@ void EntityObject::DeserializeNameAndGlobalGuid(
     }
   }
 
-  if (auto itGUID = params.find(flutter::EncodableValue(kGlobalGuid));
+  if (const auto itGUID = params.find(flutter::EncodableValue(kGlobalGuid));
       itGUID != params.end() && !itGUID->second.IsNull()) {
     // they're requesting entity have a guid they desire.
     // Note! There's no clash checking here.

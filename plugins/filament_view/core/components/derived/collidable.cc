@@ -31,7 +31,7 @@ Collidable::Collidable(const flutter::EncodableMap& params)
       m_eShapeType(ShapeType::Cube),
       m_f3ExtentsSize({1}) {
   // Check if the key exists and if the value is an EncodableMap
-  if (auto itCollidableSpecific =
+  if (const auto itCollidableSpecific =
           params.find(flutter::EncodableValue(kCollidable));
       itCollidableSpecific != params.end()) {
     try {

@@ -49,7 +49,7 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
 
   if (entityLight_.isNull()) {
     post(strand_, [&] {
-      auto filamentSystem =
+      const auto filamentSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
               FilamentSystem::StaticGetTypeID(), "changeLight");
       const auto engine = filamentSystem->getFilamentEngine();
@@ -155,10 +155,10 @@ void LightSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         spdlog::debug("ChangeSceneLightProperties");
 
-        auto colorValue = msg.getData<std::string>(
+        const auto colorValue = msg.getData<std::string>(
             ECSMessageType::ChangeSceneLightPropertiesColorValue);
 
-        auto intensityValue = msg.getData<float>(
+        const auto intensityValue = msg.getData<float>(
             ECSMessageType::ChangeSceneLightPropertiesIntensity);
 
         defaultlight_->ChangeColor(colorValue);

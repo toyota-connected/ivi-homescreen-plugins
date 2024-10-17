@@ -66,7 +66,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
     return Resource<filament::MaterialInstance*>::Error("argument is NULL");
   }
 
-  auto materialInstance = materialResult->createInstance();
+  const auto materialInstance = materialResult->createInstance();
   materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
       materialResult, materialInstance, loadedTextures_);
 
@@ -92,7 +92,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
   std::lock_guard lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
-  if (auto materialToInstanceFromIter =
+  if (const auto materialToInstanceFromIter =
           loadedTemplateMaterials_.find(lookupName);
       materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
@@ -114,9 +114,9 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
   // here we need to see if any & all textures that are requested on the
   // material be loaded before we create an instance of it.
-  auto materialsRequiredTextures =
+  const auto materialsRequiredTextures =
       materialDefinitions->vecGetTextureMaterialParameters();
-  for (auto materialParam : materialsRequiredTextures) {
+  for (const auto materialParam : materialsRequiredTextures) {
     try {
       // Call the getTextureValue method
       const auto& textureValue = materialParam->getTextureValue();
@@ -158,7 +158,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     }
   }
 
-  auto materialInstance = setupMaterialInstance(
+  const auto materialInstance = setupMaterialInstance(
       materialToInstanceFrom.getData().value(), materialDefinitions);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
@@ -171,7 +171,7 @@ void MaterialSystem::vInitSystem() {}
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();

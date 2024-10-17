@@ -34,7 +34,7 @@ namespace plugin_filament_view {
 //////////////////////////////////////////////////////////////////////////////////////////
 SceneTextDeserializer::SceneTextDeserializer(
     const std::vector<uint8_t>& params) {
-  auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecsManager = ECSystemManager::GetInstance();
   const std::string& flutterAssetsPath =
       ecsManager->getConfigValue<std::string>(kAssetPath);
 
@@ -204,9 +204,10 @@ void SceneTextDeserializer::setUpLoadingModels() {
 void SceneTextDeserializer::setUpShapes() {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
 
-  auto shapeSystem = ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-      ShapeSystem::StaticGetTypeID(), "setUpShapes");
-  auto collisionSystem =
+  const auto shapeSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
+          ShapeSystem::StaticGetTypeID(), "setUpShapes");
+  const auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
           CollisionSystem::StaticGetTypeID(), "setUpShapes");
 
@@ -230,11 +231,11 @@ void SceneTextDeserializer::setUpShapes() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(Model* model) {
-  auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecsManager = ECSystemManager::GetInstance();
   const auto& strand = *ecsManager->GetStrand();
 
   post(strand, [=] {
-    auto modelSystem =
+    const auto modelSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
             ModelSystem::StaticGetTypeID(), "loadModel");
 
@@ -246,7 +247,7 @@ void SceneTextDeserializer::loadModel(Model* model) {
 
     const auto& loader = modelSystem;
     if (dynamic_cast<GlbModel*>(model)) {
-      auto glb_model = dynamic_cast<GlbModel*>(model);
+      const auto glb_model = dynamic_cast<GlbModel*>(model);
       if (!glb_model->szGetAssetPath().empty()) {
         loader->loadGlbFromAsset(model, glb_model->szGetAssetPath(), false);
       }
@@ -255,7 +256,7 @@ void SceneTextDeserializer::loadModel(Model* model) {
         loader->loadGlbFromUrl(model, glb_model->szGetURLPath());
       }
     } else if (dynamic_cast<GltfModel*>(model)) {
-      auto gltf_model = dynamic_cast<GltfModel*>(model);
+      const auto gltf_model = dynamic_cast<GltfModel*>(model);
       if (!gltf_model->szGetAssetPath().empty()) {
         ModelSystem::loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
                                        gltf_model->szGetPrefix(),
@@ -281,8 +282,8 @@ void SceneTextDeserializer::setUpSkybox() {
     SkyboxSystem::setDefaultSkybox();
     // makeSurfaceViewTransparent();
   } else {
-    if (auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
-      if (auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
+    if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
+      if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
           !hdr_skybox->szGetAssetPath().empty()) {
         const auto shouldUpdateLight =
             hdr_skybox->szGetAssetPath() == indirect_light_->getAssetPath();
@@ -290,21 +291,21 @@ void SceneTextDeserializer::setUpSkybox() {
             hdr_skybox->szGetAssetPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
-        auto shouldUpdateLight =
+        const auto shouldUpdateLight =
             hdr_skybox->szGetURLPath() == indirect_light_->getUrl();
         SkyboxSystem::setSkyboxFromHdrUrl(
             hdr_skybox->szGetURLPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
-      if (auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
+      if (const auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
           !kxt_skybox->szGetAssetPath().empty()) {
         SkyboxSystem::setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
       } else if (!kxt_skybox->szGetURLPath().empty()) {
         SkyboxSystem::setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
-      if (auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
+      if (const auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
           !color_skybox->szGetColor().empty()) {
         SkyboxSystem::setSkyboxFromColor(color_skybox->szGetColor());
       }
@@ -316,8 +317,9 @@ void SceneTextDeserializer::setUpSkybox() {
 void SceneTextDeserializer::setUpLight() {
   // Todo move to a message.
 
-  auto lightSystem = ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
-      LightSystem::StaticGetTypeID(), __FUNCTION__);
+  const auto lightSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
+          LightSystem::StaticGetTypeID(), __FUNCTION__);
 
   // TODO make sure this is copied over
   if (!lights_.empty()) {
@@ -338,7 +340,7 @@ void SceneTextDeserializer::setUpIndirectLight() {
     // This was called in the constructor of indirectLightManager_ anyway.
     // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
   } else {
-    if (auto indirectLight = indirect_light_.get();
+    if (const auto indirectLight = indirect_light_.get();
         dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         IndirectLightSystem::setIndirectLightFromKtxAsset(

@@ -67,7 +67,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
     // if its a shape
-    if (auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
+    if (const auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
         originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
       originalCollidable->SetExtentsSize(
@@ -126,15 +126,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
       originalCollidable->SetExtentsSize(ourAABB.extent());
     }
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
     newShape = new shapes::Cube();
     originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
     newShape = new shapes::Sphere();
     originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Plane*>(collidable)) {
-    auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
+    const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
     newShape = new shapes::Plane();
     originalObject->CloneToOther(*newShape);
   }
@@ -149,7 +149,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   newShape->m_bIsWireframe = true;
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "vAddCollidable");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -157,7 +157,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
 
-  auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
+  const auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
   newShape->bInitAndCreateShape(engine, oEntity);
   poFilamentScene->addEntity(*oEntity);
@@ -172,7 +172,7 @@ void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
   collidables_.remove(collidable);
 
   // Remove from collidablesDebugDrawingRepresentation_
-  auto iter =
+  const auto iter =
       collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
   if (iter != collidablesDebugDrawingRepresentation_.end()) {
     delete iter->second;
@@ -250,8 +250,8 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   // Sort hit results by distance from the ray's origin
   hitResults.sort([&rayCast](const HitResult& a, const HitResult& b) {
     // Calculate the squared distance to avoid the cost of sqrt
-    auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
-    auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
+    const auto distanceA = fLength2(a.hitPosition_ - rayCast.f3GetPosition());
+    const auto distanceB = fLength2(b.hitPosition_ - rayCast.f3GetPosition());
 
     // Sort in ascending order (closest hit first)
     return distanceA < distanceB;
@@ -311,9 +311,9 @@ void CollisionSystem::vInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
         auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
-        auto requestor =
+        const auto requestor =
             msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
-        auto type = msg.getData<CollisionEventType>(
+        const auto type = msg.getData<CollisionEventType>(
             ECSMessageType::CollisionRequestType);
 
         auto hitList = lstCheckForCollidable(rayInfo, 0);
@@ -325,7 +325,7 @@ void CollisionSystem::vInitSystem() {
       ECSMessageType::SetupMessageChannels, [this](const ECSMessage& msg) {
         spdlog::debug("SetupMessageChannels");
 
-        auto registrar = msg.getData<flutter::PluginRegistrar*>(
+        const auto registrar = msg.getData<flutter::PluginRegistrar*>(
             ECSMessageType::SetupMessageChannels);
 
         setupMessageChannels(registrar);
@@ -338,7 +338,7 @@ void CollisionSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         spdlog::debug("ToggleDebugCollidableViewsInScene");
 
-        auto value = msg.getData<bool>(
+        const auto value = msg.getData<bool>(
             ECSMessageType::ToggleDebugCollidableViewsInScene);
 
         if (!value) {

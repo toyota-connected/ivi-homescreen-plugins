@@ -80,7 +80,7 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("{}", tag);
   if (!assetPath_.empty()) {
     spdlog::debug("assetPath: [{}]", assetPath_);
-    std::filesystem::path asset_folder(flutterAssetsPath_);
+    const std::filesystem::path asset_folder(flutterAssetsPath_);
     spdlog::debug("asset_path {} valid",
                   exists(asset_folder / assetPath_) ? "is" : "is not");
   }
@@ -128,10 +128,10 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
     const filament::Material* materialResult,
     filament::MaterialInstance* materialInstance,
     const TextureMap& loadedTextures) const {
-  auto count = materialResult->getParameterCount();
+  const auto count = materialResult->getParameterCount();
   std::vector<filament::Material::ParameterInfo> parameters(count);
 
-  auto actual = materialResult->getParameters(parameters.data(), count);
+  const auto actual = materialResult->getParameters(parameters.data(), count);
   assert(count == actual && actual == parameters.size());
 
   for (const auto& param : parameters) {
@@ -151,7 +151,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
 
       // Should probably check to make sure the two types match as well
       // TODO
-      auto& parameterType = iter->second->type_;
+      const auto& parameterType = iter->second->type_;
 
       switch (parameterType) {
         case MaterialParameter::MaterialType::COLOR: {
@@ -179,7 +179,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
 
           // sampler will be on 'our' deserialized
           // texturedefinitions->texture_sampler
-          auto textureSampler = iter->second->getTextureSampler();
+          const auto textureSampler = iter->second->getTextureSampler();
 
           filament::TextureSampler sampler(MinFilter::LINEAR,
                                            MagFilter::LINEAR);
@@ -209,7 +209,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
             continue;
           }
 
-          auto texture = foundResource->second.getData().value();
+          const auto texture = foundResource->second.getData().value();
           materialInstance->setParameter(param.name, texture, sampler);
         } break;
 

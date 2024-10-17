@@ -26,17 +26,18 @@ void ViewTargetSystem::vInitSystem() {
       ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
         spdlog::debug("ViewTargetCreateRequest");
 
-        auto state = msg.getData<FlutterDesktopEngineState*>(
+        const auto state = msg.getData<FlutterDesktopEngineState*>(
             ECSMessageType::ViewTargetCreateRequest);
-        auto top = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
-        auto left =
+        const auto top =
+            msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
+        const auto left =
             msg.getData<int>(ECSMessageType::ViewTargetCreateRequestLeft);
-        auto width =
+        const auto width =
             msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestWidth);
-        auto heigth = msg.getData<uint32_t>(
+        const auto heigth = msg.getData<uint32_t>(
             ECSMessageType::ViewTargetCreateRequestHeight);
 
-        auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
+        const auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
         vInitializeFilamentInternalsWithViewTargets(nWhich, width, heigth);
 
         if (m_poCamera != nullptr) {
@@ -50,7 +51,7 @@ void ViewTargetSystem::vInitSystem() {
       ECSMessageType::SetupMessageChannels, [this](const ECSMessage& msg) {
         spdlog::debug("SetupMessageChannels");
 
-        auto registrar = msg.getData<flutter::PluginRegistrar*>(
+        const auto registrar = msg.getData<flutter::PluginRegistrar*>(
             ECSMessageType::SetupMessageChannels);
         vSetupMessageChannels(registrar);
 
@@ -107,14 +108,14 @@ void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vKickOffFrameRenderingLoops() {
-  for (auto& viewTarget : m_lstViewTargets) {
+  for (const auto& viewTarget : m_lstViewTargets) {
     viewTarget->setInitialized();
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vSetCameraFromSerializedData() {
-  for (auto& viewTarget : m_lstViewTargets) {
+  for (const auto& viewTarget : m_lstViewTargets) {
     // we might get request to add new view targets as they come online
     // make sure we're not resetting older ones.
     if (viewTarget->getCameraManager()->poGetPrimaryCamera() != nullptr)
@@ -139,7 +140,7 @@ size_t ViewTargetSystem::nSetupViewTargetFromDesktopState(
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vSetupMessageChannels(
     flutter::PluginRegistrar* plugin_registrar) {
-  for (auto& viewTarget : m_lstViewTargets) {
+  for (const auto& viewTarget : m_lstViewTargets) {
     viewTarget->setupMessageChannels(plugin_registrar);
   }
 }
@@ -185,7 +186,7 @@ void ViewTargetSystem::vResetInertiaCameraToDefaultValues(size_t nWhich) {
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vSetCurrentCameraOrbitAngle(size_t nWhich,
                                                    float fValue) {
-  auto camera =
+  const auto camera =
       m_lstViewTargets[nWhich]->getCameraManager()->poGetPrimaryCamera();
   camera->vSetCurrentCameraOrbitAngle(fValue);
 }

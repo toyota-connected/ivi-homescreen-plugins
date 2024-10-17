@@ -25,7 +25,7 @@ filament::math::float3 Deserialize::Format3(const flutter::EncodableMap& map) {
     if (snd.IsNull() || !std::holds_alternative<double>(snd))
       continue;
 
-    auto currValue = std::get<double>(snd);
+    const auto currValue = std::get<double>(snd);
 
     if (auto key = std::get<std::string>(fst); key == "x") {
       x = currValue;
@@ -68,7 +68,7 @@ void Deserialize::DecodeParameterWithDefault(
     std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
     const flutter::EncodableMap& params,
     const std::string& flutter_assets_path) {
-  if (auto it = params.find(flutter::EncodableValue(key));
+  if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     out_value = std::make_unique<MaterialDefinitions>(
@@ -84,7 +84,7 @@ void Deserialize::DecodeParameterWithDefault(
     filament::math::float3* out_value,
     const flutter::EncodableMap& params,
     const filament::math::float3& default_value) {
-  if (auto it = params.find(flutter::EncodableValue(key));
+  if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value = Format3(std::get<flutter::EncodableMap>(it->second));
@@ -99,7 +99,7 @@ void Deserialize::DecodeParameterWithDefault(
     filament::math::quatf* out_value,
     const flutter::EncodableMap& params,
     const filament::math::quatf& default_value) {
-  if (auto it = params.find(flutter::EncodableValue(key));
+  if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value = Format4(std::get<flutter::EncodableMap>(it->second));
@@ -114,7 +114,7 @@ void Deserialize::DecodeParameterWithDefault(
     double* out_value,
     const flutter::EncodableMap& params,
     const double& default_value) {
-  if (auto it = params.find(flutter::EncodableValue(key));
+  if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() && std::holds_alternative<double>(it->second)) {
     *out_value = std::get<double>(it->second);
   } else {
@@ -128,7 +128,7 @@ void Deserialize::DecodeParameterWithDefaultInt64(
     int64_t* out_value,
     const flutter::EncodableMap& params,
     const int64_t& default_value) {
-  if (auto it = params.find(flutter::EncodableValue(key));
+  if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() && std::holds_alternative<int64_t>(it->second)) {
     *out_value = std::get<int64_t>(it->second);
   } else {

@@ -88,7 +88,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
 
   // if we have collidable data request, we need to build that component, as its
   // optional
-  if (auto it = params.find(flutter::EncodableValue(kCollidable));
+  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
       it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);

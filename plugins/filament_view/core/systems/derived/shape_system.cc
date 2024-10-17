@@ -57,7 +57,7 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   ShapeType type;
 
   // Find the "shapeType" key in the mapData
-  if (auto it = mapData.find(flutter::EncodableValue("shapeType"));
+  if (const auto it = mapData.find(flutter::EncodableValue("shapeType"));
       it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
     // Check if the value is within the valid range of the ShapeType enum
     if (int32_t typeValue = std::get<int32_t>(it->second);
@@ -98,7 +98,7 @@ void ShapeSystem::addShapesToScene(
     shape->DebugPrint("Add shapes to scene");
   }*/
 
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "addShapesToScene");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -137,7 +137,8 @@ void ShapeSystem::vInitSystem() {
       ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleShapesInScene");
 
-        auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
+        const auto value =
+            msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
 
         vToggleAllShapesInScene(value);
 

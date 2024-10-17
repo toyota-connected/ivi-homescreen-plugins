@@ -143,7 +143,7 @@ void EntityTransforms::vApplyTransform(
     const filament::math::quatf& rotation,
     const filament::math::float3& scale,
     const filament::math::float3& translation) {
-  auto filamentSystem =
+  const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -288,15 +288,17 @@ void EntityTransforms::vApplyTransform(
     return;
 
   auto& transformManager = engine->getTransformManager();
-  auto instance = transformManager.getInstance(*poEntity);
+  const auto instance = transformManager.getInstance(*poEntity);
 
   // Create the rotation, scaling, and translation matrices
-  auto rotationMatrix = QuaternionToMat4f(rotation);
-  auto scalingMatrix = filament::math::mat4f::scaling(scale);
-  auto translationMatrix = filament::math::mat4f::translation(translation);
+  const auto rotationMatrix = QuaternionToMat4f(rotation);
+  const auto scalingMatrix = filament::math::mat4f::scaling(scale);
+  const auto translationMatrix =
+      filament::math::mat4f::translation(translation);
 
   // Combine the transformations: translate * rotate * scale
-  auto combinedTransform = translationMatrix * rotationMatrix * scalingMatrix;
+  const auto combinedTransform =
+      translationMatrix * rotationMatrix * scalingMatrix;
 
   // Set the combined transform back to the entity
   transformManager.setTransform(instance, combinedTransform);
@@ -362,14 +364,14 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
     return;
 
   auto& transformManager = engine->getTransformManager();
-  auto instance = transformManager.getInstance(*poEntity);
+  const auto instance = transformManager.getInstance(*poEntity);
 
   // Get the current position of the entity
   auto currentTransform = transformManager.getTransform(instance);
-  filament::math::float3 position = currentTransform[3].xyz;
+  const filament::math::float3 position = currentTransform[3].xyz;
 
   // Calculate the look-at matrix
-  auto lookAtMatrix = filament::math::mat4f::lookAt(position, target, up);
+  const auto lookAtMatrix = filament::math::mat4f::lookAt(position, target, up);
 
   // Set the look-at transform to the entity
   transformManager.setTransform(instance, lookAtMatrix);
