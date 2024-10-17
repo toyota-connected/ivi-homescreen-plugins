@@ -22,10 +22,13 @@
 
 #include <libcamera/camera.h>
 
+#include "camera_session.h"
+
 #include "camera_context.h"
 
 #include "event_channel.h"
-#include "messages.h"
+//#include "messages.h"
+#include "messages.g.h"
 #include "plugins/common/common.h"
 
 namespace camera_plugin {
@@ -39,6 +42,76 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
 
   ~CameraPlugin() override;
 
+    // Returns the names of all of the available capture devices.
+    ErrorOr<flutter::EncodableList> GetAvailableCameras() override;
+    // Creates a camera instance for the given device name and settings.
+    void Create(const std::string& camera_name,
+                const PlatformMediaSettings& settings,
+                std::function<void(ErrorOr<int64_t> reply)> result) override;
+    // Initializes a camera, and returns the size of its preview.
+    void Initialize(
+        int64_t camera_id,
+        std::function<void(ErrorOr<PlatformSize> reply)> result) override;
+    // Disposes a camera that is no longer in use.
+    virtual std::optional<FlutterError> Dispose(int64_t camera_id) override;
+    // Takes a picture with the given camera, and returns the path to the
+    // resulting file.
+    void TakePicture(
+        int64_t camera_id,
+        std::function<void(ErrorOr<std::string> reply)> result) override;
+    // Starts recording video with the given camera.
+    void StartVideoRecording(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+    // Finishes recording video with the given camera, and returns the path to
+    // the resulting file.
+    void StopVideoRecording(
+        int64_t camera_id,
+        std::function<void(ErrorOr<std::string> reply)> result) override;
+    // Starts the preview stream for the given camera.
+    void PausePreview(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+    // Resumes the preview stream for the given camera.
+    void ResumePreview(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+
+    /*
+    // Creates a camera instance for the given device name and settings.
+    void Create(const std::string& camera_name,
+                const PlatformMediaSettings& settings,
+                std::function<void(ErrorOr<int64_t> reply)> result) override;
+    // Initializes a camera, and returns the size of its preview.
+    void Initialize(
+        int64_t camera_id,
+        std::function<void(ErrorOr<PlatformSize> reply)> result) override;
+    // Disposes a camera that is no longer in use.
+    virtual std::optional<FlutterError> Dispose(int64_t camera_id) override;
+    // Takes a picture with the given camera, and returns the path to the
+    // resulting file.
+    void TakePicture(
+        int64_t camera_id,
+        std::function<void(ErrorOr<std::string> reply)> result) override;
+    // Starts recording video with the given camera.
+    void StartVideoRecording(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+    // Finishes recording video with the given camera, and returns the path to
+    // the resulting file.
+    void StopVideoRecording(
+        int64_t camera_id,
+        std::function<void(ErrorOr<std::string> reply)> result) override;
+    // Starts the preview stream for the given camera.
+    void PausePreview(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+    // Resumes the preview stream for the given camera.
+    void ResumePreview(
+        int64_t camera_id,
+        std::function<void(std::optional<FlutterError> reply)> result) override;
+*/
+#if 0
   void availableCameras(
       std::function<void(ErrorOr<flutter::EncodableList> reply)> result)
       override;
@@ -110,7 +183,7 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
   void dispose(
       const flutter::EncodableMap& args,
       std::function<void(std::optional<FlutterError> reply)> result) override;
-
+#endif
   // Disallow copy and assign.
   CameraPlugin(const CameraPlugin&) = delete;
   CameraPlugin& operator=(const CameraPlugin&) = delete;
@@ -123,6 +196,12 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
       event_channels_;
   std::map<std::string, std::unique_ptr<flutter::StreamHandler<>>>
       stream_handlers_;
+
+  std::map<std::string, int> CameraName_TextureId;
+  std::thread thread_;
+  std::unique_ptr<asio::io_context> io_context_;
+  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
+  std::unique_ptr<asio::io_context::strand> strand_;
 
   static void camera_added(const std::shared_ptr<libcamera::Camera>& cam);
   static void camera_removed(const std::shared_ptr<libcamera::Camera>& cam);

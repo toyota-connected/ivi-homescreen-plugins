@@ -17,10 +17,11 @@
 #include "camera_plugin.h"
 
 #include <memory>
+#include <unordered_map>
 
 #include <libcamera/libcamera.h>
 
-#include "camera_context.h"
+#include "camera_session.h"
 
 #include "plugins/common/common.h"
 
@@ -38,34 +39,47 @@ namespace camera_plugin {
 // TODO static constexpr char kResolutionPresetValueMax[] = "max";
 
 static std::unique_ptr<libcamera::CameraManager> g_camera_manager;
-static std::vector<std::shared_ptr<CameraContext>> g_cameras;
+//static std::vector<std::shared_ptr<CameraContext>> g_cameras;
+static std::unordered_map<unsigned int, std::shared_ptr<CameraSession>>
+    g_camera_sessions;
 
 // static
 void CameraPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarDesktop* registrar) {
   auto plugin =
       std::make_unique<CameraPlugin>(registrar, registrar->messenger());
-  SetUp(registrar->messenger(), plugin.get());
+  CameraPlugin::SetUp(registrar->messenger(), plugin.get());
   registrar->AddPlugin(std::move(plugin));
 }
 
 CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
                            flutter::BinaryMessenger* messenger)
-    : registrar_(plugin_registrar), messenger_(messenger) {
+    : registrar_(plugin_registrar),
+      messenger_(messenger),
+      io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
+      work_(io_context_->get_executor()),
+      strand_(std::make_unique<asio::io_context::strand>(*io_context_)) {
+  thread_ = std::thread([&]() { io_context_->run(); });
   g_camera_manager = std::make_unique<libcamera::CameraManager>();
   g_camera_manager->cameraAdded.connect(this, &CameraPlugin::camera_added);
   g_camera_manager->cameraRemoved.connect(this, &CameraPlugin::camera_removed);
 
-  spdlog::debug("[camera_plugin] libcamera {}",
-                libcamera::CameraManager::version());
+  spdlog::debug("[camera_plugin] libcamera {}", g_camera_manager->version());
 
-  if (const auto res = g_camera_manager->start(); res != 0) {
+  auto res = g_camera_manager->start();
+  if (res != 0) {
     spdlog::critical("Failed to start camera manager: {}", strerror(-res));
   }
 }
 
 CameraPlugin::~CameraPlugin() {
+  io_context_->run();
+  thread_.join();
+
   g_camera_manager->stop();
+  for (auto& [texture_id, camera] : g_camera_sessions) {
+    camera.reset();
+  }
 }
 
 void CameraPlugin::camera_added(const std::shared_ptr<libcamera::Camera>& cam) {
@@ -75,13 +89,13 @@ void CameraPlugin::camera_added(const std::shared_ptr<libcamera::Camera>& cam) {
 void CameraPlugin::camera_removed(
     const std::shared_ptr<libcamera::Camera>& cam) {
   spdlog::debug("[camera_plugin] Camera removed: {}", cam->id());
-  for (const auto& camera : g_cameras) {
-    if (camera->getCameraId() == cam->id()) {
-      switch (camera->getCameraState()) {
-        case CameraContext::CAM_STATE_RUNNING:
+  for (const auto& [texture_id, camera] : g_camera_sessions) {
+    if (camera->get_libcamera_id() == cam->id()) {
+      switch (camera->get_camera_state()) {
+        case CameraSession::CAM_STATE_RUNNING:
           cam->stop();
-        case CameraContext::CAM_STATE_ACQUIRED:
-        case CameraContext::CAM_STATE_CONFIGURED:
+        case CameraSession::CAM_STATE_ACQUIRED:
+        case CameraSession::CAM_STATE_CONFIGURED:
           cam->release();
           break;
         default:
@@ -116,6 +130,237 @@ std::string CameraPlugin::get_camera_lens_facing(
   return std::move(lensFacing);
 }
 
+ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
+  spdlog::debug("[camera_plugin] availableCameras:");
+
+  const auto cameras = g_camera_manager->cameras();
+  flutter::EncodableList list;
+  for (auto const& camera : cameras) {
+    std::string id = camera->id();
+    //   std::string lensFacing = get_camera_lens_facing(camera);
+    //   int64_t sensorOrientation = 0;
+    spdlog::debug("\tid: {}", id);
+    //    spdlog::debug("\tlensFacing: {}", lensFacing);
+    //    spdlog::debug("\tsensorOrientation: {}", sensorOrientation);
+    list.emplace_back(flutter::EncodableValue(std::move(id)));
+  }
+  return list;
+}
+
+void CameraPlugin::Create(
+    const std::string& camera_name,
+    const PlatformMediaSettings& settings,
+    const std::function<void(ErrorOr<int64_t> reply)> result) {
+  spdlog::debug("[camera_plugin] create:");
+
+  if(CameraName_TextureId.find(camera_name)==CameraName_TextureId.end()) {
+    auto camera = std::make_shared<CameraSession>(
+    registrar_, camera_name.c_str(), settings,
+    g_camera_manager->get(camera_name), strand_.get());
+
+    const auto texture_id = camera->get_texture_id();
+    g_camera_sessions[texture_id] = std::move(camera);
+    CameraName_TextureId.insert({camera_name, texture_id});
+    spdlog::debug("2. size of g_camera_sessions={}",g_camera_sessions.size());
+    spdlog::debug("!!!!! camera_id: {}",g_camera_sessions[texture_id]->get_libcamera_id());
+
+    result(texture_id);
+  }
+  else {
+    result(CameraName_TextureId[camera_name]);
+  }
+}
+
+void CameraPlugin::Initialize(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<PlatformSize> reply)> result) {
+  if (g_camera_sessions.find(camera_id) == g_camera_sessions.end()) {
+    result(FlutterError("Invalid camera_id"));
+    return;
+  }
+
+  const auto camera = g_camera_sessions[camera_id];
+  camera->setCamera(g_camera_manager->get(camera->get_libcamera_id()));
+  const auto channel_name = camera->Initialize(camera_id, "JPEG");
+  result(PlatformSize(camera->getPlatformSize()));
+}
+
+std::optional<FlutterError> CameraPlugin::Dispose(const int64_t camera_id) {
+  auto camera = g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  camera.reset();
+  SPDLOG_DEBUG("[camera_plugin] dispose: {}", camera_id);
+  return {};
+}
+
+void CameraPlugin::TakePicture(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<std::string> reply)> result) {
+
+  //const auto camera =
+  //    g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  //camera->pausePreview();
+/*
+  SPDLOG_DEBUG("[camera_plugin] pause the camera: {}");
+
+  libcamera::StreamRole stream_roles = { libcamera::StreamRole::StillCapture };
+  //std::unique_ptr<libcamera::CameraConfiguration> config =
+    //camera->generateConfiguration(stream_roles);
+  //camera->
+  camera->resumePreview();
+*/
+  result(camera->takePicture());
+}
+
+void CameraPlugin::StartVideoRecording(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  bool enable_stream{};
+
+  const auto camera =
+      g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  camera->startVideoRecording(enable_stream);
+
+  result({});
+}
+
+void CameraPlugin::StopVideoRecording(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<std::string> reply)> result) {
+  const auto camera =
+      g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  result(camera->stopVideoRecording());
+}
+
+void CameraPlugin::PausePreview(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  //const auto camera =
+  //    g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  if(camera) {
+    SPDLOG_DEBUG("[camera_plugin] texture_id: {}", camera->get_texture_id());
+    camera->pausePreview();
+  }
+  else
+    SPDLOG_DEBUG("[camera_plugin] no camera session was found!!");
+
+  result({});
+}
+
+void CameraPlugin::ResumePreview(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  //const auto camera =
+  //g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  camera->resumePreview();
+  result({});
+}
+/*
+void CameraPlugin::Create(
+    const std::string& camera_name,
+    const PlatformMediaSettings& settings,
+    const std::function<void(ErrorOr<int64_t> reply)> result) {
+  spdlog::debug("[camera_plugin] create:");
+
+  if(CameraName_TextureId.find(camera_name)==CameraName_TextureId.end()) {
+    auto camera = std::make_shared<CameraSession>(
+    registrar_, camera_name.c_str(), settings,
+    g_camera_manager->get(camera_name), strand_.get());
+
+    const auto texture_id = camera->get_texture_id();
+    g_camera_sessions[texture_id] = std::move(camera);
+    CameraName_TextureId.insert({camera_name, texture_id});
+    spdlog::debug("2. size of g_camera_sessions={}",g_camera_sessions.size());
+    spdlog::debug("!!!!! camera_id: {}",g_camera_sessions[texture_id]->get_libcamera_id());
+
+    result(texture_id);
+  }
+  else {
+    result(CameraName_TextureId[camera_name]);
+  }
+}
+
+void CameraPlugin::Initialize(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<PlatformSize> reply)> result) {
+  if (g_camera_sessions.find(camera_id) == g_camera_sessions.end()) {
+    result(FlutterError("Invalid camera_id"));
+    return;
+  }
+
+  const auto camera = g_camera_sessions[camera_id];
+  camera->setCamera(g_camera_manager->get(camera->get_libcamera_id()));
+  const auto channel_name = camera->Initialize(camera_id, "JPEG");
+  result(PlatformSize(camera->getPlatformSize()));
+}
+
+std::optional<FlutterError> CameraPlugin::Dispose(const int64_t camera_id) {
+  auto camera = g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  camera.reset();
+  SPDLOG_DEBUG("[camera_plugin] dispose: {}", camera_id);
+  return {};
+}
+
+void CameraPlugin::TakePicture(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<std::string> reply)> result) {
+
+  //const auto camera =
+  //    g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  //camera->pausePreview();
+  result(camera->takePicture());
+}
+
+void CameraPlugin::StartVideoRecording(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  bool enable_stream{};
+
+  const auto camera =
+      g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  camera->startVideoRecording(enable_stream);
+
+  result({});
+}
+
+void CameraPlugin::StopVideoRecording(
+    const int64_t camera_id,
+    const std::function<void(ErrorOr<std::string> reply)> result) {
+  const auto camera =
+      g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  result(camera->stopVideoRecording());
+}
+
+void CameraPlugin::PausePreview(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  //const auto camera =
+  //    g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  if(camera) {
+    SPDLOG_DEBUG("[camera_plugin] texture_id: {}", camera->get_texture_id());
+    camera->pausePreview();
+  }
+  else
+    SPDLOG_DEBUG("[camera_plugin] no camera session was found!!");
+
+  result({});
+}
+
+void CameraPlugin::ResumePreview(
+    const int64_t camera_id,
+    const std::function<void(std::optional<FlutterError> reply)> result) {
+  //const auto camera =
+      //g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
+  const auto camera = g_camera_sessions[camera_id];
+  camera->resumePreview();
+  result({});
+}
+*/
+/*
 void CameraPlugin::availableCameras(
     const std::function<void(ErrorOr<flutter::EncodableList> reply)> result) {
   spdlog::debug("[camera_plugin] availableCameras:");
@@ -587,5 +832,5 @@ void CameraPlugin::dispose(
   SPDLOG_DEBUG("[camera_plugin] dispose: {}", cameraId);
   result(std::nullopt);
 }
-
+*/
 }  // namespace camera_plugin

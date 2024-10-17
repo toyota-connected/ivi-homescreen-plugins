@@ -20,8 +20,16 @@ include(FindJPEG)
 add_library(plugin_camera STATIC
         camera_plugin_c_api.cc
         camera_plugin.cc
-        messages.cc
         camera_context.cc
+        messages.g.cpp
+        camera_session.cc
+        image.cc
+        texture.cc
+        texture_mjpg.cc
+        texture_sink.cc
+        camera_session.cc
+        camera_session.cc
+
 )
 
 target_include_directories(plugin_camera PUBLIC
