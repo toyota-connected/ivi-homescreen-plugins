@@ -23,8 +23,8 @@
 
 namespace plugin_filament_view {
 
-using MinFilter = ::filament::TextureSampler::MinFilter;
-using MagFilter = ::filament::TextureSampler::MagFilter;
+using MinFilter = filament::TextureSampler::MinFilter;
+using MagFilter = filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
@@ -81,9 +81,8 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   if (!assetPath_.empty()) {
     spdlog::debug("assetPath: [{}]", assetPath_);
     std::filesystem::path asset_folder(flutterAssetsPath_);
-    spdlog::debug(
-        "asset_path {} valid",
-        std::filesystem::exists(asset_folder / assetPath_) ? "is" : "is not");
+    spdlog::debug("asset_path {} valid",
+                  exists(asset_folder / assetPath_) ? "is" : "is not");
   }
   if (!url_.empty()) {
     spdlog::debug("url: [{}]", url_);
@@ -126,11 +125,11 @@ MaterialDefinitions::vecGetTextureMaterialParameters() const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
-    const ::filament::Material* materialResult,
+    const filament::Material* materialResult,
     filament::MaterialInstance* materialInstance,
     const TextureMap& loadedTextures) const {
   auto count = materialResult->getParameterCount();
-  std::vector<::filament::Material::ParameterInfo> parameters(count);
+  std::vector<filament::Material::ParameterInfo> parameters(count);
 
   auto actual = materialResult->getParameters(parameters.data(), count);
   assert(count == actual && actual == parameters.size());
@@ -182,8 +181,8 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
           // texturedefinitions->texture_sampler
           auto textureSampler = iter->second->getTextureSampler();
 
-          ::filament::TextureSampler sampler(MinFilter::LINEAR,
-                                             MagFilter::LINEAR);
+          filament::TextureSampler sampler(MinFilter::LINEAR,
+                                           MagFilter::LINEAR);
 
           if (textureSampler != nullptr) {
             // SPDLOG_INFO("Overloading filtering options with set param

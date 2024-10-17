@@ -34,10 +34,10 @@
 
 namespace plugin_filament_view {
 
-using ::filament::gltfio::AssetConfiguration;
-using ::filament::gltfio::AssetLoader;
-using ::filament::gltfio::ResourceConfiguration;
-using ::filament::gltfio::ResourceLoader;
+using filament::gltfio::AssetConfiguration;
+using filament::gltfio::AssetLoader;
+using filament::gltfio::ResourceConfiguration;
+using filament::gltfio::ResourceLoader;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::destroyAllAssetsOnModels() {
@@ -136,7 +136,7 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
 void ModelSystem::loadModelGltf(
     Model* poOurModel,
     const std::vector<uint8_t>& buffer,
-    std::function<const ::filament::backend::BufferDescriptor&(
+    std::function<const filament::backend::BufferDescriptor&(
         std::string uri)>& /* callback */) {
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
@@ -290,7 +290,7 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
     const auto assetPath =
         ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-    asio::post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
+    post(strand_, [&, poOurModel, promise, path, isFallback, assetPath] {
       try {
         auto buffer = readBinaryFile(path, assetPath);
         handleFile(poOurModel, buffer, path, isFallback, promise);
@@ -316,16 +316,16 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(),
-             [&, poOurModel, promise, url = std::move(url), isFallback] {
-               plugin_common_curl::CurlClient client;
-               auto buffer = client.RetrieveContentAsVector();
-               if (client.GetCode() != CURLE_OK) {
-                 promise->set_value(Resource<std::string_view>::Error(
-                     "Couldn't load Glb from " + url));
-               }
-               handleFile(poOurModel, buffer, url, isFallback, promise);
-             });
+  post(*ECSystemManager::GetInstance()->GetStrand(),
+       [&, poOurModel, promise, url = std::move(url), isFallback] {
+         plugin_common_curl::CurlClient client;
+         auto buffer = client.RetrieveContentAsVector();
+         if (client.GetCode() != CURLE_OK) {
+           promise->set_value(Resource<std::string_view>::Error(
+               "Couldn't load Glb from " + url));
+         }
+         handleFile(poOurModel, buffer, url, isFallback, promise);
+       });
   return promise_future;
 }
 
@@ -383,7 +383,7 @@ void ModelSystem::vInitSystem() {
     return;
   }
 
-  materialProvider_ = ::filament::gltfio::createUbershaderProvider(
+  materialProvider_ = filament::gltfio::createUbershaderProvider(
       engine, UBERARCHIVE_DEFAULT_DATA,
       static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
 

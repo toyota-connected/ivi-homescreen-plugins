@@ -27,16 +27,16 @@
 
 namespace plugin_filament_view::shapes {
 
-using ::filament::Aabb;
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::packSnorm16;
-using ::filament::math::short4;
-using ::utils::Entity;
+using filament::Aabb;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using filament::math::packSnorm16;
+using filament::math::short4;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 Plane::Plane(const std::string& flutter_assets_path,
@@ -46,7 +46,7 @@ Plane::Plane(const std::string& flutter_assets_path,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
+bool Plane::bInitAndCreateShape(filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
@@ -59,7 +59,7 @@ bool Plane::bInitAndCreateShape(::filament::Engine* engine_,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Plane::createDoubleSidedPlane(::filament::Engine* engine_) {
+void Plane::createDoubleSidedPlane(filament::Engine* engine_) {
   // Vertices for a plane (4 vertices for each side, 8 in total)
   static constexpr float vertices[] = {
       // Front face
@@ -167,7 +167,7 @@ void Plane::createDoubleSidedPlane(::filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Plane::createSingleSidedPlane(::filament::Engine* engine_) {
+void Plane::createSingleSidedPlane(filament::Engine* engine_) {
   // Vertices for a single-sided plane (4 vertices)
   static constexpr float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // Vertex 0

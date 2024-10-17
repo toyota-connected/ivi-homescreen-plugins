@@ -27,10 +27,10 @@
 #include <filament/VertexBuffer.h>
 #include <plugins/common/common.h>
 
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
 
 namespace plugin_filament_view {
 
@@ -38,7 +38,7 @@ namespace plugin_filament_view {
 DebugLine::DebugLine(filament::math::float3 startingPoint,
                      filament::math::float3 endingPoint,
                      filament::Engine* engine,
-                     std::shared_ptr<utils::Entity> entity,
+                     std::shared_ptr<Entity> entity,
                      float fTimeToLive)
     : m_fRemainingTime(fTimeToLive),
       m_poEntity(std::move(entity))  // Create entity
@@ -49,40 +49,39 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
   indices_.emplace_back(1);
 
   // Initialize the VertexBuffer for the quad
-  m_poVertexBuffer =
-      VertexBuffer::Builder()
-          .vertexCount(2)  // Four vertices for the quad
-          .bufferCount(1)  // Single buffer for positions
-          .attribute(filament::VertexAttribute::POSITION, 0,
-                     filament::VertexBuffer::AttributeType::FLOAT3)
-          .build(*engine);
+  m_poVertexBuffer = VertexBuffer::Builder()
+                         .vertexCount(2)  // Four vertices for the quad
+                         .bufferCount(1)  // Single buffer for positions
+                         .attribute(VertexAttribute::POSITION, 0,
+                                    VertexBuffer::AttributeType::FLOAT3)
+                         .build(*engine);
 
   // Set vertex buffer data
   m_poVertexBuffer->setBufferAt(
       *engine, 0,
-      filament::VertexBuffer::BufferDescriptor(
-          vertices_.data(), vertices_.size() * sizeof(float) * 3));
+      VertexBuffer::BufferDescriptor(vertices_.data(),
+                                     vertices_.size() * sizeof(float) * 3));
 
   // Initialize the IndexBuffer for the quad (two triangles)
   constexpr int indexCount = 2;
-  m_poIndexBuffer = filament::IndexBuffer::Builder()
+  m_poIndexBuffer = IndexBuffer::Builder()
                         .indexCount(indexCount)
-                        .bufferType(filament::IndexBuffer::IndexType::USHORT)
+                        .bufferType(IndexBuffer::IndexType::USHORT)
                         .build(*engine);
 
   // Set index buffer data
   m_poIndexBuffer->setBuffer(
-      *engine, filament::IndexBuffer::BufferDescriptor(
+      *engine, IndexBuffer::BufferDescriptor(
                    indices_.data(), indices_.size() * sizeof(unsigned short)));
 
   boundingBox_.min = startingPoint;
   boundingBox_.max = endingPoint;
 
   // Build the Renderable with the vertex and index buffers
-  filament::RenderableManager::Builder(1)
+  RenderableManager::Builder(1)
       .boundingBox({{}, boundingBox_.extent()})
-      .geometry(0, filament::RenderableManager::PrimitiveType::LINES,
-                m_poVertexBuffer, m_poIndexBuffer)
+      .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
+                m_poIndexBuffer)
       .culling(false)
       .receiveShadows(false)
       .castShadows(false)
@@ -169,8 +168,8 @@ void DebugLinesSystem::vShutdownSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
-                                ::filament::math::float3 endPoint,
+void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
+                                filament::math::float3 endPoint,
                                 float secondsTimeout) {
   if (m_bCurrentlyDrawingDebugLines == false) {
     return;
@@ -182,7 +181,7 @@ void DebugLinesSystem::vAddLine(::filament::math::float3 startPoint,
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
-  auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+  auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
   auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
                                                   oEntity, secondsTimeout);

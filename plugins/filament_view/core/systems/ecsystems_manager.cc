@@ -40,9 +40,9 @@ ECSystemManager::~ECSystemManager() {
 ////////////////////////////////////////////////////////////////////////////
 ECSystemManager::ECSystemManager()
     : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
-      work_(asio::make_work_guard(io_context_->get_executor())),
+      work_(make_work_guard(io_context_->get_executor())),
       strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
-      m_eCurrentState(RunState::NotInitialized) {
+      m_eCurrentState(NotInitialized) {
   vSetupThreadingInternals();
 }
 
@@ -62,7 +62,7 @@ void ECSystemManager::StartRunLoop() {
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vSetupThreadingInternals() {
   filament_api_thread_ = std::thread([&] { io_context_->run(); });
-  asio::post(*strand_, [&] {
+  post(*strand_, [&] {
     filament_api_thread_id_ = pthread_self();
 
     pthread_setname_np(pthread_self(), "ECSystemManagerThreadRunner");
@@ -79,7 +79,7 @@ void ECSystemManager::RunLoop() {
   // Initialize lastFrameTime to the current time
   auto lastFrameTime = std::chrono::steady_clock::now();
 
-  m_eCurrentState = RunState::Running;
+  m_eCurrentState = Running;
   while (m_bIsRunning) {
     auto start = std::chrono::steady_clock::now();
 
@@ -88,7 +88,7 @@ void ECSystemManager::RunLoop() {
 
     if (!isHandlerExecuting.load()) {
       // Use asio::post to schedule work on the main thread (API thread)
-      asio::post(*strand_, [elapsedTime = elapsedTime.count(), this] {
+      post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
           ExecuteOnMainThread(
@@ -112,7 +112,7 @@ void ECSystemManager::RunLoop() {
       std::this_thread::sleep_for(frameTime - elapsed);
     }
   }
-  m_eCurrentState = RunState::ShutdownStarted;
+  m_eCurrentState = ShutdownStarted;
 
   m_bSpawnedThreadFinished = true;
 }
@@ -152,7 +152,7 @@ void ECSystemManager::vInitSystems() {
     system->vInitSystem();
   }
 
-  m_eCurrentState = RunState::Initialized;
+  m_eCurrentState = Initialized;
 
   //});
 }
@@ -231,7 +231,7 @@ void ECSystemManager::DebugPrint() const {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vShutdownSystems() {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
+  post(*GetInstance()->GetStrand(), [&] {
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
@@ -240,7 +240,7 @@ void ECSystemManager::vShutdownSystems() {
       (*it)->vShutdownSystem();
     }
 
-    m_eCurrentState = RunState::Shutdown;
+    m_eCurrentState = Shutdown;
   });
 }
 

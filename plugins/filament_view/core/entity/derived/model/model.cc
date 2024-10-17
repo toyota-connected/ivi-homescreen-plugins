@@ -139,14 +139,14 @@ std::unique_ptr<Model> Model::Deserialize(const std::string& flutterAssetsPath,
   }
 
   if (is_glb) {
-    return std::make_unique<plugin_filament_view::GlbModel>(
+    return std::make_unique<GlbModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", nullptr,
         animation ? animation.release() : nullptr, oTransform,
         oCommonRenderable, params);
   }
 
-  return std::make_unique<plugin_filament_view::GltfModel>(
+  return std::make_unique<GltfModel>(
       assetPath.has_value() ? std::move(assetPath.value()) : "",
       url.has_value() ? std::move(url.value()) : "",
       pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",

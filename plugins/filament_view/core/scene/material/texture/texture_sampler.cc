@@ -56,76 +56,76 @@ TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::TextureSampler::MagFilter TextureSampler::getMagFilter() const {
+filament::TextureSampler::MagFilter TextureSampler::getMagFilter() const {
   if (mag_ == kMagFilterNearest) {
-    return ::filament::TextureSampler::MagFilter::NEAREST;
+    return filament::TextureSampler::MagFilter::NEAREST;
   }
-  return ::filament::TextureSampler::MagFilter::LINEAR;
+  return filament::TextureSampler::MagFilter::LINEAR;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::TextureSampler::MinFilter TextureSampler::getMinFilter() const {
+filament::TextureSampler::MinFilter TextureSampler::getMinFilter() const {
   if (min_ == kMinFilterNearest) {
-    return ::filament::TextureSampler::MinFilter::NEAREST;
+    return filament::TextureSampler::MinFilter::NEAREST;
   }
 
   if (min_ == kMinFilterLinear) {
-    return ::filament::TextureSampler::MinFilter::LINEAR;
+    return filament::TextureSampler::MinFilter::LINEAR;
   }
 
   if (min_ == kMinFilterNearestMipmapNearest) {
-    return ::filament::TextureSampler::MinFilter::NEAREST_MIPMAP_NEAREST;
+    return filament::TextureSampler::MinFilter::NEAREST_MIPMAP_NEAREST;
   }
 
   if (min_ == kMinFilterLinearMipmapNearest) {
-    return ::filament::TextureSampler::MinFilter::LINEAR_MIPMAP_NEAREST;
+    return filament::TextureSampler::MinFilter::LINEAR_MIPMAP_NEAREST;
   }
 
   if (min_ == kMinFilterNearestMipmapLinear) {
-    return ::filament::TextureSampler::MinFilter::NEAREST_MIPMAP_LINEAR;
+    return filament::TextureSampler::MinFilter::NEAREST_MIPMAP_LINEAR;
   }
 
   // Note: might need to change default in the future.
-  return ::filament::TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR;
+  return filament::TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::TextureSampler::WrapMode TextureSampler::getWrapModeR() const {
+filament::TextureSampler::WrapMode TextureSampler::getWrapModeR() const {
   if (wrapR_ == KWrapModeClampToEdge) {
-    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+    return filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
   }
 
   if (wrapR_ == KWrapModeRepeat) {
-    return ::filament::TextureSampler::WrapMode::REPEAT;
+    return filament::TextureSampler::WrapMode::REPEAT;
   }
 
-  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+  return filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::TextureSampler::WrapMode TextureSampler::getWrapModeS() const {
+filament::TextureSampler::WrapMode TextureSampler::getWrapModeS() const {
   if (wrapS_ == KWrapModeClampToEdge) {
-    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+    return filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
   }
 
   if (wrapS_ == KWrapModeRepeat) {
-    return ::filament::TextureSampler::WrapMode::REPEAT;
+    return filament::TextureSampler::WrapMode::REPEAT;
   }
 
-  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+  return filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::TextureSampler::WrapMode TextureSampler::getWrapModeT() const {
+filament::TextureSampler::WrapMode TextureSampler::getWrapModeT() const {
   if (wrapT_ == KWrapModeClampToEdge) {
-    return ::filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
+    return filament::TextureSampler::WrapMode::CLAMP_TO_EDGE;
   }
 
   if (wrapT_ == KWrapModeRepeat) {
-    return ::filament::TextureSampler::WrapMode::REPEAT;
+    return filament::TextureSampler::WrapMode::REPEAT;
   }
 
-  return ::filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
+  return filament::TextureSampler::WrapMode::MIRRORED_REPEAT;
 }
 
 ////////////////////////////////////////////////////////////////////////////

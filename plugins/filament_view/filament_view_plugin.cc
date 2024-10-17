@@ -56,7 +56,7 @@ void RunOnceCheckAndInitializeECSystems() {
   std::future<void> initFuture = initPromise.get_future();
 
   // Post the initialization code to the strand
-  asio::post(strand, [=, &initPromise]() mutable {
+  post(strand, [=, &initPromise]() mutable {
     // Add systems to the ECSystemManager
     ecsManager->vAddSystem(std::move(std::make_unique<FilamentSystem>()));
     ecsManager->vAddSystem(std::move(std::make_unique<DebugLinesSystem>()));
@@ -100,7 +100,7 @@ void DeserializeDataAndSetupMessageChannels(
   // Safeguarded to only be called once no matter how many times this method is
   // called.
   if (postSetupDeserializer == nullptr) {
-    asio::post(strand, [=, &initPromise]() mutable {
+    post(strand, [=, &initPromise]() mutable {
       sceneTextDeserializer = std::make_unique<SceneTextDeserializer>(params);
       postSetupDeserializer = sceneTextDeserializer.get();
 

@@ -39,7 +39,7 @@ MaterialSystem::~MaterialSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
+Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
     MaterialDefinitions* materialDefinition) {
   // The Future object for loading Material
   if (!materialDefinition->szGetMaterialAssetPath().empty()) {
@@ -53,35 +53,35 @@ Resource<::filament::Material*> MaterialSystem::loadMaterialFromResource(
         materialDefinition->szGetMaterialURLPath());
   }
 
-  return Resource<::filament::Material*>::Error(
+  return Resource<filament::Material*>::Error(
       "You must provide material asset path or url");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
-    ::filament::Material* materialResult,
+Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
+    filament::Material* materialResult,
     const MaterialDefinitions* materialDefinitions) {
   if (!materialResult) {
     SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
-    return Resource<::filament::MaterialInstance*>::Error("argument is NULL");
+    return Resource<filament::MaterialInstance*>::Error("argument is NULL");
   }
 
   auto materialInstance = materialResult->createInstance();
   materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
       materialResult, materialInstance, loadedTextures_);
 
-  return Resource<::filament::MaterialInstance*>::Success(materialInstance);
+  return Resource<filament::MaterialInstance*>::Success(materialInstance);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
+Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
     SPDLOG_ERROR(
         "--Bad MaterialDefinitions Result "
         "MaterialManager::getMaterialInstance");
-    return Resource<::filament::MaterialInstance*>::Error("Material not found");
+    return Resource<filament::MaterialInstance*>::Error("Material not found");
   }
 
   Resource<filament::Material*> materialToInstanceFrom;
@@ -103,7 +103,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     if (materialToInstanceFrom.getStatus() != Status::Success) {
       spdlog::error(
           "--Bad Material Result MaterialManager::getMaterialInstance");
-      return Resource<::filament::MaterialInstance*>::Error(
+      return Resource<filament::MaterialInstance*>::Error(
           materialToInstanceFrom.getMessage());
     }
 
@@ -144,7 +144,7 @@ Resource<::filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
       if (loadedTexture.getStatus() != Status::Success) {
         spdlog::error("Unable to load texture from {}", assetPath);
-        Resource<::filament::Texture*>::Error(
+        Resource<filament::Texture*>::Error(
             materialToInstanceFrom.getMessage());
         continue;
       }

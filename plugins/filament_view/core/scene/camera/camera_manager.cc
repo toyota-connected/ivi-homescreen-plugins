@@ -64,7 +64,7 @@ void CameraManager::setDefaultCamera() {
   cameraManipulator_ = CameraManipulator::Builder()
                            .viewport(static_cast<int>(viewport.width),
                                      static_cast<int>(viewport.height))
-                           .build(::filament::camutils::Mode::ORBIT);
+                           .build(filament::camutils::Mode::ORBIT);
   filament::math::float3 eye, center, up;
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
@@ -192,8 +192,8 @@ void CameraManager::updateCameraManipulator(Camera* cameraInfo) {
     manipulatorBuilder.targetPosition(tp->x, tp->y, tp->z);
 
   } else {
-    static constexpr ::filament::float3 kDefaultObjectPosition = {0.0f, 0.0f,
-                                                                  -4.0f};
+    static constexpr filament::float3 kDefaultObjectPosition = {0.0f, 0.0f,
+                                                                -4.0f};
 
     manipulatorBuilder.targetPosition(kDefaultObjectPosition.x,
                                       kDefaultObjectPosition.y,

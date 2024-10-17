@@ -29,7 +29,7 @@
 namespace plugin_filament_view {
 
 using shapes::BaseShape;
-using ::utils::Entity;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vToggleAllShapesInScene(bool bValue) {
@@ -112,7 +112,7 @@ void ShapeSystem::addShapesToScene(
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
-    auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+    auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity);
 

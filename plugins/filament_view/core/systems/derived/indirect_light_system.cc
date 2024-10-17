@@ -57,8 +57,8 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_, [&, promise, indirectLight] {
-    auto builder = ::filament::IndirectLight::Builder();
+  post(strand_, [&, promise, indirectLight] {
+    auto builder = filament::IndirectLight::Builder();
     builder.intensity(indirectLight->getIntensity());
     builder.radiance(static_cast<uint8_t>(indirectLight->radiance_.size()),
                      indirectLight->radiance_.data());
@@ -92,7 +92,7 @@ IndirectLightSystem::setIndirectLightFromKtxAsset(std::string path,
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_, [&, promise, path = std::move(path) /*, intensity*/] {
+  post(strand_, [&, promise, path = std::move(path) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;
@@ -109,7 +109,7 @@ IndirectLightSystem::setIndirectLightFromKtxUrl(std::string url,
   const asio::io_context::strand& strand_(
       *ECSystemManager::GetInstance()->GetStrand());
 
-  asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
+  post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;
@@ -124,7 +124,7 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
           FilamentSystem::StaticGetTypeID(), "loadIndirectLightHdrFromFile");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  ::filament::Texture* texture;
+  filament::Texture* texture;
   try {
     texture = HDRLoader::createTexture(engine, asset_path);
   } catch (...) {
@@ -137,7 +137,7 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
   auto reflections =
       filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
 
-  auto ibl = ::filament::IndirectLight::Builder()
+  auto ibl = filament::IndirectLight::Builder()
                  .reflections(reflections)
                  .intensity(static_cast<float>(intensity))
                  .build(*engine);
@@ -167,23 +167,22 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(std::string path,
   const auto assetPath =
       ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
-  asio::post(
-      strand_, [&, promise, path = std::move(path), intensity, assetPath] {
-        std::filesystem::path asset_path(assetPath);
-        asset_path /= path;
+  post(strand_, [&, promise, path = std::move(path), intensity, assetPath] {
+    std::filesystem::path asset_path(assetPath);
+    asset_path /= path;
 
-        if (path.empty() || !std::filesystem::exists(asset_path)) {
-          promise->set_value(
-              Resource<std::string_view>::Error("Asset path not valid"));
-        }
-        try {
-          promise->set_value(
-              loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
-        } catch (...) {
-          promise->set_value(Resource<std::string_view>::Error(
-              "Couldn't changed Light from asset"));
-        }
-      });
+    if (path.empty() || !exists(asset_path)) {
+      promise->set_value(
+          Resource<std::string_view>::Error("Asset path not valid"));
+    }
+    try {
+      promise->set_value(
+          loadIndirectLightHdrFromFile(asset_path.c_str(), intensity));
+    } catch (...) {
+      promise->set_value(Resource<std::string_view>::Error(
+          "Couldn't changed Light from asset"));
+    }
+  });
   return future;
 }
 
@@ -198,7 +197,7 @@ IndirectLightSystem::setIndirectLightFromHdrUrl(std::string url,
       *ECSystemManager::GetInstance()->GetStrand());
 
   auto future(promise->get_future());
-  asio::post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
+  post(strand_, [&, promise, url = std::move(url) /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
   });
   return future;

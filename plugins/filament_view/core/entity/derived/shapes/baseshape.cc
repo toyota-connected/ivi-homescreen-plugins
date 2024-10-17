@@ -30,17 +30,17 @@
 
 namespace plugin_filament_view::shapes {
 
-using ::filament::Aabb;
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::mat4f;
-using ::filament::math::packSnorm16;
-using ::filament::math::short4;
-using ::utils::Entity;
+using filament::Aabb;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using filament::math::mat4f;
+using filament::math::packSnorm16;
+using filament::math::short4;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape()
@@ -50,7 +50,7 @@ BaseShape::BaseShape()
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
-          Resource<::filament::MaterialInstance*>::Error("Unset")) {}
+          Resource<filament::MaterialInstance*>::Error("Unset")) {}
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const std::string& flutter_assets_path,
@@ -61,7 +61,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
-          Resource<::filament::MaterialInstance*>::Error("Unset")) {
+          Resource<filament::MaterialInstance*>::Error("Unset")) {
   SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
 
   Deserialize::DecodeParameterWithDefault(kId, &id, params, 0);
@@ -80,7 +80,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
                                               ShapeType::Unset);
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
-                                          filament::math::float3(0, 0, 0));
+                                          float3(0, 0, 0));
   Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
                                           params, flutter_assets_path);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
@@ -115,7 +115,7 @@ void BaseShape::vDestroyBuffers() {
       m_poMaterialInstance.getData() != nullptr) {
     filamentEngine->destroy(m_poMaterialInstance.getData().value());
     m_poMaterialInstance =
-        Resource<::filament::MaterialInstance*>::Error("Unset");
+        Resource<filament::MaterialInstance*>::Error("Unset");
   }
 
   if (m_poVertexBuffer) {
@@ -159,7 +159,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vBuildRenderable(::filament::Engine* engine_) {
+void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   if (m_bIsWireframe) {

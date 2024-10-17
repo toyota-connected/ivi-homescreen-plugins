@@ -195,23 +195,23 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   fview_->setVisibleLayers(0x4, 0x4);
   fview_->setViewport({0, 0, width, height});
 
-  fview_->setBlendMode(::filament::View::BlendMode::TRANSLUCENT);
+  fview_->setBlendMode(filament::View::BlendMode::TRANSLUCENT);
 
   // on mobile, better use lower quality color buffer
-  ::filament::View::RenderQuality renderQuality{};
-  renderQuality.hdrColorBuffer = ::filament::View::QualityLevel::MEDIUM;
+  filament::View::RenderQuality renderQuality{};
+  renderQuality.hdrColorBuffer = filament::View::QualityLevel::MEDIUM;
   fview_->setRenderQuality(renderQuality);
 
   // dynamic resolution often helps a lot
   fview_->setDynamicResolutionOptions(
-      {.enabled = true, .quality = ::filament::View::QualityLevel::MEDIUM});
+      {.enabled = true, .quality = filament::View::QualityLevel::MEDIUM});
 
   // MSAA is needed with dynamic resolution MEDIUM
   fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
   // fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
-  fview_->setAntiAliasing(::filament::View::AntiAliasing::FXAA);
+  fview_->setAntiAliasing(filament::View::AntiAliasing::FXAA);
   // fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
@@ -251,20 +251,19 @@ void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
-    std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
-        args) {
+    std::initializer_list<std::pair<const char*, EncodableValue>> args) {
   if (frameViewCallback_ == nullptr) {
     return;
   }
 
-  flutter::EncodableMap encodableMap;
+  EncodableMap encodableMap;
   for (const auto& [fst, snd] : args) {
-    encodableMap[flutter::EncodableValue(fst)] = snd;
+    encodableMap[EncodableValue(fst)] = snd;
   }
 
-  frameViewCallback_->InvokeMethod(methodName,
-                                   std::make_unique<flutter::EncodableValue>(
-                                       flutter::EncodableValue(encodableMap)));
+  frameViewCallback_->InvokeMethod(
+      methodName,
+      std::make_unique<EncodableValue>(EncodableValue(encodableMap)));
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -277,7 +276,7 @@ const wl_callback_listener ViewTarget::frame_listener = {.done = OnFrame};
  * rendered
  */
 void ViewTarget::DrawFrame(uint32_t time) {
-  asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&, time] {
+  post(*ECSystemManager::GetInstance()->GetStrand(), [&, time] {
     static bool bonce = true;
     if (bonce) {
       bonce = false;
@@ -300,8 +299,8 @@ void ViewTarget::DrawFrame(uint32_t time) {
     // drawing a frame.
 
     SendFrameViewCallback(
-        kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime,
-                                      flutter::EncodableValue(m_LastTime))});
+        kUpdateFrame,
+        {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))});
 
     auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -325,16 +324,16 @@ void ViewTarget::DrawFrame(uint32_t time) {
       SendFrameViewCallback(
           kPreRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
 
       doCameraFeatures(timeSinceLastRenderedSec);
 
       SendFrameViewCallback(
           kRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
 
       filamentSystem->getFilamentRenderer()->render(fview_);
 
@@ -343,8 +342,8 @@ void ViewTarget::DrawFrame(uint32_t time) {
       SendFrameViewCallback(
           kPostRenderFrame,
           {std::make_pair(kParam_TimeSinceLastRenderedSec,
-                          flutter::EncodableValue(timeSinceLastRenderedSec)),
-           std::make_pair(kParam_FPS, flutter::EncodableValue(fps))});
+                          EncodableValue(timeSinceLastRenderedSec)),
+           std::make_pair(kParam_FPS, EncodableValue(fps))});
     }
 
     m_LastTime = time;
@@ -426,7 +425,7 @@ void ViewTarget::vOnTouch(int32_t action,
     collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
                              std::string(__FUNCTION__));
     collisionRequest.addData(ECSMessageType::CollisionRequestType,
-                             CollisionEventType::eNativeOnTouchBegin);
+                             eNativeOnTouchBegin);
     ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 

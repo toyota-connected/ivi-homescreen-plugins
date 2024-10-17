@@ -135,8 +135,7 @@ void MaterialParameter::DebugPrint(const char* tag) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* MaterialParameter::getTextForType(
-    MaterialParameter::MaterialType type) {
+const char* MaterialParameter::getTextForType(MaterialType type) {
   return (const char*[]){
       kColor, kBool,      kBoolVector, kFloat, kFloatVector,
       kInt,   kIntVector, kMat3,       kMat4,  kTexture,

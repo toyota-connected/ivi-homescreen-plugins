@@ -27,13 +27,13 @@
 
 namespace plugin_filament_view::shapes {
 
-using ::filament::IndexBuffer;
-using ::filament::RenderableManager;
-using ::filament::VertexAttribute;
-using ::filament::VertexBuffer;
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::utils::Entity;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere() : stacks_(20), slices_(20) {}
@@ -57,7 +57,7 @@ Sphere::Sphere(const std::string& flutter_assets_path,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
+bool Sphere::bInitAndCreateShape(filament::Engine* engine_,
                                  std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);
 
@@ -74,7 +74,7 @@ bool Sphere::bInitAndCreateShape(::filament::Engine* engine_,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
+void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
@@ -171,7 +171,7 @@ void Sphere::createSingleSidedSphere(::filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Sphere::createDoubleSidedSphere(::filament::Engine* /*engine_*/) {
+void Sphere::createDoubleSidedSphere(filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
   spdlog::warn("createDoubleSidedSphere not implemented.");

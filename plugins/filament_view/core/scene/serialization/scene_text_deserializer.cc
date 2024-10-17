@@ -191,7 +191,7 @@ void SceneTextDeserializer::setUpLoadingModels() {
   // animationManager_ = std::make_unique<AnimationManager>();
 
   for (const auto& iter : models_) {
-    plugin_filament_view::Model* poCurrModel = iter.get();
+    Model* poCurrModel = iter.get();
     // Note: Instancing or prefab of models is not currently supported but might
     // affect the loading process here in the future. Backlogged.
     loadModel(poCurrModel);
@@ -233,7 +233,7 @@ void SceneTextDeserializer::loadModel(Model* model) {
   auto ecsManager = ECSystemManager::GetInstance();
   const auto& strand = *ecsManager->GetStrand();
 
-  asio::post(strand, [=] {
+  post(strand, [=] {
     auto modelSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
             ModelSystem::StaticGetTypeID(), "loadModel");
@@ -257,14 +257,13 @@ void SceneTextDeserializer::loadModel(Model* model) {
     } else if (dynamic_cast<GltfModel*>(model)) {
       auto gltf_model = dynamic_cast<GltfModel*>(model);
       if (!gltf_model->szGetAssetPath().empty()) {
-        plugin_filament_view::ModelSystem::loadGltfFromAsset(
-            model, gltf_model->szGetAssetPath(), gltf_model->szGetPrefix(),
-            gltf_model->szGetPostfix());
+        ModelSystem::loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
+                                       gltf_model->szGetPrefix(),
+                                       gltf_model->szGetPostfix());
       }
 
       if (!gltf_model->szGetURLPath().empty()) {
-        plugin_filament_view::ModelSystem::loadGltfFromUrl(
-            model, gltf_model->szGetURLPath());
+        ModelSystem::loadGltfFromUrl(model, gltf_model->szGetURLPath());
       }
     }
   });
@@ -342,10 +341,10 @@ void SceneTextDeserializer::setUpIndirectLight() {
     if (auto indirectLight = indirect_light_.get();
         dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
-        plugin_filament_view::IndirectLightSystem::setIndirectLightFromKtxAsset(
+        IndirectLightSystem::setIndirectLightFromKtxAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       } else if (!indirectLight->getUrl().empty()) {
-        plugin_filament_view::IndirectLightSystem::setIndirectLightFromKtxUrl(
+        IndirectLightSystem::setIndirectLightFromKtxUrl(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
@@ -360,7 +359,7 @@ void SceneTextDeserializer::setUpIndirectLight() {
         // auto shouldUpdateLight = indirectLight->getUrl() !=
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
-        plugin_filament_view::IndirectLightSystem::setIndirectLightFromHdrUrl(
+        IndirectLightSystem::setIndirectLightFromHdrUrl(
             indirectLight->getUrl(), indirectLight->getIntensity());
         //}
       }

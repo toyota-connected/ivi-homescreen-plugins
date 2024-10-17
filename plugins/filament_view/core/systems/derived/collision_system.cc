@@ -157,7 +157,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
 
-  auto oEntity = std::make_shared<utils::Entity>(oEntitymanager.create());
+  auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
 
   newShape->bInitAndCreateShape(engine, oEntity);
   poFilamentScene->addEntity(*oEntity);

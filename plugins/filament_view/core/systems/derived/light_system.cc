@@ -26,9 +26,9 @@
 
 namespace plugin_filament_view {
 
-using ::filament::math::float3;
-using ::filament::math::mat3f;
-using ::filament::math::mat4f;
+using filament::math::float3;
+using filament::math::mat3f;
+using filament::math::mat4f;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::setDefaultLight() {
@@ -48,7 +48,7 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
       *ECSystemManager::GetInstance()->GetStrand());
 
   if (entityLight_.isNull()) {
-    asio::post(strand_, [&] {
+    post(strand_, [&] {
       auto filamentSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
               FilamentSystem::StaticGetTypeID(), "changeLight");
@@ -69,14 +69,14 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
     return future;
   }
 
-  asio::post(strand_, [&, promise, light] {
-    auto builder = ::filament::LightManager::Builder(light->type_);
+  post(strand_, [&, promise, light] {
+    auto builder = filament::LightManager::Builder(light->type_);
 
     if (light->color_.has_value()) {
       auto colorValue = colorOf(light->color_.value());
       builder.color({colorValue[0], colorValue[1], colorValue[2]});
     } else if (light->colorTemperature_.has_value()) {
-      auto cct = ::filament::Color::cct(light->colorTemperature_.value());
+      auto cct = filament::Color::cct(light->colorTemperature_.value());
       auto red = cct.r;
       auto green = cct.g;
       auto blue = cct.b;
@@ -91,8 +91,8 @@ std::future<Resource<std::string_view>> LightSystem::changeLight(Light* light) {
     if (light->direction_) {
       // Note if Direction is 0,0,0 and you're on a spotlight
       // nothing will show.
-      if (*light->direction_ == filament::math::float3(0, 0, 0) &&
-          light->type_ == ::filament::LightManager::Type::SPOT) {
+      if (*light->direction_ == float3(0, 0, 0) &&
+          light->type_ == filament::LightManager::Type::SPOT) {
         spdlog::warn(
             "You've created a spot light without a direction, nothing will "
             "show. Undefined behavior.");

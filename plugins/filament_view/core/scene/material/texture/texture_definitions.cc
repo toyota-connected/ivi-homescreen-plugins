@@ -114,20 +114,19 @@ void TextureDefinitions::DebugPrint(const char* tag) {
 TextureDefinitions::TextureType TextureDefinitions::getType(
     const std::string& type) {
   if (type == kTypeColor) {
-    return TextureType::COLOR;
+    return COLOR;
   }
   if (type == kTypeNormal) {
-    return TextureType::NORMAL;
+    return NORMAL;
   }
   if (type == kTypeData) {
-    return TextureType::DATA;
+    return DATA;
   }
   assert(false);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* TextureDefinitions::getTextForType(
-    TextureDefinitions::TextureType type) {
+const char* TextureDefinitions::getTextForType(TextureType type) {
   return (const char*[]){
       kTypeColor,
       kTypeNormal,

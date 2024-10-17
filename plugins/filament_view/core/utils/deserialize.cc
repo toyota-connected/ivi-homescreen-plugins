@@ -18,8 +18,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::math::float3 Deserialize::Format3(
-    const flutter::EncodableMap& map) {
+filament::math::float3 Deserialize::Format3(const flutter::EncodableMap& map) {
   double x = 0, y = 0, z = 0.0f;
 
   for (const auto& [fst, snd] : map) {
@@ -40,7 +39,7 @@ namespace plugin_filament_view {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
+filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
   double x = 0, y = 0, z = 0, w = 0.0f;
   w = 1.0f;
 
@@ -88,8 +87,7 @@ void Deserialize::DecodeParameterWithDefault(
   if (auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
-    *out_value =
-        Deserialize::Format3(std::get<flutter::EncodableMap>(it->second));
+    *out_value = Format3(std::get<flutter::EncodableMap>(it->second));
   } else {
     *out_value = default_value;
   }
@@ -104,8 +102,7 @@ void Deserialize::DecodeParameterWithDefault(
   if (auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
-    *out_value =
-        Deserialize::Format4(std::get<flutter::EncodableMap>(it->second));
+    *out_value = Format4(std::get<flutter::EncodableMap>(it->second));
   } else {
     *out_value = default_value;
   }

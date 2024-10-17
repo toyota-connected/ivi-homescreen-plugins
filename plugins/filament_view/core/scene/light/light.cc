@@ -24,12 +24,12 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Light::Light(float colorTemperature,
              float intensity,
-             ::filament::math::float3 direction,
+             filament::math::float3 direction,
              bool castShadows) {
-  type_ = ::filament::LightManager::Type::DIRECTIONAL;
+  type_ = filament::LightManager::Type::DIRECTIONAL;
   colorTemperature_ = colorTemperature;
   intensity_ = intensity;
-  direction_ = std::make_unique<::filament::math::float3>(direction);
+  direction_ = std::make_unique<filament::math::float3>(direction);
   castShadows_ = castShadows;
 }
 
@@ -56,11 +56,11 @@ Light::Light(const flutter::EncodableMap& params) {
       intensity_ = std::get<double>(snd);
     } else if (key == "position" &&
                std::holds_alternative<flutter::EncodableMap>(snd)) {
-      position_ = std::make_unique<::filament::math::float3>(
+      position_ = std::make_unique<filament::math::float3>(
           Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
     } else if (key == "direction" &&
                std::holds_alternative<flutter::EncodableMap>(snd)) {
-      direction_ = std::make_unique<::filament::math::float3>(
+      direction_ = std::make_unique<filament::math::float3>(
           Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
     } else if (key == "castLight" && std::holds_alternative<bool>(snd)) {
       castLight_ = std::get<bool>(snd);
@@ -147,37 +147,37 @@ void Light::DebugPrint(const char* tag) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-::filament::LightManager::Type Light::textToLightType(const std::string& type) {
+filament::LightManager::Type Light::textToLightType(const std::string& type) {
   if (type == "SUN") {
-    return ::filament::LightManager::Type::SUN;
+    return filament::LightManager::Type::SUN;
   }
   if (type == "DIRECTIONAL") {
-    return ::filament::LightManager::Type::DIRECTIONAL;
+    return filament::LightManager::Type::DIRECTIONAL;
   }
   if (type == "POINT") {
-    return ::filament::LightManager::Type::POINT;
+    return filament::LightManager::Type::POINT;
   }
   if (type == "FOCUSED_SPOT") {
-    return ::filament::LightManager::Type::FOCUSED_SPOT;
+    return filament::LightManager::Type::FOCUSED_SPOT;
   }
   if (type == "SPOT") {
-    return ::filament::LightManager::Type::SPOT;
+    return filament::LightManager::Type::SPOT;
   }
-  return ::filament::LightManager::Type::DIRECTIONAL;
+  return filament::LightManager::Type::DIRECTIONAL;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-const char* Light::lightTypeToText(::filament::LightManager::Type type) {
+const char* Light::lightTypeToText(filament::LightManager::Type type) {
   switch (type) {
-    case ::filament::LightManager::Type::SUN:
+    case filament::LightManager::Type::SUN:
       return "SUN";
-    case ::filament::LightManager::Type::DIRECTIONAL:
+    case filament::LightManager::Type::DIRECTIONAL:
       return "DIRECTIONAL";
-    case ::filament::LightManager::Type::POINT:
+    case filament::LightManager::Type::POINT:
       return "POINT";
-    case ::filament::LightManager::Type::FOCUSED_SPOT:
+    case filament::LightManager::Type::FOCUSED_SPOT:
       return "FOCUSED_SPOT";
-    case ::filament::LightManager::Type::SPOT:
+    case filament::LightManager::Type::SPOT:
       return "SPOT";
     default:
       return "DIRECTIONAL";
