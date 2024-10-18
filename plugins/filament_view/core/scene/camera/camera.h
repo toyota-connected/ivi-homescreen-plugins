@@ -89,9 +89,6 @@ class Camera {
       flightStartOrientation_ =
           std::make_unique<std::vector<float>>(*other.flightStartOrientation_);
     }
-    if (other.groundPlane_) {
-      groundPlane_ = std::make_unique<std::vector<float>>(*other.groundPlane_);
-    }
     if (other.orbitSpeed_) {
       orbitSpeed_ = std::make_unique<std::vector<float>>(*other.orbitSpeed_);
     }
@@ -104,13 +101,16 @@ class Camera {
         *this);  // Calls the custom copy constructor
   }
 
-  static const char* getTextForMode(::filament::camutils::Mode mode);
+  [[nodiscard]] static const char* getTextForMode(
+      ::filament::camutils::Mode mode);
 
-  static ::filament::camutils::Mode getModeForText(const std::string& mode);
+  [[nodiscard]] static ::filament::camutils::Mode getModeForText(
+      const std::string& mode);
 
-  static const char* getTextForFov(::filament::camutils::Fov fov);
+  [[nodiscard]] static const char* getTextForFov(::filament::camutils::Fov fov);
 
-  static ::filament::camutils::Fov getFovForText(const std::string& fov);
+  [[nodiscard]] static ::filament::camutils::Fov getFovForText(
+      const std::string& fov);
 
   friend class CameraManager;
 
@@ -229,10 +229,6 @@ class Camera {
   /// 0 (no damping). Lower values give slower damping times. A good default
   /// is 15.0. Too high a value may lead to instability.
   std::optional<float> flightMoveDamping_;
-
-  /// The ground plane equation used for ray casts. This is a plane equation as
-  /// in Ax + By + Cz + D = 0. Defaults to (0, 0, 1, 0).
-  std::unique_ptr<std::vector<float>> groundPlane_;
 
   // how much ongoing rotation velocity effects, default 0.05
   double inertia_rotationSpeed_;

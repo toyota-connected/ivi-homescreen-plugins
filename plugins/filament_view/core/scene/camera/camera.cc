@@ -24,7 +24,10 @@
 namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Camera::Camera(const flutter::EncodableMap& params)
-    : inertia_rotationSpeed_(0.05f),
+    : eCustomCameraMode_(Unset),
+      forceSingleFrameUpdate_(false),
+      fCurrentOrbitAngle_(0),
+      inertia_rotationSpeed_(0.05f),
       inertia_velocityFactor_(0.2f),
       inertia_decayFactor_(0.86f),
       pan_angleCapX_(15),
@@ -36,11 +39,7 @@ Camera::Camera(const flutter::EncodableMap& params)
       current_yaw_addition_(0) {
   SPDLOG_TRACE("++Camera::Camera");
 
-  // Currently variables not coming over from dart, Backlogged.
-  eCustomCameraMode_ = Unset;
-  fCurrentOrbitAngle_ = 0;
   orbitHomePosition_ = std::make_unique<filament::math::float3>(0, 3, 0);
-  forceSingleFrameUpdate_ = false;
 
   Deserialize::DecodeParameterWithDefault(
       kCamera_Inertia_RotationSpeed, &inertia_rotationSpeed_, params, 0.05f);
@@ -64,56 +63,56 @@ Camera::Camera(const flutter::EncodableMap& params)
                                           params, 10.0f);
 
   for (const auto& [fst, snd] : params) {
-    if (auto key = std::get<std::string>(fst); key == "exposure") {
+    if (auto key = std::get<std::string>(fst); key == kExposure) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         exposure_ =
             std::make_unique<Exposure>(std::get<flutter::EncodableMap>(snd));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         exposure_ = std::make_unique<Exposure>(flutter::EncodableMap{});
       }
-    } else if (key == "projection") {
+    } else if (key == kProjection) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         projection_ =
             std::make_unique<Projection>(std::get<flutter::EncodableMap>(snd));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         flutter::EncodableMap map = {
-            {flutter::EncodableValue("focalLength"), flutter::EncodableValue()},
-            {flutter::EncodableValue("aspect"), flutter::EncodableValue()},
-            {flutter::EncodableValue("near"), flutter::EncodableValue()},
-            {flutter::EncodableValue("far"), flutter::EncodableValue()}};
+            {flutter::EncodableValue(kFocalLength), flutter::EncodableValue()},
+            {flutter::EncodableValue(kAspect), flutter::EncodableValue()},
+            {flutter::EncodableValue(kNear), flutter::EncodableValue()},
+            {flutter::EncodableValue(kFar), flutter::EncodableValue()}};
         projection_ = std::make_unique<Projection>(map);
       }
-    } else if (key == "lensProjection") {
+    } else if (key == kLensProjection) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         lensProjection_ = std::make_unique<LensProjection>(
             std::get<flutter::EncodableMap>(snd));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         flutter::EncodableMap map = {
-            {flutter::EncodableValue("focalLength"), flutter::EncodableValue()},
-            {flutter::EncodableValue("aspect"), flutter::EncodableValue()},
-            {flutter::EncodableValue("near"), flutter::EncodableValue()},
-            {flutter::EncodableValue("far"), flutter::EncodableValue()}};
+            {flutter::EncodableValue(kFocalLength), flutter::EncodableValue()},
+            {flutter::EncodableValue(kAspect), flutter::EncodableValue()},
+            {flutter::EncodableValue(kNear), flutter::EncodableValue()},
+            {flutter::EncodableValue(kFar), flutter::EncodableValue()}};
         lensProjection_ = std::make_unique<LensProjection>(map);
       }
-    } else if (key == "flightMaxMoveSpeed") {
+    } else if (key == kFlightMaxMoveSpeed) {
       if (std::holds_alternative<double>(snd)) {
         flightMaxMoveSpeed_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         flightMaxMoveSpeed_ = 10;
       }
-    } else if (key == "flightMoveDamping") {
+    } else if (key == kFlightMoveDamping) {
       if (std::holds_alternative<double>(snd)) {
         flightMoveDamping_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         flightMoveDamping_ = 15.0;
       }
-    } else if (key == "flightSpeedSteps") {
+    } else if (key == kFlightSpeedSteps) {
       if (std::holds_alternative<int64_t>(snd)) {
         flightSpeedSteps_ = std::get<int64_t>(snd);
       } else {
         flightSpeedSteps_ = 80;
       }
-    } else if (key == "flightStartOrientation") {
+    } else if (key == kFlightStartOrientation) {
       if (std::holds_alternative<flutter::EncodableList>(snd)) {
         auto list = std::get<flutter::EncodableList>(snd);
         flightStartOrientation_ = std::make_unique<std::vector<float>>();
@@ -125,7 +124,7 @@ Camera::Camera(const flutter::EncodableMap& params)
         flightStartOrientation_->push_back(0);
         flightStartOrientation_->push_back(0);
       }
-    } else if (key == "flightStartPosition") {
+    } else if (key == kFlightStartPosition) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         flightStartPosition_ = std::make_unique<filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
@@ -135,38 +134,25 @@ Camera::Camera(const flutter::EncodableMap& params)
         flightStartPosition_ =
             std::make_unique<filament::math::float3>(0, 0, 0);
       }
-    } else if (key == "fovDirection") {
+    } else if (key == kFovDirection) {
       if (std::holds_alternative<std::string>(snd)) {
         fovDirection_ = getFovForText(std::get<std::string>(snd));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         fovDirection_ = filament::camutils::Fov::VERTICAL;
       }
-    } else if (key == "fovDegrees") {
+    } else if (key == kFovDegrees) {
       if (std::holds_alternative<double>(snd)) {
         fovDegrees_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         fovDegrees_ = 33;
       }
-    } else if (key == "farPlane") {
+    } else if (key == kFarPlane) {
       if (std::holds_alternative<double>(snd)) {
         farPlane_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         farPlane_ = 5000;
       }
-    } else if (key == "groundPlane") {
-      groundPlane_ = std::make_unique<std::vector<float>>();
-      if (std::holds_alternative<flutter::EncodableList>(snd)) {
-        auto list = std::get<flutter::EncodableList>(snd);
-        for (const auto& item : list) {
-          groundPlane_->emplace_back(std::get<double>(item));
-        }
-      } else if (std::holds_alternative<std::monostate>(snd)) {
-        groundPlane_->push_back(0);
-        groundPlane_->push_back(0);
-        groundPlane_->push_back(1);
-        groundPlane_->push_back(0);
-      }
-    } else if (key == "mode") {
+    } else if (key == kMode) {
       if (std::holds_alternative<std::string>(snd)) {
         if (auto modeType = std::get<std::string>(snd);
             modeType == kModeAutoOrbit) {
@@ -179,12 +165,12 @@ Camera::Camera(const flutter::EncodableMap& params)
       } else if (std::holds_alternative<std::monostate>(snd)) {
         mode_ = filament::camutils::Mode::ORBIT;
       }
-    } else if (key == "orbitHomePosition") {
+    } else if (key == kOrbitHomePosition) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         orbitHomePosition_ = std::make_unique<filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
       }
-    } else if (key == "orbitSpeed") {
+    } else if (key == kOrbitSpeed) {
       if (std::holds_alternative<flutter::EncodableList>(snd)) {
         auto list = std::get<flutter::EncodableList>(snd);
         orbitSpeed_ = std::make_unique<std::vector<float>>();
@@ -196,46 +182,43 @@ Camera::Camera(const flutter::EncodableMap& params)
         orbitSpeed_->push_back(0.01f);
         orbitSpeed_->push_back(0.01f);
       }
-    } else if (key == "scaling" && !snd.IsNull() &&
+    } else if (key == kScaling && !snd.IsNull() &&
                std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
       scaling_ = std::make_unique<std::vector<double>>();
       for (const auto& item : list) {
         scaling_->emplace_back(std::get<double>(item));
       }
-    } else if (key == "shift" && !snd.IsNull() &&
+    } else if (key == kShift && !snd.IsNull() &&
                std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
       shift_ = std::make_unique<std::vector<double>>();
       for (const auto& item : list) {
         shift_->emplace_back(std::get<double>(item));
       }
-    } else if (key == "targetPosition") {
+    } else if (key == kTargetPosition) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         targetPosition_ = std::make_unique<filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         targetPosition_ = std::make_unique<filament::math::float3>(0, 0, 0);
       }
-    } else if (key == "upVector") {
+    } else if (key == kUpVector) {
       if (std::holds_alternative<flutter::EncodableMap>(snd)) {
         upVector_ = std::make_unique<filament::math::float3>(
             Deserialize::Format3(std::get<flutter::EncodableMap>(snd)));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         upVector_ = std::make_unique<filament::math::float3>(0, 1, 0);
       }
-    } else if (key == "zoomSpeed") {
+    } else if (key == kZoomSpeed) {
       if (std::holds_alternative<double>(snd)) {
         zoomSpeed_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         zoomSpeed_ = 0.01;
       }
-    } /*else if (!it.second.IsNull()) {
-      spdlog::debug("[Camera] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
-    }*/
+    }
   }
+
   SPDLOG_TRACE("--Camera::Camera");
 }
 
@@ -269,11 +252,6 @@ void Camera::DebugPrint(const char* tag) {
       spdlog::debug("\tflightStartOrientation: {}", it_);
     }
   }
-#if 0
-  if (flightStartPosition_) {
-    flightStartPosition_->Print("\tflightStartPosition");
-  }
-#endif
   if (fovDegrees_.has_value()) {
     spdlog::debug("\tfovDegrees: {}", fovDegrees_.value());
   }
@@ -283,18 +261,9 @@ void Camera::DebugPrint(const char* tag) {
   if (farPlane_.has_value()) {
     spdlog::debug("\tfarPlane: {}", farPlane_.value());
   }
-  if (groundPlane_) {
-    for (const auto& it_ : *groundPlane_) {
-      spdlog::debug("\tgroundPlane: {}", it_);
-    }
-  }
 
   spdlog::debug("\tmode: [{}]", getTextForMode(mode_));
-#if 0
-  if (orbitHomePosition_) {
-    orbitHomePosition_->Print("\torbitHomePosition");
-  }
-#endif
+
   spdlog::debug("\tfovDirection: [{}]", getTextForFov(fovDirection_));
   if (orbitSpeed_) {
     for (const auto& it_ : *orbitSpeed_) {
@@ -311,14 +280,6 @@ void Camera::DebugPrint(const char* tag) {
       spdlog::debug("\tshift: {}", it_);
     }
   }
-#if 0
-  if (targetPosition_) {
-    targetPosition_->Print("\ttargetPosition");
-  }
-  if (upVector_) {
-    upVector_->Print("\tupVector");
-  }
-#endif
   if (zoomSpeed_.has_value()) {
     spdlog::debug("\tzoomSpeed: {}", zoomSpeed_.value());
   }

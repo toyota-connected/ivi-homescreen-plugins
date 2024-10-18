@@ -16,6 +16,7 @@
 
 #include "lens_projection.h"
 
+#include <core/include/literals.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -32,23 +33,23 @@ LensProjection::LensProjection(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++LensProjection::LensProjection");
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
-    if (key == "focalLength") {
+    if (key == kFocalLength) {
       if (std::holds_alternative<double>(snd)) {
         focalLength_ = static_cast<float>(std::get<double>(snd));
       } else if (std::holds_alternative<std::monostate>(snd)) {
         focalLength_ = 28.0f;
       }
-    } else if (key == "aspect") {
+    } else if (key == kAspect) {
       if (std::holds_alternative<double>(snd)) {
         aspect_ = std::get<double>(snd);
       }
-    } else if (key == "near") {
+    } else if (key == kNear) {
       if (std::holds_alternative<double>(snd)) {
         near_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         near_ = 0.05;  // 5 cm
       }
-    } else if (key == "far") {
+    } else if (key == kFar) {
       if (std::holds_alternative<double>(snd)) {
         far_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
@@ -60,7 +61,6 @@ LensProjection::LensProjection(const flutter::EncodableMap& params) {
     }
   }
   SPDLOG_TRACE("--LensProjection::LensProjection");
-  DebugPrint("LensProjection");
 }
 
 ////////////////////////////////////////////////////////////////////////////
