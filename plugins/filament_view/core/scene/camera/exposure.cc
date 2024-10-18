@@ -16,6 +16,7 @@
 
 #include "exposure.h"
 
+#include <core/include/literals.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -24,32 +25,31 @@ namespace plugin_filament_view {
 Exposure::Exposure(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Exposure::Exposure");
   for (const auto& [fst, snd] : params) {
-    if (auto key = std::get<std::string>(fst); key == "aperture") {
+    if (auto key = std::get<std::string>(fst); key == kAperture) {
       if (std::holds_alternative<double>(snd)) {
         aperture_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         aperture_ = 16.0f;
       }
-    } else if (key == "sensitivity") {
+    } else if (key == kSensitivity) {
       if (std::holds_alternative<double>(snd)) {
         sensitivity_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
         sensitivity_ = 100.0f;
       }
-    } else if (key == "shutterSpeed") {
+    } else if (key == kShutterSpeed) {
       if (std::holds_alternative<double>(snd)) {
         shutterSpeed_ = std::get<double>(snd);
-      } else if (std::holds_alternative<double>(snd)) {
+      } else if (std::holds_alternative<std::monostate>(snd)) {
         shutterSpeed_ = 1.0f / 125.0f;
       }
-    } else if (key == "exposure") {
+    } else if (key == kExposure) {
       if (std::holds_alternative<double>(snd)) {
         exposure_ = std::get<double>(snd);
       }
     }
   }
   SPDLOG_TRACE("--Exposure::Exposure");
-  DebugPrint("Exposure");
 }
 
 ////////////////////////////////////////////////////////////////////////////

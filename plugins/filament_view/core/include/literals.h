@@ -62,9 +62,7 @@ static constexpr char kCollisionRayRequestGUID[] = "COLLISION_RAY_REQUEST_GUID";
 
 // Deserialization
 static constexpr char kId[] = "id";
-// for callback / name & object lookups
 static constexpr char kName[] = "name";
-// for callback / name & object lookups
 static constexpr char kGlobalGuid[] = "global_guid";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";
@@ -89,6 +87,37 @@ static constexpr char kSkybox[] = "skybox";
 static constexpr char kLight[] = "light";
 static constexpr char kIndirectLight[] = "indirectLight";
 static constexpr char kCamera[] = "camera";
+static constexpr char kExposure[] = "exposure";
+static constexpr char kProjection[] = "projection";
+static constexpr char kLensProjection[] = "lensProjection";
+static constexpr char kFlightMaxMoveSpeed[] = "flightMaxMoveSpeed";
+static constexpr char kFlightMoveDamping[] = "flightMoveDamping";
+static constexpr char kFlightSpeedSteps[] = "flightSpeedSteps";
+static constexpr char kFlightStartOrientation[] = "flightStartOrientation";
+static constexpr char kFlightStartPosition[] = "flightStartPosition";
+static constexpr char kFovDirection[] = "fovDirection";
+static constexpr char kFovDegrees[] = "fovDegrees";
+static constexpr char kFarPlane[] = "farPlane";
+static constexpr char kMode[] = "mode";
+static constexpr char kOrbitHomePosition[] = "orbitHomePosition";
+static constexpr char kOrbitSpeed[] = "orbitSpeed";
+static constexpr char kScaling[] = "scaling";
+static constexpr char kShift[] = "shift";
+static constexpr char kTargetPosition[] = "targetPosition";
+static constexpr char kUpVector[] = "upVector";
+static constexpr char kZoomSpeed[] = "zoomSpeed";
+static constexpr char kFocalLength[] = "focalLength";
+static constexpr char kAspect[] = "aspect";
+static constexpr char kNear[] = "near";
+static constexpr char kFar[] = "far";
+static constexpr char kAperture[] = "aperture";
+static constexpr char kSensitivity[] = "sensitivity";
+static constexpr char kShutterSpeed[] = "shutterSpeed";
+static constexpr char kLeft[] = "left";
+static constexpr char kRight[] = "right";
+static constexpr char kBottom[] = "bottom";
+static constexpr char kTop[] = "top";
+static constexpr char kFovInDegrees[] = "fovInDegrees";
 
 // specific collidable values:
 static constexpr char kCollidable[] = "collidable";

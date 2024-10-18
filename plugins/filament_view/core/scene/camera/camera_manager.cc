@@ -37,12 +37,12 @@ namespace plugin_filament_view {
 CameraManager::CameraManager(ViewTarget* poOwner)
     : currentVelocity_(0), initialTouchPosition_(0), m_poOwner(poOwner) {
   SPDLOG_TRACE("++CameraManager::CameraManager");
-  setDefaultCamera();
+  setDefaultFilamentCamera();
   SPDLOG_TRACE("--CameraManager::CameraManager: {}");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void CameraManager::setDefaultCamera() {
+void CameraManager::setDefaultFilamentCamera() {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
 
   auto filamentSystem =

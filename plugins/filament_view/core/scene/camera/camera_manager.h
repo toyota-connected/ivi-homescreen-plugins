@@ -43,7 +43,7 @@ class CameraManager {
  public:
   explicit CameraManager(ViewTarget* poOwner);
 
-  void setDefaultCamera();
+  void setDefaultFilamentCamera();
 
   void lookAtDefaultPosition() const;
   void setCameraLookat(filament::math::float3 eye,
