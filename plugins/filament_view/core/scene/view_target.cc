@@ -240,11 +240,9 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
 }
 
+////////////////////////////////////////////////////////////////////////////
 void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
     std::unique_ptr<Camera> camera) const {
-  // Note right now cameraManager creates a default camera on startup; if we're
-  // immediately setting it to a different one; that's extra work that shouldn't
-  // be done. Backlogged
   cameraManager_->updateCamera(camera.get());
   cameraManager_->setPrimaryCamera(std::move(camera));
 }
