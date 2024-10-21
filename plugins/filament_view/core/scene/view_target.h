@@ -80,7 +80,8 @@ class ViewTarget {
     return cameraManager_.get();
   }
 
-  void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
+  void vChangeQualitySettings(
+      const ePredefinedQualitySettings qualitySettings) const;
 
  private:
   void setupWaylandSubsurface();

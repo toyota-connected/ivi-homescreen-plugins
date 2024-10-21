@@ -72,8 +72,8 @@ class ViewTargetSystem : public ECSystem {
   void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue) const;
 
   void vChangeViewQualitySettings(
-      size_t nWhich,
-      ViewTarget::ePredefinedQualitySettings settings) const;
+      const size_t nWhich,
+      const ViewTarget::ePredefinedQualitySettings settings) const;
 
  private:
   std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;

@@ -133,8 +133,8 @@ void ViewTargetSystem::vKickOffFrameRenderingLoops() const {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vChangeViewQualitySettings(
-    size_t nWhich,
-    ViewTarget::ePredefinedQualitySettings settings) const {
+    const size_t nWhich,
+    const ViewTarget::ePredefinedQualitySettings settings) const {
   m_lstViewTargets[nWhich]->vChangeQualitySettings(settings);
 }
 

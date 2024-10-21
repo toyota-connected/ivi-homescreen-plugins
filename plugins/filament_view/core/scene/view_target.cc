@@ -249,7 +249,7 @@ void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::vChangeQualitySettings(
-    ePredefinedQualitySettings qualitySettings) const {
+    const ePredefinedQualitySettings qualitySettings) const {
   // Reset the settings for each quality setting
   filament::viewer::ViewSettings settings = settings_.view;
 
