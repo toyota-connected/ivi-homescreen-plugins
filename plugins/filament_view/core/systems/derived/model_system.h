@@ -17,7 +17,6 @@
 
 #include <core/entity/derived/model/model.h>
 #include <core/include/resource.h>
-#include <core/include/settings.h>
 #include <core/systems/base/ecsystem.h>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
@@ -81,14 +80,12 @@ class ModelSystem : public ECSystem {
   }
 
  private:
-  // sunlight_ needs to be moved, no reason to be on this class
-  utils::Entity sunlight_;
   ::filament::gltfio::AssetLoader* assetLoader_{};
   ::filament::gltfio::MaterialProvider* materialProvider_{};
   ::filament::gltfio::ResourceLoader* resourceLoader_{};
 
   // This is the EntityObject guids to model instantiated.
-  std::map<EntityGUID, Model*> m_mapszpoAssets;
+  std::map<EntityGUID, Model*> m_mapszpoAssets;  // NOLINT
 
   // This will be needed for a list of prefab instances to load from
   // std::map<Model*> <name>models_;
@@ -98,9 +95,6 @@ class ModelSystem : public ECSystem {
   // NOTE If you change this size; the async update loop on the system count
   // needs to change.
   utils::Entity readyRenderables_[128];
-
-  // Todo, this needs to be moved; if its not initialized, undefined <results>
-  ::filament::viewer::Settings settings_;
 
   // not actively used, to be moved
   std::vector<float> morphWeights_;
