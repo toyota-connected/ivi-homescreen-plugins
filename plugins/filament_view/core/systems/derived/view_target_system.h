@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <core/scene/view_target.h>
 #include <core/systems/base/ecsystem.h>
 #include <filament/Engine.h>
 #include <flutter_desktop_engine_state.h>
@@ -69,6 +70,10 @@ class ViewTargetSystem : public ECSystem {
                                 const std::string& szValue) const;
   void vResetInertiaCameraToDefaultValues(size_t nWhich) const;
   void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue) const;
+
+  void vChangeViewQualitySettings(
+      size_t nWhich,
+      ViewTarget::ePredefinedQualitySettings settings) const;
 
  private:
   std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;

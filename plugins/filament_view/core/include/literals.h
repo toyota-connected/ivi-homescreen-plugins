@@ -41,6 +41,7 @@ static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
 static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
 static constexpr char kResetInertiaCameraToDefaultValues[] =
     "RESET_INERTIA_TO_DEFAULTS";
+static constexpr char kChangeQualitySettings[] = "CHANGE_QUALITY_SETTINGS";
 
 // Collision Requests
 static constexpr char kCollisionRayRequest[] = "COLLISION_RAY_REQUEST";

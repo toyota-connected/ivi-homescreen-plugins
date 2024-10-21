@@ -87,6 +87,9 @@ class FilamentViewPlugin : public flutter::Plugin,
   void vResetInertiaCameraToDefaultValues(
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
+  void ChangeViewQualitySettings(
+      std::function<void(std::optional<FlutterError> reply)> result) override;
+
   void SetCameraRotation(
       float fValue,
       std::function<void(std::optional<FlutterError> reply)> result) override;

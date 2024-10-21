@@ -36,6 +36,8 @@ class ViewTarget {
 
   ~ViewTarget();
 
+  enum ePredefinedQualitySettings { Lowest, Low, Medium, High, Ultra };
+
   // Disallow copy and assign.
   ViewTarget(const ViewTarget&) = delete;
   ViewTarget& operator=(const ViewTarget&) = delete;
@@ -77,6 +79,8 @@ class ViewTarget {
   [[nodiscard]] CameraManager* getCameraManager() const {
     return cameraManager_.get();
   }
+
+  void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
 
  private:
   void setupWaylandSubsurface();
