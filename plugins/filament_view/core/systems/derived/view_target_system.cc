@@ -77,6 +77,24 @@ void ViewTargetSystem::vInitSystem() {
 
         vSetCameraFromSerializedData();
       });
+
+  vRegisterMessageHandler(
+      ECSMessageType::ChangeViewQualitySettings, [this](const ECSMessage& msg) {
+        spdlog::debug("ChangeViewQualitySettings");
+
+        // Not Currently Implemented -- currently will change all view targes.
+        // ChangeViewQualitySettingsWhichView
+        auto settings =
+            msg.getData<int>(ECSMessageType::ChangeViewQualitySettings);
+        for (size_t i = 0; i < m_lstViewTargets.size(); ++i) {
+          vChangeViewQualitySettings(
+              i, static_cast<ViewTarget::ePredefinedQualitySettings>(settings));
+        }
+
+        spdlog::debug("ChangeViewQualitySettings Complete");
+
+        vSetCameraFromSerializedData();
+      });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +129,13 @@ void ViewTargetSystem::vKickOffFrameRenderingLoops() const {
   for (const auto& viewTarget : m_lstViewTargets) {
     viewTarget->setInitialized();
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ViewTargetSystem::vChangeViewQualitySettings(
+    const size_t nWhich,
+    const ViewTarget::ePredefinedQualitySettings settings) const {
+  m_lstViewTargets[nWhich]->vChangeQualitySettings(settings);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

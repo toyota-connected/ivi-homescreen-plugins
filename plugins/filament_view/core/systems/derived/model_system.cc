@@ -22,6 +22,7 @@
 #include <core/systems/ecsystems_manager.h>
 #include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
+#include <filament/Scene.h>
 #include <filament/filament/RenderableManager.h>
 #include <filament/filament/TransformManager.h>
 #include <filament/gltfio/ResourceLoader.h>
@@ -83,6 +84,11 @@ void ModelSystem::loadModelGlb(Model* poOurModel,
     // NOTE, this should only be temporary until CustomModelViewer isn't
     // necessary in implementation.
     vInitSystem();
+
+    if (assetLoader_ == nullptr) {
+      spdlog::error("unable to initialize model system");
+      return;
+    }
   }
 
   auto* asset = assetLoader_->createAsset(buffer.data(),
@@ -227,7 +233,8 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
       // component.
       rcm.setScreenSpaceContactShadows(ri, false);
     }
-    filamentSystem->getFilamentScene()->addEntities(readyRenderables_, count);
+    filamentSystem->getFilamentScene()->addEntities(readyRenderables_,
+                                                    maxToPop);
     count = asset->popRenderables(nullptr, 0);
   }
 
@@ -375,6 +382,10 @@ std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vInitSystem() {
+  if (materialProvider_ != nullptr) {
+    return;
+  }
+
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
           FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");

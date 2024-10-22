@@ -229,11 +229,9 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     //    continue; // Skip if layers don't match
     // }
 
-    // Variable to hold the hit position
-    filament::math::float3 hitLocation;
-
     // Perform intersection test with the ray
-    if (collidable->bDoesIntersect(rayCast, hitLocation)) {
+    if (filament::math::float3 hitLocation;
+        collidable->bDoesIntersect(rayCast, hitLocation)) {
       // If there is an intersection, create a HitResult
       HitResult hitResult;
       hitResult.guid_ = entity->GetGlobalGuid();

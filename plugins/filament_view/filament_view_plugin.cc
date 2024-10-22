@@ -299,6 +299,21 @@ void FilamentViewPlugin::vResetInertiaCameraToDefaultValues(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+void FilamentViewPlugin::ChangeViewQualitySettings(
+    std::function<void(std::optional<FlutterError> reply)> /*result*/) {
+  static int qualitySettingsVal = 0;
+  ECSMessage qualitySettings;
+  qualitySettings.addData(ECSMessageType::ChangeViewQualitySettings,
+                          qualitySettingsVal);
+  ECSystemManager::GetInstance()->vRouteMessage(qualitySettings);
+
+  qualitySettingsVal++;
+  if (qualitySettingsVal > ViewTarget::ePredefinedQualitySettings::Ultra) {
+    qualitySettingsVal = 0;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::SetCameraRotation(
     const float fValue,
     std::function<void(std::optional<FlutterError> reply)> /*result*/) {

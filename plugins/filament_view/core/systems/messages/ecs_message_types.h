@@ -44,6 +44,9 @@ enum class ECSMessageType {
 
   ChangeSceneIndirectLightProperties,
   ChangeSceneIndirectLightPropertiesIntensity,
+
+  ChangeViewQualitySettings,
+  ChangeViewQualitySettingsWhichView,
 };
 
 }

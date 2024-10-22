@@ -16,15 +16,14 @@
 
 #pragma once
 
-#include <core/include/settings.h>
 #include <core/scene/camera/camera.h>
 #include <core/scene/camera/camera_manager.h>
 #include <filament/Engine.h>
 #include <flutter_desktop_plugin_registrar.h>
 #include <gltfio/AssetLoader.h>
+#include <viewer/Settings.h>
 #include <asio/io_context_strand.hpp>
 #include <cstdint>
-#include <future>
 
 namespace plugin_filament_view {
 
@@ -36,6 +35,8 @@ class ViewTarget {
   ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
   ~ViewTarget();
+
+  enum ePredefinedQualitySettings { Lowest, Low, Medium, High, Ultra };
 
   // Disallow copy and assign.
   ViewTarget(const ViewTarget&) = delete;
@@ -78,6 +79,9 @@ class ViewTarget {
   [[nodiscard]] CameraManager* getCameraManager() const {
     return cameraManager_.get();
   }
+
+  void vChangeQualitySettings(
+      const ePredefinedQualitySettings qualitySettings) const;
 
  private:
   void setupWaylandSubsurface();

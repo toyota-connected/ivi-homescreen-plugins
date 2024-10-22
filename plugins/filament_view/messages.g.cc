@@ -123,6 +123,9 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             }
           }
           result->Success();
+        } else if (methodCall.method_name() == kChangeQualitySettings) {
+          api->ChangeViewQualitySettings(nullptr);
+          result->Success();
         } else if (methodCall.method_name() == kCollisionRayRequest) {
           const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
           filament::math::float3 origin(0);
