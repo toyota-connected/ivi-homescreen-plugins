@@ -106,7 +106,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       }
 
     } else if (key == kScene) {
-      vDeserializeSceneLevel(snd, flutterAssetsPath);
+      vDeserializeSceneLevel(snd);
     } else if (key == kShapes &&
                std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
@@ -130,8 +130,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vDeserializeSceneLevel(
-    const flutter::EncodableValue& params,
-    const std::string& /*flutterAssetsPath*/) {
+    const flutter::EncodableValue& params) {
   for (const auto& [fst, snd] : std::get<flutter::EncodableMap>(params)) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {

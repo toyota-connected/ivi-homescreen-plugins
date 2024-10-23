@@ -44,8 +44,7 @@ class SceneTextDeserializer {
                              const std::string& flutterAssetsPath);
   // This is called from vDeserializeRootLevel function when it hits a 'scene'
   // tag
-  void vDeserializeSceneLevel(const flutter::EncodableValue& params,
-                              const std::string& flutterAssetsPath);
+  void vDeserializeSceneLevel(const flutter::EncodableValue& params);
 
   void setUpLoadingModels() const;
   void setUpSkybox();
