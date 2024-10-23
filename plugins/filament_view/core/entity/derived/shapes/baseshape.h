@@ -81,8 +81,7 @@ class BaseShape : public EntityObject {
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;
-  /// material to be used for the shape.
-  std::optional<std::unique_ptr<MaterialDefinitions>> m_poMaterialDefinitions;
+  /// material to be used for the shape - instantiated from material definition
   Resource<filament::MaterialInstance*> m_poMaterialInstance;
 
   std::shared_ptr<utils::Entity> m_poEntity;

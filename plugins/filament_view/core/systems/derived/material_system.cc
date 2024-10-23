@@ -17,7 +17,7 @@
 #include "material_system.h"
 #include "filament_system.h"
 
-#include <core/scene/material/material_definitions.h>
+#include <core/components/derived/material_definitions.h>
 #include <core/systems/ecsystems_manager.h>
 #include <plugins/common/common.h>
 

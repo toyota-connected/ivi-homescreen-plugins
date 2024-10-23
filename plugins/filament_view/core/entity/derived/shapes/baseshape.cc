@@ -80,8 +80,8 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
                                               ShapeType::Unset);
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
                                           float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
-                                          params);
+  //Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
+  //                                        params);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
                                           false);
 
@@ -92,6 +92,14 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
+  }
+
+  // if we have material definitions data request, we'll build that component
+  // (optional)
+  if (const auto it = params.find(flutter::EncodableValue(kMaterial));
+      it != params.end() && !it->second.IsNull()) {
+      auto materialDefinitions = std::make_shared<MaterialDefinitions>(std::get<flutter::EncodableMap>(it->second));
+      vAddComponent(std::move(materialDefinitions));
   }
 
   SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
@@ -184,8 +192,12 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     } else {
       // this will also set all the default values of the material instance from
       // the material param list
-      m_poMaterialInstance =
-          materialSystem->getMaterialInstance(m_poMaterialDefinitions->get());
+
+        const auto materialDefinitions = GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
+        if(materialDefinitions != nullptr) {
+            m_poMaterialInstance =
+                materialSystem->getMaterialInstance(dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
+        }
 
       if (m_poMaterialInstance.getStatus() != Status::Success) {
         spdlog::error("Failed to get material instance.");
@@ -259,10 +271,6 @@ void BaseShape::DebugPrint(const char* tag) const {
                 m_f3Normal.z);
 
   spdlog::debug("Double Sided: {}", m_bDoubleSided);
-
-  if (m_poMaterialDefinitions.has_value()) {
-    m_poMaterialDefinitions.value()->DebugPrint("\tMaterial Definitions");
-  }
 
   DebugPrint();
 

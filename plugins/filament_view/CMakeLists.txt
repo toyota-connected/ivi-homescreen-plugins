@@ -106,7 +106,7 @@ add_library(plugin_filament_view STATIC
         core/scene/material/loader/material_loader.cc
         core/scene/material/loader/texture_loader.cc
         core/systems/derived/material_system.cc
-        core/scene/material/material_definitions.cc
+        core/components/derived/material_definitions.cc
         core/scene/material/material_parameter.cc
         core/scene/material/texture/texture_definitions.cc
         core/scene/material/texture/texture_sampler.cc

@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "material_parameter.h"
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <core/scene/material/material_parameter.h>
+#include <core/components/base/component.h>
 #include <core/include/resource.h>
 #include <filament/MaterialInstance.h>
 #include <map>
@@ -27,16 +28,22 @@
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
 namespace plugin_filament_view {
-class MaterialDefinitions {
+
+class MaterialDefinitions : public Component {
  public:
-  MaterialDefinitions(const flutter::EncodableMap& params);
-  ~MaterialDefinitions();
+  explicit MaterialDefinitions(const flutter::EncodableMap& params);
 
-  void DebugPrint(const char* tag);
+ MaterialDefinitions(const MaterialDefinitions& other)
+  : Component(std::string(__FUNCTION__)), assetPath_(other.assetPath_), url_(other.url_) {
 
-  // Disallow copy and assign.
-  MaterialDefinitions(const MaterialDefinitions&) = delete;
-  MaterialDefinitions& operator=(const MaterialDefinitions&) = delete;
+  for (const auto& [key, value] : other.parameters_) {
+   if (value) {
+    parameters_.emplace(key, value->clone());
+   }
+  }
+ }
+
+  ~MaterialDefinitions() override;
 
   void vSetMaterialInstancePropertiesFromMyPropertyMap(
       const ::filament::Material* materialResult,
@@ -57,6 +64,17 @@ class MaterialDefinitions {
     return assetPath_;
   }
   [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
+
+ void DebugPrint(const std::string& tabPrefix) const override;
+
+ static size_t StaticGetTypeID() { return typeid(MaterialDefinitions).hash_code(); }
+
+ [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+
+ [[nodiscard]] Component* Clone() const override {
+  auto* cloned = new MaterialDefinitions(*this);  // Copy constructor is called here
+  return cloned;
+ }
 
  private:
   std::string assetPath_;

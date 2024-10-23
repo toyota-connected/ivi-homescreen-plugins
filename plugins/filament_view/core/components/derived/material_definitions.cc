@@ -29,7 +29,8 @@ using MinFilter = filament::TextureSampler::MinFilter;
 using MagFilter = filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params) {
+MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params) :
+  Component(std::string(__FUNCTION__)) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
   const auto flutterAssetPath =
       ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
@@ -78,27 +79,26 @@ MaterialDefinitions::~MaterialDefinitions() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void MaterialDefinitions::DebugPrint(const char* tag) {
-  spdlog::debug("++++++++ (MaterialDefinitions) ++++++++");
-  spdlog::debug("{}", tag);
+void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const{
+  spdlog::debug(tabPrefix + "++++++++ (MaterialDefinitions) ++++++++");
   if (!assetPath_.empty()) {
-    spdlog::debug("assetPath: [{}]", assetPath_);
+    spdlog::debug(tabPrefix +"assetPath: [{}]", assetPath_);
 
     const auto flutterAssetPath =
       ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
     const std::filesystem::path asset_folder(flutterAssetPath);
-    spdlog::debug("asset_path {} valid",
+    spdlog::debug(tabPrefix +"asset_path {} valid",
                   exists(asset_folder / assetPath_) ? "is" : "is not");
   }
   if (!url_.empty()) {
-    spdlog::debug("url: [{}]", url_);
+    spdlog::debug(tabPrefix +"url: [{}]", url_);
   }
-  spdlog::debug("ParamCount: [{}]", parameters_.size());
+  spdlog::debug(tabPrefix + "ParamCount: [{}]", parameters_.size());
 
   for (const auto& [fst, snd] : parameters_) {
     if (snd != nullptr)
-      snd->DebugPrint("\tparameter");
+      snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");

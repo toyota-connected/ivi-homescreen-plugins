@@ -19,7 +19,7 @@
 #include <filament/math/vec3.h>
 #include <flutter/encodable_value.h>
 
-#include <core/scene/material/material_definitions.h>
+#include <core/components/derived/material_definitions.h>
 
 namespace plugin_filament_view {
 
