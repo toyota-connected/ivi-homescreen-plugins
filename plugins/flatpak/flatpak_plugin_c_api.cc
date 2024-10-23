@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Toyota Connected North America
+ * Copyright 2020-2024 Toyota Connected North America
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef FLUTTER_PLUGIN_COMMON_COMMON_H_
-#define FLUTTER_PLUGIN_COMMON_COMMON_H_
+#include "include/flatpak/flatpak_plugin_c_api.h"
 
-#include "json/json_utils.h"
-#include "logging.h"
-#include "shared_library/shared_library.h"
-#include "string/string_tools.h"
-#include "time/time_tools.h"
-#include "tools/command.h"
-#include "tools/encodable.h"
-#include "tools/hexdump.h"
+#include "flutter/plugin_registrar.h"
 
-#endif  // FLUTTER_PLUGIN_COMMON_COMMON_H_
+#include "flatpak_plugin.h"
+
+void FlatpakPluginCApiRegisterWithRegistrar(
+    FlutterDesktopPluginRegistrarRef registrar) {
+  flatpak_plugin::FlatpakPlugin::RegisterWithRegistrar(
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar));
+}
