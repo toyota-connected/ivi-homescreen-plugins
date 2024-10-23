@@ -48,7 +48,7 @@ void PrintFlutterEncodableValue(const char* key,
     auto value = std::get<int32_t>(it);
     spdlog::warn("\t{}: int32_t: {}", key, value);
   } else if (std::holds_alternative<int64_t>(it)) {
-    auto value = std::get<double>(it);
+    auto value = std::get<int64_t>(it);
     spdlog::warn("\t{}: int64_t: {}", key, value);
   } else if (std::holds_alternative<double>(it)) {
     auto value = std::get<double>(it);

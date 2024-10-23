@@ -21,7 +21,11 @@ namespace plugin_common_glib {
 MainLoop::MainLoop()
     : gthread_(std::make_unique<std::thread>(main_loop, this)) {}
 
-MainLoop::~MainLoop() = default;
+MainLoop::~MainLoop() {
+  if (gthread_ && gthread_->joinable()) {
+    gthread_->join();
+  }
+}
 
 const MainLoop& MainLoop::GetInstance() {
   static MainLoop sInstance;
