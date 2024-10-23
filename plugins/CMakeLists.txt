@@ -110,6 +110,8 @@ endif ()
 
 PLUGIN_OPTION(rive_text "Include Rive Text plugin" OFF)
 
+PLUGIN_OPTION(flatpak "Include Flatpak plugin" OFF)
+
 # TODO create source file for view
 
 # Platform View Plugins

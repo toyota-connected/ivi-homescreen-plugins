@@ -83,4 +83,4 @@ std::ostream& operator<<(std::ostream& out,
 
 typedef CustomHexdump<16, true> Hexdump;
 
-}
+}  // namespace plugin_common
