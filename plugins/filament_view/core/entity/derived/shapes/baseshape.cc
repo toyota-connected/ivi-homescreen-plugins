@@ -53,8 +53,7 @@ BaseShape::BaseShape()
           Resource<filament::MaterialInstance*>::Error("Unset")) {}
 
 ////////////////////////////////////////////////////////////////////////////
-BaseShape::BaseShape(const std::string& flutter_assets_path,
-                     const flutter::EncodableMap& params)
+BaseShape::BaseShape(const flutter::EncodableMap& params)
     : EntityObject("unset name tbd"),
       m_poVertexBuffer(nullptr),
       m_poIndexBuffer(nullptr),
@@ -82,7 +81,7 @@ BaseShape::BaseShape(const std::string& flutter_assets_path,
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
                                           float3(0, 0, 0));
   Deserialize::DecodeParameterWithDefault(kMaterial, m_poMaterialDefinitions,
-                                          params, flutter_assets_path);
+                                          params);
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
                                           false);
 

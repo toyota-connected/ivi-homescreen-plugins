@@ -66,13 +66,11 @@ filament::math::quatf Deserialize::Format4(const flutter::EncodableMap& map) {
 void Deserialize::DecodeParameterWithDefault(
     const char* key,
     std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
-    const flutter::EncodableMap& params,
-    const std::string& flutter_assets_path) {
+    const flutter::EncodableMap& params) {
   if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() &&
       std::holds_alternative<flutter::EncodableMap>(it->second)) {
-    out_value = std::make_unique<MaterialDefinitions>(
-        flutter_assets_path, std::get<flutter::EncodableMap>(it->second));
+    out_value = std::make_unique<MaterialDefinitions>(std::get<flutter::EncodableMap>(it->second));
   } else {
     out_value.reset();  // or set it to std::nullopt if desired
   }

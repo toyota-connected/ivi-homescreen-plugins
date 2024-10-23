@@ -20,6 +20,8 @@
 #include <filament/TextureSampler.h>
 #include <plugins/common/common.h>
 #include <filesystem>
+#include <core/include/literals.h>
+#include <core/systems/ecsystems_manager.h>
 
 namespace plugin_filament_view {
 
@@ -27,10 +29,11 @@ using MinFilter = filament::TextureSampler::MinFilter;
 using MagFilter = filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
-                                         const flutter::EncodableMap& params)
-    : flutterAssetsPath_(flutter_assets_path) {
+MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  const auto flutterAssetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
     SPDLOG_TRACE("Material Param {}", key);
@@ -54,7 +57,7 @@ MaterialDefinitions::MaterialDefinitions(const std::string& flutter_assets_path,
       auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& it_ : list) {
         auto parameter = MaterialParameter::Deserialize(
-            flutter_assets_path, std::get<flutter::EncodableMap>(it_));
+            flutterAssetPath, std::get<flutter::EncodableMap>(it_));
         parameters_.insert(
             std::pair(parameter->szGetParameterName(), std::move(parameter)));
       }
@@ -80,7 +83,11 @@ void MaterialDefinitions::DebugPrint(const char* tag) {
   spdlog::debug("{}", tag);
   if (!assetPath_.empty()) {
     spdlog::debug("assetPath: [{}]", assetPath_);
-    const std::filesystem::path asset_folder(flutterAssetsPath_);
+
+    const auto flutterAssetPath =
+      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+
+    const std::filesystem::path asset_folder(flutterAssetPath);
     spdlog::debug("asset_path {} valid",
                   exists(asset_folder / assetPath_) ? "is" : "is not");
   }

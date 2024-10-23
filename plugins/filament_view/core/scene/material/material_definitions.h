@@ -29,9 +29,7 @@ using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 namespace plugin_filament_view {
 class MaterialDefinitions {
  public:
-  MaterialDefinitions(const std::string& flutter_assets_path,
-                      const flutter::EncodableMap& params);
-
+  MaterialDefinitions(const flutter::EncodableMap& params);
   ~MaterialDefinitions();
 
   void DebugPrint(const char* tag);
@@ -61,8 +59,6 @@ class MaterialDefinitions {
   [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
 
  private:
-  const std::string& flutterAssetsPath_;
-
   std::string assetPath_;
   std::string url_;
   std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;

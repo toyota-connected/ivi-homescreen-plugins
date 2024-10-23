@@ -39,9 +39,8 @@ using utils::Entity;
 Sphere::Sphere() : stacks_(20), slices_(20) {}
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere(const std::string& flutter_assets_path,
-               const flutter::EncodableMap& params)
-    : BaseShape(flutter_assets_path, params), stacks_(20), slices_(20) {
+Sphere::Sphere(const flutter::EncodableMap& params)
+    : BaseShape(params), stacks_(20), slices_(20) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 
   static constexpr char kStacks[] = "stacks";

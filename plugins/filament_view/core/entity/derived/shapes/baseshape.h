@@ -39,8 +39,7 @@ class BaseShape : public EntityObject {
   friend class plugin_filament_view::CollisionSystem;
 
  public:
-  BaseShape(const std::string& flutter_assets_path,
-            const flutter::EncodableMap& params);
+  BaseShape(const flutter::EncodableMap& params);
 
   BaseShape();
 

@@ -39,9 +39,8 @@ using filament::math::short4;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Plane::Plane(const std::string& flutter_assets_path,
-             const flutter::EncodableMap& params)
-    : BaseShape(flutter_assets_path, params) {
+Plane::Plane(const flutter::EncodableMap& params)
+    : BaseShape(params) {
   SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
 }
 

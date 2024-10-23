@@ -28,8 +28,7 @@ namespace shapes {
 
 class Cube : public BaseShape {
  public:
-  Cube(const std::string& flutter_assets_path,
-       const flutter::EncodableMap& params);
+  Cube(const flutter::EncodableMap& params);
   Cube() = default;
   ~Cube() override = default;
 

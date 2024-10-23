@@ -49,7 +49,6 @@ class ShapeSystem : public ECSystem {
   // not add it to any list only returns the shape for you, Also does not build
   // the data out, only stores it for building when ready.
   static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
-      const std::string& flutter_assets_path,
       const flutter::EncodableMap& mapData);
 
   [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }

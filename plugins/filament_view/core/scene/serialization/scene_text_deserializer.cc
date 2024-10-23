@@ -116,8 +116,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeSystem::poDeserializeShapeFromData(
-            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
+        auto shape = ShapeSystem::poDeserializeShapeFromData(std::get<flutter::EncodableMap>(iter));
 
         shapes_.emplace_back(shape.release());
       }

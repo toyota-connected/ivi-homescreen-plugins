@@ -27,8 +27,7 @@ namespace shapes {
 
 class Sphere : public BaseShape {
  public:
-  Sphere(const std::string& flutter_assets_path,
-         const flutter::EncodableMap& params);
+  Sphere(const flutter::EncodableMap& params);
   Sphere();
   ~Sphere() override = default;
 

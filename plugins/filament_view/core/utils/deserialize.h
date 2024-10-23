@@ -79,8 +79,7 @@ class Deserialize {
   static void DecodeParameterWithDefault(
       const char* key,
       std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
-      const flutter::EncodableMap& params,
-      const std::string& flutter_assets_path);
+      const flutter::EncodableMap& params);
 
   static void DecodeParameterWithDefault(
       const char* key,

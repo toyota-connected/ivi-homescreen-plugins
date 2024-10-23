@@ -52,7 +52,6 @@ void ShapeSystem::vRemoveAllShapesInScene() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
-    const std::string& flutter_assets_path,
     const flutter::EncodableMap& mapData) {
   ShapeType type;
 
@@ -76,11 +75,11 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   // Based on the type_, create the corresponding shape
   switch (type) {
     case ShapeType::Plane:
-      return std::make_unique<shapes::Plane>(flutter_assets_path, mapData);
+      return std::make_unique<shapes::Plane>(mapData);
     case ShapeType::Cube:
-      return std::make_unique<shapes::Cube>(flutter_assets_path, mapData);
+      return std::make_unique<shapes::Cube>(mapData);
     case ShapeType::Sphere:
-      return std::make_unique<shapes::Sphere>(flutter_assets_path, mapData);
+      return std::make_unique<shapes::Sphere>(mapData);
     default:
       // Handle unknown shape type
       spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
