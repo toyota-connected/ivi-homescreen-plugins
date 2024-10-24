@@ -80,7 +80,6 @@ jobs:
         uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-libcamera
-          save-always: true
           path: |
             ${{github.workspace}}/libcamera/buildDir/staging/release/*
 
@@ -100,10 +99,9 @@ jobs:
         id: cache-filament
         uses: actions/cache@v4
         with:
-          save-always: true
+          key: ${{ runner.os }}-filament
           path: |
             ${{github.workspace}}/filament/cmake-build-release/staging/release/*
-          key: ${{ runner.os }}-filament
 
       - name: Build Filament
         if: steps.cache-filament.outputs.cache-hit != 'true'
