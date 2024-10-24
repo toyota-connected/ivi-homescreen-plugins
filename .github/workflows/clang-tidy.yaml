@@ -81,7 +81,6 @@ jobs:
         uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-libcamera
-          save-always: true
           path: |
             ${{github.workspace}}/libcamera/buildDir/staging/release/*
 
@@ -101,7 +100,6 @@ jobs:
         id: cache-filament
         uses: actions/cache@v4
         with:
-          save-always: true
           path: |
             ${{github.workspace}}/filament/cmake-build-release/staging/release/*
           key: ${{ runner.os }}-filament
