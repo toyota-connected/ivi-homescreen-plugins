@@ -56,7 +56,9 @@ jobs:
             libunwind-dev \
             \
             libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
-            libpng-dev libwebp-dev
+            libpng-dev libwebp-dev \
+            \
+            libflatpak-dev libxml2-dev zlib1g-dev
 
           sudo apt-get -y install \
             clang \
@@ -182,6 +184,7 @@ jobs:
             -D BUILD_PLUGIN_URL_LAUNCHER=ON \
             -D BUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF \
             -D BUILD_PLUGIN_WEBVIEW_FLUTTER_VIEW=OFF \
+            -D BUILD_PLUGIN_FLATPAK=ON \
             \
             -D ENABLE_CLANG_STATIC_LINK=OFF \
             -D BUILD_WATCHDOG=OFF \
@@ -257,6 +260,7 @@ jobs:
             -D BUILD_PLUGIN_URL_LAUNCHER=ON \
             -D BUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF \
             -D BUILD_PLUGIN_WEBVIEW_FLUTTER_VIEW=OFF \
+            -D BUILD_PLUGIN_FLATPAK=ON \
             \
             -D ENABLE_CLANG_STATIC_LINK=OFF \
             -D BUILD_WATCHDOG=OFF \
