@@ -17,6 +17,8 @@
 #ifndef FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 #define FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 
+#undef FLATPAK_EXTERN
+#define FLATPAK_EXTERN extern "C"
 #include <flatpak/flatpak.h>
 
 #include <filesystem>
