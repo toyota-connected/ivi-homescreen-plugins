@@ -1,18 +1,18 @@
-From 6a920a7612cfea25bbea78600b16e3075a30a8f7 Mon Sep 17 00:00:00 2001
+From 01ca901f190bc00de10defe056a3926d0a6aaec0 Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Wed, 12 Jun 2024 06:41:19 -0700
-Subject: [PATCH 2/5] disable backend tests
+Date: Sun, 26 Jan 2025 10:33:47 -0800
+Subject: [PATCH 1/5] disable backend tests
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- filament/backend/CMakeLists.txt | 113 --------------------------------
- 1 file changed, 113 deletions(-)
+ filament/backend/CMakeLists.txt | 133 --------------------------------
+ 1 file changed, 133 deletions(-)
 
 diff --git a/filament/backend/CMakeLists.txt b/filament/backend/CMakeLists.txt
-index 6a7f66cc2..378f45aed 100644
+index 2fcdfc619..dd26a470c 100644
 --- a/filament/backend/CMakeLists.txt
 +++ b/filament/backend/CMakeLists.txt
-@@ -400,116 +400,3 @@ set(INSTALL_TYPE ARCHIVE)
+@@ -423,136 +423,3 @@ set(INSTALL_TYPE ARCHIVE)
  install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
  install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
  install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include)
@@ -40,6 +40,7 @@ index 6a7f66cc2..378f45aed 100644
 -        test/test_StencilBuffer.cpp
 -        test/test_Scissor.cpp
 -        test/test_MipLevels.cpp
+-        test/test_Handles.cpp
 -    )
 -    set(BACKEND_TEST_LIBS
 -        backend
@@ -111,24 +112,43 @@ index 6a7f66cc2..378f45aed 100644
 -
 -# ==================================================================================================
 -# Compute tests
+-#
+-#if (NOT IOS AND NOT WEBGL)
+-#
+-#add_executable(compute_test
+-#        test/ComputeTest.cpp
+-#        test/Arguments.cpp
+-#        test/test_ComputeBasic.cpp
+-#        )
+-#
+-#target_link_libraries(compute_test PRIVATE
+-#        backend
+-#        getopt
+-#        gtest
+-#        )
+-#
+-#set_target_properties(compute_test PROPERTIES FOLDER Tests)
+-#
+-#endif()
 -
--if (NOT IOS AND NOT WEBGL)
+-# ==================================================================================================
+-# Metal utils tests
 -
--add_executable(compute_test
--        test/ComputeTest.cpp
--        test/Arguments.cpp
--        test/test_ComputeBasic.cpp
--        )
+-if (APPLE AND NOT IOS)
 -
--target_link_libraries(compute_test PRIVATE
+-add_executable(metal_utils_test test/MetalTest.mm)
+-
+-target_compile_options(metal_utils_test PRIVATE "-fobjc-arc")
+-
+-target_link_libraries(metal_utils_test PRIVATE
 -        backend
 -        getopt
 -        gtest
 -        )
 -
--set_target_properties(compute_test PROPERTIES FOLDER Tests)
+-set_target_properties(metal_utils_test PROPERTIES FOLDER Tests)
 -
 -endif()
 -- 
-2.45.1
+2.48.1
 

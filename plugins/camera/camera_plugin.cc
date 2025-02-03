@@ -229,7 +229,6 @@ void CameraPlugin::takePicture(
     }
   }
 
-  g_cameras[static_cast<unsigned long>(cameraId - 1)];
   result(ErrorOr(CameraContext::takePicture()));
 }
 

@@ -128,8 +128,8 @@ jobs:
       if: steps.cache-libcamera.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}
       run: |
-        git clone https://git.libcamera.org/libcamera/libcamera.git
-        cd libcamera && git checkout v0.3.1
+        git clone -b master https://git.libcamera.org/libcamera/libcamera.git
+        cd libcamera && git checkout v0.4.0
         LIBCAMERA_STAGING=$PWD/buildDir/staging/release
         CC=/usr/bin/clang CXX=/usr/bin/clang++ \
         meson setup buildDir -Dqcam="disabled" -Dlc-compliance="disabled" -Dcam="disabled" -Dgstreamer="disabled" --prefix $LIBCAMERA_STAGING
@@ -148,16 +148,15 @@ jobs:
       if: steps.cache-filament.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}
       run: |
-        git clone https://github.com/google/filament.git
+        git clone -b release https://github.com/google/filament.git
         cd filament
-        git checkout v1.52.3
-        PATCHES=$(find ${{github.workspace}} -iname patches)
-        git apply $PATCHES/filament/0001-error-ignoring-return-value-of-function-declared-wit.patch
-        git apply $PATCHES/filament/0002-disable-backend-tests.patch
-        git apply $PATCHES/filament/0003-install-required-files.patch
-        git apply $PATCHES/filament/0004-move-include-contents-to-include-filament.patch
-        git apply $PATCHES/filament/0005-move-libraries-so-they-install.patch
-        git apply $PATCHES/filament/0006-return-shader-type-mobile-for-linux-vulkan.patch
+        git checkout v1.56.7
+        PATCHES=${{github.workspace}}/.github/workflows/patches
+        git apply $PATCHES/filament/0001-disable-backend-tests.patch
+        git apply $PATCHES/filament/0002-install-required-files.patch
+        git apply $PATCHES/filament/0003-move-include-contents-to-include-filament.patch
+        git apply $PATCHES/filament/0004-move-libraries-so-they-install.patch
+        git apply $PATCHES/filament/0005-return-shader-type-mobile-for-linux-vulkan.patch
 
         FILAMENT_BUILD_DIR=$PWD/cmake-build-release
         FILAMENT_STAGING_DIR=${FILAMENT_BUILD_DIR}/staging/release
@@ -183,47 +182,54 @@ jobs:
 
     - name: Configure
       run: |
+        find /usr -iname "llvm-config*"
         mkdir -p ${{github.workspace}}/build/release
         PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
-        CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja ${{github.workspace}}/ivi-homescreen \
+        CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \
+          -S ${{github.workspace}}/ivi-homescreen \
           -B ${{github.workspace}}/build/release \
+          -D LLVM_CONFIG=/usr/bin/llvm-config \
+          -D ENABLE_STATIC_LINK=ON \
+          -D ENABLE_LTO=ON \
           -D CMAKE_BUILD_TYPE=Release \
           -D CMAKE_STAGING_PREFIX=${{github.workspace}}/build/staging/usr/local \
           -D BUILD_NUMBER=${GITHUB_RUN_ID} \
           -D CMAKE_VERBOSE_MAKEFILE=ON \
           -D ENABLE_DLT=OFF \
           -D BUILD_CRASH_HANDLER=OFF \
-          -D ENABLE_LTO=ON \
           \
-          -D PLUGINS_DIR=${{github.workspace}}/plugins \
+          -D PLUGINS_DIR=${{github.workspace}}/plugins/plugins \
           \
           -D DEBUG_PLATFORM_MESSAGES=OFF \
           \
           -D BUILD_PLUGIN_AUDIOPLAYERS_LINUX=OFF \
-          -D BUILD_PLUGIN_CAMERA=ON \
+          -D BUILD_PLUGIN_CAMERA=OFF \
           -D BUILD_PLUGIN_CLOUD_FIRESTORE=OFF \
+          -D BUILD_PLUGIN_COMP_REGION=OFF \
+          -D BUILD_PLUGIN_COMP_SURF=OFF \
           -D BUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON \
           -D BUILD_PLUGIN_FILAMENT_VIEW=ON \
           -D FILAMENT_INCLUDE_DIR=${{github.workspace}}/filament/cmake-build-release/staging/release/include \
           -D FILAMENT_LINK_LIBRARIES_DIR=${{github.workspace}}/filament/cmake-build-release/staging/release/lib/x86_64 \
           -D BUILD_PLUGIN_FILE_SELECTOR=ON \
           -D BUILD_PLUGIN_FIREBASE_AUTH=OFF \
+          -D BUILD_PLUGIN_FIREBASE_CORE=OFF \
           -D BUILD_PLUGIN_FIREBASE_STORAGE=OFF \
           -D BUILD_PLUGIN_GO_ROUTER=ON \
-          -D BUILD_PLUGIN_GOOGLE_SIGN_IN=ON \
-          -D BUILD_PLUGIN_INTEGRATION_TEST=ON \
+          -D BUILD_PLUGIN_GOOGLE_SIGN_IN=OFF \
+          -D BUILD_PLUGIN_INTEGRATION_TEST=OFF \
           -D BUILD_PLUGIN_LAYER_PLAYGROUND_VIEW=ON \
           -D BUILD_PLUGIN_NAV_RENDER_VIEW=ON \
           -D BUILD_PLUGIN_PDF=OFF \
+          -D BUILD_PLUGIN_RIVE_TEXT=ON \
           -D BUILD_PLUGIN_SECURE_STORAGE=ON \
           -D BUILD_PLUGIN_URL_LAUNCHER=ON \
           -D BUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF \
           -D BUILD_PLUGIN_WEBVIEW_FLUTTER_VIEW=OFF \
           -D BUILD_PLUGIN_FLATPAK=ON \
           \
-          -D ENABLE_CLANG_STATIC_LINK=OFF \
-          -D BUILD_WATCHDOG=ON \
-          -D BUILD_SYSTEMD_WATCHDOG=ON
+          -D BUILD_WATCHDOG=OFF \
+          -D BUILD_SYSTEMD_WATCHDOG=OFF
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL

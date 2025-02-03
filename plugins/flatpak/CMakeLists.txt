@@ -33,7 +33,7 @@ add_library(plugin_flatpak STATIC
 target_include_directories(plugin_flatpak PRIVATE include)
 
 target_link_libraries(plugin_flatpak PUBLIC
+        PkgConfig::FLATPAK_DEPS
         flutter
         platform_homescreen
-        PkgConfig::FLATPAK_DEPS
 )

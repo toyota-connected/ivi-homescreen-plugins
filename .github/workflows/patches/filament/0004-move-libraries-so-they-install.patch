@@ -1,7 +1,7 @@
-From ce9796a1f7af7dde4fbf1659630aaa038d048f2c Mon Sep 17 00:00:00 2001
+From 23d5ee040ab0950d217ab3ddeb888eb7b1e043fc Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Wed, 12 Jun 2024 06:49:14 -0700
-Subject: [PATCH 5/5] move libraries so they install
+Date: Sun, 26 Jan 2025 11:01:44 -0800
+Subject: [PATCH 4/5] move libraries so they install
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 283778b32..9f0d7ca2a 100644
+index b8462d29f..dfd4defdf 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -725,6 +725,7 @@ add_subdirectory(${LIBRARIES}/gltfio)
+@@ -744,6 +744,7 @@ add_subdirectory(${LIBRARIES}/gltfio)
  add_subdirectory(${LIBRARIES}/ibl)
  add_subdirectory(${LIBRARIES}/iblprefilter)
  add_subdirectory(${LIBRARIES}/image)
@@ -20,7 +20,7 @@ index 283778b32..9f0d7ca2a 100644
  add_subdirectory(${LIBRARIES}/ktxreader)
  add_subdirectory(${LIBRARIES}/math)
  add_subdirectory(${LIBRARIES}/mathio)
-@@ -746,6 +747,9 @@ add_subdirectory(${EXTERNAL}/draco/tnt)
+@@ -765,6 +766,9 @@ add_subdirectory(${EXTERNAL}/draco/tnt)
  add_subdirectory(${EXTERNAL}/jsmn/tnt)
  add_subdirectory(${EXTERNAL}/stb/tnt)
  add_subdirectory(${EXTERNAL}/getopt)
@@ -30,7 +30,7 @@ index 283778b32..9f0d7ca2a 100644
  
  # Note that this has to be placed after mikktspace in order for combine_static_libs to work.
  add_subdirectory(${LIBRARIES}/geometry)
-@@ -785,15 +789,11 @@ if (IS_HOST_PLATFORM)
+@@ -809,15 +813,11 @@ if (IS_HOST_PLATFORM)
      if (NOT FILAMENT_SKIP_SDL2)
        add_subdirectory(${LIBRARIES}/filamentapp)
      endif()
@@ -47,5 +47,5 @@ index 283778b32..9f0d7ca2a 100644
      add_subdirectory(${TOOLS}/cmgen)
      add_subdirectory(${TOOLS}/cso-lut)
 -- 
-2.45.1
+2.48.1
 

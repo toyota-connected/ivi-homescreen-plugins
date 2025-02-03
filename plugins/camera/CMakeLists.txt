@@ -30,11 +30,11 @@ target_include_directories(plugin_camera PUBLIC
 )
 
 target_link_libraries(plugin_camera PUBLIC
+        PkgConfig::CAMERA
+        ${JPEG_LIBRARIES}
         flutter
         platform_homescreen
         plugin_common
-        PkgConfig::CAMERA
-        ${JPEG_LIBRARIES}
 )
 
 if (JPEG_FOUND)
