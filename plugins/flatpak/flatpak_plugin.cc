@@ -232,7 +232,7 @@ Installation FlatpakPlugin::get_installation(
     format_time_iso8601(appstream_timestamp, formatted_time,
                         sizeof(formatted_time));
 
-    remote_list.push_back(flutter::CustomEncodableValue(Remote(
+    remote_list.emplace_back(flutter::CustomEncodableValue(Remote(
         name ? name : "", url ? url : "", collection_id ? collection_id : "",
         title ? title : "", comment ? comment : "",
         description ? description : "", homepage ? homepage : "",
@@ -333,7 +333,7 @@ void FlatpakPlugin::get_application_list(
       }
     }
 
-    application_list.push_back(flutter::CustomEncodableValue(Application(
+    application_list.emplace_back(flutter::CustomEncodableValue(Application(
         appdata_name ? appdata_name : "", appdata_id ? appdata_id : "",
         appdata_summary ? appdata_summary : "",
         appdata_version ? appdata_version : "",

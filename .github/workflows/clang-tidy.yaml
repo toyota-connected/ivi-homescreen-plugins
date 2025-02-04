@@ -60,26 +60,23 @@ jobs:
             libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
             libpng-dev libwebp-dev \
             \
-            libflatpak-dev libxml2-dev zlib1g-dev \
-            libsystemd-dev
+            libflatpak-dev libxml2-dev zlib1g-dev
 
           sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
             clang \
+            clang-tidy \
             llvm \
             lldb \
             lld \
             libc++-dev \
             libc++abi-dev \
             libc++1 \
-            libc++abi1
+            libc++abi1 \
 
           pip3 install absl-py jinja2 ply meson --user
 
           cmake --version
           gcc --version
-
-          clang-format --version
-          find /usr -iname "*clang-tidy"
           llvm-config --version
 
       - name: Cache libcamera
@@ -106,9 +103,9 @@ jobs:
         id: cache-filament
         uses: actions/cache@v4
         with:
+          key: ${{ runner.os }}-filament
           path: |
             ${{github.workspace}}/filament/cmake-build-release/staging/release/*
-          key: ${{ runner.os }}-filament
 
       - name: Build Filament
         if: steps.cache-filament.outputs.cache-hit != 'true'
@@ -130,33 +127,32 @@ jobs:
           cd $FILAMENT_BUILD_DIR
           CC=/usr/bin/clang CXX=/usr/bin/clang++ \
           cmake .. -GNinja \
-            -D FILAMENT_SUPPORTS_VULKAN=ON \
-            -D FILAMENT_ENABLE_LTO=ON \
-            -D FILAMENT_SUPPORTS_OPENGL=OFF \
-            -D FILAMENT_USE_EXTERNAL_GLES3=OFF \
-            -D FILAMENT_SUPPORTS_WAYLAND=ON \
-            -D FILAMENT_SUPPORTS_X11=OFF \
-            -D FILAMENT_SUPPORTS_XCB=OFF \
-            -D FILAMENT_SUPPORTS_EGL_ON_LINUX=OFF \
-            -D FILAMENT_SKIP_SDL2=ON \
-            -D FILAMENT_SKIP_SAMPLES=ON \
-            -D FILAMENT_USE_SWIFTSHADER=OFF \
-            -D BUILD_SHARED_LIBS=OFF \
-            -D CMAKE_STAGING_PREFIX=${FILAMENT_STAGING_DIR} \
-            -D CMAKE_BUILD_TYPE=Release
+            -DFILAMENT_SUPPORTS_VULKAN=ON \
+            -DFILAMENT_ENABLE_LTO=ON \
+            -DFILAMENT_SUPPORTS_OPENGL=OFF \
+            -DFILAMENT_USE_EXTERNAL_GLES3=OFF \
+            -DFILAMENT_SUPPORTS_WAYLAND=ON \
+            -DFILAMENT_SUPPORTS_X11=OFF \
+            -DFILAMENT_SUPPORTS_XCB=OFF \
+            -DFILAMENT_SUPPORTS_EGL_ON_LINUX=OFF \
+            -DFILAMENT_SKIP_SDL2=ON \
+            -DFILAMENT_SKIP_SAMPLES=ON \
+            -DFILAMENT_USE_SWIFTSHADER=OFF \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_STAGING_PREFIX=${FILAMENT_STAGING_DIR} \
+            -DCMAKE_BUILD_TYPE=Release
           ninja -C . install
 
       - name: Configure CMake
         working-directory: ${{github.workspace}}
         run: |
-          find /usr -iname "llvm-config*"
-          mkdir -p ${{github.workspace}}/build/release
+          mkdir -p ${{github.workspace}}/build
           PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
           CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \
             -S ${{github.workspace}}/ivi-homescreen \
-            -B ${{github.workspace}}/build/release \
+            -B ${{github.workspace}}/build \
             -D LLVM_CONFIG=/usr/bin/llvm-config \
-            -D ENABLE_STATIC_LINK=OFF \
+            -D ENABLE_STATIC_LINK=ON \
             -D ENABLE_LTO=ON \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_STAGING_PREFIX=${{github.workspace}}/build/staging/usr/local \
@@ -188,7 +184,6 @@ jobs:
             -D BUILD_PLUGIN_LAYER_PLAYGROUND_VIEW=ON \
             -D BUILD_PLUGIN_NAV_RENDER_VIEW=ON \
             -D BUILD_PLUGIN_PDF=OFF \
-            -D BUILD_PLUGIN_RIVE_TEXT=ON \
             -D BUILD_PLUGIN_SECURE_STORAGE=ON \
             -D BUILD_PLUGIN_URL_LAUNCHER=ON \
             -D BUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF \
@@ -196,29 +191,39 @@ jobs:
             -D BUILD_PLUGIN_FLATPAK=ON \
             \
             -D BUILD_WATCHDOG=OFF \
-            -D BUILD_SYSTEMD_WATCHDOG=OFF
+            -D BUILD_SYSTEMD_WATCHDOG=OFF \
+            \
+            -D CMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-          ln -s ${{github.workspace}}/build/release/compile_commands.json .
+          ln -s ${{github.workspace}}/build/compile_commands.json .
+
+      - name: Cache homescreen
+        id: cache-homescreen-clang-tidy
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{github.workspace}}/ivi-homescreen/build/*
+          key: ${{ runner.os }}-homescreen
 
       - name: Build Homescreen
+        if: steps.cache-homescreen-clang-tidy.outputs.cache-hit != 'true'
+        working-directory: ${{github.workspace}}/build
         run: |
-          ninja -C ${{github.workspace}}/build/release
+          ninja homescreen
 
       - name: clang-tidy
         working-directory: ${{github.workspace}}
         run: |
           export FILE_LIST=$(find plugins -type d -name third_party -prune -false -o -name '*.cc' -o -name '*.hpp' -o -name '*.h')
           echo $FILE_LIST
-          run-clang-tidy --help
           run-clang-tidy \
             -warnings-as-errors='*,-bugprone-macro-parentheses' \
-            -quiet \
             -export-fixes=tidy-results-suggested-fixes.txt \
-            $FILE_LIST \
             -extra-arg='-I${{github.workspace}}/ivi-homescreen/build/third_party/waypp/waypp/protocols' \
             -extra-arg='-I${{github.workspace}}/filament/cmake-build-release/staging/release/include' \
             -extra-arg='-I${{github.workspace}}/filament/cmake-build-release/staging/release/include/filament' \
-            -extra-arg='-I${{github.workspace}}/filament/lib/utils/include' > tidy-results-log.txt
+            -extra-arg='-I${{github.workspace}}/filament/lib/utils/include' \
+            $FILE_LIST > tidy-results-log.txt
 
       - name: Show results
         if: always()

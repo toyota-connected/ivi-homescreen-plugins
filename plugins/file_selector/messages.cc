@@ -111,8 +111,8 @@ void FileSelectorApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               EncodableList results;
               auto paths = plugin_common::StringTools::split(path, "|");
               for (auto p : paths) {
-                results.emplace_back(EncodableValue(
-                    std::move(plugin_common::StringTools::trim(p, "\n"))));
+                results.emplace_back(
+                    std::move(plugin_common::StringTools::trim(p, "\n")));
               }
               result->Success(flutter::EncodableValue(results));
               return;
