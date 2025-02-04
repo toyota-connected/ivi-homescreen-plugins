@@ -80,7 +80,7 @@ jobs:
 
           clang-format --version
           find /usr -iname "*clang-tidy"
-          run-clang-tidy --version
+          llvm-config --version
 
       - name: Cache libcamera
         id: cache-libcamera
