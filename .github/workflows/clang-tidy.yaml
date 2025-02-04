@@ -80,6 +80,7 @@ jobs:
 
           clang-format --version
           find /usr -iname "*clang-tidy"
+          run-clang-tidy --version
 
       - name: Cache libcamera
         id: cache-libcamera
@@ -208,6 +209,7 @@ jobs:
         run: |
           export FILE_LIST=$(find plugins -type d -name third_party -prune -false -o -name '*.cc' -o -name '*.hpp' -o -name '*.h')
           echo $FILE_LIST
+          run-clang-tidy --help
           run-clang-tidy \
             -warnings-as-errors='*,-bugprone-macro-parentheses' \
             -quiet \
