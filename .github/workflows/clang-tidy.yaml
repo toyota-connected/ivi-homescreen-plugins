@@ -78,10 +78,8 @@ jobs:
           cmake --version
           gcc --version
 
-          mkdir clang18 && cd clang18
-          curl -L -O https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-          tar -xJf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz --strip-components=1
-          bin/clang-format --version
+          clang-format --version
+          find /usr -iname "*clang-tidy"
 
       - name: Cache libcamera
         id: cache-libcamera
@@ -210,7 +208,7 @@ jobs:
         run: |
           export FILE_LIST=$(find plugins -type d -name third_party -prune -false -o -name '*.cc' -o -name '*.hpp' -o -name '*.h')
           echo $FILE_LIST
-          clang18/bin/run-clang-tidy \
+          run-clang-tidy \
             -warnings-as-errors='*,-bugprone-macro-parentheses' \
             -quiet \
             -export-fixes=tidy-results-suggested-fixes.txt \
