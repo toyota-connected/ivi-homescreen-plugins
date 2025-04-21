@@ -24,7 +24,7 @@ using flutter::EncodableList;
 using flutter::EncodableMap;
 using flutter::EncodableValue;
 
-FlutterError CreateConnectionError(const std::string channel_name) {
+FlutterError CreateConnectionError(const std::string& channel_name) {
     return FlutterError(
         "channel-error",
         "Unable to establish connection on channel: '" + channel_name + "'.",
@@ -111,11 +111,11 @@ void PlatformMediaSettings::set_enable_audio(bool value_arg) {
 EncodableList PlatformMediaSettings::ToEncodableList() const {
   EncodableList list;
   list.reserve(5);
-  list.push_back(CustomEncodableValue(resolution_preset_));
+  list.emplace_back(CustomEncodableValue(resolution_preset_));
   list.push_back(frames_per_second_ ? EncodableValue(*frames_per_second_) : EncodableValue());
   list.push_back(video_bitrate_ ? EncodableValue(*video_bitrate_) : EncodableValue());
   list.push_back(audio_bitrate_ ? EncodableValue(*audio_bitrate_) : EncodableValue());
-  list.push_back(EncodableValue(enable_audio_));
+  list.emplace_back(enable_audio_);
   return list;
 }
 
@@ -164,11 +164,11 @@ void PlatformSize::set_height(double value_arg) {
 }
 
 
-EncodableList PlatformSize::ToEncodableList() const {
+EncodableList PlatformSize::ToEncodableList() {
   EncodableList list;
   list.reserve(2);
-  list.push_back(EncodableValue(width_));
-  list.push_back(EncodableValue(height_));
+  list.emplace_back(EncodableValue(width_));
+  list.emplace_back(EncodableValue(height_));
   return list;
 }
 
@@ -180,7 +180,7 @@ PlatformSize PlatformSize::FromEncodableList(const EncodableList& list) {
 }
 
 
-PigeonCodecSerializer::PigeonCodecSerializer() {}
+PigeonCodecSerializer::PigeonCodecSerializer() = default;
 
 EncodableValue PigeonCodecSerializer::ReadValueOfType(
   uint8_t type,
@@ -240,7 +240,7 @@ void CameraApi::SetUp(
   flutter::BinaryMessenger* binary_messenger,
   CameraApi* api,
   const std::string& message_channel_suffix) {
-  const std::string prepended_suffix = message_channel_suffix.length() > 0 ? std::string(".") + message_channel_suffix : "";
+  const std::string prepended_suffix = !message_channel_suffix.empty() ? std::string(".") + message_channel_suffix : "";
   {
     BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.camera_linux.CameraApi.getAvailableCameras" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
@@ -252,7 +252,7 @@ void CameraApi::SetUp(
             return;
           }
           EncodableList wrapped;
-          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          wrapped.emplace_back(std::move(output).TakeValue());
           reply(EncodableValue(std::move(wrapped)));
         } catch (const std::exception& exception) {
           reply(WrapError(exception.what()));
@@ -286,7 +286,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+            wrapped.emplace_back(std::move(output).TakeValue());
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {
@@ -344,7 +344,7 @@ void CameraApi::SetUp(
             return;
           }
           EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
+          wrapped.emplace_back();
           reply(EncodableValue(std::move(wrapped)));
         } catch (const std::exception& exception) {
           reply(WrapError(exception.what()));
@@ -372,7 +372,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+            wrapped.emplace_back(std::move(output).TakeValue());
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {
@@ -401,7 +401,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {
@@ -430,7 +430,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+            wrapped.emplace_back(std::move(output).TakeValue());
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {
@@ -459,7 +459,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {
@@ -488,7 +488,7 @@ void CameraApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           });
         } catch (const std::exception& exception) {

@@ -6,7 +6,6 @@
 
 #ifndef PIGEON_MESSAGES_G_H_
 #define PIGEON_MESSAGES_G_H_
-#include <flutter/basic_message_channel.h>
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
 #include <flutter/standard_message_codec.h>
@@ -14,24 +13,24 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace camera_plugin {
-
 
 // Generated class from Pigeon.
 
 class FlutterError {
  public:
-  explicit FlutterError(const std::string& code)
-    : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-    : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code, const std::string& message, const flutter::EncodableValue& details)
-    : code_(code), message_(message), details_(details) {}
+  explicit FlutterError(std::string  code)
+    : code_(std::move(code)) {}
+  explicit FlutterError(std::string  code, std::string  message)
+    : code_(std::move(code)), message_(std::move(message)) {}
+  explicit FlutterError(std::string  code, std::string  message, flutter::EncodableValue  details)
+    : code_(std::move(code)), message_(std::move(message)), details_(std::move(details)) {}
 
-  const std::string& code() const { return code_; }
-  const std::string& message() const { return message_; }
-  const flutter::EncodableValue& details() const { return details_; }
+  [[nodiscard]] const std::string& code() const { return code_; }
+  [[nodiscard]] const std::string& message() const { return message_; }
+  [[nodiscard]] const flutter::EncodableValue& details() const { return details_; }
 
  private:
   std::string code_;
@@ -41,14 +40,14 @@ class FlutterError {
 
 template<class T> class ErrorOr {
  public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
-  ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const T& rhs) : v_(rhs) {}
+  explicit ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
+  explicit ErrorOr(const FlutterError& rhs) : v_(rhs) {}
+  explicit ErrorOr(const FlutterError&& rhs) : v_(rhs) {}
 
-  bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
+  [[nodiscard]] bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
   const T& value() const { return std::get<T>(v_); };
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
+  [[nodiscard]] const FlutterError& error() const { return std::get<FlutterError>(v_); };
 
  private:
   friend class CameraApi;
@@ -87,28 +86,28 @@ class PlatformMediaSettings {
     const int64_t* audio_bitrate,
     bool enable_audio);
 
-  const PlatformResolutionPreset& resolution_preset() const;
+  [[nodiscard]] const PlatformResolutionPreset& resolution_preset() const;
   void set_resolution_preset(const PlatformResolutionPreset& value_arg);
 
-  const int64_t* frames_per_second() const;
+  [[nodiscard]] const int64_t* frames_per_second() const;
   void set_frames_per_second(const int64_t* value_arg);
   void set_frames_per_second(int64_t value_arg);
 
-  const int64_t* video_bitrate() const;
+  [[nodiscard]] const int64_t* video_bitrate() const;
   void set_video_bitrate(const int64_t* value_arg);
   void set_video_bitrate(int64_t value_arg);
 
-  const int64_t* audio_bitrate() const;
+  [[nodiscard]] const int64_t* audio_bitrate() const;
   void set_audio_bitrate(const int64_t* value_arg);
   void set_audio_bitrate(int64_t value_arg);
 
-  bool enable_audio() const;
+  [[nodiscard]] bool enable_audio() const;
   void set_enable_audio(bool value_arg);
 
 
  private:
   static PlatformMediaSettings FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
+  [[nodiscard]] flutter::EncodableList ToEncodableList() const;
   friend class CameraApi;
   friend class PigeonCodecSerializer;
   PlatformResolutionPreset resolution_preset_;
@@ -130,16 +129,16 @@ class PlatformSize {
     double width,
     double height);
 
-  double width() const;
+  [[nodiscard]] double width() const;
   void set_width(double value_arg);
 
-  double height() const;
+  [[nodiscard]] double height() const;
   void set_height(double value_arg);
 
 
  private:
   static PlatformSize FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
+  [[nodiscard]] flutter::EncodableList ToEncodableList() ;
   friend class CameraApi;
   friend class PigeonCodecSerializer;
   double width_;
@@ -171,7 +170,7 @@ class CameraApi {
  public:
   CameraApi(const CameraApi&) = delete;
   CameraApi& operator=(const CameraApi&) = delete;
-  virtual ~CameraApi() {}
+  virtual ~CameraApi() = default;
   // Returns the names of all of the available capture devices.
   virtual ErrorOr<flutter::EncodableList> GetAvailableCameras() = 0;
   // Creates a camera instance for the given device name and settings.

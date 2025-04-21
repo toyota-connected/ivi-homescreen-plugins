@@ -74,21 +74,6 @@ using namespace plugin_common;
 
 namespace camera_plugin {
 
-// TODO static constexpr char kKeyMaxVideoDuration[] = "maxVideoDuration";
-
-// TODO static constexpr char kResolutionPresetValueLow[] = "low";
-// TODO static constexpr char kResolutionPresetValueMedium[] = "medium";
-// TODO static constexpr char kResolutionPresetValueHigh[] = "high";
-// TODO static constexpr char kResolutionPresetValueVeryHigh[] = "veryHigh";
-// TODO static constexpr char kResolutionPresetValueUltraHigh[] = "ultraHigh";
-// TODO static constexpr char kResolutionPresetValueMax[] = "max";
-
-// static std::unique_ptr<libcamera::CameraManager> g_camera_manager;
-//  static std::vector<std::shared_ptr<CameraContext>> g_cameras;
-//  static std::unordered_map<unsigned int, std::shared_ptr<CameraSession>>
-//      g_camera_sessions;
-
-// static
 void CameraPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarDesktop* registrar) {
   auto plugin =
@@ -108,41 +93,7 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
 CameraPlugin::~CameraPlugin() {
   CameraManager::instance().shutdown();
 }
-/*
-void CameraPlugin::camera_added(const std::shared_ptr<libcamera::Camera>& cam) {
-  spdlog::debug("[camera_plugin] Camera added: {}", cam->id());
-}
 
-void CameraPlugin::camera_removed(
-    const std::shared_ptr<libcamera::Camera>& cam) {
-  spdlog::debug("[camera_plugin] Camera removed: {}", cam->id());
-}
-
-std::string CameraPlugin::get_camera_lens_facing(
-    const std::shared_ptr<libcamera::Camera>& camera) {
-  const libcamera::ControlList& props = camera->properties();
-  std::string lensFacing;
-
-  // If location is specified use it, otherwise select external
-  if (const auto& location = props.get(libcamera::properties::Location)) {
-    switch (*location) {
-      case libcamera::properties::CameraLocationFront:
-        lensFacing = "front";
-        break;
-      case libcamera::properties::CameraLocationBack:
-        lensFacing = "back";
-        break;
-      case libcamera::properties::CameraLocationExternal:
-        lensFacing = "external";
-        break;
-      default:;
-    }
-  } else {
-    lensFacing = "external";
-  }
-  return std::move(lensFacing);
-}
-*/
 ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
   flutter::EncodableList list;
   auto& mgr = CameraManager::instance();
@@ -151,7 +102,7 @@ ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
     std::cout << "Detected camera: " << name << " (ID: " << id << ")\n";
     list.emplace_back(flutter::EncodableValue(std::move(std::to_string(id))));
   }
-  return list;
+  return ErrorOr<flutter::EncodableList>(list);
 }
 
 void CameraPlugin::Create(
@@ -176,7 +127,8 @@ void CameraPlugin::Create(
   std::cout << "textureID of " << camera_name
             << " is : " << CameraName_CameraStream[camera_name]->texture_id()
             << std::endl;
-  result(CameraName_CameraStream[camera_name]->texture_id());
+  int64_t texture_id = CameraName_CameraStream[camera_name]->texture_id();
+  result(ErrorOr<int64_t>(texture_id));
 }
 /******************************************************************************
  * decode_mjpeg
@@ -291,11 +243,8 @@ void CameraPlugin::Initialize(
   }
   auto camera_stream = TextureId_CameraStream[camera_id];
 
-  // auto cameraStream = CameraName_CameraStream
-  result(PlatformSize(camera_stream->camera_width(),
-                      camera_stream->camera_height()));
-  // std::string nodeID=camera_stream->camera_name();
-
+  result(ErrorOr<PlatformSize>(PlatformSize(camera_stream->camera_width(),
+                      camera_stream->camera_height())));
   std::cout << camera_stream->camera_name() << std::endl;
   camera_stream->Start(camera_stream->camera_name());
 }
@@ -342,31 +291,19 @@ void CameraPlugin::TakePicture(
     const std::function<void(ErrorOr<std::string> reply)> result) {
   SPDLOG_DEBUG("[camera_plugin] Take Picture: {}", camera_id);
   auto camera_stream = TextureId_CameraStream[camera_id];
-
-  // std::string str = "Take Picture ";
-  result(camera_stream->takePicture());
+  result(ErrorOr<std::string>(camera_stream->takePicture()));
 }
 
 void CameraPlugin::StartVideoRecording(
     const int64_t camera_id,
     const std::function<void(std::optional<FlutterError> reply)> result) {
   bool enable_stream{};
-  /*
-    const auto camera =
-        g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
-    camera->startVideoRecording(enable_stream);
-  */
   result({});
 }
 
 void CameraPlugin::StopVideoRecording(
     const int64_t camera_id,
     const std::function<void(ErrorOr<std::string> reply)> result) {
-  /*
-  const auto camera =
-      g_camera_sessions[static_cast<unsigned long>(camera_id - 1)];
-  result(camera->stopVideoRecording());
-  */
 }
 
 void CameraPlugin::PausePreview(
