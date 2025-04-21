@@ -83,6 +83,10 @@ void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
   CameraPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
+#if ENABLE_PLUGIN_CAMERA_PIPEWIRE
+  CameraPipewirePluginCApiRegisterWithRegistrar(
+      FlutterDesktopGetPluginRegistrar(engine, ""));
+#endif
 #if ENABLE_PLUGIN_PDF
   PrintingPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));

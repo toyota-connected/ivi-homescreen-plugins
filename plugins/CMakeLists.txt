@@ -84,6 +84,8 @@ PLUGIN_OPTION(audioplayers_linux "Include Audioplayers Linux plugin" OFF)
 
 PLUGIN_OPTION(camera "Include Camera plugin" OFF)
 
+PLUGIN_OPTION(camera_pipewire "Include Camera Pipewire plugin" OFF)
+
 PLUGIN_OPTION(cloud_firestore "Plugin Cloud Firestore" OFF)
 
 PLUGIN_OPTION(desktop_window_linux "Includes Desktop Window Linux Plugin" OFF)
