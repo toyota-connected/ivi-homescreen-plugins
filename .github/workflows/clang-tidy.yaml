@@ -60,7 +60,9 @@ jobs:
             libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
             libpng-dev libwebp-dev \
             \
-            libflatpak-dev libxml2-dev zlib1g-dev
+            libflatpak-dev libxml2-dev zlib1g-dev \
+            \
+            libpipewire-0.3-dev
 
           sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
             clang \
