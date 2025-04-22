@@ -46,10 +46,6 @@ struct CameraInfo {
 // Global vector to store camera info
 std::vector<CameraInfo> cameras;
 
-// For streaming
-//static constexpr int WIDTH = 640;
-//static constexpr int HEIGHT = 480;
-
 // Callback function for detecting cameras
 void on_global(void* /*data*/,
                uint32_t id,
@@ -185,8 +181,8 @@ void save_image_to_jpeg(const std::string& filename,
                         int height,
                         int channels,
                         int quality) {
-  struct jpeg_compress_struct cinfo{};
-  struct jpeg_error_mgr jerr{};
+  struct jpeg_compress_struct cinfo {};
+  struct jpeg_error_mgr jerr {};
 
   // Setup error handling
   cinfo.err = jpeg_std_error(&jerr);
@@ -240,7 +236,7 @@ void CameraPlugin::Initialize(
   const auto camera_stream = TextureId_CameraStream[camera_id];
 
   result(ErrorOr<PlatformSize>(PlatformSize(camera_stream->camera_width(),
-                      camera_stream->camera_height())));
+                                            camera_stream->camera_height())));
   std::cout << camera_stream->camera_name() << std::endl;
   camera_stream->Start(camera_stream->camera_name());
 }
@@ -293,8 +289,7 @@ void CameraPlugin::StartVideoRecording(
 
 void CameraPlugin::StopVideoRecording(
     const int64_t /*camera_id*/,
-    const std::function<void(ErrorOr<std::string> reply)> /*result*/) {
-}
+    const std::function<void(ErrorOr<std::string> reply)> /*result*/) {}
 
 void CameraPlugin::PausePreview(
     const int64_t camera_id,

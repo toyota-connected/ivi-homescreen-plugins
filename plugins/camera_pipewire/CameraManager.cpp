@@ -43,7 +43,7 @@ void CameraManager::on_global(void* data,
     return;
 
   if (const char* media_class = spa_dict_lookup(props, "media.class");
-    !media_class || std::string(media_class) != "Video/Source")
+      !media_class || std::string(media_class) != "Video/Source")
     return;
 
   const char* node_name = spa_dict_lookup(props, "node.description");

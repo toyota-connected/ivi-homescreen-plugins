@@ -64,11 +64,14 @@ class CameraManager {
   CameraManager& operator=(const CameraManager&) = delete;
 
  private:
-  static void on_global(void *data, uint32_t id, uint32_t permissions,
-                      const char *type, uint32_t version,
-                      const struct spa_dict *props);
+  static void on_global(void* data,
+                        uint32_t id,
+                        uint32_t permissions,
+                        const char* type,
+                        uint32_t version,
+                        const struct spa_dict* props);
 
-  static void on_global_remove(void *data, uint32_t id);
+  static void on_global_remove(void* data, uint32_t id);
 
   bool initialized_ = false;
   pw_thread_loop* pw_thread_loop_ = nullptr;

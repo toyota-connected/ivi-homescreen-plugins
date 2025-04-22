@@ -42,14 +42,16 @@ static int decode_mjpeg(const uint8_t* input,
 
   jpeg_start_decompress(&cinfo);
   if (static_cast<int>(cinfo.output_width) != out_width ||
-      static_cast<int>(cinfo.output_height) != out_height || cinfo.output_components != 3) {
+      static_cast<int>(cinfo.output_height) != out_height ||
+      cinfo.output_components != 3) {
     std::fprintf(stderr, "[decode_mjpeg] Unexpected size.\n");
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     return -1;
   }
 
-  const unsigned long long row_stride = cinfo.output_width * cinfo.output_components;
+  const unsigned long long row_stride =
+      cinfo.output_width * cinfo.output_components;
   while (cinfo.output_scanline < cinfo.output_height) {
     JSAMPROW row[1];
     row[0] = &output[cinfo.output_scanline * row_stride];
@@ -181,12 +183,9 @@ bool CameraStream::Start(const std::string& nodeID) {
 
     // Create the pw_stream
     pw_properties* props =
-        pw_properties_new(PW_KEY_MEDIA_TYPE, "Video",
-                          PW_KEY_MEDIA_CATEGORY, "Capture",
-                          PW_KEY_MEDIA_ROLE, "Camera",
-                          PW_KEY_NODE_TARGET, nodeID.c_str(),
-                          //PW_KEY_TARGET_OBJECT, nodeID.c_str(),
-                          nullptr);
+        pw_properties_new(PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY,
+                          "Capture", PW_KEY_MEDIA_ROLE, "Camera",
+                          PW_KEY_NODE_TARGET, nodeID.c_str(), nullptr);
 
     pw_stream_ = pw_stream_new(core, "MyCameraStream", props);
     if (!pw_stream_) {
@@ -218,8 +217,10 @@ bool CameraStream::Start(const std::string& nodeID) {
 
     // Build the SPA format param for MJPEG @ 640x480@30
     std::vector<uint8_t> pod_buffer(1024);
-    spa_pod_builder builder = SPA_POD_BUILDER_INIT(pod_buffer.data(), static_cast<unsigned int>(pod_buffer.size()));
-    spa_rectangle rect = {static_cast<uint32_t>(width_), static_cast<uint32_t>(height_)};
+    spa_pod_builder builder = SPA_POD_BUILDER_INIT(
+        pod_buffer.data(), static_cast<unsigned int>(pod_buffer.size()));
+    spa_rectangle rect = {static_cast<uint32_t>(width_),
+                          static_cast<uint32_t>(height_)};
     spa_fraction fps = {30, 1};
 
     const spa_pod* params[1];
@@ -232,13 +233,12 @@ bool CameraStream::Start(const std::string& nodeID) {
 
     // Actually connect the stream
     std::cerr << "Connecting to node ID: " << nodeID << std::endl;
-
-    if ( int res = pw_stream_connect(pw_stream_,
-                                PW_DIRECTION_INPUT,
-                                PW_ID_ANY,
-                                static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT|PW_STREAM_FLAG_MAP_BUFFERS),
-                                params,
-                                1); res < 0) {
+    if (int res = pw_stream_connect(
+            pw_stream_, PW_DIRECTION_INPUT, PW_ID_ANY,
+            static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT |
+                                         PW_STREAM_FLAG_MAP_BUFFERS),
+            params, 1);
+        res < 0) {
       std::fprintf(
           stderr, "[CameraStream::Start] pw_stream_connect() error: %d\n", res);
       pw_stream_destroy(pw_stream_);
@@ -278,8 +278,8 @@ void save_image_to_jpeg(const std::string& filename,
                         int height,
                         int channels,
                         int quality) {
-  struct jpeg_compress_struct cinfo{};
-  struct jpeg_error_mgr jerr{};
+  struct jpeg_compress_struct cinfo {};
+  struct jpeg_error_mgr jerr {};
 
   // Setup error handling
   cinfo.err = jpeg_std_error(&jerr);
@@ -337,7 +337,8 @@ void CameraStream::HandleProcess() {
     return;
   }
 
-  const auto* compressedData = static_cast<uint8_t*>(buf->buffer->datas[0].data);
+  const auto* compressedData =
+      static_cast<uint8_t*>(buf->buffer->datas[0].data);
   const size_t compressedSize = buf->buffer->datas[0].chunk->size;
 
   if (!decoded_buffer_) {
@@ -437,7 +438,7 @@ void CameraStream::PauseStream() const {
   pw_thread_loop_unlock(loop);
 }
 
-void CameraStream::ResumeStream() const{
+void CameraStream::ResumeStream() const {
   if (!pw_stream_)
     return;
 

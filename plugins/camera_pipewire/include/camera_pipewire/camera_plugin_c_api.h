@@ -29,8 +29,8 @@
 extern "C" {
 #endif
 
-  FLUTTER_PLUGIN_EXPORT void CameraPipewirePluginCApiRegisterWithRegistrar(
-      FlutterDesktopPluginRegistrar* registrar);
+FLUTTER_PLUGIN_EXPORT void CameraPipewirePluginCApiRegisterWithRegistrar(
+    FlutterDesktopPluginRegistrar* registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"

@@ -23,8 +23,8 @@ class CameraStream {
  public:
   /**
    * Create a new CameraStream.
-   * @param plugin_registrar  A Flutter TextureRegistrar used to create and update a
-   * Flutter texture.
+   * @param plugin_registrar  A Flutter TextureRegistrar used to create and
+   * update a Flutter texture.
    * @param camera_name The name of the camera
    * @param width      Desired width of the MJPEG frames.
    * @param height     Desired height of the MJPEG frames.
