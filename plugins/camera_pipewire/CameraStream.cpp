@@ -13,6 +13,7 @@
 #include <future>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include "CameraManager.h"
 #include "tools/command.h"
 static constexpr char kPictureCaptureExtension[] = "jpeg";
@@ -66,9 +67,9 @@ CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
                            int width,
                            int height)
     : registrar_(plugin_registrar),
-      camera_name_(camera_name),
       width_(width),
-      height_(height) {
+      height_(height),
+      camera_name_(std::move(camera_name)) {
   // Allocate RGB buffer for frames
   decoded_buffer_.reset(new uint8_t[width_ * height_ * 3]);
   std::memset(decoded_buffer_.get(), 0, width_ * height_ * 3);

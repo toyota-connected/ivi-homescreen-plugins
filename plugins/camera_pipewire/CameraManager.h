@@ -56,8 +56,6 @@ class CameraManager {
 
   const std::map<uint32_t, std::string>& getAvailableCameras() const;
 
- private:
-  // Private constructor/destructor for singleton
   CameraManager();
   ~CameraManager();
 

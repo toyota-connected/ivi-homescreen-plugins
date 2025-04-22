@@ -244,7 +244,7 @@ void CameraApi::SetUp(
   {
     BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.camera_linux.CameraApi.getAvailableCameras" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+      channel.SetMessageHandler([api](const EncodableValue& /*message*/, const flutter::MessageReply<EncodableValue>& reply) {
         try {
           ErrorOr<EncodableList> output = api->GetAvailableCameras();
           if (output.has_error()) {
