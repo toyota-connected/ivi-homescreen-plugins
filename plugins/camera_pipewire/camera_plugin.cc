@@ -96,7 +96,7 @@ ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
   auto cameras = mgr.getAvailableCameras();
   for (const auto& [id, name] : cameras) {
     std::cout << "Detected camera: " << name << " (ID: " << id << ")\n";
-    list.emplace_back(flutter::EncodableValue(std::move(std::to_string(id))));
+    list.emplace_back(std::to_string(id));
   }
   return ErrorOr<flutter::EncodableList>(list);
 }
@@ -153,7 +153,7 @@ int decode_mjpeg(const uint8_t* input,
     return -1;
   }
 
-  const int row_stride = cinfo.output_width * cinfo.output_components;
+  const unsigned int row_stride = cinfo.output_width * cinfo.output_components;
   while (cinfo.output_scanline < cinfo.output_height) {
     JSAMPROW row[1];
     row[0] = &output[cinfo.output_scanline * row_stride];
