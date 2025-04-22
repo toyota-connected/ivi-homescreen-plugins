@@ -9,13 +9,11 @@
 
 #include <flutter/plugin_registrar_homescreen.h>
 #include <flutter/texture_registrar.h>
-#include <pipewire/pipewire.h>  // forward-decl is risky; better to include full
-#include <spa/param/video/format-utils.h>
+#include <pipewire/pipewire.h>
 #include <atomic>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 /**
  * CameraStream manages a single PipeWire MJPEG camera stream and its Flutter
@@ -25,8 +23,9 @@ class CameraStream {
  public:
   /**
    * Create a new CameraStream.
-   * @param registrar  A Flutter TextureRegistrar used to create and update a
+   * @param plugin_registrar  A Flutter TextureRegistrar used to create and update a
    * Flutter texture.
+   * @param camera_name The name of the camera
    * @param width      Desired width of the MJPEG frames.
    * @param height     Desired height of the MJPEG frames.
    */
@@ -52,8 +51,8 @@ class CameraStream {
    */
   void Stop();
 
-  void PauseStream();
-  void ResumeStream();
+  void PauseStream() const;
+  void ResumeStream() const;
   /**
    * Get the Flutter texture ID associated with this stream.
    * Use this ID in Flutter's Texture() widget to display the camera feed.
@@ -61,10 +60,10 @@ class CameraStream {
   [[nodiscard]] GLuint texture_id() const { return texture_id_; }
 
   [[nodiscard]] std::string camera_name() const { return camera_name_; }
-  int camera_width() const { return width_; }
-  int camera_height() const { return height_; }
+  [[nodiscard]] int camera_width() const { return width_; }
+  [[nodiscard]] int camera_height() const { return height_; }
   static std::optional<std::string> GetFilePathForPicture();
-  std::string takePicture();
+  [[nodiscard]] std::string takePicture() const;
 
  private:
   // PipeWire objects
@@ -73,7 +72,7 @@ class CameraStream {
   pw_stream* pw_stream_ = nullptr;
 
   // The listener hook must stay in scope; never store it on the stack.
-  spa_hook stream_listener_;
+  spa_hook stream_listener_{};
 
   GLuint texture_id_{};
   GLuint framebuffer_{};

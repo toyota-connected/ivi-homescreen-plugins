@@ -87,7 +87,7 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
   std::unique_ptr<uint8_t[]> g_decodedBuffer;
   std::mutex g_frameMutex;
   std::atomic<bool> g_newFrameAvailable{false};
-  spa_hook localListener;
+  spa_hook localListener{};
 
   // PipeWire streaming objects
   pw_main_loop* g_pwLoop = nullptr;

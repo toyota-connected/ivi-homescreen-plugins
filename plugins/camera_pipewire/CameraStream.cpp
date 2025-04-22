@@ -4,6 +4,8 @@
 #include "CameraStream.h"
 #include <GLES2/gl2.h>
 #include <jpeglib.h>
+#include <spa/param/format.h>
+#include <spa/pod/builder.h>
 #include <spdlog/spdlog.h>
 #include <string/string_tools.h>
 #include <time/time_tools.h>
@@ -26,8 +28,8 @@ static int decode_mjpeg(const uint8_t* input,
                         uint8_t* output,
                         int out_width,
                         int out_height) {
-  jpeg_decompress_struct cinfo;
-  jpeg_error_mgr jerr;
+  jpeg_decompress_struct cinfo{};
+  jpeg_error_mgr jerr{};
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_decompress(&cinfo);
 
@@ -39,15 +41,15 @@ static int decode_mjpeg(const uint8_t* input,
   }
 
   jpeg_start_decompress(&cinfo);
-  if ((int)cinfo.output_width != out_width ||
-      (int)cinfo.output_height != out_height || cinfo.output_components != 3) {
+  if (static_cast<int>(cinfo.output_width) != out_width ||
+      static_cast<int>(cinfo.output_height) != out_height || cinfo.output_components != 3) {
     std::fprintf(stderr, "[decode_mjpeg] Unexpected size.\n");
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     return -1;
   }
 
-  const int row_stride = cinfo.output_width * cinfo.output_components;
+  const unsigned long long row_stride = cinfo.output_width * cinfo.output_components;
   while (cinfo.output_scanline < cinfo.output_height) {
     JSAMPROW row[1];
     row[0] = &output[cinfo.output_scanline * row_stride];
@@ -75,7 +77,6 @@ CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
   std::memset(decoded_buffer_.get(), 0, width_ * height_ * 3);
 
   // Create the Flutter PixelBufferTexture
-
   auto pixel_buffer_texture = std::make_unique<flutter::PixelBufferTexture>(
       [this](size_t /*width*/,
              size_t /*height*/) -> const FlutterDesktopPixelBuffer* {
@@ -87,7 +88,6 @@ CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
         pixel_buffer.height = height_;
         pixel_buffer.buffer = decoded_buffer_.get();
 
-        // No custom release callback
         pixel_buffer.release_context = nullptr;
         pixel_buffer.release_callback = nullptr;
         return &pixel_buffer;
@@ -110,7 +110,6 @@ CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                GL_UNSIGNED_BYTE, nullptr);
   glBindTexture(GL_TEXTURE_2D, 0);
-
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          texture_id_, 0);
 
@@ -182,9 +181,12 @@ bool CameraStream::Start(const std::string& nodeID) {
 
     // Create the pw_stream
     pw_properties* props =
-        pw_properties_new(PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY,
-                          "Capture", PW_KEY_MEDIA_ROLE, "Camera",
-                          PW_KEY_NODE_TARGET, nodeID.c_str(), nullptr);
+        pw_properties_new(PW_KEY_MEDIA_TYPE, "Video",
+                          PW_KEY_MEDIA_CATEGORY, "Capture",
+                          PW_KEY_MEDIA_ROLE, "Camera",
+                          PW_KEY_NODE_TARGET, nodeID.c_str(),
+                          //PW_KEY_TARGET_OBJECT, nodeID.c_str(),
+                          nullptr);
 
     pw_stream_ = pw_stream_new(core, "MyCameraStream", props);
     if (!pw_stream_) {
@@ -205,26 +207,23 @@ bool CameraStream::Start(const std::string& nodeID) {
         /* .add_buffer     = */ nullptr,
         /* .remove_buffer  = */ nullptr,
         /* .process        = */ OnStreamProcess,
-        /* .drain          = */ nullptr};
+        /* .drain          = */ nullptr,
+        /* .command        = */ nullptr,
+        /* .trigger        = */ nullptr};
+
     pw_stream_add_listener(pw_stream_, &stream_listener_, &streamEvents, this);
 
     // For example, request an MJPEG format or any other video format
     // building an SPA_POD with resolution, etc. This is just a stub:
 
-    /*
-    spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    const spa_pod* params[1];
-    // fill out your desired format (e.g. MJPEG 640x480) ...
-    // params[0] = ...
-    */
     // Build the SPA format param for MJPEG @ 640x480@30
-    uint8_t buffer[1024];
-    spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    spa_rectangle rect = {(uint32_t)width_, (uint32_t)height_};
+    std::vector<uint8_t> pod_buffer(1024);
+    spa_pod_builder builder = SPA_POD_BUILDER_INIT(pod_buffer.data(), static_cast<unsigned int>(pod_buffer.size()));
+    spa_rectangle rect = {static_cast<uint32_t>(width_), static_cast<uint32_t>(height_)};
     spa_fraction fps = {30, 1};
 
     const spa_pod* params[1];
-    params[0] = reinterpret_cast<const spa_pod*>(spa_pod_builder_add_object(
+    params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
         &builder, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
         SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
         SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg),
@@ -232,15 +231,14 @@ bool CameraStream::Start(const std::string& nodeID) {
         SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
 
     // Actually connect the stream
-    int res = pw_stream_connect(pw_stream_, PW_DIRECTION_INPUT,
-                                PW_ID_ANY,  // or a real node ID integer, or
-                                            // from the nodeID param if numeric
-                                (pw_stream_flags)(PW_STREAM_FLAG_AUTOCONNECT |
-                                                  PW_STREAM_FLAG_MAP_BUFFERS),
-                                ///* params */ nullptr,
-                                ///* n_params */ 0
-                                params, 1);
-    if (res < 0) {
+    std::cerr << "Connecting to node ID: " << nodeID << std::endl;
+
+    if ( int res = pw_stream_connect(pw_stream_,
+                                PW_DIRECTION_INPUT,
+                                PW_ID_ANY,
+                                static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT|PW_STREAM_FLAG_MAP_BUFFERS),
+                                params,
+                                1); res < 0) {
       std::fprintf(
           stderr, "[CameraStream::Start] pw_stream_connect() error: %d\n", res);
       pw_stream_destroy(pw_stream_);
@@ -280,8 +278,8 @@ void save_image_to_jpeg(const std::string& filename,
                         int height,
                         int channels,
                         int quality) {
-  struct jpeg_compress_struct cinfo;
-  struct jpeg_error_mgr jerr;
+  struct jpeg_compress_struct cinfo{};
+  struct jpeg_error_mgr jerr{};
 
   // Setup error handling
   cinfo.err = jpeg_std_error(&jerr);
@@ -339,8 +337,8 @@ void CameraStream::HandleProcess() {
     return;
   }
 
-  auto* compressedData = static_cast<uint8_t*>(buf->buffer->datas[0].data);
-  size_t compressedSize = buf->buffer->datas[0].chunk->size;
+  const auto* compressedData = static_cast<uint8_t*>(buf->buffer->datas[0].data);
+  const size_t compressedSize = buf->buffer->datas[0].chunk->size;
 
   if (!decoded_buffer_) {
     decoded_buffer_.reset(new uint8_t[width_ * height_ * 3]);
@@ -402,7 +400,7 @@ const char* StreamStateToString(enum pw_stream_state state) {
   }
 }
 
-void CameraStream::OnStreamStateChanged(void* data,
+void CameraStream::OnStreamStateChanged(void* /*data*/,
                                         pw_stream_state old_state,
                                         pw_stream_state new_state,
                                         const char* error) {
@@ -415,11 +413,10 @@ void CameraStream::OnStreamStateChanged(void* data,
 void CameraStream::OnStreamProcess(void* data) {
   auto* self = reinterpret_cast<CameraStream*>(data);
   (void)self;
-  // handle new frame data here...
   self->HandleProcess();
 }
 
-void CameraStream::PauseStream() {
+void CameraStream::PauseStream() const {
   if (!pw_stream_)
     return;
 
@@ -440,7 +437,7 @@ void CameraStream::PauseStream() {
   pw_thread_loop_unlock(loop);
 }
 
-void CameraStream::ResumeStream() {
+void CameraStream::ResumeStream() const{
   if (!pw_stream_)
     return;
 
@@ -475,7 +472,7 @@ std::optional<std::string> CameraStream::GetFilePathForPicture() {
   return path;
 }
 
-std::string CameraStream::takePicture() {
+std::string CameraStream::takePicture() const {
   auto filename = GetFilePathForPicture();
   std::cout << "[CameraStream::takePicture()]: Running in thread ID: "
             << std::this_thread::get_id() << std::endl;
