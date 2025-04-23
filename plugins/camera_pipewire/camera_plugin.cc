@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
+#include "camera_plugin.h"
 #include <flutter/plugin_registrar_homescreen.h>
-#include <memory>
-#include <unordered_map>
 #include <jpeglib.h>
 #include <pipewire/properties.h>
 #include <spa/param/param.h>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "CameraManager.h"
-#include "camera_plugin.h"
 #include "plugins/common/common.h"
 
 extern "C" {
@@ -87,7 +87,8 @@ ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
   auto& mgr = CameraManager::instance();
   auto cameras = mgr.getAvailableCameras();
   for (const auto& [id, name] : cameras) {
-    spdlog::debug("[camera_plugin] detected camera:  {} (camera_id: {})",name, id);
+    spdlog::debug("[camera_plugin] detected camera:  {} (camera_id: {})", name,
+                  id);
     list.emplace_back(std::to_string(id));
   }
   return ErrorOr<flutter::EncodableList>(std::move(list));
@@ -106,7 +107,8 @@ void CameraPlugin::Create(
     TextureId_CameraStream.insert({new_camera->texture_id(), new_camera});
   }
   int64_t texture_id = CameraName_CameraStream[camera_id]->texture_id();
-  spdlog::debug("[camera_plugin] camera_id {}'s texture_id: {}",camera_id, texture_id);
+  spdlog::debug("[camera_plugin] camera_id {}'s texture_id: {}", camera_id,
+                texture_id);
   result(ErrorOr<int64_t>(texture_id));
 }
 /******************************************************************************
@@ -207,7 +209,7 @@ void save_image_to_jpeg(const std::string& filename,
   jpeg_finish_compress(&cinfo);
   fclose(outfile);
   jpeg_destroy_compress(&cinfo);
-  spdlog::debug("image saved to {}",filename);
+  spdlog::debug("image saved to {}", filename);
 }
 
 void CameraPlugin::Initialize(
@@ -220,7 +222,8 @@ void CameraPlugin::Initialize(
 
   result(ErrorOr<PlatformSize>(PlatformSize(camera_stream->camera_width(),
                                             camera_stream->camera_height())));
-  spdlog::debug("[camera_plugin] start the stream for camera_id: {}", camera_stream->camera_id());
+  spdlog::debug("[camera_plugin] start the stream for camera_id: {}",
+                camera_stream->camera_id());
   camera_stream->Start(camera_stream->camera_id());
 }
 void CameraPlugin::blit_fb(uint8_t const* pixels) const {

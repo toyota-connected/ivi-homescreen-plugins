@@ -100,7 +100,8 @@ bool CameraManager::initialize() {
   // 3) Start the loop in its own thread
   int ret = pw_thread_loop_start(pw_thread_loop_);
   if (ret != 0) {
-    spdlog::error("[CameraManager] failed to start pw_thread_loop (err={})", ret);
+    spdlog::error("[CameraManager] failed to start pw_thread_loop (err={})",
+                  ret);
     pw_thread_loop_destroy(pw_thread_loop_);
     pw_thread_loop_ = nullptr;
     return false;
