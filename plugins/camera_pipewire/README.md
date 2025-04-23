@@ -7,39 +7,19 @@ This file contains the development plan for the Camera Plugin project.
 
 ## Current Progress
 
-The Camera Plugin can currently handle `availableCameras`, `create`, and `initialize`.
+This camera plugin provides the following functions in the functional unit test case:
 
-## Future Development
+Enumerates available camera devices.
 
-The following aspects are still under development:
+Displays a live preview from the selected camera.
 
-- Session and FrameSink classes: These classes need to be created to handle different parts of the camera's operation.
+Supports pausing and resuming the preview image.
 
-## Build libcamera
-
-### Clang
-
-    git clone https://git.libcamera.org/libcamera/libcamera.git
-    cd libcamera
-    CC=/usr/bin/clang CXX=/usr/bin/clang++ CXX_FLAGS=-stdlib=libc++ LDFLAGS=-stdlib=libc++ meson build -D lc-compliance=false
-    ninja -C build install -j `nproc`
-
-### GCC
-
-    git clone https://git.libcamera.org/libcamera/libcamera.git
-    cd libcamera
-    meson build
-    ninja -C build install -j `nproc`
-
-## libcamera logging output
-
-To minimize libcamera logs to only errors use
-
-    export LIBCAMERA_LOG_LEVELS=*:ERROR
+Saves a picture from the current camera stream.
 
 ## Functional Test Case
 
-https://github.com/flutter/packages/tree/main/packages/camera/camera/example
+https://github.com/toyota-connected/tcna-packages/tree/main/packages/camera/camera_linux/example
 
 ## Error enumerating cameras
 

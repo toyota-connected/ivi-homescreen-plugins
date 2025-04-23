@@ -15,7 +15,6 @@
  */
 
 #include "CameraManager.h"
-#include <glib/main_loop.h>
 #include <cstdio>
 #include <iostream>
 

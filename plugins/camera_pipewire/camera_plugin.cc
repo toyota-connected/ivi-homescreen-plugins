@@ -15,18 +15,11 @@
  */
 
 #include <flutter/plugin_registrar_homescreen.h>
-
 #include <memory>
 #include <unordered_map>
-
-#include <SDL2/SDL.h>
-#include <glib/main_loop.h>
 #include <jpeglib.h>
-#include <pipewire/core.h>
-#include <pipewire/pipewire.h>
 #include <pipewire/properties.h>
 #include <spa/param/param.h>
-#include <spa/param/video/format-utils.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -229,7 +222,6 @@ void CameraPlugin::Initialize(
     const int64_t camera_id,
     const std::function<void(ErrorOr<PlatformSize> reply)> result) {
   std::cout << "CameraPlugin::Initialize: " << camera_id << std::endl;
-  // GLuint textureID= camera_id;
   if (TextureId_CameraStream.find(camera_id) == TextureId_CameraStream.end()) {
     return;  // means, the camera_id is not found.
   }

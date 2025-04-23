@@ -21,10 +21,10 @@ pkg_check_modules(JPEG IMPORTED_TARGET REQUIRED libjpeg)
 add_library(plugin_camera_pipewire STATIC
         camera_plugin_c_api.cc
         camera_plugin.cc
-        messages.g.cpp
-        CameraStream.cpp
+        messages.g.cc
+        CameraStream.cc
         CameraStream.h
-        CameraManager.cpp
+        CameraManager.cc
         CameraManager.h
 )
 
