@@ -48,7 +48,7 @@ static int decode_mjpeg(const uint8_t* input,
 
   jpeg_mem_src(&cinfo, input, input_size);
   if (jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
-    spdlog::error("[decode_mjpeg] Failed to read JPEG header.");
+    spdlog::error("[decode_mjpeg] failed to read JPEG header.");
     jpeg_destroy_decompress(&cinfo);
     return -1;
   }
@@ -57,7 +57,7 @@ static int decode_mjpeg(const uint8_t* input,
   if (static_cast<int>(cinfo.output_width) != out_width ||
       static_cast<int>(cinfo.output_height) != out_height ||
       cinfo.output_components != 3) {
-    spdlog::error("[decode_mjpeg] Unexpected size.");
+    spdlog::error("[decode_mjpeg] unexpected size.");
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     return -1;
@@ -80,13 +80,13 @@ static int decode_mjpeg(const uint8_t* input,
 // Constructor
 //------------------------------------------------------------------------------
 CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
-                           std::string camera_name,
+                           std::string camera_id,
                            int width,
                            int height)
     : registrar_(plugin_registrar),
       width_(width),
       height_(height),
-      camera_name_(std::move(camera_name)) {
+      camera_id_(std::move(camera_id)) {
   // Allocate RGB buffer for frames
   decoded_buffer_.reset(new uint8_t[width_ * height_ * 3]);
   std::memset(decoded_buffer_.get(), 0, width_ * height_ * 3);
@@ -130,7 +130,7 @@ CameraStream::CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
 
   if (auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
       status != GL_FRAMEBUFFER_COMPLETE) {
-    spdlog::error("[camera_plugin] FramebufferStatus: 0x{:X}", status);
+    spdlog::error("[camera_plugin] framebufferStatus: 0x{:X}", status);
   }
 
   glFinish();
@@ -170,17 +170,17 @@ CameraStream::~CameraStream() {
 //------------------------------------------------------------------------------
 // Start capturing from the given node ID
 //------------------------------------------------------------------------------
-bool CameraStream::Start(const std::string& nodeID) {
+bool CameraStream::Start(const std::string& camera_id) {
   // 1) Ensure the manager is running
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    spdlog::error("[CameraStream::Start] Failed to init CameraManager.");
+    spdlog::error("[CameraStream] fail to initialize CameraManager.");
     return false;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    spdlog::error("[CameraStream::Start] threadLoop is null!");
+    spdlog::error("[CameraStream] threadLoop is null!");
     return false;
   }
 
@@ -189,7 +189,7 @@ bool CameraStream::Start(const std::string& nodeID) {
   {
     auto* core = mgr.core();
     if (!core) {
-      spdlog::error("[CameraStream::Start] No valid PipeWire core.");
+      spdlog::error("[CameraStream] no valid PipeWire core.");
       pw_thread_loop_unlock(loop);
       return false;
     }
@@ -198,11 +198,11 @@ bool CameraStream::Start(const std::string& nodeID) {
     pw_properties* props =
         pw_properties_new(PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY,
                           "Capture", PW_KEY_MEDIA_ROLE, "Camera",
-                          PW_KEY_NODE_TARGET, nodeID.c_str(), nullptr);
+                          PW_KEY_NODE_TARGET, camera_id.c_str(), nullptr);
 
     pw_stream_ = pw_stream_new(core, "MyCameraStream", props);
     if (!pw_stream_) {
-      spdlog::error("[CameraStream::Start] Failed to create pw_stream.");
+      spdlog::error("[CameraStream] failed to create pw_stream.");
       pw_thread_loop_unlock(loop);
       return false;
     }
@@ -244,14 +244,14 @@ bool CameraStream::Start(const std::string& nodeID) {
         SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
 
     // Actually connect the stream
-    spdlog::debug("[CameraStream::Start] Connecting to node ID:: {}", nodeID);
+    spdlog::debug("[CameraStream] connecting to camera_id: {}", camera_id);
     if (int res = pw_stream_connect(
             pw_stream_, PW_DIRECTION_INPUT, PW_ID_ANY,
             static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT |
                                          PW_STREAM_FLAG_MAP_BUFFERS),
             params, 1);
         res < 0) {
-      spdlog::error("[CameraStream::Start] pw_stream_connect() error: {}", res);
+      spdlog::error("[CameraStream] pw_stream_connect() error: {}", res);
       pw_stream_destroy(pw_stream_);
       pw_stream_ = nullptr;
       pw_thread_loop_unlock(loop);
@@ -299,7 +299,7 @@ void save_image_to_jpeg(const std::string& filename,
   // Open file for writing
   FILE* outfile = fopen(filename.c_str(), "wb");
   if (!outfile) {
-    spdlog::error("Error: Unable to open {} for writing", filename);
+    spdlog::error("error: unable to open {} for writing", filename);
     return;
   }
 
@@ -328,7 +328,7 @@ void save_image_to_jpeg(const std::string& filename,
   jpeg_finish_compress(&cinfo);
   fclose(outfile);
   jpeg_destroy_compress(&cinfo);
-  spdlog::debug("Image saved to {}", filename);
+  spdlog::debug("image saved to {}", filename);
 }
 
 //------------------------------------------------------------------------------
@@ -384,7 +384,7 @@ void CameraStream::HandleProcess() {
       registrar_->texture_registrar()->MarkTextureFrameAvailable(texture_id_);
     }
   } else {
-    spdlog::error("[CameraStream::HandleProcess] MJPEG decode failed.");
+    spdlog::error("[CameraStream] mjpeg decode failed.");
   }
   pw_stream_queue_buffer(pw_stream_, buf);
 }
@@ -428,13 +428,13 @@ void CameraStream::PauseStream() const {
 
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    spdlog::error("[CameraStream::Start] Failed to initialize CameraManager.");
+    spdlog::error("[CameraStream] failed to initialize CameraManager.");
     return;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    spdlog::error("[CameraStream::Start] threadLoop is null!");
+    spdlog::error("[CameraStream] threadLoop is null!");
     return;
   }
 
@@ -449,13 +449,13 @@ void CameraStream::ResumeStream() const {
 
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    spdlog::error("[CameraStream::Start] Failed to initialize CameraManager.");
+    spdlog::error("[CameraStream] failed to initialize CameraManager.");
     return;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    spdlog::error("[CameraStream::Start] threadLoop is null!");
+    spdlog::error("[CameraStream] threadLoop is null!");
     return;
   }
 

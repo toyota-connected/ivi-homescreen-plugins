@@ -44,19 +44,19 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
   // Returns the names of all of the available capture devices.
   ErrorOr<flutter::EncodableList> GetAvailableCameras() override;
   // Creates a camera instance for the given device name and settings.
-  void Create(const std::string& camera_name,
+  void Create(const std::string& camera_id,
               const PlatformMediaSettings& settings,
               std::function<void(ErrorOr<int64_t> reply)> result) override;
   // Initializes a camera, and returns the size of its preview.
   void Initialize(
-      int64_t camera_id,
+      int64_t texture_id,
       std::function<void(ErrorOr<PlatformSize> reply)> result) override;
   // Disposes a camera that is no longer in use.
-  virtual std::optional<FlutterError> Dispose(int64_t camera_id) override;
+  virtual std::optional<FlutterError> Dispose(int64_t texture_id) override;
   // Takes a picture with the given camera, and returns the path to the
   // resulting file.
   void TakePicture(
-      int64_t camera_id,
+      int64_t texture_id,
       std::function<void(ErrorOr<std::string> reply)> result) override;
   // Starts recording video with the given camera.
   void StartVideoRecording(
@@ -69,11 +69,11 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
       std::function<void(ErrorOr<std::string> reply)> result) override;
   // Starts the preview stream for the given camera.
   void PausePreview(
-      int64_t camera_id,
+      int64_t texture_id,
       std::function<void(std::optional<FlutterError> reply)> result) override;
   // Resumes the preview stream for the given camera.
   void ResumePreview(
-      int64_t camera_id,
+      int64_t texture_id,
       std::function<void(std::optional<FlutterError> reply)> result) override;
   void blit_fb(uint8_t const* pixels) const;
 

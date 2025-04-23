@@ -37,12 +37,12 @@ class CameraStream {
    * Create a new CameraStream.
    * @param plugin_registrar  A Flutter TextureRegistrar used to create and
    * update a Flutter texture.
-   * @param camera_name The name of the camera
+   * @param camera_id The id of the camera
    * @param width      Desired width of the MJPEG frames.
    * @param height     Desired height of the MJPEG frames.
    */
   CameraStream(flutter::PluginRegistrarDesktop* plugin_registrar,
-               std::string camera_name,
+               std::string camera_id,
                int width,
                int height);
 
@@ -53,10 +53,10 @@ class CameraStream {
 
   /**
    * Start capturing from the given PipeWire node ID (camera).
-   * @param nodeID  The PipeWire node ID to capture from (e.g. "42").
+   * @param camera_id  The PipeWire node ID to capture from (e.g. "42").
    * @return true if successful, false otherwise.
    */
-  bool Start(const std::string& nodeID);
+  bool Start(const std::string& camera_id);
 
   /**
    * Stop capturing if the stream is running.
@@ -71,7 +71,7 @@ class CameraStream {
    */
   [[nodiscard]] GLuint texture_id() const { return texture_id_; }
 
-  [[nodiscard]] std::string camera_name() const { return camera_name_; }
+  [[nodiscard]] std::string camera_id() const { return camera_id_; }
   [[nodiscard]] int camera_width() const { return width_; }
   [[nodiscard]] int camera_height() const { return height_; }
   static std::optional<std::string> GetFilePathForPicture();
@@ -105,7 +105,7 @@ class CameraStream {
   void HandleProcess();
 
   // Camera name
-  std::string camera_name_ = "";
+  std::string camera_id_ = "";
   // PipeWire callbacks (static => dispatch to instance)
   static void OnStreamStateChanged(void* data,
                                    pw_stream_state old_state,
