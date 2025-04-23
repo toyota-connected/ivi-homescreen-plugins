@@ -221,7 +221,7 @@ void PigeonCodecSerializer::WriteValue(
           std::get_if<CustomEncodableValue>(&value)) {
     if (custom_value->type() == typeid(PlatformMediaSettings)) {
       stream->WriteByte(129);
-      WriteValue(
+      flutter::StandardCodecSerializer::WriteValue(
           EncodableValue(std::any_cast<PlatformMediaSettings>(*custom_value)
                              .ToEncodableList()),
           stream);
@@ -229,7 +229,7 @@ void PigeonCodecSerializer::WriteValue(
     }
     if (custom_value->type() == typeid(PlatformSize)) {
       stream->WriteByte(130);
-      WriteValue(
+      flutter::StandardCodecSerializer::WriteValue(
           EncodableValue(
               std::any_cast<PlatformSize>(*custom_value).ToEncodableList()),
           stream);
@@ -237,9 +237,10 @@ void PigeonCodecSerializer::WriteValue(
     }
     if (custom_value->type() == typeid(PlatformResolutionPreset)) {
       stream->WriteByte(131);
-      WriteValue(EncodableValue(static_cast<int>(
-                     std::any_cast<PlatformResolutionPreset>(*custom_value))),
-                 stream);
+      flutter::StandardCodecSerializer::WriteValue(
+          EncodableValue(static_cast<int>(
+              std::any_cast<PlatformResolutionPreset>(*custom_value))),
+          stream);
       return;
     }
   }
