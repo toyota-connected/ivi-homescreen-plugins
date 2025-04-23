@@ -68,8 +68,8 @@ void CameraPlugin::RegisterWithRegistrar(
 }
 
 CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
-                           flutter::BinaryMessenger* messenger)
-    : registrar_(plugin_registrar), messenger_(messenger) {
+                           flutter::BinaryMessenger* /*messenger*/)
+    : registrar_(plugin_registrar) {
   if (!CameraManager::instance().initialize()) {
     spdlog::error("failed to initialize PipeWire manager!");
   }
@@ -96,14 +96,14 @@ void CameraPlugin::Create(
     const PlatformMediaSettings& /*settings*/,
     const std::function<void(ErrorOr<int64_t> reply)> result) {
   spdlog::debug("[camera_plugin] create camera_id: {}", camera_id);
-  if (CameraName_CameraStream.find(camera_id) ==
-      CameraName_CameraStream.end()) {
+  if (CameraId_CameraStream.find(camera_id) ==
+      CameraId_CameraStream.end()) {
     auto new_camera =
         std::make_shared<CameraStream>(registrar_, camera_id, 640, 480);
-    CameraName_CameraStream.insert({camera_id, new_camera});
+    CameraId_CameraStream.insert({camera_id, new_camera});
     TextureId_CameraStream.insert({new_camera->texture_id(), new_camera});
   }
-  int64_t texture_id = CameraName_CameraStream[camera_id]->texture_id();
+  int64_t texture_id = CameraId_CameraStream[camera_id]->texture_id();
   spdlog::debug("[camera_plugin] camera_id {}'s texture_id: {}", camera_id,
                 texture_id);
   result(ErrorOr<int64_t>(texture_id));
@@ -157,9 +157,6 @@ int decode_mjpeg(const uint8_t* input,
  * from the param, then prints its value type. Real code might do more detailed
  * checks or convert to a known range.
  ******************************************************************************/
-#define IMAGE_WIDTH 640
-#define IMAGE_HEIGHT 480
-#define IMAGE_CHANNELS 3  // RGB format
 
 void save_image_to_jpeg(const std::string& filename,
                         const unsigned char* image_data,

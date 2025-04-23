@@ -81,28 +81,6 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
 
  private:
   flutter::TextureRegistrar* texture_registrar_{};
-  // Buffer for decoded frames
-  std::unique_ptr<uint8_t[]> g_decodedBuffer;
-  std::mutex g_frameMutex;
-  std::atomic<bool> g_newFrameAvailable{false};
-  spa_hook localListener{};
-
-  // PipeWire streaming objects
-  pw_main_loop* g_pwLoop = nullptr;
-  pw_context* g_pwContext = nullptr;
-  pw_core* g_pwCore = nullptr;
-  pw_stream* g_pwStream = nullptr;
-
-  // Thread that runs pw_main_loop_run
-  std::thread pipewire_thread_;
-
-  static void on_stream_process(void* data);
-  static void on_stream_state_changed(void* data,
-                                      pw_stream_state old_state,
-                                      pw_stream_state new_state,
-                                      const char* error);
-  // void start_camera_stream(const std::string& nodeID);
-  void handle_stream();
 
   struct preview {
     bool is_initialized{};
@@ -126,27 +104,14 @@ class CameraPlugin final : public flutter::Plugin, public CameraApi {
   } mPreview;
 
   flutter::PluginRegistrarDesktop* registrar_{};
-  flutter::BinaryMessenger* messenger_;
   std::map<std::string,
            std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>>
       event_channels_;
   std::map<std::string, std::unique_ptr<flutter::StreamHandler<>>>
       stream_handlers_;
 
-  std::map<std::string, int> CameraName_TextureId;
-  std::map<int, std::string> TextureId_CameraName;
-  std::map<std::string, std::shared_ptr<CameraStream>> CameraName_CameraStream;
+  std::map<std::string, std::shared_ptr<CameraStream>> CameraId_CameraStream;
   std::map<GLuint, std::shared_ptr<CameraStream>> TextureId_CameraStream;
-  std::map<std::string, bool> CameraName_Created;
-  std::thread thread_;
-
-  static std::optional<std::string> GetFilePathForPicture();
-  static std::optional<std::string> GetFilePathForVideo();
-
-  std::string RegisterEventChannel(
-      const std::string& prefix,
-      const std::string& uid,
-      std::unique_ptr<flutter::StreamHandler<flutter::EncodableValue>> handler);
 };
 }  // namespace camera_plugin
 

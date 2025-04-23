@@ -195,10 +195,9 @@ bool CameraStream::Start(const std::string& camera_id) {
     }
 
     // Create the pw_stream
-    pw_properties* props =
-        pw_properties_new(PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY,
-                          "Capture", PW_KEY_MEDIA_ROLE, "Camera",
-                          PW_KEY_NODE_TARGET, camera_id.c_str(), nullptr);
+    pw_properties* props = pw_properties_new(
+        PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY, "Capture",
+        PW_KEY_MEDIA_ROLE, "Camera", "node.target", camera_id.c_str(), nullptr);
 
     pw_stream_ = pw_stream_new(core, "MyCameraStream", props);
     if (!pw_stream_) {
@@ -208,29 +207,24 @@ bool CameraStream::Start(const std::string& camera_id) {
     }
 
     // Set up the stream events
-    static pw_stream_events streamEvents = {
-        PW_VERSION_STREAM_EVENTS,
-        /* .destroy        = */ nullptr,
-        /* .state_changed  = */ OnStreamStateChanged,
-        /* .control_info   = */ nullptr,
-        /* .io_changed     = */ nullptr,
-        /* .param_changed  = */ nullptr,
-        /* .add_buffer     = */ nullptr,
-        /* .remove_buffer  = */ nullptr,
-        /* .process        = */ OnStreamProcess,
-        /* .drain          = */ nullptr,
-        /* .command        = */ nullptr,
-        /* .trigger        = */ nullptr};
+    static pw_stream_events streamEvents{};
+    streamEvents.version = PW_VERSION_STREAM_EVENTS;
+    streamEvents.state_changed = OnStreamStateChanged;
+    streamEvents.process = OnStreamProcess;
 
     pw_stream_add_listener(pw_stream_, &stream_listener_, &streamEvents, this);
 
     // For example, request an MJPEG format or any other video format
     // building an SPA_POD with resolution, etc. This is just a stub:
 
-    // Build the SPA format param for MJPEG @ 640x480@30
+    // Build the SPA format param
     std::vector<uint8_t> pod_buffer(1024);
-    spa_pod_builder builder = SPA_POD_BUILDER_INIT(
-        pod_buffer.data(), static_cast<unsigned int>(pod_buffer.size()));
+    spa_pod_builder builder = ((struct spa_pod_builder){
+        (pod_buffer.data()),
+        (static_cast<unsigned int>(pod_buffer.size())),
+        0,
+        {},
+        {}});
     spa_rectangle rect = {static_cast<uint32_t>(width_),
                           static_cast<uint32_t>(height_)};
     spa_fraction fps = {30, 1};
