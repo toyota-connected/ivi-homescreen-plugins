@@ -96,8 +96,7 @@ void CameraPlugin::Create(
     const PlatformMediaSettings& /*settings*/,
     const std::function<void(ErrorOr<int64_t> reply)> result) {
   spdlog::debug("[camera_plugin] create camera_id: {}", camera_id);
-  if (CameraId_CameraStream.find(camera_id) ==
-      CameraId_CameraStream.end()) {
+  if (CameraId_CameraStream.find(camera_id) == CameraId_CameraStream.end()) {
     auto new_camera =
         std::make_shared<CameraStream>(registrar_, camera_id, 640, 480);
     CameraId_CameraStream.insert({camera_id, new_camera});
