@@ -48,7 +48,7 @@ static int decode_mjpeg(const uint8_t* input,
 
   jpeg_mem_src(&cinfo, input, input_size);
   if (jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
-    std::fprintf(stderr, "[decode_mjpeg] Failed to read JPEG header.\n");
+    spdlog::error("[decode_mjpeg] Failed to read JPEG header.");
     jpeg_destroy_decompress(&cinfo);
     return -1;
   }
@@ -57,7 +57,7 @@ static int decode_mjpeg(const uint8_t* input,
   if (static_cast<int>(cinfo.output_width) != out_width ||
       static_cast<int>(cinfo.output_height) != out_height ||
       cinfo.output_components != 3) {
-    std::fprintf(stderr, "[decode_mjpeg] Unexpected size.\n");
+    spdlog::error("[decode_mjpeg] Unexpected size.");
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     return -1;
@@ -174,13 +174,13 @@ bool CameraStream::Start(const std::string& nodeID) {
   // 1) Ensure the manager is running
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    std::fprintf(stderr, "[CameraStream::Start] Failed to init manager.\n");
+    spdlog::error("[CameraStream::Start] Failed to init CameraManager.");
     return false;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    std::fprintf(stderr, "[CameraStream::Start] threadLoop is null?\n");
+    spdlog::error("[CameraStream::Start] threadLoop is null!");
     return false;
   }
 
@@ -189,7 +189,7 @@ bool CameraStream::Start(const std::string& nodeID) {
   {
     auto* core = mgr.core();
     if (!core) {
-      std::fprintf(stderr, "[CameraStream::Start] No valid PipeWire core.\n");
+      spdlog::error("[CameraStream::Start] No valid PipeWire core.");
       pw_thread_loop_unlock(loop);
       return false;
     }
@@ -202,8 +202,7 @@ bool CameraStream::Start(const std::string& nodeID) {
 
     pw_stream_ = pw_stream_new(core, "MyCameraStream", props);
     if (!pw_stream_) {
-      std::fprintf(stderr,
-                   "[CameraStream::Start] Failed to create pw_stream.\n");
+      spdlog::error("[CameraStream::Start] Failed to create pw_stream.");
       pw_thread_loop_unlock(loop);
       return false;
     }
@@ -245,15 +244,14 @@ bool CameraStream::Start(const std::string& nodeID) {
         SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
 
     // Actually connect the stream
-    std::cerr << "Connecting to node ID: " << nodeID << std::endl;
+    spdlog::debug("[CameraStream::Start] Connecting to node ID:: {}", nodeID);
     if (int res = pw_stream_connect(
             pw_stream_, PW_DIRECTION_INPUT, PW_ID_ANY,
             static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT |
                                          PW_STREAM_FLAG_MAP_BUFFERS),
             params, 1);
         res < 0) {
-      std::fprintf(
-          stderr, "[CameraStream::Start] pw_stream_connect() error: %d\n", res);
+      spdlog::error("[CameraStream::Start] pw_stream_connect() error: {}", res);
       pw_stream_destroy(pw_stream_);
       pw_stream_ = nullptr;
       pw_thread_loop_unlock(loop);
@@ -301,8 +299,7 @@ void save_image_to_jpeg(const std::string& filename,
   // Open file for writing
   FILE* outfile = fopen(filename.c_str(), "wb");
   if (!outfile) {
-    std::cerr << "Error: Unable to open file " << filename << " for writing!"
-              << std::endl;
+    spdlog::error("Error: Unable to open {} for writing", filename);
     return;
   }
 
@@ -331,8 +328,7 @@ void save_image_to_jpeg(const std::string& filename,
   jpeg_finish_compress(&cinfo);
   fclose(outfile);
   jpeg_destroy_compress(&cinfo);
-
-  std::cout << "Image saved to " << filename << std::endl;
+  spdlog::debug("Image saved to {}", filename);
 }
 
 //------------------------------------------------------------------------------
@@ -388,8 +384,7 @@ void CameraStream::HandleProcess() {
       registrar_->texture_registrar()->MarkTextureFrameAvailable(texture_id_);
     }
   } else {
-    std::fprintf(stderr,
-                 "[CameraStream::HandleProcess] MJPEG decode failed.\n");
+    spdlog::error("[CameraStream::HandleProcess] MJPEG decode failed.");
   }
   pw_stream_queue_buffer(pw_stream_, buf);
 }
@@ -418,10 +413,7 @@ void CameraStream::OnStreamStateChanged(void* /*data*/,
                                         pw_stream_state old_state,
                                         pw_stream_state new_state,
                                         const char* error) {
-  std::fprintf(stderr,
-               "[CameraStream] stream state changed from %s to %s (%s)\n",
-               StreamStateToString(old_state), StreamStateToString(new_state),
-               (error ? error : "no error"));
+  spdlog::debug("[CameraStream] stream state changed from {} to {}",StreamStateToString(old_state), StreamStateToString(new_state));
 }
 
 void CameraStream::OnStreamProcess(void* data) {
@@ -436,13 +428,13 @@ void CameraStream::PauseStream() const {
 
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    std::fprintf(stderr, "[CameraStream::Start] Failed to init manager.\n");
+    spdlog::error("[CameraStream::Start] Failed to initialize CameraManager.");
     return;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    std::fprintf(stderr, "[CameraStream::Start] threadLoop is null?\n");
+    spdlog::error("[CameraStream::Start] threadLoop is null!");
     return;
   }
 
@@ -457,13 +449,13 @@ void CameraStream::ResumeStream() const {
 
   auto& mgr = CameraManager::instance();
   if (!mgr.initialize()) {
-    std::fprintf(stderr, "[CameraStream::Start] Failed to init manager.\n");
+    spdlog::error("[CameraStream::Start] Failed to initialize CameraManager.");
     return;
   }
 
   auto* loop = mgr.threadLoop();
   if (!loop) {
-    std::fprintf(stderr, "[CameraStream::Start] threadLoop is null?\n");
+    spdlog::error("[CameraStream::Start] threadLoop is null!");
     return;
   }
 
@@ -488,8 +480,6 @@ std::optional<std::string> CameraStream::GetFilePathForPicture() {
 
 std::string CameraStream::takePicture() const {
   auto filename = GetFilePathForPicture();
-  std::cout << "[CameraStream::takePicture()]: Running in thread ID: "
-            << std::this_thread::get_id() << std::endl;
   save_image_to_jpeg(filename.value(), decoded_buffer_.get(), width_, height_,
                      3, 90);
 

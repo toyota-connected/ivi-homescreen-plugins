@@ -15,6 +15,9 @@
  */
 
 #include "CameraManager.h"
+
+#include <spdlog/spdlog.h>
+
 #include <cstdio>
 #include <iostream>
 
@@ -62,7 +65,7 @@ void CameraManager::on_global(void* data,
 
   auto* self = static_cast<CameraManager*>(data);
   self->camera_nodes_[id] = name;
-  std::cout << "[+] Camera added: " << name << " (id: " << id << ")\n";
+  spdlog::debug("[+] Camera added: {} (ID: {})", name, id);
 }
 void CameraManager::on_global_remove(void* data, const uint32_t id) {
   if (!data) {
@@ -71,8 +74,7 @@ void CameraManager::on_global_remove(void* data, const uint32_t id) {
   }
   auto* self = static_cast<CameraManager*>(data);
   if (auto it = self->camera_nodes_.find(id); it != self->camera_nodes_.end()) {
-    std::cout << "[-] Camera removed: " << it->second << " (id: " << id
-              << ")\n";
+    spdlog::debug("[-] Camera removed: {} (ID: {})", it->second, id);
     self->camera_nodes_.erase(it);
   }
 }
@@ -91,16 +93,14 @@ bool CameraManager::initialize() {
   // 2) Create main loop, context, and core
   pw_thread_loop_ = pw_thread_loop_new("camera-loop", nullptr);
   if (!pw_thread_loop_) {
-    std::fprintf(stderr, "[CameraManager] Failed to create pw_main_loop.\n");
+    spdlog::error("[CameraManager] Failed to create pw_main_loop.");
     return false;
   }
 
   // 3) Start the loop in its own thread
   int ret = pw_thread_loop_start(pw_thread_loop_);
   if (ret != 0) {
-    std::fprintf(stderr,
-                 "[CameraManager] Failed to start pw_thread_loop (err=%d)\n",
-                 ret);
+    spdlog::error("[CameraManager] Failed to start pw_thread_loop (err={})", ret);
     pw_thread_loop_destroy(pw_thread_loop_);
     pw_thread_loop_ = nullptr;
     return false;
@@ -111,19 +111,17 @@ bool CameraManager::initialize() {
   {
     // We get the underlying spa_loop from the thread loop
     if (auto* loop = pw_thread_loop_get_loop(pw_thread_loop_); !loop) {
-      std::fprintf(stderr,
-                   "[CameraManager] Could not get loop from threadLoop.\n");
+      spdlog::error("[CameraManager] Could not get loop from threadLoop.");
     } else {
       // Create PipeWire context
       pw_context_ = pw_context_new(loop, nullptr, 0);
       if (!pw_context_) {
-        std::fprintf(stderr, "[CameraManager] Failed to create pw_context.\n");
+        spdlog::error("[CameraManager] Failed to create pw_context.");
       } else {
         // Connect to PipeWire core
         pw_core_ = pw_context_connect(pw_context_, nullptr, 0);
         if (!pw_core_) {
-          std::fprintf(stderr,
-                       "[CameraManager] Could not connect to PW core.\n");
+          spdlog::error("[CameraManager] Could not connect to PipeWire core.");
         }
         pw_registry_ = pw_core_get_registry(pw_core_, PW_VERSION_REGISTRY, 0);
         static pw_registry_events registry_events = {

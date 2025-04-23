@@ -53,8 +53,7 @@ void on_global(void* /*data*/,
   const char* name = spa_dict_lookup(props, "node.description");
 
   if (media_class && std::string(media_class) == "Video/Source") {
-    std::cout << "Found camera: " << (name ? name : "Unknown") << " (id: " << id
-              << ")" << std::endl;
+    spdlog::debug("Found camera: {} (id: {})", name, id);
     cameras.push_back({id, name ? name : "Unknown"});
   }
 }
@@ -75,7 +74,7 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
                            flutter::BinaryMessenger* messenger)
     : registrar_(plugin_registrar), messenger_(messenger) {
   if (!CameraManager::instance().initialize()) {
-    std::cerr << "Failed to initialize PipeWire manager!\n";
+    spdlog::error("Failed to initialize PipeWire manager!");
   }
 }
 
@@ -88,20 +87,17 @@ ErrorOr<flutter::EncodableList> CameraPlugin::GetAvailableCameras() {
   auto& mgr = CameraManager::instance();
   auto cameras = mgr.getAvailableCameras();
   for (const auto& [id, name] : cameras) {
-    std::cout << "Detected camera: " << name << " (ID: " << id << ")\n";
+    spdlog::debug("Detected camera:  {} (ID: {})",name, id);
     list.emplace_back(std::to_string(id));
   }
-  return ErrorOr<flutter::EncodableList>(list);
+  return ErrorOr<flutter::EncodableList>(std::move(list));
 }
 
 void CameraPlugin::Create(
     const std::string& camera_name,
     const PlatformMediaSettings& /*settings*/,
     const std::function<void(ErrorOr<int64_t> reply)> result) {
-  spdlog::debug("[camera_plugin] create:");
-
-  spdlog::debug("\tname: {}", camera_name);
-
+  spdlog::debug("[camera_plugin] create camera_name: {}", camera_name);
   if (CameraName_CameraStream.find(camera_name) ==
       CameraName_CameraStream.end()) {
     auto new_camera =
@@ -109,9 +105,7 @@ void CameraPlugin::Create(
     CameraName_CameraStream.insert({camera_name, new_camera});
     TextureId_CameraStream.insert({new_camera->texture_id(), new_camera});
   }
-  std::cout << "textureID of " << camera_name
-            << " is : " << CameraName_CameraStream[camera_name]->texture_id()
-            << std::endl;
+  spdlog::debug("textureID of {} is: {}",camera_name, CameraName_CameraStream[camera_name]->texture_id());
   int64_t texture_id = CameraName_CameraStream[camera_name]->texture_id();
   result(ErrorOr<int64_t>(texture_id));
 }
@@ -131,7 +125,7 @@ int decode_mjpeg(const uint8_t* input,
 
   jpeg_mem_src(&cinfo, input, input_size);
   if (jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
-    std::cerr << "[decode_mjpeg] Failed to read JPEG header.\n";
+    spdlog::error("[decode_mjpeg] Failed to read JPEG header.");
     jpeg_destroy_decompress(&cinfo);
     return -1;
   }
@@ -140,7 +134,7 @@ int decode_mjpeg(const uint8_t* input,
   if (cinfo.output_width != static_cast<uint32_t>(out_width) ||
       cinfo.output_height != static_cast<uint32_t>(out_height) ||
       cinfo.output_components != 3) {
-    std::cerr << "[decode_mjpeg] Unexpected size/components.\n";
+    spdlog::error("[decode_mjpeg] Unexpected size/components.");
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     return -1;
@@ -184,8 +178,7 @@ void save_image_to_jpeg(const std::string& filename,
   // Open file for writing
   FILE* outfile = fopen(filename.c_str(), "wb");
   if (!outfile) {
-    std::cerr << "Error: Unable to open file " << filename << " for writing!"
-              << std::endl;
+    spdlog::error("Error: Unable to open file {} for writing!", filename);
     return;
   }
 
@@ -214,14 +207,13 @@ void save_image_to_jpeg(const std::string& filename,
   jpeg_finish_compress(&cinfo);
   fclose(outfile);
   jpeg_destroy_compress(&cinfo);
-
-  std::cout << "Image saved to " << filename << std::endl;
+  spdlog::debug("Image saved to {}",filename);
 }
 
 void CameraPlugin::Initialize(
     const int64_t camera_id,
     const std::function<void(ErrorOr<PlatformSize> reply)> result) {
-  std::cout << "CameraPlugin::Initialize: " << camera_id << std::endl;
+  spdlog::debug("CameraPlugin::Initialize camera_id: {}", camera_id);
   if (TextureId_CameraStream.find(camera_id) == TextureId_CameraStream.end()) {
     return;  // means, the camera_id is not found.
   }
@@ -229,7 +221,7 @@ void CameraPlugin::Initialize(
 
   result(ErrorOr<PlatformSize>(PlatformSize(camera_stream->camera_width(),
                                             camera_stream->camera_height())));
-  std::cout << camera_stream->camera_name() << std::endl;
+  spdlog::debug("start the stream of camera_id {}", camera_stream->camera_name());
   camera_stream->Start(camera_stream->camera_name());
 }
 void CameraPlugin::blit_fb(uint8_t const* pixels) const {
