@@ -15,10 +15,8 @@
  */
 
 #include "include/camera_pipewire/camera_plugin_c_api.h"
-
-#include "flutter/plugin_registrar_homescreen.h"
-
 #include "camera_plugin.h"
+#include "flutter/plugin_registrar_homescreen.h"
 
 void CameraPipewirePluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

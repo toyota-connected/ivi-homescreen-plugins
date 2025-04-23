@@ -15,10 +15,7 @@
  */
 
 #include "CameraManager.h"
-
 #include <spdlog/spdlog.h>
-
-#include <cstdio>
 #include <iostream>
 
 // Static instance

@@ -22,8 +22,6 @@
 #include <flutter/plugin_registrar_homescreen.h>
 #include <pipewire/core.h>
 #include <pipewire/pipewire.h>
-#include <pipewire/properties.h>
-#include <spa/param/param.h>
 #include <spa/param/video/format-utils.h>
 #include "CameraStream.h"
 #include "event_channel.h"

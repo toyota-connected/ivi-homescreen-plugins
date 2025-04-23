@@ -23,7 +23,6 @@
 #include <flutter/encodable_value.h>
 #include <flutter/standard_message_codec.h>
 
-#include <map>
 #include <optional>
 #include <string>
 
@@ -179,8 +178,8 @@ void PlatformSize::set_height(double value_arg) {
 EncodableList PlatformSize::ToEncodableList() {
   EncodableList list;
   list.reserve(2);
-  list.emplace_back(EncodableValue(width_));
-  list.emplace_back(EncodableValue(height_));
+  list.emplace_back(width_);
+  list.emplace_back(height_);
   return list;
 }
 
@@ -363,7 +362,7 @@ void CameraApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                       return;
                     }
                     EncodableList wrapped;
-                    wrapped.push_back(
+                    wrapped.emplace_back(
                         CustomEncodableValue(std::move(output).TakeValue()));
                     reply(EncodableValue(std::move(wrapped)));
                   });

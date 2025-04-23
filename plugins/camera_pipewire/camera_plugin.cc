@@ -17,9 +17,6 @@
 #include "camera_plugin.h"
 #include <flutter/plugin_registrar_homescreen.h>
 #include <jpeglib.h>
-#include <pipewire/properties.h>
-#include <spa/param/param.h>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>

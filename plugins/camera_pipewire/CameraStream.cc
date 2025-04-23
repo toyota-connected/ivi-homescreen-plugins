@@ -412,7 +412,7 @@ const char* StreamStateToString(enum pw_stream_state state) {
 void CameraStream::OnStreamStateChanged(void* /*data*/,
                                         pw_stream_state old_state,
                                         pw_stream_state new_state,
-                                        const char* error) {
+                                        const char* /*error*/) {
   spdlog::debug("[CameraStream] stream state changed from {} to {}",
                 StreamStateToString(old_state), StreamStateToString(new_state));
 }
