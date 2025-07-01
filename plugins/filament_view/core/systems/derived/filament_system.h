@@ -20,6 +20,10 @@
 #include <core/utils/ibl_profiler.h>
 #include <memory>
 
+#ifndef FILAMENT_VERSION
+#error "Filament version not defined. Please add the appropriate define in your build system."
+#endif
+
 namespace plugin_filament_view {
 
 class FilamentSystem : public ECSystem {
@@ -34,6 +38,12 @@ class FilamentSystem : public ECSystem {
     void vUpdate(float fElapsedTime) override;
     void vShutdownSystem() override;
     void DebugPrint() override;
+
+    [[nodiscard]] const char* getFilamentVersionString() const {
+      // Get the Filament version string from define FILAMENT_VERSION as a constexpr (define doesn't include quotes)
+      constexpr char* version = FILAMENT_VERSION;
+      return version;
+    }
 
     [[nodiscard]] ::filament::Engine* getFilamentEngine() const { return fengine_; }
 

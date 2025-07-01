@@ -142,6 +142,9 @@ target_link_libraries(plugin_filament_view PUBLIC
         toolchain::toolchain
 )
 
+# Sets the Filament version
+target_compile_definitions(plugin_filament_view PUBLIC FILAMENT_VERSION="${FILAMENT_VERSION}")
+
 #
 # Filament MVP Example
 #

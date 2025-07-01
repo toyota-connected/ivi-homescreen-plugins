@@ -23,7 +23,7 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void FilamentSystem::vOnInitSystem() {
-  spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
+  DebugPrint();
 
   /* Note; this is checked in for future reference, on some systems this might
   be needed. TBD
@@ -64,6 +64,9 @@ void FilamentSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void FilamentSystem::DebugPrint() {
+  spdlog::debug("google/filament v{}", getFilamentVersionString());
+  spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
+}
 
 }  // namespace plugin_filament_view

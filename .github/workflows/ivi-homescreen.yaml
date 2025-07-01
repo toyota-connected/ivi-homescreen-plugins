@@ -10,6 +10,9 @@ on:
     # daily
     - cron: '0 0 * * *'
 
+env:
+  FILAMENT_VERSION: '1.56.7'
+
 jobs:
   homescreen:
     permissions:
@@ -113,7 +116,7 @@ jobs:
         run: |
           git clone -b release https://github.com/google/filament.git
           cd filament
-          git checkout v1.56.7
+          git checkout v${{ env.FILAMENT_VERSION }}
           PATCHES=${{github.workspace}}/.github/workflows/patches
           git apply $PATCHES/filament/0001-disable-backend-tests.patch
           git apply $PATCHES/filament/0002-install-required-files.patch
@@ -127,6 +130,7 @@ jobs:
           cd $FILAMENT_BUILD_DIR
           CC=/usr/bin/clang CXX=/usr/bin/clang++ \
           cmake .. -GNinja \
+            -DFILAMENT_VERSION="${{ env.FILAMENT_VERSION }}" \
             -DFILAMENT_SUPPORTS_VULKAN=ON \
             -DFILAMENT_ENABLE_LTO=ON \
             -DFILAMENT_SUPPORTS_OPENGL=OFF \
