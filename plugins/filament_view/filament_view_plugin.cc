@@ -136,6 +136,8 @@ void DeserializeDataAndSetupMessageChannels(
   animationSystem->setupMessageChannels(registrar, "plugin.filament_view.animation_info");
 }
 
+bool wasInitialized = false;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 void FilamentViewPlugin::RegisterWithRegistrar(
   flutter::PluginRegistrar* registrar,
@@ -154,6 +156,16 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   void* platform_view_context
 ) {
   pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
+
+  if(!wasInitialized) {
+    wasInitialized = true;
+  } else {
+    spdlog::error("=== PLUGIN REINITIALIZATION DETECTED === disposing...");
+
+    on_dispose(false, nullptr);
+
+    spdlog::warn("=== DISPOSE DONE, reinitializing... ===");
+  }
 
   const auto ecs = ECSManager::GetInstance();
   ecs->setConfigValue(kAssetPath, assetDirectory);
@@ -731,7 +743,19 @@ void FilamentViewPlugin::on_touch(
 }
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* /* data */) {
-  spdlog::warn("[FilamentViewPlugin] on_dispose not currently implemented");
+  // Dispose of the ECS
+  const auto oldECS = ECSManager::GetInstance();
+  if (oldECS) {
+    oldECS->destroy();
+    // wait for thread to stop running. (Should be relatively quick)
+    while (oldECS->bIsCompletedStopping() == false) {
+    }
+  }
+
+  // Reset the static deserializer
+  sceneTextDeserializer.reset();
+  postSetupDeserializer = nullptr;
+  m_bHasSetupRegistrar = false;
 }
 
 const platform_view_listener FilamentViewPlugin::platform_view_listener_ = {

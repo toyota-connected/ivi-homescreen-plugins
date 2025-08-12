@@ -29,7 +29,7 @@ template class KVTree<EntityGUID, std::shared_ptr<EntityObject>>;
 ECSManager* ECSManager::m_poInstance = nullptr;
 
 ////////////////////////////////////////////////////////////////////////////
-ECSManager::~ECSManager() { spdlog::trace("ECSManager~"); }
+ECSManager::~ECSManager() { spdlog::debug("ECSManager is DEAD"); }
 
 ////////////////////////////////////////////////////////////////////////////
 ECSManager::ECSManager()
@@ -498,7 +498,7 @@ void ECSManager::addSystem(const std::shared_ptr<System>& system) {
 }
 
 void ECSManager::removeSystem(TypeID systemTypeId) {
-  std::unique_lock lock(_systemsMutex);
+  // std::unique_lock lock(_systemsMutex);
 
   auto system = getSystem(systemTypeId, __FUNCTION__);
   system->onDestroy();
@@ -545,7 +545,21 @@ void ECSManager::debugPrint() const {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::destroy() {
-  post(*this->getStrand(), [&] {
+  std::promise<void> destroyPromise = std::promise<void>();
+  
+  post(*this->getStrand(), [&destroyPromise, this]() mutable {
+    // Clear all components
+    spdlog::debug("Destroying components...");
+    _components.clear();
+    spdlog::debug("All components destroyed");
+
+    // Clear all entities
+    spdlog::debug("Destroying entities...");
+    _entities.clear();
+    spdlog::debug("All entities destroyed");
+
+    // Clear all systems
+    spdlog::debug("Destroying systems...");
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
@@ -558,7 +572,7 @@ void ECSManager::destroy() {
       const auto& system = it->second;
 
       if (system) {
-        spdlog::trace(
+        spdlog::debug(
           "Shutting down system {} ({}) at address {}", system->getTypeName(), id,
           static_cast<void*>(system.get())
         );
@@ -568,9 +582,30 @@ void ECSManager::destroy() {
         spdlog::error("Encountered null system pointer!");
       }
     }
+    _systems.clear();
+
+    spdlog::debug("All systems destroyed");
+
+    // Set the current state to Shutdown
+    spdlog::debug("Setting ECSManager state to Shutdown");
 
     m_eCurrentState = Shutdown;
+    m_bIsRunning = false;
+
+    destroyPromise.set_value();
   });
+
+  destroyPromise.get_future().wait();
+
+  StopMainLoop();
+
+  // Clear singleton instance
+  delete m_poInstance;
+  m_poInstance = nullptr;
+  
+  spdlog::debug("ECSManager destroyed");
+
+  spdlog::info("ECSManager destroyed");
 }
 
 }  // namespace plugin_filament_view
