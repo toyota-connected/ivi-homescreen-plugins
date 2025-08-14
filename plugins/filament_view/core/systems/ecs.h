@@ -33,6 +33,16 @@
 
 namespace plugin_filament_view {
 
+/// Enum indicating a ECS CRUD operation
+enum class ECSOperation {
+  /// @brief When a new entity/component/system is being added
+  Add,
+  /// @brief When an existing entity/component/system is being removed
+  Remove
+};
+
+const std::string& ECSOperationToString(ECSOperation operation);
+
 class ECSManager {
   public:
     enum RunState { NotInitialized, Initialized, Running, ShutdownStarted, Shutdown };
@@ -64,6 +74,16 @@ class ECSManager {
 
     std::mutex _systemsMutex;
     std::map<TypeID, std::shared_ptr<System>> _systems;
+
+    /// Maps component types to system IDs listening for their addition
+    std::unordered_map<TypeID, std::vector<TypeID>> _componentListeners;
+
+    /// Notifies a system about an [ECSOperation] being performed on a component
+    void _notifyComponentOperation(
+      EntityObject& entity,
+      Component& component,
+      ECSOperation operation
+    );
 
     //
     // Threading
@@ -247,6 +267,13 @@ class ECSManager {
         system->SendMessage(msg);
       }
     }
+
+    /// Registers a system as a listener for when
+    /// a specific component type is added/removed to an entity
+    void registerComponentListener(
+      const System& listener,
+      const TypeID componentTypeId
+    );
 
     //
     //  Threading

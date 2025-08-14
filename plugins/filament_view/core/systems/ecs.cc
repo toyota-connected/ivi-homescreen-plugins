@@ -23,6 +23,13 @@
 
 namespace plugin_filament_view {
 
+const std::string& ECSOperationToString(ECSOperation operation) {
+  static const std::unordered_map<ECSOperation, std::string> operationToString = {
+    {ECSOperation::Add, "Add"}, {ECSOperation::Remove, "Remove"}
+  };
+  return operationToString.at(operation);
+}
+
 template class KVTree<EntityGUID, std::shared_ptr<EntityObject>>;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -39,6 +46,7 @@ ECSManager::ECSManager()
     _components(),
     _systemsMutex(),
     _systems(),
+    _componentListeners(),
     io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
     work_(make_work_guard(io_context_->get_executor())),
     strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
@@ -367,7 +375,7 @@ void ECSManager::addComponent(
 
   // Add the component to the map
   const TypeID componentId = component->getTypeID();
-  std::unique_lock lock(_componentsMutex);
+  // std::unique_lock lock(_componentsMutex);
 
   if (_components.find(componentId) == _components.end()) {
     _components[componentId] = std::map<EntityGUID, std::shared_ptr<Component>>();
@@ -386,10 +394,49 @@ void ECSManager::addComponent(
   // Add the component to the entity
   componentMap[entityGuid] = component;
   entity->onAddComponent(component);
-  spdlog::trace(
+  spdlog::debug(
     "[{}] Added component {} to entity with id {}", __FUNCTION__, component->getTypeName(),
     entityGuid
   );
+
+  // Notify listeners
+  _notifyComponentOperation(*entity, *component, ECSOperation::Add);
+}
+
+void ECSManager::_notifyComponentOperation(
+  EntityObject& entity,
+  Component& component,
+  ECSOperation operation
+) {
+  spdlog::debug("[{}] Notifying component operation: {} ", __FUNCTION__, ECSOperationToString(operation));
+
+  const auto systems = _componentListeners.find(component.getTypeID());
+  if (systems == _componentListeners.end()) {
+    return;
+  }
+
+  for (const auto& systemId : systems->second) {
+    auto system = getSystem(systemId, __FUNCTION__);
+    if (!system) {
+      spdlog::warn(
+        "System '{}'({}) not found for component '{}' operation", systemId, component.getTypeID()
+      );
+      continue;
+    }
+
+    spdlog::debug(
+      "Notifying system '{}'({})"
+      "of component '{}'()"
+      "operation: {}"
+      "on entity '{}'({})",
+      system->getTypeName(), systemId,                 //
+      component.getTypeName(), component.getTypeID(),  //
+      ECSOperationToString(operation),                 //
+      entity.name, entity.getGuid()                    //
+    );
+
+    system->onComponentOperation(entity, component, operation);
+  }
 }
 
 std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfEntity(
@@ -508,6 +555,16 @@ void ECSManager::removeSystem(TypeID systemTypeId) {
     "Removed system {} ({}) at address {}",  //
     system->getTypeName(), systemTypeId, static_cast<void*>(system.get())
   );
+}
+
+void ECSManager::registerComponentListener(const System& listener, TypeID componentTypeId) {
+  spdlog::debug("Registering component listener for component type {}", componentTypeId);
+  // Create a vector if not present
+  if (_componentListeners.find(componentTypeId) == _componentListeners.end()) {
+    _componentListeners[componentTypeId] = std::vector<TypeID>();
+  }
+
+  _componentListeners[componentTypeId].push_back(listener.getTypeID());
 }
 
 ////////////////////////////////////////////////////////////////////////////

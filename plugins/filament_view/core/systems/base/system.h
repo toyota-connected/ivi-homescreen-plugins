@@ -38,6 +38,9 @@ class EncodableValue;
 namespace plugin_filament_view {
 
 class ECSManager;
+class EntityObject;
+class Component;
+enum class ECSOperation;
 
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
@@ -82,6 +85,13 @@ class System : public IdentifiableType, public LifecycleParticipant<ECSManager> 
     );
 
     void SendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
+
+    /// Called by ECS when a new component is added
+    virtual void onComponentOperation(
+      EntityObject& entity,
+      Component& component,
+      ECSOperation operation
+    );
 
   protected:
     smarter_raw_ptr<ECSManager> ecs = nullptr;

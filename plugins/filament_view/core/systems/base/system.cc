@@ -138,6 +138,12 @@ void System::SendDataToEventChannel(const flutter::EncodableMap& oDataMap) const
   event_sink_->Success(flutter::EncodableValue(oDataMap));
 }
 
+void System::onComponentOperation(
+  EntityObject& /*entity*/,
+  Component& /*component*/,
+  ECSOperation /*operation*/
+) {}
+
 ////////////////////////////////////////////////////////////////////////////////////
 void System::setupMessageChannels(
   flutter::PluginRegistrar* poPluginRegistrar,
