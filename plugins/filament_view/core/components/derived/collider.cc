@@ -141,9 +141,9 @@ bool Collider::intersects(
   if (m_bIsStatic != false) throw std::runtime_error("Static colliders not implemented yet.");
 
   // Get AABB coordinates (local space!)
-  filament::math::float3 center = (m_bIsStatic ? m_f3StaticPosition : _aabb.center);
+  filament::math::float3 center = (m_bIsStatic ? m_f3StaticPosition : aabb.center);
   filament::math::float3 extents =
-    (m_bShouldMatchAttachedObject ? _aabb.halfExtent * 2 : _extentSize);
+    (m_bShouldMatchAttachedObject ? aabb.halfExtent * 2 : _extentSize);
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
 

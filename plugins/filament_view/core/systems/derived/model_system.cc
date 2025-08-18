@@ -378,7 +378,7 @@ void ModelSystem::setupRenderable(
         auto collider = Collider();
         collider.setIsStatic(false);
         collider.eventName = eventName;
-        // collider._aabb = aabb;
+        // collider.aabb = aabb;
         // NOTE: extents automatically set from AABB by CollisionSystem
         // collider.setShapeType(isCube ? ShapeType::Cube :
         //                                   ShapeType::Sphere);

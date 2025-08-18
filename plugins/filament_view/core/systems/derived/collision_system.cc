@@ -31,6 +31,8 @@
 
 namespace plugin_filament_view {
 
+static const TypeID COLLIDER_ID = IdentifiableType::StaticGetTypeID<Collider>();
+
 /////////////////////////////////////////////////////////////////////////////////////////
 flutter::EncodableValue HitResult::Encode() const {
   // Convert float3 to a list of floats
@@ -166,6 +168,15 @@ void CollisionSystem::SendCollisionInformationCallback(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::onSystemInit() {
+  // Register component listeners
+  ecs->registerComponentListener(
+    *this, //
+    COLLIDER_ID
+  );
+
+  /*
+   * Register message handlers
+   */
   registerMessageHandler(ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
     auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
     const auto requestor = msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
@@ -203,61 +214,85 @@ void CollisionSystem::onSystemInit() {
   });
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::update(double /*deltaTime*/) {
+void CollisionSystem::onComponentOperation(
+  EntityObject& entity,
+  Component& component,
+  ECSOperation operation
+) {
+  if (component.getTypeID() != IdentifiableType::StaticGetTypeID<Collider>()) {
+    return;
+  }
 
-  // Iterate over all colliders
-  const auto colliders = ecs->getComponentsOfType<Collider>();
-  for (const auto& collider : colliders) {
-    // Check if the collider is enabled
-    if (collider->enabled) {
-      // get pointer to collider->_aabb
-      AABB& aabb = collider->_aabb;
+  auto collider = static_cast<Collider&>(component);
 
-      // Make sure it has an AABB
-      if (aabb.isEmpty()) {
-        const auto entity = collider->entityOwner_;
-        spdlog::trace("Collider entity({}) has no AABB", entity->getGuid());
-        // Get AABB if it's a RenderableEntityObject
-        if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(entity)) {
-          aabb = renderableEntity->getAABB();
-          spdlog::trace("  Adding AABB to collider entity({})", entity->getGuid());
-          spdlog::trace(
-            "  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z
-          );
-          spdlog::trace(
-            "  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2,
-            aabb.halfExtent.z * 2
-          );
+  // Handle component operations specific to the collision system
+  switch (operation) {
+    case ECSOperation::Add:
+      _addCollider(entity, collider);
+      break;
+    case ECSOperation::Remove:
+      _removeCollider(entity, collider);
+      break;
+  }
+}
+
+void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
+  spdlog::debug("CollisionSystem: Added collider to entity({})", entity.getGuid());
+
+  AABB& aabb = collider.aabb;
+
+  // Make sure it has an AABB
+  if (aabb.isEmpty()) {
+    spdlog::debug("Collider entity({}) has no AABB", entity.getGuid());
+    
+    // Get AABB if it's a RenderableEntityObject
+    if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(&entity)) {
+      spdlog::debug("  Adding AABB to collider entity({})", renderableEntity->getGuid());
+      collider.aabb = renderableEntity->getAABB();
+
+      spdlog::debug(
+        "  AABB.pos: x={}, y={}, z={}",  //
+        collider.aabb.center.x, collider.aabb.center.y, collider.aabb.center.z
+      );
+      spdlog::debug(
+        "  AABB.size: x={}, y={}, z={}",  //
+        collider.aabb.halfExtent.x * 2, collider.aabb.halfExtent.y * 2, collider.aabb.halfExtent.z * 2
+      );
 #if SPDLOG_LEVEL == trace
 // renderableEntity->getComponent<Transform>()->debugPrint("  ");
 #endif
-        } else {
-          spdlog::error("  Collider does not have an AABB");
-          continue;
-        }
-      }
-
-      // Make sure it has a wireframe
-      if (!collider->_wireframe) {
-        const auto entity = collider->entityOwner_;
-        // Create a cube wireframe
-        auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
-        cubeChild->m_bIsWireframe = true;
-        cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
-        const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::update");
-        ecs->addEntity(cubeChild);
-        shapeSystem->addShapeToScene(cubeChild);
-        auto childTransform = cubeChild->getComponent<Transform>();
-        childTransform->setTransform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
-
-        childTransform->setParent(entity->getGuid());
-
-        collider->_wireframe = cubeChild;
-      }
+    } else {
+      spdlog::error("  Collider owner does not have an AABB");
     }
   }
+
+  // Create a cube wireframe
+  spdlog::debug("Creating wireframe for collider entity({})", entity.getGuid());
+  auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
+  cubeChild->m_bIsWireframe = true;
+  cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
+  const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::update");
+  ecs->addEntity(cubeChild);
+  shapeSystem->addShapeToScene(cubeChild);
+  auto childTransform = cubeChild->getComponent<Transform>();
+  childTransform->setTransform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
+
+  childTransform->setParent(entity.getGuid());
+
+  collider._wireframe = cubeChild;
 }
+
+void CollisionSystem::_removeCollider(EntityObject& entity, Collider& collider) {
+  spdlog::debug("CollisionSystem: Removed collider from entity({})", entity.getGuid());
+
+  // Remove wireframe
+  if (collider._wireframe) {
+    ecs->removeEntity(collider._wireframe->getGuid());
+    collider._wireframe.reset();
+  }
+}
+
+void CollisionSystem::update(double /*deltaTime*/) {}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::onDestroy() {}

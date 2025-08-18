@@ -58,6 +58,12 @@ class CollisionSystem : public System {
     void onSystemInit() override;
     void onDestroy() override;
 
+    void onComponentOperation(
+      EntityObject& entity,  //
+      Component& component,
+      ECSOperation operation
+    ) override;
+
     // send in your ray, get a list of hit results back, collisionLayer not
     // actively used - future work.
     std::list<HitResult> lstCheckForCollidable(Ray& rayCast, int64_t collisionLayer = 0) const;
@@ -74,6 +80,9 @@ class CollisionSystem : public System {
 
     void MatchCollidablesToRenderingModelsTransforms();
     void MatchCollidablesToDebugDrawingTransforms();
+
+    void _addCollider(EntityObject& entity, Collider& collider);
+    void _removeCollider(EntityObject& entity, Collider& collider);
 };
 
 }  // namespace plugin_filament_view

@@ -49,7 +49,7 @@ class Collider : public Component {
     /// The default value is "click".
     std::string eventName = "click";
     /// Bounding box of the collider
-    AABB _aabb;
+    AABB aabb;
 
   public:
     Collider()
@@ -70,7 +70,6 @@ class Collider : public Component {
       return m_bShouldMatchAttachedObject;
     }
     [[nodiscard]] inline ShapeType getShapeType() const { return m_eShapeType; }
-    [[nodiscard]] inline filament::math::float3 getExtentsSize() const { return _extentSize; }
 
     // Setters
     inline void setIsStatic(bool value) { m_bIsStatic = value; }
@@ -78,10 +77,6 @@ class Collider : public Component {
     inline void setCollisionMask(int64_t value) { m_nCollisionMask = value; }
     inline void setShouldMatchAttachedObject(bool value) { m_bShouldMatchAttachedObject = value; }
     inline void setShapeType(ShapeType value) { m_eShapeType = value; }
-    inline void setExtentsSize(const filament::math::float3& value) {
-      if (m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collider");
-      _extentSize = value;
-    }
 
     void debugPrint(const std::string& tabPrefix) const override;
 
@@ -119,6 +114,8 @@ class Collider : public Component {
     /// Collider shape type (supported values: Cube)
     /// TODO: add support for other shapes
     ShapeType m_eShapeType = ShapeType::Cube;        // default
+    /// @deprecated
+    /// TODO: remove
     filament::math::float3 _extentSize = {1, 1, 1};  // default
 
     /*

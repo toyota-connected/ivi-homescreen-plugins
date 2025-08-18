@@ -233,7 +233,7 @@ void SceneTextDeserializer::setUpLoadingModels() {
 void SceneTextDeserializer::setUpShapes() {
   spdlog::debug("{} {}", __FUNCTION__, __LINE__);
 
-  spdlog::trace("getting systems");
+  spdlog::debug("getting systems");
   const auto shapeSystem = _ecs->getSystem<ShapeSystem>("setUpShapes");
   const auto collisionSystem = _ecs->getSystem<CollisionSystem>("setUpShapes");
 
