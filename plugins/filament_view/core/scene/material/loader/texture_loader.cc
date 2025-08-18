@@ -82,12 +82,10 @@ filament::Texture* TextureLoader::createTextureFromImage(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Resource<filament::Texture*> TextureLoader::loadTexture(const TextureDefinitions* texture) {
+Texture TextureLoader::loadTexture(const TextureDefinitions* texture) {
   if (!texture) {
     spdlog::error("Texture not found");
-    return Resource<filament::Texture*>::Error(
-      "Invalid filament_view texture passed into into loadTexture."
-    );
+    return Texture::Error("Invalid filament_view texture passed into into loadTexture.");
   }
 
   if (!texture->assetPath_.empty()) {
@@ -96,27 +94,27 @@ Resource<filament::Texture*> TextureLoader::loadTexture(const TextureDefinitions
     const auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
     if (!isValidFilePath(file_path)) {
       spdlog::error("Texture Asset path is invalid: {}", file_path.c_str());
-      return Resource<filament::Texture*>::Error("Could not load texture from asset.");
+      return Texture::Error("Could not load texture from asset.");
     }
     const auto loadedTexture = loadTextureFromStream(file_path, texture->type_);
     if (!loadedTexture) {
-      return Resource<filament::Texture*>::Error("Could not load texture from asset on disk.");
+      return Texture::Error("Could not load texture from asset on disk.");
     }
-    return Resource<filament::Texture*>::Success(loadedTexture);
+    return Texture::Success(loadedTexture);
   }
 
   if (!texture->url_.empty()) {
-    return Resource<filament::Texture*>::Error("URL Not implemented.");
+    return Texture::Error("URL Not implemented.");
     /*auto loadedTexture = loadTextureFromUrl(texture->url_, texture->type_);
     if(!loadedTexture) {
-      return Resource<::filament::Texture*>::Error(
+      return Texture::Error(
         "Could not load texture asset from url.");
     }
-    return Resource<::filament::Texture*>::Success(loadedTexture);*/
+    return Texture::Success(loadedTexture);*/
   }
 
   spdlog::error("You must provide texture images asset path or url");
-  return Resource<filament::Texture*>::Error("You must provide texture images asset path or url.");
+  return Texture::Error("You must provide texture images asset path or url.");
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -53,7 +53,7 @@ class TextureDefinitions {
 
     // this will either get the assetPath or the url, priority of assetPath
     // looking for which is valid. Used to see if we have this loaded in cache.
-    [[nodiscard]] std::string szGetTextureDefinitionLookupName() const;
+    [[nodiscard]] const std::string* getLookupName() const;
 
     TextureSampler* getSampler() { return sampler_; }
 

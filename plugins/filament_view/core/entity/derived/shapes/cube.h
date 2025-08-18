@@ -22,8 +22,6 @@
 
 namespace plugin_filament_view {
 
-namespace shapes {
-
 class Cube : public BaseShape {
   public:
     /// @brief Constructor for Cube. Generates a GUID and has an empty name.
@@ -54,5 +52,4 @@ class Cube : public BaseShape {
     void createSingleSidedCube(::filament::Engine* engine_);
 };
 
-}  // namespace shapes
 }  // namespace plugin_filament_view

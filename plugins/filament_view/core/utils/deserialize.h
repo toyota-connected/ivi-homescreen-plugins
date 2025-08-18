@@ -19,7 +19,7 @@
 #include <filament/math/vec3.h>
 #include <flutter/encodable_value.h>
 
-#include <core/components/derived/material_definitions.h>
+#include <core/components/derived/material.h>
 
 #include <plugins/common/common.h>
 #include <utility>
@@ -124,7 +124,7 @@ class Deserialize {
 
     static void DecodeParameterWithDefault(
       const char* key,
-      std::optional<std::unique_ptr<MaterialDefinitions>>& out_value,
+      std::optional<std::unique_ptr<Material>>& out_value,
       const flutter::EncodableMap& params
     );
 

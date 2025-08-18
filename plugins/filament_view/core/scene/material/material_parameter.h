@@ -26,8 +26,8 @@
 
 namespace plugin_filament_view {
 
+class MaterialSystem;
 class TextureDefinitions;
-
 class TextureSampler;
 
 using MaterialTextureValue = std::variant<std::unique_ptr<TextureDefinitions>>;
@@ -35,6 +35,8 @@ using MaterialFloatValue = float;
 using MaterialColorValue = ::filament::math::vec4<float>;
 
 class MaterialParameter {
+    friend class MaterialSystem;
+
   public:
     enum class MaterialType {
       // color can be presented by int or Color like Colors.white
@@ -54,7 +56,7 @@ class MaterialParameter {
     MaterialParameter(std::string name, MaterialType type, MaterialFloatValue value);
     MaterialParameter(std::string name, MaterialType type, MaterialColorValue value);
 
-    static std::unique_ptr<MaterialParameter> Deserialize(
+    static std::shared_ptr<MaterialParameter> Deserialize(
       const std::string& flutter_assets_path,
       const flutter::EncodableMap& params
     );
@@ -63,10 +65,10 @@ class MaterialParameter {
 
     void debugPrint(const char* tag);
 
-    [[nodiscard]] std::string szGetParameterName() const { return name_; }
+    [[nodiscard]] std::string getName() const { return name_; }
 
     friend class Material;
-    friend class MaterialDefinitions;
+    friend class Material;
 
     [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
       if (textureValue_.has_value()) {
@@ -87,15 +89,15 @@ class MaterialParameter {
       return texturePtr->getSampler();
     }
 
-    [[nodiscard]] std::string getTextureValueAssetPath() const {
+    [[nodiscard]] const std::string* getTextureValueAssetPath() const {
       const auto& textureValue = getTextureValue();
       const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
 
       if (!texturePtr) {
-        return "";
+        return nullptr;
       }
 
-      return texturePtr->szGetTextureDefinitionLookupName();
+      return texturePtr->getLookupName();
     }
 
     [[nodiscard]] std::unique_ptr<MaterialParameter> clone() const {

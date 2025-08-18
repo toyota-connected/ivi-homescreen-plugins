@@ -64,30 +64,6 @@ class RenderableEntityObject : public EntityObject {
      */
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-    // These are expected to have Material instances in base class after we go
-    // from Uber shader to <?more interchangeable?> on models. For now these are
-    // not implemented on Models, but are on BaseShapes.
-
-    // This is a heavy lift function as it will recreate / load a material
-    // if it doesn't exist and reset everything from scratch.
-    virtual void ChangeMaterialDefinitions(
-      const flutter::EncodableMap& /* params */,
-      const TextureMap& /* loadedTextures */
-    ) {};
-    virtual void ChangeMaterialInstanceProperty(
-      const MaterialParameter* /* materialParam */,
-      const TextureMap& /* loadedTextures */
-    ) {};
-
-    /// material to be used for the renderable - instantiated from material
-    /// definition Only after a run time request to change has been made. This
-    /// should probably be on the entity level as renderable would use this in
-    /// future as well.
-    Resource<filament::MaterialInstance*> m_poMaterialInstance =
-      Resource<filament::MaterialInstance*>::Error("Unset");
-
-    void LoadMaterialDefinitionsToMaterialInstance();
-
   public:
     /// TODO: use those in the addCollidable rewrite
     /// @returns The AABB of the entity

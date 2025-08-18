@@ -31,9 +31,7 @@ namespace plugin_filament_view {
 // from the base transform with on overrides. Expected work TBD for future
 // improvements.
 
-namespace shapes {
 class BaseShape;
-}  // namespace shapes
 
 class CollisionSystem;
 
@@ -122,7 +120,7 @@ class Collider : public Component {
      *  Setup stuff
      */
     /// Collider's child wireframe object
-    std::shared_ptr<shapes::BaseShape> _wireframe;
+    std::shared_ptr<BaseShape> _wireframe;
 };
 
 }  // namespace plugin_filament_view

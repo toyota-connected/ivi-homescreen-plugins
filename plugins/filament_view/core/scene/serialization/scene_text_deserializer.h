@@ -39,7 +39,7 @@ class SceneTextDeserializer {
     smarter_raw_ptr<ECSManager> _ecs;
 
     std::vector<std::shared_ptr<Model>> models_;
-    std::vector<std::shared_ptr<shapes::BaseShape>> shapes_;
+    std::vector<std::shared_ptr<BaseShape>> shapes_;
 
     std::vector<std::shared_ptr<EntityObject>> entities_;
 

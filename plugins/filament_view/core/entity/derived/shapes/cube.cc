@@ -25,7 +25,7 @@
 #include <math/vec3.h>
 #include <plugins/common/common.h>
 
-namespace plugin_filament_view::shapes {
+namespace plugin_filament_view {
 
 using filament::Aabb;
 using filament::IndexBuffer;
@@ -742,4 +742,4 @@ void Cube::createSingleSidedCube(filament::Engine* engine_) {
 ////////////////////////////////////////////////////////////////////////////
 void Cube::debugPrint(const char* tag) const { BaseShape::debugPrint(tag); }
 
-}  // namespace plugin_filament_view::shapes
+}  // namespace plugin_filament_view

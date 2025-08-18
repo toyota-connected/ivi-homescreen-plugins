@@ -27,7 +27,7 @@
 #include <math/vec3.h>
 #include <plugins/common/common.h>
 
-namespace plugin_filament_view::shapes {
+namespace plugin_filament_view {
 
 using filament::Aabb;
 using filament::IndexBuffer;
@@ -54,12 +54,12 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
   // doubleSided
   m_bDoubleSided = Deserialize::DecodeParameterWithDefault<bool>(kDoubleSided, params, false);
 
-  // MaterialDefinitions (optional)
+  // Material (optional)
   if (Deserialize::HasKey(params, kMaterial)) {
     auto matdefParams = std::get<flutter::EncodableMap>(
       params.find(flutter::EncodableValue(kMaterial))->second
     );
-    addComponent(MaterialDefinitions(matdefParams));
+    addComponent(Material(matdefParams));
   } else {
     spdlog::debug("This entity params has no material definitions");
   }
@@ -68,8 +68,8 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
 void BaseShape::onInitialize() {
   RenderableEntityObject::onInitialize();
 
-  // Make sure it has a MaterialDefinitions component
-  const auto materialDefinitions = getComponent<MaterialDefinitions>();
+  // Make sure it has a Material component
+  const auto materialDefinitions = getComponent<Material>();
   if (!materialDefinitions) {
     spdlog::warn("BaseShape({}) has no material, adding default material", guid_);
     addComponent(kDefaultMaterial);  // init with defaults
@@ -88,12 +88,6 @@ void BaseShape::DestroyBuffers() {
     "BaseShape::DestroyBuffers"
   );
   const auto filamentEngine = filamentSystem->getFilamentEngine();
-
-  if (m_poMaterialInstance.getStatus() == Status::Success
-      && m_poMaterialInstance.getData() != nullptr) {
-    filamentEngine->destroy(m_poMaterialInstance.getData().value());
-    m_poMaterialInstance = Resource<filament::MaterialInstance*>::Error("Unset");
-  }
 
   if (m_poVertexBuffer) {
     filamentEngine->destroy(m_poVertexBuffer);
@@ -159,26 +153,25 @@ void BaseShape::BuildRenderable(filament::Engine* engine_) {
 
   spdlog::trace("[{}] AABB.scale: x={}, y={}, z={}", __FUNCTION__, aabb.x, aabb.y, aabb.z);
 
+  const auto material = getComponent<Material>();
   const auto renderable = getComponent<CommonRenderable>();
 
   if (m_bIsWireframe) {
-    // We might want to have a specific Material for wireframes in the future.
-    // m_poMaterialInstance =
-    //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
+    // TODO: setup a wireframe material
     RenderableManager::Builder(1)
       .boundingBox({{}, aabb})  // center, halfExtent
-      //.material(0, m_poMaterialInstance.getData().value())
+      .material(0, material->_instance->getData().value())
       .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer, m_poIndexBuffer)
       .culling(renderable->IsCullingOfObjectEnabled())
       .receiveShadows(false)
       .castShadows(false)
       .build(*engine_, _fEntity);
   } else {
-    LoadMaterialDefinitionsToMaterialInstance();
+    // LoadMaterialDefinitionsToMaterialInstance();
 
     RenderableManager::Builder(1)
       .boundingBox({{}, aabb})
-      .material(0, m_poMaterialInstance.getData().value())
+      .material(0, material->_instance->getData().value())
       .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, m_poVertexBuffer, m_poIndexBuffer)
       .culling(renderable->IsCullingOfObjectEnabled())
       .receiveShadows(renderable->IsReceiveShadowsEnabled())
@@ -248,63 +241,4 @@ void BaseShape::debugPrint(const char* tag) const {
   spdlog::debug("-------- (Shape) --------");
 }
 
-////////////////////////////////////////////////////////////////////////////
-void BaseShape::ChangeMaterialDefinitions(
-  const flutter::EncodableMap& params,
-  const TextureMap& /*loadedTextures*/
-) {
-  // if we have a materialdefinitions component, we need to remove it
-  // and remake / add a new one.
-  if (hasComponent<MaterialDefinitions>()) {
-    ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
-  }
-
-  // If you want to inspect the params coming in.
-  /*for (const auto& [fst, snd] : params) {
-      auto key = std::get<std::string>(fst);
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
-  }*/
-
-  auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
-  ecs->addComponent(guid_, std::move(materialDefinitions));
-
-  m_poMaterialInstance.reset();
-
-  // then tell material system to load us the correct way once
-  // we're deserialized.
-  LoadMaterialDefinitionsToMaterialInstance();
-
-  if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error("Unable to load material definition to instance, bailing out.");
-    return;
-  }
-
-  // now, reload / rebuild the material?
-  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
-    "BaseShape::ChangeMaterialDefinitions"
-  );
-
-  // If your entity has multiple primitives, you’ll need to call
-  // setMaterialInstanceAt for each primitive you want to update.
-  auto& renderManager = filamentSystem->getFilamentEngine()->getRenderableManager();
-  const auto instanceToChange = renderManager.getInstance(_fEntity);
-  renderManager.setMaterialInstanceAt(instanceToChange, 0, *m_poMaterialInstance.getData());
-}
-
-////////////////////////////////////////////////////////////////////////////
-void BaseShape::ChangeMaterialInstanceProperty(
-  const MaterialParameter* materialParam,
-  const TextureMap& loadedTextures
-) {
-  const auto data = m_poMaterialInstance.getData().value();
-
-  const auto matDefs = dynamic_cast<MaterialDefinitions*>(getComponent<MaterialDefinitions>().get()
-  );
-  if (matDefs == nullptr) {
-    return;
-  }
-
-  MaterialDefinitions::ApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
-}
-
-}  // namespace plugin_filament_view::shapes
+}  // namespace plugin_filament_view

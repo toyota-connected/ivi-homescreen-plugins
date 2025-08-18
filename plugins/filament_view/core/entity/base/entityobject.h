@@ -24,7 +24,6 @@
 #include <filament/Scene.h>
 
 #include <core/components/base/component.h>
-#include <core/components/derived/material_definitions.h>
 #include <core/utils/smarter_pointers.h>
 #include <utility>
 
@@ -52,14 +51,7 @@ class ECSManager;
 class EntityObject : public std::enable_shared_from_this<EntityObject> {
     friend class ECSManager;
     // TODO: do we need to expose these?
-    friend class CollisionSystem;
-    friend class MaterialSystem;
-    friend class ModelSystem;
-    friend class ShapeSystem;
-    friend class AnimationSystem;
-    friend class LightSystem;
     friend class SceneTextDeserializer;
-    friend class TransformSystem;
 
   protected:
     smarter_raw_ptr<ECSManager> ecs = nullptr;

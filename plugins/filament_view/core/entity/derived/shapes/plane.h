@@ -21,8 +21,6 @@
 
 namespace plugin_filament_view {
 
-namespace shapes {
-
 class Plane : public BaseShape {
   public:
     /// @brief Constructor for Plane. Generates a GUID and has an empty name.
@@ -51,5 +49,4 @@ class Plane : public BaseShape {
     void createSingleSidedPlane(::filament::Engine* engine_);
 };
 
-}  // namespace shapes
 }  // namespace plugin_filament_view

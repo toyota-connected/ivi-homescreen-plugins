@@ -15,8 +15,10 @@
  */
 #pragma once
 
-#include <core/include/resource.h>
+#include <core/utils/filament_types.h>
+
 #include <filament/Material.h>
+
 #include <future>
 
 namespace plugin_filament_view {
@@ -26,9 +28,9 @@ class MaterialLoader {
     MaterialLoader();
     ~MaterialLoader() = default;
 
-    static Resource<::filament::Material*> loadMaterialFromAsset(const std::string& path);
+    static MaterialDefinition loadMaterialFromAsset(const std::string& path);
 
-    static Resource<::filament::Material*> loadMaterialFromUrl(const std::string& url);
+    static MaterialDefinition loadMaterialFromUrl(const std::string& url);
 
     // Disallow copy and assign.
     MaterialLoader(const MaterialLoader&) = delete;

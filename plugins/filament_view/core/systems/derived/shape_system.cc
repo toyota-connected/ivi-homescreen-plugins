@@ -29,8 +29,6 @@
 
 namespace plugin_filament_view {
 
-using shapes::BaseShape;
-
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::ToggleAllShapesInScene(const bool enable) const {
   if (enable) {
@@ -112,17 +110,17 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
   // Based on the type_, create the corresponding shape
   switch (type) {
     case ShapeType::Plane: {
-      auto toReturn = std::make_unique<shapes::Plane>();
+      auto toReturn = std::make_unique<Plane>();
       toReturn->deserializeFrom(mapData);
       return toReturn;
     }
     case ShapeType::Cube: {
-      auto toReturn = std::make_unique<shapes::Cube>();
+      auto toReturn = std::make_unique<Cube>();
       toReturn->deserializeFrom(mapData);
       return toReturn;
     }
     case ShapeType::Sphere: {
-      auto toReturn = std::make_unique<shapes::Sphere>();
+      auto toReturn = std::make_unique<Sphere>();
       toReturn->deserializeFrom(mapData);
       return toReturn;
     }
@@ -149,7 +147,7 @@ void ShapeSystem::addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shap
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
-void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape) {
+void ShapeSystem::addShapeToScene(const std::shared_ptr<BaseShape>& shape) {
   runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
 
   filament::Scene* filamentScene = _filament->getFilamentScene();

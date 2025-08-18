@@ -29,17 +29,15 @@
 
 namespace plugin_filament_view {
 
-namespace shapes {
 class BaseShape;
-}
 
 class ShapeSystem : public System {
   public:
     ShapeSystem() = default;
 
-    void addShapesToScene(std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
+    void addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shapes);
 
-    void addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape);
+    void addShapeToScene(const std::shared_ptr<BaseShape>& shape);
 
     // Disallow copy and assign.
     ShapeSystem(const ShapeSystem&) = delete;
@@ -54,7 +52,7 @@ class ShapeSystem : public System {
     // Creates the derived class of BaseShape based on the map data sent in, does
     // not add it to any list only returns the shape for you, Also does not build
     // the data out, only stores it for building when ready.
-    static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
+    static std::unique_ptr<BaseShape> poDeserializeShapeFromData(
       const flutter::EncodableMap& mapData
     );
 
@@ -72,7 +70,7 @@ class ShapeSystem : public System {
     smarter_raw_ptr<filament::TransformManager> _tm;
 
     bool hasShape(const EntityGUID guid) const;
-    shapes::BaseShape* getShape(const EntityGUID guid) const;
+    BaseShape* getShape(const EntityGUID guid) const;
 
     std::vector<EntityGUID> _shapes;
 };

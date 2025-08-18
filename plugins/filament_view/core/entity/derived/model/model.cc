@@ -106,21 +106,23 @@ AABB Model::getAABB() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::ChangeMaterialDefinitions(
+// TODO: this goes to ModelSystem
+/*
+void Model::ChangeMaterialDefinition(
   const flutter::EncodableMap& params,
-  const TextureMap& /*loadedTextures*/
+  const TextureMap& // loadedTextures
 ) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  ecs->removeComponent<MaterialDefinitions>(guid_);
+  ecs->removeComponent<Material>(guid_);
 
   // If you want to inspect the params coming in.
-  /*for (const auto& [fst, snd] : params) {
-      auto key = std::get<std::string>(fst);
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
-  }*/
+  // for (const auto& [fst, snd] : params) {
+  //     auto key = std::get<std::string>(fst);
+  //     plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
+  // }
 
-  auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
+  auto materialDefinitions = std::make_shared<Material>(params);
   ecs->addComponent(guid_, std::move(materialDefinitions));
 
   m_poMaterialInstance.reset();
@@ -136,7 +138,7 @@ void Model::ChangeMaterialDefinitions(
 
   // now, reload / rebuild the material?
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
-    "BaseShape::ChangeMaterialDefinitions"
+    "BaseShape::ChangeMaterialDefinition"
   );
 
   // If your entity has multiple primitives, you’ll need to call
@@ -176,26 +178,5 @@ void Model::ChangeMaterialDefinitions(
     }
   }
 }
-
-////////////////////////////////////////////////////////////////////////////
-void Model::ChangeMaterialInstanceProperty(
-  const MaterialParameter* materialParam,
-  const TextureMap& loadedTextures
-) {
-  if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error("No material definition set for model, set one first that's not the "
-                  "uber shader.");
-    return;
-  }
-
-  const auto data = m_poMaterialInstance.getData().value();
-
-  const auto matDefs = getComponent<MaterialDefinitions>();
-  if (matDefs == nullptr) {
-    return;
-  }
-
-  MaterialDefinitions::ApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
-}
-
+*/
 }  // namespace plugin_filament_view

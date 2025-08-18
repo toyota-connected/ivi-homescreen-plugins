@@ -17,7 +17,10 @@
 
 #include <core/include/resource.h>
 #include <core/scene/material/texture/texture_definitions.h>
+#include <core/utils/filament_types.h>
+
 #include <filament/Texture.h>
+
 #include <future>
 
 namespace plugin_filament_view {
@@ -29,7 +32,7 @@ class TextureLoader {
     TextureLoader();
     ~TextureLoader() = default;
 
-    static Resource<::filament::Texture*> loadTexture(const TextureDefinitions* texture);
+    static Texture loadTexture(const TextureDefinitions* texture);
 
     // Disallow copy and assign.
     TextureLoader(const TextureLoader&) = delete;

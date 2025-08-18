@@ -25,7 +25,7 @@
 #include <math/vec3.h>
 #include <plugins/common/common.h>
 
-namespace plugin_filament_view::shapes {
+namespace plugin_filament_view {
 
 using filament::Aabb;
 using filament::IndexBuffer;
@@ -246,4 +246,4 @@ void Plane::createSingleSidedPlane(filament::Engine* engine_) {
   BuildRenderable(engine_);
 }
 
-}  // namespace plugin_filament_view::shapes
+}  // namespace plugin_filament_view

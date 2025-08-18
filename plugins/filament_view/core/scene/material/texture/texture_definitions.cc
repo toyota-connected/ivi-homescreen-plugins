@@ -38,14 +38,14 @@ TextureDefinitions::TextureDefinitions(
     sampler_(sampler) {}
 
 ////////////////////////////////////////////////////////////////////////////
-std::string TextureDefinitions::szGetTextureDefinitionLookupName() const {
+const std::string* TextureDefinitions::getLookupName() const {
   if (!assetPath_.empty()) {
-    return assetPath_;
+    return &assetPath_;
+  } else if (!url_.empty()) {
+    return &url_;
+  } else {
+    return nullptr;
   }
-  if (!url_.empty()) {
-    return url_;
-  }
-  return "Unknown";
 }
 
 ////////////////////////////////////////////////////////////////////////////

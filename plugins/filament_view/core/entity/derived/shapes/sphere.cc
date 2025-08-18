@@ -27,7 +27,7 @@
 #include <plugins/common/common.h>
 #include <vector>
 
-namespace plugin_filament_view::shapes {
+namespace plugin_filament_view {
 
 using filament::IndexBuffer;
 using filament::RenderableManager;
@@ -179,4 +179,4 @@ void Sphere::debugPrint(const char* tag) const {
   spdlog::debug("++++++++");
 }
 
-}  // namespace plugin_filament_view::shapes
+}  // namespace plugin_filament_view

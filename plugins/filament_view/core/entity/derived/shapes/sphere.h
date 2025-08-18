@@ -21,8 +21,6 @@
 
 namespace plugin_filament_view {
 
-namespace shapes {
-
 class Sphere : public BaseShape {
   public:
     // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
@@ -64,5 +62,4 @@ class Sphere : public BaseShape {
     std::vector<::filament::math::float2> uvs_;
 };
 
-}  // namespace shapes
 }  // namespace plugin_filament_view

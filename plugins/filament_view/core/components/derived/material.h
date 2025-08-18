@@ -21,54 +21,67 @@
 #include <core/components/base/component.h>
 #include <core/include/resource.h>
 #include <core/scene/material/material_parameter.h>
+#include <core/utils/filament_types.h>
+
 #include <filament/MaterialInstance.h>
+
 #include <map>
 #include <memory>
 
-using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
-
 namespace plugin_filament_view {
 
-class MaterialDefinitions : public Component {
-  public:
-    explicit MaterialDefinitions(const flutter::EncodableMap& params);
+class BaseShape;
+class Model;
+class MaterialSystem;
 
-    MaterialDefinitions(const MaterialDefinitions& other)
+class Material : public Component {
+    friend class BaseShape;
+    friend class Model;
+    friend class MaterialSystem;
+
+  protected:
+    std::string assetPath_;
+    std::string url_;
+
+    MaterialDefinition* _matdef = nullptr;
+    std::shared_ptr<MaterialInstance> _instance;
+
+    /// Queue of material parameters to be applied
+    std::vector<std::shared_ptr<MaterialParameter>> _tmpParams;
+
+  public:
+    explicit Material(const flutter::EncodableMap& params);
+
+    Material(const Material& other)
       : Component(std::string(__FUNCTION__)),
         assetPath_(other.assetPath_),
         url_(other.url_) {
-      for (const auto& [key, value] : other.parameters_) {
-        if (value) {
-          parameters_.emplace(key, value->clone());
+      for (const auto& param : other._tmpParams) {
+        if (param) {
+          _tmpParams.emplace_back(param);
         }
       }
     }
 
-    MaterialDefinitions(
+    Material(
       const std::string& assetPath,
-      const std::map<std::string, std::shared_ptr<MaterialParameter>>& parameters
+      const std::vector<std::shared_ptr<MaterialParameter>>& parameters
     )
       : Component(std::string(__FUNCTION__)),
         assetPath_(assetPath),
-        parameters_(parameters) {}
+        _tmpParams(parameters) {}
 
-    ~MaterialDefinitions() override;
+    ~Material() override;
 
-    static void ApplyMaterialParameterToInstance(
-      filament::MaterialInstance* materialInstance,
-      const MaterialParameter* param,
-      const TextureMap& loadedTextures
-    );
-
-    void setMaterialInstancePropertiesFromMyPropertyMap(
-      const ::filament::Material* materialResult,
-      filament::MaterialInstance* materialInstance,
-      const TextureMap& loadedTextures
-    ) const;
+    /// @brief Set a property on the material instance
+    /// Under the hood: adds the parameter to a list, which is picked up by the MaterialSystem
+    /// on the next iteration (could be the same frame but it depends on when it's called in the
+    /// lifecycle)
+    void setInstanceProperty(std::shared_ptr<MaterialParameter> param);
 
     // this will either get the assetPath or the url, priority of assetPath
     // looking for which is valid. Used to see if we have this loaded in cache.
-    [[nodiscard]] std::string szGetMaterialDefinitionLookupName() const;
+    [[nodiscard]] const std::string* getLookupName() const;
 
     // This will go through each of the parameters and return only the
     // texture_(definitions) so the material manager can load what's not already
@@ -81,32 +94,35 @@ class MaterialDefinitions : public Component {
     void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override {
-      return new MaterialDefinitions(*this);  // Copy constructor is called here
+      return new Material(*this);  // Copy constructor is called here
     }
-
-  private:
-    std::string assetPath_;
-    std::string url_;
-    std::map<std::string, std::shared_ptr<MaterialParameter>> parameters_;
 };
 
-const std::shared_ptr<MaterialParameter> kDefaultBaseColor = std::make_unique<MaterialParameter>(
+const std::shared_ptr<MaterialParameter> kDefaultBaseColor = std::make_shared<MaterialParameter>(
   "baseColor",
   MaterialParameter::MaterialType::COLOR,
   filament::math::float4(1.0f, 1.0f, 1.0f, 1.0f)
 );
-const std::shared_ptr<MaterialParameter> kDefaultRoughness =
-  std::make_unique<MaterialParameter>("roughness", MaterialParameter::MaterialType::FLOAT, 0.5f);
-const std::shared_ptr<MaterialParameter> kDefaultMetallic =
-  std::make_unique<MaterialParameter>("metallic", MaterialParameter::MaterialType::FLOAT, 0.0f);
+const std::shared_ptr<MaterialParameter> kDefaultRoughness = std::make_shared<MaterialParameter>(
+  "roughness",  //
+  MaterialParameter::MaterialType::FLOAT,
+  0.5f
+);
+const std::shared_ptr<MaterialParameter> kDefaultMetallic = std::make_shared<MaterialParameter>(
+  "metallic",  //
+  MaterialParameter::MaterialType::FLOAT,
+  0.0f
+);
 
-const std::map<std::string, std::shared_ptr<MaterialParameter>> kDefaultMaterialParameters{
-  {"baseColor", kDefaultBaseColor},
-  {"roughness", kDefaultRoughness},
-  {"metallic", kDefaultMetallic},
+const std::vector<std::shared_ptr<MaterialParameter>> kDefaultMaterialParameters{
+  kDefaultBaseColor,
+  kDefaultRoughness,
+  kDefaultMetallic,
 };
 
-const MaterialDefinitions kDefaultMaterial =
-  MaterialDefinitions("assets/materials/lit.filamat", kDefaultMaterialParameters);
+const Material kDefaultMaterial = Material(
+  "assets/materials/lit.filamat",  //
+  kDefaultMaterialParameters       //
+);
 
 }  // namespace plugin_filament_view

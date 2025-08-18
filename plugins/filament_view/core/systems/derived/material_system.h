@@ -18,61 +18,79 @@
 
 #include <core/scene/material/loader/material_loader.h>
 #include <core/scene/material/loader/texture_loader.h>
+#include <core/scene/material/material_parameter.h>
 #include <core/systems/base/system.h>
+#include <core/utils/filament_types.h>
+
 #include <filament/MaterialInstance.h>
+
 #include <map>
 #include <memory>
 #include <string>
 
 namespace plugin_filament_view {
 
-class MaterialDefinitions;
+class Material;
 class MaterialLoader;
 class TextureLoader;
-
-using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
 class MaterialSystem : public System {
   public:
     MaterialSystem();
     ~MaterialSystem() override;
-
-    Resource<::filament::MaterialInstance*> getMaterialInstance(
-      const MaterialDefinitions* materialDefinitions
-    );
-
-    // Disallow copy and assign.
-    MaterialSystem(const MaterialSystem&) = delete;
-    MaterialSystem& operator=(const MaterialSystem&) = delete;
-
     void onSystemInit() override;
-    void update(double deltaTime) override;
+    void update(double /*deltaTime*/) override;
     void onDestroy() override;
     void debugPrint() override;
 
+    void onComponentOperation(
+      EntityObject& entity,  //
+      Component& component,
+      ECSOperation operation
+    ) override;
+
   private:
+    void _addMaterial(EntityObject& /*entity*/, Material& material);
+    void _removeMaterial(EntityObject& entity, Material& material);
+    void _updateMaterialInstanceProperty(
+      const Material& material,
+      const MaterialParameter* matParam
+    );
+
+    /// Loads or retrieves a material definition from the cache
+    MaterialDefinition _getMaterialDefinition(const std::string* assetPath);
+    /// Loads or retrieves a texture from the cache
+    Texture _getTexture(
+      const std::string* assetPath,
+      const std::unique_ptr<TextureDefinitions>& texturePtr
+    );
+
     std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
     std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-    static Resource<::filament::Material*> loadMaterialFromResource(
-      const MaterialDefinitions* materialDefinition
-    );
-    Resource<::filament::MaterialInstance*> setupMaterialInstance(
+    static MaterialDefinition _loadMaterialFromResource(const Material* materialDefinition);
+    MaterialInstance _setupMaterialInstance(
       const ::filament::Material* materialResult,
-      const MaterialDefinitions* materialDefinitions
+      const Material* materialDefinitions
     ) const;
 
-    // this map contains the loaded materials from disk, that are not actively
-    // used but instead copies (instances) are made of, then the instances are
-    // used. Reducing disk reload.
-    std::map<std::string, Resource<::filament::Material*>> loadedTemplateMaterials_;
-    std::mutex loadingMaterialsMutex_;
+    /// Loaded [MaterialDefinition]s - stored here before they can be instantiated
+    /// @key: asset path [std::string]
+    /// @value: material definition [MaterialDefinition]
+    std::map<std::string, MaterialDefinition> _loadedMaterialDefinitions;
+    std::mutex _materialLoadingMutex;
+    // TODO: add a material use counter (or dependency graph?)
+    //       to know when materials can be unloaded
 
-    // This map is a list of all loaded textures. Multiple materials might
-    // reference the same texture, and instead of loading them separately; they'll
-    // be reused here. As of writing 202409 Textures are tied to materials, so it
-    // makes sense to have a check if a material needs a texture, to load it in
-    // that stack chain.
-    TextureMap loadedTextures_;
+    // Textures are tied to materials, so it makes sense to have a check
+    // if a material needs a texture, to load it in that stack chain.
+    /// @brief Loaded [Texture]s - stored here before they can be used in materials
+    /// Multiple materials may reference the same texture
+    /// @key: asset path [std::string]
+    /// @value: texture [Texture]
+    std::map<std::string, Texture> _loadedTextures;
+    std::mutex _textureLoadingMutex;
+    // TODO: add a texture use counter (or dependency graph?)
+    //       to know when textures can be unloaded
 };
 }  // namespace plugin_filament_view

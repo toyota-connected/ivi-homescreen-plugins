@@ -17,7 +17,7 @@
 #include "material_system.h"
 #include "filament_system.h"
 
-#include <core/components/derived/material_definitions.h>
+#include <core/components/derived/material.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <core/systems/ecs.h>
@@ -38,112 +38,144 @@ MaterialSystem::MaterialSystem() {
 /////////////////////////////////////////////////////////////////////////////////////////
 MaterialSystem::~MaterialSystem() { SPDLOG_DEBUG("--{}", __FUNCTION__); }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
-  const MaterialDefinitions* materialDefinition
+void MaterialSystem::onComponentOperation(
+  EntityObject& entity,   //
+  Component& component,   //
+  ECSOperation operation  //
 ) {
-  // The Future object for loading Material
-  if (!materialDefinition->szGetMaterialAssetPath().empty()) {
-    // THIS does NOT set default a parameter values
-    return MaterialLoader::loadMaterialFromAsset(materialDefinition->szGetMaterialAssetPath());
+  auto* material = dynamic_cast<Material*>(&component);
+  if (!material) {
+    spdlog::warn("[{}] - Not a Material component", __FUNCTION__);
+    return;
   }
 
-  if (!materialDefinition->szGetMaterialURLPath().empty()) {
-    return MaterialLoader::loadMaterialFromUrl(materialDefinition->szGetMaterialURLPath());
+  switch (operation) {
+    case ECSOperation::Add:
+      _addMaterial(entity, *material);
+      break;
+    case ECSOperation::Remove:
+      _removeMaterial(entity, *material);
+      break;
+  }
+}
+
+void MaterialSystem::_updateMaterialInstanceProperty(
+  const Material& material,
+  const MaterialParameter* param
+) {
+  if (!material._instance.get()) {
+    spdlog::error("Material hasn't been loaded yet");
+    return;
   }
 
-  return Resource<filament::Material*>::Error("You must provide material asset path or url");
+  if (material._instance->getStatus() != Status::Success) {
+    spdlog::error("No material definition set for model, set one first that's not the "
+                  "uber shader.");
+    return;
+  }
+
+  auto materialInstance = material._instance->getData().value();
+
+  const std::string paramName = param->getName();
+  const char* szParamName = paramName.c_str();
+
+  switch (param->type_) {
+    case MaterialParameter::MaterialType::COLOR: {
+      materialInstance->setParameter(
+        szParamName, filament::RgbaType::LINEAR, param->colorValue_.value()
+      );
+    } break;
+
+    case MaterialParameter::MaterialType::FLOAT: {
+      materialInstance->setParameter(szParamName, param->fValue_.value());
+    } break;
+
+    case MaterialParameter::MaterialType::TEXTURE: {
+      // make sure we have the texture:
+      const auto* textureId = param->getTextureValueAssetPath();
+      if (!textureId) {
+        spdlog::warn("Texture path for parameter '{}' is null", param->getName());
+        return;
+      }
+
+      const auto foundResource = _loadedTextures.find(*textureId);
+      if (foundResource == _loadedTextures.end()) {
+        // log and continue
+        spdlog::warn("Got to a case where a texture was not loaded before trying to "
+                     "apply to a material.");
+        return;
+      }
+
+      // sampler will be on 'our' deserialized
+      // texturedefinitions->texture_sampler
+      const auto textureSampler = param->getTextureSampler();
+
+      filament::TextureSampler sampler(MinFilter::LINEAR, MagFilter::LINEAR);
+
+      if (textureSampler != nullptr) {
+        // SPDLOG_INFO("Overloading filtering options with set param
+        // values");
+        sampler.setMinFilter(textureSampler->getMinFilter());
+        sampler.setMagFilter(textureSampler->getMagFilter());
+        sampler.setAnisotropy(static_cast<float>(textureSampler->getAnisotropy()));
+
+        // Currently leaving this commented out, but this is for 3d
+        // textures, which are not currently expected to be loaded
+        // as time of writing.
+        // sampler.setWrapModeR(textureSampler->getWrapModeR());
+
+        sampler.setWrapModeS(textureSampler->getWrapModeS());
+        sampler.setWrapModeT(textureSampler->getWrapModeT());
+      }
+
+      if (!foundResource->second.getData().has_value()) {
+        spdlog::warn("Got to a case where a texture resource data was not loaded "
+                     "before trying to "
+                     "apply to a material.");
+        return;
+      }
+
+      const auto texture = foundResource->second.getData().value();
+      materialInstance->setParameter(szParamName, texture, sampler);
+    } break;
+
+    default: {
+      SPDLOG_WARN("Type template not setup yet, see {}", __FUNCTION__);
+    } break;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
-  const filament::Material* materialResult,
-  const MaterialDefinitions* materialDefinitions
-) const {
-  if (!materialResult) {
-    SPDLOG_ERROR("Unable to {}", __FUNCTION__);
-    return Resource<filament::MaterialInstance*>::Error("argument is NULL");
-  }
-
-  const auto materialInstance = materialResult->createInstance();
-  materialDefinitions->setMaterialInstancePropertiesFromMyPropertyMap(
-    materialResult, materialInstance, loadedTextures_
-  );
-
-  return Resource<filament::MaterialInstance*>::Success(materialInstance);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
-  const MaterialDefinitions* materialDefinitions
-) {
-  SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
-  if (!materialDefinitions) {
-    spdlog::error("--Bad MaterialDefinitions Result "
-                  "MaterialManager::getMaterialInstance");
-    return Resource<filament::MaterialInstance*>::Error("Material not found");
-  }
-
-  Resource<filament::Material*> materialToInstanceFrom;
-
+void MaterialSystem::_addMaterial(EntityObject& /*entity*/, Material& materialComponent) {
+  SPDLOG_TRACE("++MaterialManager::_addMaterial");
   // In case of multi material load on <load>
   // we dont want to reload the same material several times and have collision
   // in the map
-  std::lock_guard lock(loadingMaterialsMutex_);
+  std::lock_guard lock(_materialLoadingMutex);
 
-  auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
-  if (const auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
-      materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
-    materialToInstanceFrom = materialToInstanceFromIter->second;
-  } else {
-    SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
-    materialDefinitions->debugPrint("  ");
-    materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
+  /*
+   *  Load MaterialDefinition
+   */
+  const auto* lookupName = materialComponent.getLookupName();
+  MaterialDefinition materialToInstanceFrom = _getMaterialDefinition(lookupName);
 
-    if (materialToInstanceFrom.getStatus() != Status::Success) {
-      spdlog::error("--Bad Material Result MaterialSystem::getMaterialInstance");
-      return Resource<filament::MaterialInstance*>::Error(materialToInstanceFrom.getMessage());
-    }
-
-    // if we got here the material is valid, and we should add it into our map
-    loadedTemplateMaterials_.insert(std::make_pair(lookupName, materialToInstanceFrom));
-  }
-
-  // here we need to see if any & all textures that are requested on the
-  // material be loaded before we create an instance of it.
-  const auto materialsRequiredTextures = materialDefinitions->getTextureMaterialParameters();
-  for (const auto materialParam : materialsRequiredTextures) {
+  /*
+   *  Load textures
+   */
+  const auto materialsRequiredTextures = materialComponent.getTextureMaterialParameters();
+  for (const auto& materialParam : materialsRequiredTextures) {
     try {
-      // Call the getTextureValue method
       const auto& textureValue = materialParam->getTextureValue();
-
-      // Access the Texture pointer from the MaterialTextureValue variant
+      // TODO: what is this??? why get <- unique_ptr <- value ???
       const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
-
       if (!texturePtr) {
-        spdlog::error(
-          "Unable to access texture point value for {}", materialParam->szGetParameterName()
-        );
+        spdlog::error("Unable to access texture point value for {}", materialParam->getName());
         continue;
       }
 
-      // see if the asset path is already in our map of saved textures
-      const auto assetPath = materialParam->getTextureValueAssetPath();
-      if (auto foundAsset = loadedTextures_.find(assetPath); foundAsset != loadedTextures_.end()) {
-        // it exists already, don't need to load it.
-        continue;
-      }
-
-      // its not loaded already, lets load it.
-      auto loadedTexture = TextureLoader::loadTexture(texturePtr.get());
-
-      if (loadedTexture.getStatus() != Status::Success) {
-        spdlog::error("Unable to load texture from {}", assetPath);
-        Resource<filament::Texture*>::Error(materialToInstanceFrom.getMessage());
-        continue;
-      }
-
-      loadedTextures_.insert(std::pair(assetPath, loadedTexture));
+      // Get from cache if loaded
+      const auto* assetPath = materialParam->getTextureValueAssetPath();
+      _getTexture(assetPath, texturePtr);
     } catch (const std::bad_variant_access& e) {
       spdlog::error("Error: Could not retrieve the texture value. {}", e.what());
     } catch (const std::runtime_error& e) {
@@ -151,12 +183,134 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     }
   }
 
-  const auto materialInstance = setupMaterialInstance(
-    materialToInstanceFrom.getData().value(), materialDefinitions
-  );
+  /*
+   *  Create material instance
+   */
+  spdlog::debug("[{}] Instantiating material...", __FUNCTION__);
+  MaterialInstance matInstance;
+  const auto* matData = materialToInstanceFrom.getData().value();
+  if (!matData) {
+    spdlog::error("Unable to {}", __FUNCTION__);
+    matInstance = MaterialInstance::Error("argument is NULL");
+  }
 
-  SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
-  return materialInstance;
+  const auto matInstanceData = matData->createInstance();
+
+  /*
+   *  Copy parameters from material definition
+   */
+  {
+    const auto count = matData->getParameterCount();
+    std::vector<filament::Material::ParameterInfo> parameters(count);
+
+    if (const auto actual = matData->getParameters(parameters.data(), count);
+        count != actual || actual != parameters.size()) {
+      spdlog::warn("Count of parameters from the material instance and loaded material do "
+                   "not match; doesn't technically need to, but not ideal and could leave "
+                   "to undefined results.");
+    }
+
+    // TODO: clean this up
+    std::map<std::string, bool> savedParameters;
+
+    for (const auto& param : materialComponent._tmpParams) {
+      const auto& name = param->getName();
+      SPDLOG_TRACE("[Material] name: {}, type: {}", name, static_cast<int>(param->type_));
+      _updateMaterialInstanceProperty(materialComponent, param.get());
+      savedParameters[name] = true;
+    }
+
+    // Print warnings for any parameters that were not set
+    for (const auto& param : parameters) {
+      if (param.name && !savedParameters[param.name]) {
+        SPDLOG_WARN("No default parameter value available for {} {}", __FUNCTION__, param.name);
+      }
+    }
+  }
+
+  matInstance = MaterialInstance::Success(matInstanceData);
+  // make unique_ptr
+  // TODO: this is not optimal, does memcpy - fix it
+  materialComponent._instance = std::make_shared<MaterialInstance>(matInstance);
+
+  SPDLOG_TRACE("--MaterialManager::_addMaterial");
+}
+
+void MaterialSystem::_removeMaterial(EntityObject& entity, Material& material) {
+  SPDLOG_TRACE("++MaterialManager::_removeMaterial");
+
+  if (material._instance && material._instance->getData().has_value()) {
+    const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::_removeMaterial");
+    const auto engine = filamentSystem->getFilamentEngine();
+
+    engine->destroy(*material._instance->getData());
+    material._instance.reset();
+  } else {
+    spdlog::warn("Material instance is null or has no data, cannot remove.");
+  }
+
+  SPDLOG_TRACE("--MaterialManager::_removeMaterial");
+}
+
+MaterialDefinition MaterialSystem::_getMaterialDefinition(const std::string* assetPath) {
+  std::lock_guard<std::mutex> lock(_materialLoadingMutex);
+
+  if (!assetPath) {
+    SPDLOG_ERROR("MaterialSystem::_getMaterialDefinition - Invalid asset path");
+    return MaterialDefinition::Error("Invalid asset path");
+  }
+
+  // Fetch from cache if present
+  const auto matdefRecord = _loadedMaterialDefinitions.find(*assetPath);
+  if (matdefRecord != _loadedMaterialDefinitions.end()) {
+    return matdefRecord->second;
+  }
+
+  // If not found in cache, load from resource
+  SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
+  MaterialDefinition matdef;
+
+  // The Future object for loading Material
+  if (!assetPath->empty()) {
+    // THIS does NOT set default a parameter values
+    matdef = MaterialLoader::loadMaterialFromAsset(*assetPath);
+    // TODO: implement URL resource handling
+    // } else if (!materialDefinition->szGetMaterialURLPath().empty()) {
+    //   matdef = MaterialLoader::loadMaterialFromUrl(materialDefinition->szGetMaterialURLPath());
+  } else {
+    spdlog::error("MaterialSystem::LoadingMaterial - No valid asset path or URL");
+    return MaterialDefinition::Error("You must provide material asset path or url");
+  }
+
+  if (matdef.getStatus() != Status::Success) {
+    spdlog::error("--Bad Material Result {}", __FUNCTION__);
+    return matdef;
+  }
+
+  // if we got here the material is valid, and we should add it into our map
+  _loadedMaterialDefinitions.insert(std::make_pair(*assetPath, matdef));
+  return matdef;
+}
+
+Texture MaterialSystem::_getTexture(
+  const std::string* assetPath,
+  const std::unique_ptr<TextureDefinitions>& texturePtr
+) {
+  // Lookup in cache and return if found
+  if (auto foundAsset = _loadedTextures.find(*assetPath); foundAsset != _loadedTextures.end()) {
+    return foundAsset->second;
+  }
+
+  // Load if not already loaded
+  auto loadedTexture = TextureLoader::loadTexture(texturePtr.get());
+  if (loadedTexture.getStatus() != Status::Success) {
+    spdlog::error("Unable to load texture from {}", *assetPath);
+  } else {
+    // If loading was successful, add it to the loaded textures map
+    _loadedTextures.insert(std::pair(*assetPath, loadedTexture));
+  }
+
+  return loadedTexture;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -169,55 +323,73 @@ void MaterialSystem::onSystemInit() {
     );
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-    if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
+    if (const auto matComponent = ecs->getComponent<Material>(guid); matComponent != nullptr) {
       spdlog::debug("ChangeMaterialParameter valid entity found.");
 
-      const auto parameter = MaterialParameter::Deserialize("", params);
-
-      const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->ChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
+      auto parameter = MaterialParameter::Deserialize("", params);
+      matComponent->setInstanceProperty(std::move(parameter));
     }
 
     spdlog::debug("ChangeMaterialParameter Complete");
   });
 
-  registerMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
-    spdlog::debug("ChangeMaterialDefinitions");
+  registerMessageHandler(ECSMessageType::ChangeMaterialDefinition, [this](const ECSMessage& msg) {
+    spdlog::debug("ChangeMaterialDefinition");
 
     const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
-      ECSMessageType::ChangeMaterialDefinitions
+      ECSMessageType::ChangeMaterialDefinition
     );
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
     if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
-      spdlog::debug("ChangeMaterialDefinitions valid entity found.");
+      spdlog::debug("ChangeMaterialDefinition valid entity found.");
 
-      const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->ChangeMaterialDefinitions(params, loadedTextures_);
+      // const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
+      spdlog::warn("[{}] ChangeMaterialDefinition called, TODO: refactor");
+      // renderable->ChangeMaterialDefinition(params, _loadedTextures);
     }
 
-    spdlog::debug("ChangeMaterialDefinitions Complete");
+    // spdlog::debug("ChangeMaterialDefinition Complete");
   });
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::update(double /*deltaTime*/) {}
+void MaterialSystem::update(double /*deltaTime*/) {
+  // Fetch all Material components
+  const auto materials = ecs->getComponentsOfType<Material>();
+
+  // For each material, apply pending instance properties
+  for (auto& material : materials) {
+    auto& params = material->_tmpParams;
+    if (params.empty()) continue;
+
+    for (size_t i = params.size(); i < 0; --i) {
+      auto& param = params[i];
+      try {
+        _updateMaterialInstanceProperty(*material, param.get());
+        params.pop_back();
+      } catch (const std::exception& e) {
+        spdlog::error("Failed to update material instance property: {}", e.what());
+      }
+    }
+  }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::onDestroy() {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::onDestroy");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  for (const auto& [fst, snd] : loadedTemplateMaterials_) {
+  for (const auto& [fst, snd] : _loadedMaterialDefinitions) {
     engine->destroy(*snd.getData());
   }
 
-  for (const auto& [fst, snd] : loadedTextures_) {
+  for (const auto& [fst, snd] : _loadedTextures) {
     engine->destroy(*snd.getData());
   }
 
-  loadedTemplateMaterials_.clear();
-  loadedTextures_.clear();
+  _loadedMaterialDefinitions.clear();
+  _loadedTextures.clear();
 
   materialLoader_.reset();
   textureLoader_.reset();

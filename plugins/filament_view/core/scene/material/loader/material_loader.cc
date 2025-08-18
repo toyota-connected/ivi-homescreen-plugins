@@ -19,6 +19,8 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecs.h>
+#include <core/utils/filament_types.h>
+
 #include <plugins/common/curl_client/curl_client.h>
 
 namespace plugin_filament_view {
@@ -31,7 +33,7 @@ MaterialLoader::MaterialLoader() = default;
 
 ////////////////////////////////////////////////////////////////////////////
 // This function does NOT set default parameter values.
-Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(const std::string& path) {
+MaterialDefinition MaterialLoader::loadMaterialFromAsset(const std::string& path) {
   const auto assetPath = ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
   const auto buffer = readBinaryFile(path, assetPath);
 
@@ -44,20 +46,20 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(const std::s
     const auto material =
       filament::Material::Builder().package(buffer.data(), buffer.size()).build(*engine);
 
-    return Resource<filament::Material*>::Success(material);
+    return MaterialDefinition::Success(material);
   }
 
   SPDLOG_ERROR("Could not load material from asset.");
-  return Resource<filament::Material*>::Error("Could not load material from asset.");
+  return MaterialDefinition::Error("Could not load material from asset.");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(const std::string& url) {
+MaterialDefinition MaterialLoader::loadMaterialFromUrl(const std::string& url) {
   plugin_common_curl::CurlClient client;
   // TODO client.Init(url);
   const std::vector<uint8_t> buffer = client.RetrieveContentAsVector();
   if (client.GetCode() != CURLE_OK) {
-    return Resource<filament::Material*>::Error("Failed to load material from " + url);
+    return MaterialDefinition::Error("Failed to load material from " + url);
   }
 
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
@@ -68,10 +70,10 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(const std::str
   if (!buffer.empty()) {
     const auto material =
       filament::Material::Builder().package(buffer.data(), buffer.size()).build(*engine);
-    return Resource<filament::Material*>::Success(material);
+    return MaterialDefinition::Success(material);
   }
 
-  return Resource<filament::Material*>::Error("Could not load material from asset.");
+  return MaterialDefinition::Error("Could not load material from asset.");
 }
 
 ////////////////////////////////////////////////////////////////////////////

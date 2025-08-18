@@ -320,7 +320,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialDefinition(
   const int64_t guid
 ) {
   ECSMessage materialData;
-  materialData.addData(ECSMessageType::ChangeMaterialDefinitions, params);
+  materialData.addData(ECSMessageType::ChangeMaterialDefinition, params);
   materialData.addData(ECSMessageType::EntityToTarget, guid);
   ECSManager::GetInstance()->RouteMessage(materialData);
   return std::nullopt;

@@ -62,30 +62,6 @@ void RenderableEntityObject::onInitialize() {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////
-void RenderableEntityObject::LoadMaterialDefinitionsToMaterialInstance() {
-  assertInitialized();
-  const auto materialSystem = ecs->getSystem<MaterialSystem>(
-    "RenderableEntityObject::BuildRenderable"
-  );
-
-  // this will also set all the default values of the material instance from
-  // the material param list
-
-  const auto materialDefinitions = getComponent<MaterialDefinitions>();
-  if (materialDefinitions != nullptr) {
-    m_poMaterialInstance = materialSystem->getMaterialInstance(
-      dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get())
-    );
-  } else {
-    spdlog::error("MaterialDefinitions is null.");
-  }
-
-  if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error("Failed to get material instance.");
-  }
-}
-
 AABB RenderableEntityObject::getAABB() const {
   // Get renderable component
   const auto renderable = getComponent<CommonRenderable>();

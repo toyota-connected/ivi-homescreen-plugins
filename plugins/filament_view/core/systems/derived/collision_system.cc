@@ -17,6 +17,7 @@
 
 #include "filament_system.h"
 
+#include <core/components/derived/material.h>
 #include <core/entity/derived/model/model.h>
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
@@ -270,9 +271,9 @@ void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
 
   // Create a cube wireframe
   spdlog::debug("Creating wireframe for collider entity({})", entity.getGuid());
-  auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
+  auto cubeChild = std::make_shared<Cube>("(collider wireframe)");
   cubeChild->m_bIsWireframe = true;
-  cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
+  cubeChild->addComponent<Material>(kDefaultMaterial);
   const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::update");
   ecs->addEntity(cubeChild);
   shapeSystem->addShapeToScene(cubeChild);

@@ -36,8 +36,6 @@ class CollisionSystem;
 class ShapeSystem;
 class ModelSystem;
 
-namespace shapes {
-
 class BaseShape : public RenderableEntityObject {
     friend class plugin_filament_view::CollisionSystem;
     friend class plugin_filament_view::ShapeSystem;
@@ -106,15 +104,6 @@ class BaseShape : public RenderableEntityObject {
     //        when building as code currently allocates buffers for UVs
     bool m_bHasTexturedMaterial = true;
 
-    void ChangeMaterialDefinitions(
-      const flutter::EncodableMap& params,
-      const TextureMap& loadedTextures
-    ) override;
-    void ChangeMaterialInstanceProperty(
-      const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures
-    ) override;
-
   private:
     void DestroyBuffers();
 
@@ -124,5 +113,4 @@ class BaseShape : public RenderableEntityObject {
     bool m_bIsWireframe = false;
 };
 
-}  // namespace shapes
 }  // namespace plugin_filament_view

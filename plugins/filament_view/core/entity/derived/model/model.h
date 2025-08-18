@@ -92,16 +92,6 @@ class Model : public RenderableEntityObject {
     void debugPrint() const override;
 
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
-
-    /// TODO: move to CommonRenderable
-    void ChangeMaterialDefinitions(
-      const flutter::EncodableMap& /*params*/,
-      const TextureMap& /*loadedTextures*/
-    ) override;
-    void ChangeMaterialInstanceProperty(
-      const MaterialParameter* /*materialParam*/,
-      const TextureMap& /*loadedTextures*/
-    ) override;
 };
 
 }  // namespace plugin_filament_view

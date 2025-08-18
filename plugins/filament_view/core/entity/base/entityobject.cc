@@ -115,7 +115,7 @@ std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const
   if (isInitialized()) {
     return ecs->getComponent(guid_, staticTypeID);
   } else {
-    if(auto it = _tmpComponents.find(staticTypeID); it != _tmpComponents.end()) {
+    if (auto it = _tmpComponents.find(staticTypeID); it != _tmpComponents.end()) {
       return it->second;
     } else {
       return nullptr;

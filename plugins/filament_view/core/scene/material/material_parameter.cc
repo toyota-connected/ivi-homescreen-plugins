@@ -54,7 +54,7 @@ MaterialParameter::MaterialParameter(std::string name, MaterialType type, Materi
     colorValue_(value) {}
 
 ////////////////////////////////////////////////////////////////////////////
-std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
+std::shared_ptr<MaterialParameter> MaterialParameter::Deserialize(
   const std::string& /* flutter_assets_path */,
   const flutter::EncodableMap& params
 ) {
@@ -99,18 +99,18 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
 
   switch (type.value()) {
     case MaterialType::TEXTURE:
-      return std::make_unique<MaterialParameter>(
+      return std::make_shared<MaterialParameter>(
         name.has_value() ? name.value() : "", type.value(),
         TextureDefinitions::Deserialize(encodMapValue.value())
       );
 
     case MaterialType::FLOAT:
-      return std::make_unique<MaterialParameter>(
+      return std::make_shared<MaterialParameter>(
         name.has_value() ? name.value() : "", type.value(), fValue.value()
       );
 
     case MaterialType::COLOR:
-      return std::make_unique<MaterialParameter>(
+      return std::make_shared<MaterialParameter>(
         name.has_value() ? name.value() : "", type.value(), colorValue.value()
       );
 
