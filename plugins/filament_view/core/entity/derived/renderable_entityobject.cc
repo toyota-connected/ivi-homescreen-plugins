@@ -64,7 +64,7 @@ void RenderableEntityObject::onInitialize() {
 
 ////////////////////////////////////////////////////////////////////////////
 void RenderableEntityObject::LoadMaterialDefinitionsToMaterialInstance() {
-  checkInitialized();
+  assertInitialized();
   const auto materialSystem = ecs->getSystem<MaterialSystem>(
     "RenderableEntityObject::BuildRenderable"
   );

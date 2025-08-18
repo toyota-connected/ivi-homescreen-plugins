@@ -89,7 +89,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
     /// @brief Checks if the entity is initialized. Throws an exception if not.
     /// @throws std::runtime_error if the entity is not initialized.
-    void checkInitialized() const {
+    void assertInitialized() const {
       // TODO: mutex?
 
       if (!_isInitialized) {

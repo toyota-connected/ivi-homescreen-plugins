@@ -131,7 +131,8 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::BuildRenderable(filament::Engine* engine_) {
-  checkInitialized();
+  spdlog::debug("[{}] Building renderable for shape '{}'({})", __FUNCTION__, name, getGuid());
+  // assertInitialized();
   // material_manager can and will be null for now on wireframe creation.
 
   filament::math::float3 aabb;

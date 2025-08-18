@@ -148,7 +148,7 @@ void EntityObject::addComponent(size_t staticTypeID, const std::shared_ptr<Compo
 }
 
 void EntityObject::onAddComponent(const std::shared_ptr<Component>& component) {
-  checkInitialized();
+  assertInitialized();
   component->entityOwner_ = this;
 }
 
