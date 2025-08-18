@@ -113,7 +113,7 @@ class Collider : public Component {
 
     /// Collider shape type (supported values: Cube)
     /// TODO: add support for other shapes
-    ShapeType m_eShapeType = ShapeType::Cube;        // default
+    ShapeType m_eShapeType = ShapeType::Cube;  // default
     /// @deprecated
     /// TODO: remove
     filament::math::float3 _extentSize = {1, 1, 1};  // default

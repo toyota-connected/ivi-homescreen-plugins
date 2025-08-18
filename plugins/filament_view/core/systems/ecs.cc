@@ -408,7 +408,9 @@ void ECSManager::_notifyComponentOperation(
   Component& component,
   ECSOperation operation
 ) {
-  spdlog::debug("[{}] Notifying component operation: {} ", __FUNCTION__, ECSOperationToString(operation));
+  spdlog::debug(
+    "[{}] Notifying component operation: {} ", __FUNCTION__, ECSOperationToString(operation)
+  );
 
   const auto systems = _componentListeners.find(component.getTypeID());
   if (systems == _componentListeners.end()) {

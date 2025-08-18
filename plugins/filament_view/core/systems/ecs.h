@@ -270,10 +270,7 @@ class ECSManager {
 
     /// Registers a system as a listener for when
     /// a specific component type is added/removed to an entity
-    void registerComponentListener(
-      const System& listener,
-      const TypeID componentTypeId
-    );
+    void registerComponentListener(const System& listener, const TypeID componentTypeId);
 
     //
     //  Threading

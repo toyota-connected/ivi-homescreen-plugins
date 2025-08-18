@@ -170,7 +170,7 @@ void CollisionSystem::SendCollisionInformationCallback(
 void CollisionSystem::onSystemInit() {
   // Register component listeners
   ecs->registerComponentListener(
-    *this, //
+    *this,  //
     COLLIDER_ID
   );
 
@@ -244,7 +244,7 @@ void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
   // Make sure it has an AABB
   if (aabb.isEmpty()) {
     spdlog::debug("Collider entity({}) has no AABB", entity.getGuid());
-    
+
     // Get AABB if it's a RenderableEntityObject
     if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(&entity)) {
       spdlog::debug("  Adding AABB to collider entity({})", renderableEntity->getGuid());
@@ -256,7 +256,9 @@ void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
       );
       spdlog::debug(
         "  AABB.size: x={}, y={}, z={}",  //
-        collider.aabb.halfExtent.x * 2, collider.aabb.halfExtent.y * 2, collider.aabb.halfExtent.z * 2
+        collider.aabb.halfExtent.x * 2,   //
+        collider.aabb.halfExtent.y * 2,   //
+        collider.aabb.halfExtent.z * 2    //
       );
 #if SPDLOG_LEVEL == trace
 // renderableEntity->getComponent<Transform>()->debugPrint("  ");
