@@ -112,7 +112,15 @@ void EntityObject::debugPrint() const {
 }
 
 std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
-  return ecs->getComponent(guid_, staticTypeID);
+  if (isInitialized()) {
+    return ecs->getComponent(guid_, staticTypeID);
+  } else {
+    if(auto it = _tmpComponents.find(staticTypeID); it != _tmpComponents.end()) {
+      return it->second;
+    } else {
+      return nullptr;
+    }
+  }
 }
 
 [[nodiscard]] bool EntityObject::hasComponent(size_t staticTypeID) const {
@@ -120,8 +128,8 @@ std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const
 }
 
 void EntityObject::ShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const {
-  checkInitialized();
-  const auto component = ecs->getComponent(guid_, staticTypeID);
+  // assertInitialized();
+  const auto component = getComponent(staticTypeID);
   if (component == nullptr) {
     spdlog::warn("Unable to clone component of {}", staticTypeID);
     return;
@@ -146,7 +154,6 @@ void EntityObject::onAddComponent(const std::shared_ptr<Component>& component) {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::onInitialize() {
-  checkInitialized();
   // add all components that were added before initialization
   for (const auto& [staticTypeID, component] : _tmpComponents) {
     ecs->addComponent(guid_, component);
