@@ -380,12 +380,16 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraOrbit(
   // Get camera component
   const auto camera = ecs->getComponent<Camera>(id);
 
+  const auto oldTarget = camera->orbitOriginEntity;
   camera->orbitOriginEntity = origin_entity_id;
   camera->orbitRotation = filament::math::quatf(
     orbit_rotation[3], orbit_rotation[0], orbit_rotation[1], orbit_rotation[2]
   );
 
-  spdlog::debug("Camera target set to entity: {}", origin_entity_id);
+  if (oldTarget != origin_entity_id) {
+    spdlog::debug("Camera target set to entity: {}", origin_entity_id);
+  }
+
   return std::nullopt;
 }
 
