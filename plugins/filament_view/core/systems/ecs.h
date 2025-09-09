@@ -76,7 +76,7 @@ class ECSManager {
     std::map<TypeID, std::shared_ptr<System>> _systems;
 
     /// Maps component types to system IDs listening for their addition
-    std::unordered_map<TypeID, std::vector<TypeID>> _componentListeners;
+    std::map<TypeID, std::vector<TypeID>> _componentListeners;
 
     /// Notifies a system about an [ECSOperation] being performed on a component
     void _notifyComponentOperation(
