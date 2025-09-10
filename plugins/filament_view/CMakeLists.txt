@@ -111,10 +111,9 @@ add_library(plugin_filament_view STATIC
         core/scene/skybox/skybox.cc
         core/systems/derived/skybox_system.cc
         core/systems/derived/animation_system.cc
-        core/entity/derived/shapes/baseshape.cc
-        core/entity/derived/shapes/cube.cc
-        core/entity/derived/shapes/sphere.cc
-        core/entity/derived/shapes/plane.cc
+        core/utils/shapes/cube.cc
+        core/utils/shapes/sphere.cc
+        core/utils/shapes/plane.cc
         core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
         core/utils/uuidGenerator.cc
