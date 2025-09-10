@@ -44,13 +44,13 @@ const char* modelInstancingModeToString(ModelInstancingMode mode) {
 
 ////////////////////////////////////////////////////////////////////////////
 Model::Model()
-  : RenderableEntityObject(),
+  : EntityObject(),
     assetPath_(),
     m_poAsset(nullptr),
     m_poAssetInstance(nullptr) {}
 
 void Model::deserializeFrom(const flutter::EncodableMap& params) {
-  RenderableEntityObject::deserializeFrom(params);
+  EntityObject::deserializeFrom(params);
 
   // assetPath_
   assetPath_ = Deserialize::DecodeParameter<std::string>(kAssetPath, params);
@@ -88,22 +88,6 @@ std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
 
 ////////////////////////////////////////////////////////////////////////////
 void Model::debugPrint() const { debugPrintComponents(); }
-
-AABB Model::getAABB() const {
-  AABB aabb;
-  filament::Aabb rawBox;
-
-  if (m_poAsset != nullptr) {
-    rawBox = m_poAsset->getBoundingBox();
-  } else if (m_poAssetInstance != nullptr) {
-    rawBox = m_poAssetInstance->getBoundingBox();
-  } else {
-    spdlog::warn("Model::getAABB - asset and asset instance are null");
-  }
-
-  aabb.set(rawBox.min, rawBox.max);
-  return aabb;
-}
 
 ////////////////////////////////////////////////////////////////////////////
 // TODO: this goes to ModelSystem

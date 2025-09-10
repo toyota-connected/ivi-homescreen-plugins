@@ -241,7 +241,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
     ->applyTransform(model->getGuid(), true);
 
   // Set up renderable
-  auto renderable = model->getComponent<CommonRenderable>();
+  auto renderable = model->getComponent<Renderable>();
   renderable->_fInstance = _rcm->getInstance(instanceEntity);
 
   // Set up collider
@@ -284,8 +284,8 @@ void ModelSystem::setupRenderable(
     name = "(null)";
   }
 
-  // Create a RenderableEntityObject child
-  const auto child = std::make_shared<RenderableEntityObject>();
+  // Create a EntityObject child
+  const auto child = std::make_shared<EntityObject>();
   child->_fEntity = fEntity;
   child->name = asset->getName(fEntity);
   spdlog::trace(
@@ -332,15 +332,33 @@ void ModelSystem::setupRenderable(
     return;
   }
 
-  const auto commonRenderable = model->getCommonRenderable();
-  _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
-  _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
+  const auto renderable = model->getRenderable();
+  _rcm->setCastShadows(ri, renderable->castShadows);
+  _rcm->setReceiveShadows(ri, renderable->receiveShadows);
   _rcm->setScreenSpaceContactShadows(ri, false);
 
+  // Set up AABB
+  {
+    filament::Aabb rawBox;
+    const auto* asset = model->getAsset();
+    if (asset != nullptr) {
+      rawBox = asset->getBoundingBox();
+    } else {
+      const auto* assetInstance = model->getAssetInstance();
+      if (assetInstance != nullptr) {
+        rawBox = assetInstance->getBoundingBox();
+      } else {
+        spdlog::warn("Model::getAABB - asset and asset instance are null");
+      }
+    }
+
+    renderable->_aabb.set(rawBox.min, rawBox.max);
+  }
+
   // Set up Renderable component
-  auto renderable = CommonRenderable();
-  renderable._fInstance = ri;
-  child->addComponent(renderable);
+  auto childRenderable = Renderable();
+  childRenderable._fInstance = ri;
+  child->addComponent(childRenderable);
 
   // (optional) Set up Collider component
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string

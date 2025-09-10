@@ -17,10 +17,9 @@
 #pragma once
 
 #include <core/components/derived/animation.h>
-#include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/renderable.h>
 #include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
-#include <core/entity/derived/renderable_entityobject.h>
 #include <gltfio/FilamentAsset.h>
 #include <string>
 
@@ -34,7 +33,7 @@ enum class ModelInstancingMode {
 
 const char* modelInstancingModeToString(ModelInstancingMode mode);
 
-class Model : public RenderableEntityObject {
+class Model : public EntityObject {
     friend class ModelSystem;
 
   public:
@@ -64,8 +63,8 @@ class Model : public RenderableEntityObject {
     [[nodiscard]] std::shared_ptr<Transform> getTransform() const {
       return getComponent<Transform>();
     }
-    [[nodiscard]] std::shared_ptr<CommonRenderable> getCommonRenderable() const {
-      return getComponent<CommonRenderable>();
+    [[nodiscard]] std::shared_ptr<Renderable> getRenderable() const {
+      return getComponent<Renderable>();
     }
 
     [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
@@ -75,8 +74,6 @@ class Model : public RenderableEntityObject {
 
     /// Returns whether the model is in the scene
     [[nodiscard]] bool isInScene() const { return m_isInScene; }
-
-    [[nodiscard]] virtual AABB getAABB() const override;
 
   protected:
     std::string assetPath_;

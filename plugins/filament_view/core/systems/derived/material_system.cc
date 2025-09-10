@@ -19,7 +19,6 @@
 
 #include <core/components/derived/material.h>
 #include <core/entity/base/entityobject.h>
-#include <core/entity/derived/renderable_entityobject.h>
 #include <core/systems/ecs.h>
 #include <plugins/common/common.h>
 
@@ -345,9 +344,9 @@ void MaterialSystem::onSystemInit() {
     if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
       spdlog::debug("ChangeMaterialDefinition valid entity found.");
 
-      // const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
+      // const auto material = entityObject->getComponent<Material>();
       spdlog::warn("[{}] ChangeMaterialDefinition called, TODO: refactor");
-      // renderable->ChangeMaterialDefinition(params, _loadedTextures);
+      // material->ChangeMaterialDefinition(params, _loadedTextures);
     }
 
     // spdlog::debug("ChangeMaterialDefinition Complete");
