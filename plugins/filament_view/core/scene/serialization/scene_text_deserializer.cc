@@ -92,11 +92,21 @@ void SceneTextDeserializer::DeserializeRootLevel(
           continue;
         }
 
-        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
-          std::get<flutter::EncodableMap>(iter)
-        );
+        auto shapeEntity = std::make_shared<EntityObject>(std::get<flutter::EncodableMap>(iter));
 
-        shapes_.emplace_back(std::move(deserializedShape));
+        // Deserialize material component
+        shapeEntity->addComponent(Material(std::get<flutter::EncodableMap>(iter)));
+
+        // Deserialize transform component
+        shapeEntity->addComponent(Transform(std::get<flutter::EncodableMap>(iter)));
+
+        // Deserialize shape component
+        shapeEntity->addComponent(Shape(std::get<flutter::EncodableMap>(iter)));
+
+        // Deserialize collider component if exists
+        shapeEntity->addComponent(Collider(std::get<flutter::EncodableMap>(iter)));
+
+        entities_.emplace_back(std::move(shapeEntity));
       }
 
       spdlog::debug("Deserialized {} shapes", shapes_.size());

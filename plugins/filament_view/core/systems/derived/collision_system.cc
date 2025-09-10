@@ -18,17 +18,15 @@
 #include "filament_system.h"
 
 #include <core/components/derived/material.h>
+#include <core/components/derived/shape.h>
 #include <core/entity/derived/model/model.h>
-#include <core/entity/derived/shapes/cube.h>
-#include <core/entity/derived/shapes/plane.h>
-#include <core/entity/derived/shapes/sphere.h>
-#include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/asserts.h>
 #include <filament/Scene.h>
 #include <filament/TransformManager.h>
 #include <plugins/common/common.h>
+
 
 namespace plugin_filament_view {
 
@@ -58,7 +56,7 @@ void CollisionSystem::TurnOnRenderingOfCollidables() const {
   for (const auto& collider : colliders) {
     const auto wireframe = collider->_wireframe;
     if (!!wireframe) {
-      wireframe->AddEntityToScene();
+      wireframe->getComponent<Shape>()->enabled = true;
     }
   }
 }
@@ -69,7 +67,7 @@ void CollisionSystem::TurnOffRenderingOfCollidables() const {
   for (const auto& collider : colliders) {
     const auto wireframe = collider->_wireframe;
     if (!!wireframe) {
-      wireframe->RemoveEntityFromScene();
+      wireframe->getComponent<Shape>()->enabled = false;
     }
   }
 }
@@ -87,11 +85,15 @@ void CollisionSystem::debugPrint() {
 inline float fLength2(const filament::math::float3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::list<HitResult> CollisionSystem::
-  lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
+std::list<HitResult> CollisionSystem::lstCheckForCollidable(
+  Ray& rayCast,
+  int64_t /*collisionLayer*/
+) const {
   std::list<HitResult> hitResults;
 
   const auto colliders = ecs->getEntitiesWithComponent<Collider>();
+
+  spdlog::debug("Checking for collidable entities... ({} candidates)", colliders.size());
 
   // Iterate over all entities.
   for (const auto& entity : colliders) {
@@ -116,7 +118,7 @@ std::list<HitResult> CollisionSystem::
       hitResult.name_ = collider->eventName;
       hitResult.hitPosition_ = hitLocation;  // Set the hit location
 
-      SPDLOG_INFO("HIT RESULT: {}", hitResult.guid_);
+      spdlog::info("HIT RESULT: {}", hitResult.guid_);
 
       // Add to the hit results
       hitResults.push_back(hitResult);
@@ -132,6 +134,8 @@ std::list<HitResult> CollisionSystem::
     // Sort in ascending order (closest hit first)
     return distanceA < distanceB;
   });
+
+  spdlog::debug("Collidable results found: {}", hitResults.size());
 
   // Return the sorted list of hit results
   return hitResults;
@@ -243,13 +247,13 @@ void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
   AABB& aabb = collider.aabb;
 
   // Make sure it has an AABB
-  if (aabb.isEmpty()) {
-    spdlog::debug("Collider entity({}) has no AABB", entity.getGuid());
+  if (collider.getShouldMatchAttachedObject()) {
+    spdlog::debug("Collider entity({}) needs to match Renderable", entity.getGuid());
 
-    // Get AABB if it's a RenderableEntityObject
-    if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(&entity)) {
-      spdlog::debug("  Adding AABB to collider entity({})", renderableEntity->getGuid());
-      collider.aabb = renderableEntity->getAABB();
+    // Get AABB if it has a renderable
+    if (const auto renderable = entity.getComponent<Renderable>(); !!renderable) {
+      spdlog::debug("  Adding AABB to collider entity({})", entity.getGuid());
+      collider.aabb = renderable->getAABB();
 
       spdlog::debug(
         "  AABB.pos: x={}, y={}, z={}",  //
@@ -261,38 +265,35 @@ void CollisionSystem::_addCollider(EntityObject& entity, Collider& collider) {
         collider.aabb.halfExtent.y * 2,   //
         collider.aabb.halfExtent.z * 2    //
       );
-#if SPDLOG_LEVEL == trace
-// renderableEntity->getComponent<Transform>()->debugPrint("  ");
-#endif
     } else {
-      spdlog::error("  Collider owner does not have an AABB");
+      spdlog::error(
+        "  Collider (shouldMatchRenderable) doesn't have a Renderable to get an AABB from"
+      );
     }
   }
 
-  // Create a cube wireframe
+// Create a cube wireframe
   spdlog::debug("Creating wireframe for collider entity({})", entity.getGuid());
-  auto cubeChild = std::make_shared<Cube>("(collider wireframe)");
-  cubeChild->m_bIsWireframe = true;
-  cubeChild->addComponent<Material>(kDefaultMaterial);
-  const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::update");
-  ecs->addEntity(cubeChild);
-  shapeSystem->addShapeToScene(cubeChild);
-  auto childTransform = cubeChild->getComponent<Transform>();
-  childTransform->setTransform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
-
+  auto wireframeChild = std::make_shared<EntityObject>("(collider wireframe)");
+  auto childTransform = Transform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
+  wireframeChild->addComponent<Transform>(childTransform);
+  wireframeChild->addComponent<Shape>( //
+    Shape(ShapeType::Cube, true)
+  );
+  ecs->addEntity(wireframeChild);
   childTransform->setParent(entity.getGuid());
 
-  collider._wireframe = cubeChild;
+  collider._wireframe = wireframeChild;
 }
 
 void CollisionSystem::_removeCollider(EntityObject& entity, Collider& collider) {
-  spdlog::debug("CollisionSystem: Removed collider from entity({})", entity.getGuid());
-
   // Remove wireframe
   if (collider._wireframe) {
     ecs->removeEntity(collider._wireframe->getGuid());
     collider._wireframe.reset();
   }
+
+  spdlog::debug("CollisionSystem: Removed collider from entity({})", entity.getGuid());
 }
 
 void CollisionSystem::update(double /*deltaTime*/) {}

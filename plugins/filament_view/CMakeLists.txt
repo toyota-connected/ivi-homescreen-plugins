@@ -27,7 +27,7 @@ message(STATUS "  FILAMENT_INCLUDE_DIR: ${FILAMENT_INCLUDE_DIR}")
 message(STATUS "  FILAMENT_LINK_LIBRARIES_DIR: ${FILAMENT_LINK_LIBRARIES_DIR}")
 
 add_library(filament INTERFACE
-        core/include/shapetypes.h)
+        core/components/derived/shape.h)
 target_compile_options(filament INTERFACE -isystem${FILAMENT_INCLUDE_DIR} -isystem${FILAMENT_INCLUDE_DIR}/filament)
 target_link_options(filament INTERFACE -L${FILAMENT_LINK_LIBRARIES_DIR})
 target_link_libraries(filament INTERFACE
@@ -80,6 +80,7 @@ add_library(plugin_filament_view STATIC
         core/components/derived/camera.cc
         core/components/derived/renderable.cc
         core/components/derived/collider.cc
+        core/components/derived/shape.cc
         core/components/derived/animation.cc
         core/components/derived/light.cc
         core/systems/base/system.cc

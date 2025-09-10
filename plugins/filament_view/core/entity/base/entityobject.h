@@ -131,8 +131,10 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     /// @brief Adds a component to the entity.
     /// If called before the entity is initialized, the component is batched
     /// and added to the entity after initialization.
-    template<typename T> inline void addComponent(const T& component) {
-      addComponent(Component::StaticGetTypeID<T>(), std::make_shared<T>(component));
+    template<typename T> inline std::shared_ptr<T> addComponent(const T& component) {
+      auto component = std::make_shared<T>(component);
+      addComponent(T::StaticGetTypeID<T>(), component);
+      return component;
     }
 
     /// Called by [ECSManager] when a component is added to the entity.

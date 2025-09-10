@@ -18,8 +18,8 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/base/component.h>
+#include <core/components/derived/shape.h>
 #include <core/components/derived/transform.h>
-#include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
 #include <core/utils/bounding_volumes.h>
 
@@ -117,7 +117,7 @@ class Collider : public Component {
      *  Setup stuff
      */
     /// Collider's child wireframe object
-    std::shared_ptr<BaseShape> _wireframe;
+    std::shared_ptr<EntityObject> _wireframe;
 };
 
 }  // namespace plugin_filament_view

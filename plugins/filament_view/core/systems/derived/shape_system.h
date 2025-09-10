@@ -47,14 +47,11 @@ class ShapeSystem : public System {
     void ToggleAllShapesInScene(bool enable) const;
     void ToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
-    void RemoveAllShapesInScene();
-
-    // Creates the derived class of BaseShape based on the map data sent in, does
-    // not add it to any list only returns the shape for you, Also does not build
-    // the data out, only stores it for building when ready.
-    static std::unique_ptr<BaseShape> poDeserializeShapeFromData(
-      const flutter::EncodableMap& mapData
-    );
+    virtual void onComponentOperation(
+      EntityObject& entity,
+      Component& component,
+      ECSOperation operation
+    ) override;
 
     void onSystemInit() override;
     void update(double deltaTime) override;
@@ -71,6 +68,11 @@ class ShapeSystem : public System {
 
     bool hasShape(const EntityGUID guid) const;
     BaseShape* getShape(const EntityGUID guid) const;
+
+    void _addShape(EntityObject& entity, Shape& shape);
+    void _removeShape(EntityObject& entity, Shape& shape);
+
+    void _buildRenderable(EntityObject& entity, Shape& shape);
 
     std::vector<EntityGUID> _shapes;
 };

@@ -16,47 +16,51 @@
 
 #include "shape_system.h"
 
+#include <filament/RenderableManager.h>
+#include <filament/Scene.h>
+#include <math/norm.h>
+#include <math/vec3.h>
+
 #include <core/components/derived/collider.h>
-
-#include <core/entity/derived/shapes/baseshape.h>
-#include <core/entity/derived/shapes/cube.h>
-#include <core/entity/derived/shapes/plane.h>
-#include <core/entity/derived/shapes/sphere.h>
+#include <core/components/derived/shape.h>
+#include <core/systems/derived/collision_system.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
-#include <plugins/common/common.h>
+#include <core/utils/deserialize.h>
 
-#include "collision_system.h"
+#include <core/include/literals.h>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
-////////////////////////////////////////////////////////////////////////////////////
+using filament::Aabb;
+using filament::IndexBuffer;
+using filament::RenderableManager;
+using filament::VertexAttribute;
+using filament::VertexBuffer;
+using filament::math::float3;
+using filament::math::mat3f;
+using filament::math::mat4f;
+using filament::math::packSnorm16;
+using filament::math::short4;
+
 void ShapeSystem::ToggleAllShapesInScene(const bool enable) const {
   if (enable) {
     for (const auto& guid : _shapes) {
-      const auto shape = getShape(guid);
-      shape->AddEntityToScene();
+      const auto shape = ecs->getComponent<Shape>(guid);
+      if (shape) {
+        // shape->AddEntityToScene();
+        spdlog::warn("[{}] Unimplemented!!! line {}", __FUNCTION__, __LINE__);
+      }
     }
   } else {
     for (const auto& guid : _shapes) {
-      const auto shape = getShape(guid);
-      shape->RemoveEntityFromScene();
+      const auto shape = ecs->getComponent<Shape>(guid);
+      // shape->RemoveEntityFromScene();
+      spdlog::warn("[{}] Unimplemented!!! line {}", __FUNCTION__, __LINE__);
     }
   }
-}
-
-bool ShapeSystem::hasShape(const EntityGUID guid) const {
-  if (std::find(_shapes.begin(), _shapes.end(), guid) != _shapes.end()) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-BaseShape* ShapeSystem::getShape(const EntityGUID guid) const {
-  if (hasShape(guid)) {
-    return dynamic_cast<BaseShape*>(ecs->getEntity(guid).get());
-  }
-  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -65,101 +69,62 @@ void ShapeSystem::ToggleSingleShapeInScene(const EntityGUID guid, const bool ena
     return;
   }
 
-  BaseShape* shape = getShape(guid);
+  BaseShape* shape = ecs->getComponent<Shape>(guid);
   if (enable) {
-    shape->AddEntityToScene();
+    // shape->AddEntityToScene();
+    spdlog::warn("[{}] Unimplemented!!! line {}", __FUNCTION__, __LINE__);
   } else {
-    shape->RemoveEntityFromScene();
+    // shape->RemoveEntityFromScene();
+    spdlog::warn("[{}] Unimplemented!!! line {}", __FUNCTION__, __LINE__);
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::RemoveAllShapesInScene() {
-  ToggleAllShapesInScene(false);
-
-  for (const auto& guid : _shapes) {
-    ecs->removeEntity(guid);
-  }
-
-  _shapes.clear();
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
-  const flutter::EncodableMap& mapData
+void ShapeSystem::onComponentOperation(
+  EntityObject& entity,
+  Component& component,
+  const ECSOperation operation
 ) {
-  ShapeType type;
-
-  // Find the "shapeType" key in the mapData
-  if (const auto it = mapData.find(flutter::EncodableValue("shapeType"));
-      it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
-    // Check if the value is within the valid range of the ShapeType enum
-    if (int32_t typeValue = std::get<int32_t>(it->second);
-        typeValue > static_cast<int32_t>(ShapeType::Unset)
-        && typeValue < static_cast<int32_t>(ShapeType::Max)) {
-      type = static_cast<ShapeType>(typeValue);
-    } else {
-      spdlog::error("Invalid shape type value: {}", typeValue);
-      return nullptr;
-    }
-  } else {
-    spdlog::error("shapeType not found or is of incorrect type");
-    return nullptr;
+  if (component.getTypeID() != IdentifiableType::StaticGetTypeID<Shape>()) {
+    return;
   }
 
-  // Based on the type_, create the corresponding shape
-  switch (type) {
-    case ShapeType::Plane: {
-      auto toReturn = std::make_unique<Plane>();
-      toReturn->deserializeFrom(mapData);
-      return toReturn;
-    }
-    case ShapeType::Cube: {
-      auto toReturn = std::make_unique<Cube>();
-      toReturn->deserializeFrom(mapData);
-      return toReturn;
-    }
-    case ShapeType::Sphere: {
-      auto toReturn = std::make_unique<Sphere>();
-      toReturn->deserializeFrom(mapData);
-      return toReturn;
-    }
-    default:
-      // Handle unknown shape type
-      spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
-      return nullptr;
+  auto shape = static_cast<Shape&>(component);
+
+  // Handle component operations specific to the shape system
+  switch (operation) {
+    case ECSOperation::Add:
+      _addShape(entity, shape);
+      break;
+    case ECSOperation::Remove:
+      _removeShape(entity, shape);
+      break;
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shapes) {
-  SPDLOG_TRACE("++{}", __FUNCTION__);
+void ShapeSystem::_addShape(EntityObject& entity, Shape& shape) {
+  auto guid = entity.getGuid();
+  spdlog::debug("ShapeSystem: Added shape to entity({})", guid);
 
-  // TODO remove this, just debug info print for now;
-  /*for (auto& shape : *shapes) {
-    shape->debugPrint("Add shapes to scene");
-  }*/
-
-  for (auto& shape : *shapes) {
-    addShapeToScene(shape);
+  if (hasShape(guid)) {
+    spdlog::warn("Entity({}) already has a shape registered in ShapeSystem, skipping", guid);
+    return;
   }
 
-  SPDLOG_TRACE("--{}", __FUNCTION__);
-}
-
-void ShapeSystem::addShapeToScene(const std::shared_ptr<BaseShape>& shape) {
-  runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
+  // Make sure it has a Material component
+  const auto materialDefinitions = entity.getComponent<Material>();
+  if (!materialDefinitions) {
+    spdlog::warn("BaseShape({}) has no material, adding default material", guid);
+    entity.addComponent(kDefaultMaterial);  // init with defaults
+  }
 
   filament::Scene* filamentScene = _filament->getFilamentScene();
 
-  spdlog::trace("addShapesToScene: {}", shape->getGuid());
+  spdlog::trace("addShapesToScene: {}", guid);
   FilamentEntity oEntity = _em->create();
   filamentScene->addEntity(oEntity);
-  shape->_fEntity = oEntity;
+  entity._fEntity = oEntity;
 
-  shape->bInitAndCreateShape(_engine, oEntity);
-
-  spdlog::trace("Adding entity {} with filament entity {}", shape->getGuid(), oEntity.getId());
+  spdlog::trace("Adding entity {} with filament entity {}", guid, oEntity.getId());
 
   // To investigate a better system for implementing layer mask
   // across dart to here.
@@ -167,7 +132,159 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<BaseShape>& shape) {
   // To investigate
   // _rcm.setLayerMask(instance, 0xff, 0x00);
 
-  _shapes.emplace_back(shape->getGuid());
+  _shapes.emplace_back(guid);
+}
+
+void ShapeSystem::_removeShape(EntityObject& entity, Shape& shape) {
+  auto guid = entity.getGuid();
+  spdlog::debug("ShapeSystem: Removed shape from entity({})", guid);
+
+  if (!hasShape(guid)) {
+    spdlog::warn("Entity({}) has no shape registered in ShapeSystem, skipping", guid);
+    return;
+  }
+
+  // Remove from scene
+  // shape.RemoveEntityFromScene();
+    spdlog::warn("[{}] Unimplemented!!! line {}", __FUNCTION__, __LINE__);
+
+  // Remove from internal list
+  _shapes.erase(std::remove(_shapes.begin(), _shapes.end(), guid), _shapes.end());
+
+  // Destroy filament entity
+  if (entity._fEntity) {
+    spdlog::trace("Removing entity {} with filament entity {}", guid, entity._fEntity.getId());
+    _em->destroy(entity._fEntity);
+    entity._fEntity.clear();
+  } else {
+    spdlog::warn("Entity {} has no filament entity to destroy", guid);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////
+void ShapeSystem::_buildRenderable(EntityObject& entity, Shape& shape) {
+  const auto& name = entity.name;
+  const auto guid = entity.getGuid();
+  spdlog::debug("[{}] Building renderable for shape '{}'({})", __FUNCTION__, name, guid);
+  // assertInitialized();
+  // material_manager can and will be null for now on wireframe creation.
+
+  auto* engine_ = _filament->getFilamentEngine();
+
+  filament::math::float3 aabb;
+  switch (shape.type) {
+    case ShapeType::Cube:
+    case ShapeType::Sphere:
+      aabb = {0.5f, 0.5f, 0.5f};  // NOTE: faces forward by default
+      break;
+    case ShapeType::Plane:
+      aabb = {0.5f, 0.5f, 0.005f};  // NOTE: faces sideways by default
+      break;
+    default:
+      aabb = {0, 0, 0};
+      spdlog::error("Unknown shape type: {}", static_cast<int>(shape.type));
+      break;
+  }
+
+  spdlog::debug("[{}] Building shape '{}'({})", __FUNCTION__, name, guid);
+
+  const auto transform = entity.getComponent<Transform>();
+
+  spdlog::debug("[{}] AABB.scale: x={}, y={}, z={}", __FUNCTION__, aabb.x, aabb.y, aabb.z);
+
+  spdlog::debug("Getting components...");
+  // const auto material = getComponent<Material>();
+  // spdlog::debug("Found Material component");
+  // runtime_assert(!!material, "Missing Material component");
+  // runtime_assert(!!material->_instance, "Material not instantiated");
+  // runtime_assert(!!material->_instance->getData(), "Material instance has no data");
+
+  // const auto renderable = entity.getComponent<Renderable>();
+  // runtime_assert(!!renderable, "Missing Renderable component");
+  // bool hasCulling = renderable->IsCullingOfObjectEnabled();
+  // bool receiveShadows = renderable->IsReceiveShadowsEnabled();
+  // bool castShadows = renderable->IsCastShadowsEnabled();
+
+  bool hasCulling = false;
+  bool receiveShadows = true;
+  bool castShadows = true;
+
+  spdlog::debug("[{}] Building renderable...", __FUNCTION__);
+
+  if (shape.isWireframe) {
+    // TODO: setup a wireframe material
+    RenderableManager::Builder(1)
+      .boundingBox({{}, aabb})  // center, halfExtent
+      // .material(0, material->_instance->getData().value())
+      .geometry(0, RenderableManager::PrimitiveType::LINES, shape._vertexBuffer, shape._indexBuffer)
+      .culling(hasCulling)
+      .receiveShadows(false)
+      .castShadows(false)
+      .build(*engine_, _fEntity);
+  } else {
+    RenderableManager::Builder(1)
+      .boundingBox({{}, aabb})
+      // .material(0, material->_instance->getData().value())
+      .geometry(
+        0, RenderableManager::PrimitiveType::TRIANGLES, shape._vertexBuffer, shape._indexBuffer
+      )
+      .culling(hasCulling)
+      .receiveShadows(receiveShadows)
+      .castShadows(castShadows)
+      .build(*engine_, entity._fEntity);
+  }
+
+  spdlog::debug("[{}] Built renderable", __FUNCTION__);
+
+  transform->_fInstance = engine_->getTransformManager().getInstance(entity._fEntity);
+  // renderable->_fInstance = engine_->getRenderableManager().getInstance(entity._fEntity);
+
+  spdlog::debug("[{}] Initialized renderable", __FUNCTION__);
+
+  // Get parent entity id
+  const auto parentId = transform->getParentId();
+
+  const auto transformSystem = ecs->getSystem<TransformSystem>("BaseShape::BuildRenderable");
+  if (parentId != kNullGuid) {
+    // Get the parent entity object
+    auto parentEntity = ecs->getEntity(parentId);
+
+    transform->setParent(parentEntity->getGuid());
+  }
+
+  /// NOTE: why is this needed? if this is not called the collider doesn't work,
+  ///       even though it's visible
+  transformSystem->applyTransform(guid, true);
+
+  spdlog::debug("[{}] Applied transform to entity {}", __FUNCTION__, guid);
+
+  // TODO , need 'its done building callback to delete internal arrays data'
+  // - note the calls are async built, but doesn't seem to be a method internal
+  // to filament for when the building is complete. Further R&D is needed.
+}
+
+////////////////////////////////////////////////////////////////////////////
+void ShapeSystem::_hideShape(Shape& shape) const {
+  auto entity = shape.getOwner()->_fEntity;
+  if (!entity) {
+    spdlog::warn("Attempt to remove uninitialized shape from scene {}", __FUNCTION__);
+    return;
+  }
+
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("ShapeSystem::RemoveEntityFromScene");
+  filamentSystem->getFilamentScene()->remove(entity);
+}
+
+////////////////////////////////////////////////////////////////////////////
+void ShapeSystem::_showShape(Shape& shape) const {
+  auto entity = shape.getOwner()->_fEntity;
+  if (!entity) {
+    spdlog::warn("Attempt to add uninitialized shape to scene {}", __FUNCTION__);
+    return;
+  }
+
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("ShapeSystem::RemoveEntityFromScene");
+  filamentSystem->getFilamentScene()->addEntity(entity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -210,7 +327,7 @@ void ShapeSystem::onSystemInit() {
 
     // find the entity in our list:
     if (hasShape(guid)) {
-      const auto entity = getShape(guid);
+      const auto entity = ecs->getComponent<Shape>(guid);
       const auto transform = entity->getComponent<Transform>();
       const auto collider = entity->getComponent<Collider>();
 
@@ -233,7 +350,16 @@ void ShapeSystem::onSystemInit() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::update(double /*deltaTime*/) {}
+void ShapeSystem::update(double /*deltaTime*/) {
+  // Hide disabled shapes
+  const auto shapes = ecs->getComponentsOfType<Shape>();
+  for (const auto& [guid, shape] : shapes) {
+    if (!shape->enabled) {
+      _hideShape(*shape);
+    } else {
+      _showShape(*shape);
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::onDestroy() {

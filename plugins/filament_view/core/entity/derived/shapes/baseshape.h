@@ -19,11 +19,10 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/derived/collider.h>
-#include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/renderable.h>
+#include <core/components/derived/shape.h>
 #include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
-#include <core/entity/derived/renderable_entityobject.h>
-#include <core/include/shapetypes.h>
 #include <core/scene/geometry/direction.h>
 #include <core/systems/derived/material_system.h>
 #include <filament/IndexBuffer.h>
@@ -36,7 +35,7 @@ class CollisionSystem;
 class ShapeSystem;
 class ModelSystem;
 
-class BaseShape : public RenderableEntityObject {
+class BaseShape : public EntityObject {
     friend class plugin_filament_view::CollisionSystem;
     friend class plugin_filament_view::ShapeSystem;
     friend class plugin_filament_view::ModelSystem;
@@ -45,19 +44,19 @@ class BaseShape : public RenderableEntityObject {
     /// @brief Constructor for BaseShape. Generates a GUID and has an empty
     /// name.
     BaseShape(ShapeType type)
-      : RenderableEntityObject(),
+      : EntityObject(),
         type_(type) {}
     /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
     explicit BaseShape(std::string name, ShapeType type)
-      : RenderableEntityObject(name),
+      : EntityObject(name),
         type_(type) {}
     /// @brief Constructor for BaseShape with GUID. Name is empty.
     explicit BaseShape(EntityGUID guid, ShapeType type)
-      : RenderableEntityObject(guid),
+      : EntityObject(guid),
         type_(type) {}
     /// @brief Constructor for BaseShape with a name and GUID.
     BaseShape(std::string name, EntityGUID guid, ShapeType type)
-      : RenderableEntityObject(name, guid),
+      : EntityObject(name, guid),
         type_(type) {}
 
     ~BaseShape() override;
@@ -72,7 +71,7 @@ class BaseShape : public RenderableEntityObject {
     // similar to a shallow copy.
     virtual void CloneToOther(BaseShape& other) const;
 
-    virtual bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) = 0;
+    virtual bool bInitAndCreateShape(::filament::Engine* engine_) = 0;
 
     void RemoveEntityFromScene() const;
     void AddEntityToScene() const;
@@ -96,13 +95,7 @@ class BaseShape : public RenderableEntityObject {
     /// direction of the shape rotation in the world space
     filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
 
-    // Whether we have winding indexes in both directions.
-    bool m_bDoubleSided = false;
-
-    // TODO - Note this is backlogged for using value.
-    //        For now this is unimplemented, but would be a <small> savings
-    //        when building as code currently allocates buffers for UVs
-    bool m_bHasTexturedMaterial = true;
+    bool _hasRenderable = false;
 
   private:
     void DestroyBuffers();
