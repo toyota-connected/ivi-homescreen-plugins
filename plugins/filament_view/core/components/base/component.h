@@ -20,6 +20,7 @@
 
 #include <core/utils/filament_types.h>
 #include <core/utils/identifiable_type.h>
+#include <core/utils/smarter_pointers.h>
 
 namespace plugin_filament_view {
 class EntityObject;
@@ -31,7 +32,14 @@ class Component : public IdentifiableType {
     friend class EntityObject;
 
   public:
-    [[nodiscard]] inline const EntityObject* getOwner() const { return entityOwner_; }
+    /// @brief Whether the component is enabled or not.
+    /// It is the respective systems' responsibility to check this flag
+    /// and act accordingly.
+    bool enabled = true;
+
+    [[nodiscard]] inline const smarter_raw_ptr<EntityObject> getOwner() const {
+      return entityOwner_;
+    }
 
     [[nodiscard]] virtual const std::type_info& getType() const { return typeid(*this); }
 
@@ -51,7 +59,7 @@ class Component : public IdentifiableType {
     std::string name_;
 
   public:
-    EntityObject* entityOwner_ = nullptr;
+    smarter_raw_ptr<EntityObject> entityOwner_ = nullptr;
 };
 
 }  // namespace plugin_filament_view

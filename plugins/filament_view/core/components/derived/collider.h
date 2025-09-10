@@ -39,9 +39,6 @@ class Collider : public Component {
     friend class CollisionSystem;
 
   public:
-    // You can turn collision objects on / off during runtime without removing /
-    // re-adding from the scene.
-    bool enabled = true;
     /// @brief The name of the event to be triggered on collision.
     /// This is used to identify the event in the event system.
     /// The default value is "click".
