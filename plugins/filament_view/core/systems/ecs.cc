@@ -391,6 +391,9 @@ void ECSManager::addComponent(
     );
   }
 
+  // Notify listeners
+  _notifyComponentOperation(*entity, *component, ECSOperation::Add);
+
   // Add the component to the entity
   componentMap[entityGuid] = component;
   entity->onAddComponent(component);
@@ -398,9 +401,6 @@ void ECSManager::addComponent(
     "[{}] Added component {} to entity with id {}", __FUNCTION__, component->getTypeName(),
     entityGuid
   );
-
-  // Notify listeners
-  _notifyComponentOperation(*entity, *component, ECSOperation::Add);
 }
 
 void ECSManager::_notifyComponentOperation(
