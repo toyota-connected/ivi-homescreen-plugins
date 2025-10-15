@@ -15,6 +15,7 @@
 #
 
 pkg_check_modules(CAMERA IMPORTED_TARGET REQUIRED libcamera)
+pkg_check_modules(EGL egl glesv2 IMPORTED_TARGET REQUIRED)
 include(FindJPEG)
 
 add_library(plugin_camera STATIC
@@ -31,6 +32,7 @@ target_include_directories(plugin_camera PUBLIC
 
 target_link_libraries(plugin_camera PUBLIC
         PkgConfig::CAMERA
+        PkgConfig::EGL
         ${JPEG_LIBRARIES}
         flutter
         platform_homescreen
