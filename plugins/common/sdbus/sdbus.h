@@ -22,19 +22,40 @@
 
 namespace plugin_common_sdbus {
 
-class SDBus final {
+class SystemDBus final {
  public:
-  static SDBus& Instance();
-  sdbus::IConnection& GetSystemBus();
+  static SystemDBus& Instance();
+  sdbus::IConnection& GetConnection();
 
-  SDBus(const SDBus&) = delete;
-  SDBus& operator=(const SDBus&) = delete;
-  SDBus(SDBus&&) = delete;
-  SDBus& operator=(SDBus&&) = delete;
+  SystemDBus(const SystemDBus&) = delete;
+  SystemDBus& operator=(const SystemDBus&) = delete;
+  SystemDBus(SystemDBus&&) = delete;
+  SystemDBus& operator=(SystemDBus&&) = delete;
 
  private:
-  SDBus();
-  ~SDBus();
+  SystemDBus();
+  ~SystemDBus();
+
+  std::unique_ptr<sdbus::IConnection> conn_;
+};
+
+/***
+ * making this a singleton for now.
+ * TODO: track session state using login1 via system connection
+ ***/
+class SessionDBus final {
+ public:
+  static SessionDBus& Instance();
+  sdbus::IConnection& GetConnection();
+
+  SessionDBus(const SessionDBus&) = delete;
+  SessionDBus& operator=(const SessionDBus&) = delete;
+  SessionDBus(SessionDBus&&) = delete;
+  SessionDBus& operator=(SessionDBus&&) = delete;
+
+ private:
+  SessionDBus();
+  ~SessionDBus();
 
   std::unique_ptr<sdbus::IConnection> conn_;
 };

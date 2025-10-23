@@ -18,21 +18,40 @@
 
 namespace plugin_common_sdbus {
 
-SDBus& SDBus::Instance() {
-  static SDBus instance;
+SystemDBus& SystemDBus::Instance() {
+  static SystemDBus instance;
   return instance;
 }
 
-SDBus::SDBus() {
+SystemDBus::SystemDBus() {
   conn_ = sdbus::createSystemBusConnection();
   conn_->enterEventLoopAsync();
 }
 
-SDBus::~SDBus() {
+sdbus::IConnection& SystemDBus::GetConnection() {
+  return *conn_;
+}
+
+SystemDBus::~SystemDBus() {
   conn_->leaveEventLoop();
 }
 
-sdbus::IConnection& SDBus::GetSystemBus() {
+SessionDBus& SessionDBus::Instance() {
+  static SessionDBus instance;
+  return instance;
+}
+
+SessionDBus::SessionDBus() {
+  conn_ = sdbus::createSessionBusConnection();
+  conn_->enterEventLoopAsync();
+}
+
+sdbus::IConnection& SessionDBus::GetConnection() {
   return *conn_;
 }
+
+SessionDBus::~SessionDBus() {
+  conn_->leaveEventLoop();
+}
+
 }  // namespace plugin_common_sdbus
