@@ -405,6 +405,50 @@ void save_image_to_jpeg(const std::string& filename,
   spdlog::debug("image saved to {}", filename);
 }
 
+static void YUY2ToI420Planes(const uint8_t* src, int src_stride,
+                             int width, int height,
+                             uint8_t* dst_y, int y_stride,
+                             uint8_t* dst_u, int u_stride,
+                             uint8_t* dst_v, int v_stride) {
+  // Process 2 rows at a time (because I420 is 4:2:0)
+  for (int j = 0; j < height; j += 2) {
+    const uint8_t* row0 = src + j * src_stride;
+    const uint8_t* row1 = (j + 1 < height) ? (src + (j + 1) * src_stride) : row0;
+
+    uint8_t* y0 = dst_y + j * y_stride;
+    uint8_t* y1 = dst_y + (j + 1) * y_stride;
+
+    uint8_t* urow = dst_u + (j / 2) * u_stride;
+    uint8_t* vrow = dst_v + (j / 2) * v_stride;
+
+    for (int i = 0; i < width; i += 2) {
+      // Packed bytes for two pixels on row0: Y00 U0 Y01 V0
+      const int off0 = i * 2; // 2 bytes per pixel
+      uint8_t Y00 = row0[off0 + 0];
+      uint8_t U0  = row0[off0 + 1];
+      uint8_t Y01 = row0[off0 + 2];
+      uint8_t V0  = row0[off0 + 3];
+
+      // Packed bytes for two pixels on row1: Y10 U1 Y11 V1
+      const int off1 = i * 2;
+      uint8_t Y10 = row1[off1 + 0];
+      uint8_t U1  = row1[off1 + 1];
+      uint8_t Y11 = row1[off1 + 2];
+      uint8_t V1  = row1[off1 + 3];
+
+      // Write Y plane (full resolution)
+      y0[i + 0] = Y00;
+      y0[i + 1] = Y01;
+      y1[i + 0] = Y10;
+      y1[i + 1] = Y11;
+
+      // Subsample U/V: average over 2x2 block (two rows)
+      // (You could weight differently; average is fine here.)
+      urow[i / 2] = static_cast<uint8_t>((static_cast<int>(U0) + static_cast<int>(U1)) / 2);
+      vrow[i / 2] = static_cast<uint8_t>((static_cast<int>(V0) + static_cast<int>(V1)) / 2);
+    }
+  }
+}
 //------------------------------------------------------------------------------
 // Private method: called each time there's a new MJPEG frame
 //------------------------------------------------------------------------------
@@ -424,6 +468,17 @@ void CameraStream::HandleProcess() {
       static_cast<uint8_t*>(buf->buffer->datas[0].data);
   const size_t compressedSize = buf->buffer->datas[0].chunk->size;
 
+  struct spa_buffer* spa_buf = buf->buffer;
+  if (!spa_buf || spa_buf->n_datas < 1 || !spa_buf->datas[0].data) {
+    pw_stream_queue_buffer(pw_stream_, buf);
+    return;
+  }
+  // Pointer/stride of the incoming raw buffer (YUY2 packed, if negotiated as such)
+  const uint8_t* in_ptr = static_cast<const uint8_t*>(spa_buf->datas[0].data);
+  const int in_stride = (spa_buf->datas[0].chunk && spa_buf->datas[0].chunk->stride)
+                          ? spa_buf->datas[0].chunk->stride
+                          : (width_ * 2); // YUY2 is 2 bytes per pixel
+
   if (!decoded_buffer_) {
     decoded_buffer_.reset(new uint8_t[width_ * height_ * 3]);
   }
@@ -432,9 +487,36 @@ void CameraStream::HandleProcess() {
   if (camera_output_format == "YUV2") {
     ret = decode_yuy2(compressedData, compressedSize, decoded_buffer_.get(),
                       width_, height_);
+
+    // Build I420 planes and push to Dart for ML ---
+    // Allocate per-frame (simple & safe). You can reuse persistent buffers later.
+    const int y_stride = width_;
+    const int u_stride = width_ / 2;
+    const int v_stride = width_ / 2;
+    std::vector<uint8_t> y(static_cast<size_t>(y_stride) * height_);
+    std::vector<uint8_t> u(static_cast<size_t>(u_stride) * (height_ / 2));
+    std::vector<uint8_t> v(static_cast<size_t>(v_stride) * (height_ / 2));
+
+    YUY2ToI420Planes(in_ptr, in_stride, width_, height_,
+                     y.data(), y_stride, u.data(), u_stride, v.data(), v_stride);
+
+    if (on_image_frame) {
+      // NOTE: on_image_frame takes ownership on the Dart side after you copy
+      // inside the plugin. If you need to hop threads, you can do it there.
+      on_image_frame(y.data(), y_stride,
+                     u.data(), u_stride,
+                     v.data(), v_stride,
+                     width_, height_,
+                     "I420");
+      // If your on_image_frame enqueues async work, consider making y/u/v
+      // persistent until the hop completes. Your current plugin copies them
+      // into EncodableValues, so this is fine.
+    }
   } else if (camera_output_format == "MJPEG") {
     ret = decode_mjpeg(compressedData, compressedSize, decoded_buffer_.get(),
                        width_, height_);
+  } else {
+    spdlog::debug("camera_output_format {}", camera_output_format);
   }
 
   if (ret == 0) {

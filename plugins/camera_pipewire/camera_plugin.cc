@@ -15,10 +15,16 @@
  */
 
 #include "camera_plugin.h"
-
+#include <flutter/event_stream_handler_functions.h>
+#include <flutter/plugin_registrar_homescreen.h>
+#include <flutter/standard_method_codec.h>
+#include <glib.h>
+#include <jpeglib.h>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
+#include "plugins/common/common.h"
 
 #include <jpeglib.h>
 extern "C" {
@@ -74,6 +80,39 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
   if (!PipewireGraph::instance().initialize()) {
     spdlog::error("failed to initialize PipeWire manager!");
   }
+
+  auto messenger = registrar_->messenger();
+  image_channel_ =
+      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+          messenger, "camera_linux/image_stream",
+          &flutter::StandardMethodCodec::GetInstance());
+
+  auto handler = std::make_unique<
+      flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
+      /* on_listen */
+      [this](
+          const flutter::EncodableValue* /*args*/,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& sink)
+          -> std::unique_ptr<
+              flutter::StreamHandlerError<flutter::EncodableValue>> {
+        spdlog::info("[camera_plugin] image_stream on_listen");
+        // image_stream_active_ = true;
+        image_sink_ = std::move(sink);
+        StartImageStream();  // start PipeWire or a test generator
+        return nullptr;
+      },
+      /* on_cancel */
+      [this](const flutter::EncodableValue* /*args*/)
+          -> std::unique_ptr<
+              flutter::StreamHandlerError<flutter::EncodableValue>> {
+        spdlog::info("[camera_plugin] image_stream on_cancel");
+        image_stream_active_ = false;
+        StopImageStream();
+        image_sink_.reset();
+        return nullptr;
+      });
+
+  image_channel_->SetStreamHandler(std::move(handler));
 }
 
 CameraPlugin::~CameraPlugin() {
@@ -102,6 +141,47 @@ void CameraPlugin::Create(
   if (CameraId_CameraStream.find(camera_id) == CameraId_CameraStream.end()) {
     auto new_camera =
         std::make_shared<CameraStream>(registrar_, camera_id, 640, 480);
+
+    new_camera->on_image_frame =
+        [this](const uint8_t* y, int ys, const uint8_t* u_or_uv, int us,
+               const uint8_t* v, int vs, int w, int h, const char* raw) {
+          if (!image_stream_active_ || !image_sink_)
+            return;
+
+          struct Payload {
+            CameraPlugin* self;
+            std::vector<uint8_t> y, u, v;
+            int ys, us, vs, w, h;
+            std::string raw;
+          };
+          auto p =
+              new Payload{this,
+                          std::vector<uint8_t>(y, y + ys * h),
+                          std::vector<uint8_t>(u_or_uv, u_or_uv + us * (h / 2)),
+                          (v ? std::vector<uint8_t>(v, v + vs * (h / 2))
+                             : std::vector<uint8_t>()),
+                          ys,
+                          us,
+                          vs,
+                          w,
+                          h,
+                          raw ? std::string(raw) : std::string("I420")};
+
+          g_main_context_invoke(
+              nullptr,
+              [](gpointer data) -> gboolean {
+                std::unique_ptr<Payload> P(static_cast<Payload*>(data));
+                if (!P->self->image_sink_)
+                  return G_SOURCE_REMOVE;
+                if (P->raw == "I420") {
+                  P->self->SendI420Frame(P->y.data(), P->ys, P->u.data(), P->us,
+                                         P->v.data(), P->vs, P->w, P->h);
+                }
+                return G_SOURCE_REMOVE;
+              },
+              p);
+        };
+
     CameraId_CameraStream.insert({camera_id, new_camera});
     TextureId_CameraStream.insert({new_camera->texture_id(), new_camera});
   }
@@ -291,4 +371,67 @@ void CameraPlugin::ResumePreview(
   camera_stream->ResumeStream();
   result({});
 }
+
+void CameraPlugin::StartImageStream() {
+  image_stream_active_ = true;
+  // If your CameraStream is not already running, start/Resume it here.
+  // e.g., CameraId_CameraStream[camera_id]->ResumeStream();
+}
+
+void CameraPlugin::StopImageStream() {
+  image_stream_active_ = false;
+  // e.g., CameraId_CameraStream[camera_id]->PauseStream();
+  // (or disconnect PipeWire stream if you want to free resources)
+}
+
+void CameraPlugin::SendI420Frame(const uint8_t* y,
+                                 int y_stride,
+                                 const uint8_t* u,
+                                 int u_stride,
+                                 const uint8_t* v,
+                                 int v_stride,
+                                 int width,
+                                 int height) {
+  if (!image_sink_)
+    return;
+
+  using flutter::EncodableList;
+  using flutter::EncodableMap;
+  using flutter::EncodableValue;
+
+  std::vector<uint8_t> yv(y, y + y_stride * height);
+  std::vector<uint8_t> uv(u, u + u_stride * (height / 2));
+  std::vector<uint8_t> vv(v, v + v_stride * (height / 2));
+
+  EncodableList planes;
+  planes.emplace_back(EncodableMap{
+      {EncodableValue("bytes"), EncodableValue(std::move(yv))},
+      {EncodableValue("bytesPerRow"), EncodableValue(y_stride)},
+      {EncodableValue("bytesPerPixel"), EncodableValue(1)},
+
+  });
+  planes.emplace_back(EncodableMap{
+      {EncodableValue("bytes"), EncodableValue(std::move(uv))},
+      {EncodableValue("bytesPerRow"), EncodableValue(u_stride)},
+      {EncodableValue("bytesPerPixel"), EncodableValue(1)},
+
+  });
+  planes.emplace_back(EncodableMap{
+      {EncodableValue("bytes"), EncodableValue(std::move(vv))},
+      {EncodableValue("bytesPerRow"), EncodableValue(v_stride)},
+      {EncodableValue("bytesPerPixel"), EncodableValue(1)},
+
+  });
+
+  EncodableMap event{
+      {EncodableValue("width"), EncodableValue(width)},
+      {EncodableValue("height"), EncodableValue(height)},
+      {EncodableValue("formatGroup"), EncodableValue("yuv420")},
+      {EncodableValue("raw"), EncodableValue("I420")},
+      {EncodableValue("planes"), EncodableValue(std::move(planes))},
+  };
+
+  image_sink_->Success(flutter::EncodableValue(std::move(event)));
+}
+
 }  // namespace camera_plugin

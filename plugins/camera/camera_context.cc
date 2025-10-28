@@ -107,7 +107,6 @@ std::string CameraContext::Initialize(
   camera_id_ = camera_id;
   texture_registrar_ = plugin_registrar->texture_registrar();
   mImageFormatGroup.assign(image_format_group);
-
   spdlog::debug(
       "[camera_plugin] Initialize: cameraId: {}, imageFormatGroup: [{}]",
       camera_id, mImageFormatGroup);
