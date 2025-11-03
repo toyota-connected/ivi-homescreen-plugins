@@ -286,14 +286,14 @@ bool CameraStream::Start(const std::string& camera_id) {
     if (std::string format_env = env_value ? env_value : "";
         format_env == "MJPEG") {
       camera_output_format = "MJPEG";
-    } else if (format_env == "YUV2") {
-      camera_output_format = "YUV2";
+    } else if (format_env == "YUY2") {
+      camera_output_format = "YUY2";
     } else {
       spdlog::error(
           "CAMERA_OUTPUT_FORMAT is set to an unsupported value ('{}'). "
-          "Supported values: MJPEG, YUV2. Defaulting to YUV2.",
+          "Supported values: MJPEG, YUY2. Defaulting to YUY2.",
           format_env);
-      camera_output_format = "YUV2";
+      camera_output_format = "YUY2";
     }
 
     spdlog::debug("[CameraStream] camera_output_format is set to {}",
@@ -306,7 +306,7 @@ bool CameraStream::Start(const std::string& camera_id) {
           SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg),
           SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&rect),
           SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
-    } else if (camera_output_format == "YUV2") {
+    } else if (camera_output_format == "YUY2") {
       params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
           &builder, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
           SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
@@ -484,7 +484,7 @@ void CameraStream::HandleProcess() {
   }
 
   int ret = -1;
-  if (camera_output_format == "YUV2") {
+  if (camera_output_format == "YUY2") {
     ret = decode_yuy2(compressedData, compressedSize, decoded_buffer_.get(),
                       width_, height_);
 
