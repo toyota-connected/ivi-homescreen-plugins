@@ -443,7 +443,6 @@ static void YUY2ToI420Planes(const uint8_t* src, int src_stride,
       y1[i + 1] = Y11;
 
       // Subsample U/V: average over 2x2 block (two rows)
-      // (You could weight differently; average is fine here.)
       urow[i / 2] = static_cast<uint8_t>((static_cast<int>(U0) + static_cast<int>(U1)) / 2);
       vrow[i / 2] = static_cast<uint8_t>((static_cast<int>(V0) + static_cast<int>(V1)) / 2);
     }
@@ -473,7 +472,6 @@ void CameraStream::HandleProcess() {
     pw_stream_queue_buffer(pw_stream_, buf);
     return;
   }
-  // Pointer/stride of the incoming raw buffer (YUY2 packed, if negotiated as such)
   const uint8_t* in_ptr = static_cast<const uint8_t*>(spa_buf->datas[0].data);
   const int in_stride = (spa_buf->datas[0].chunk && spa_buf->datas[0].chunk->stride)
                           ? spa_buf->datas[0].chunk->stride
@@ -488,8 +486,6 @@ void CameraStream::HandleProcess() {
     ret = decode_yuy2(compressedData, compressedSize, decoded_buffer_.get(),
                       width_, height_);
 
-    // Build I420 planes and push to Dart for ML ---
-    // Allocate per-frame (simple & safe). You can reuse persistent buffers later.
     const int y_stride = width_;
     const int u_stride = width_ / 2;
     const int v_stride = width_ / 2;
@@ -501,16 +497,11 @@ void CameraStream::HandleProcess() {
                      y.data(), y_stride, u.data(), u_stride, v.data(), v_stride);
 
     if (on_image_frame) {
-      // NOTE: on_image_frame takes ownership on the Dart side after you copy
-      // inside the plugin. If you need to hop threads, you can do it there.
       on_image_frame(y.data(), y_stride,
                      u.data(), u_stride,
                      v.data(), v_stride,
                      width_, height_,
                      "I420");
-      // If your on_image_frame enqueues async work, consider making y/u/v
-      // persistent until the hop completes. Your current plugin copies them
-      // into EncodableValues, so this is fine.
     }
   } else if (camera_output_format == "MJPEG") {
     ret = decode_mjpeg(compressedData, compressedSize, decoded_buffer_.get(),

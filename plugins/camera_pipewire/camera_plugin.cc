@@ -25,15 +25,12 @@
 #include <unordered_map>
 #include <vector>
 #include "plugins/common/common.h"
+#include "PipewireGraph.h"
 
 #include <jpeglib.h>
 extern "C" {
 #include <pipewire/pipewire.h>
 }
-
-#include <flutter/plugin_registrar_homescreen.h>
-#include "PipewireGraph.h"
-#include "plugins/common/common.h"
 
 struct CameraInfo {
   uint32_t id;
@@ -96,7 +93,6 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
           -> std::unique_ptr<
               flutter::StreamHandlerError<flutter::EncodableValue>> {
         spdlog::info("[camera_plugin] image_stream on_listen");
-        // image_stream_active_ = true;
         image_sink_ = std::move(sink);
         StartImageStream();  // start PipeWire or a test generator
         return nullptr;
@@ -106,7 +102,6 @@ CameraPlugin::CameraPlugin(flutter::PluginRegistrarDesktop* plugin_registrar,
           -> std::unique_ptr<
               flutter::StreamHandlerError<flutter::EncodableValue>> {
         spdlog::info("[camera_plugin] image_stream on_cancel");
-        image_stream_active_ = false;
         StopImageStream();
         image_sink_.reset();
         return nullptr;
@@ -374,14 +369,10 @@ void CameraPlugin::ResumePreview(
 
 void CameraPlugin::StartImageStream() {
   image_stream_active_ = true;
-  // If your CameraStream is not already running, start/Resume it here.
-  // e.g., CameraId_CameraStream[camera_id]->ResumeStream();
 }
 
 void CameraPlugin::StopImageStream() {
   image_stream_active_ = false;
-  // e.g., CameraId_CameraStream[camera_id]->PauseStream();
-  // (or disconnect PipeWire stream if you want to free resources)
 }
 
 void CameraPlugin::SendI420Frame(const uint8_t* y,
