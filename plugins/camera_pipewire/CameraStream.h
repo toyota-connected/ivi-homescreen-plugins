@@ -128,4 +128,4 @@ class CameraStream {
   static void OnStreamProcess(void* data);
 };
 
-#endif  PLUGINS_CAMERA_PIPEWIRE_CAMERASTREAM_H_
+#endif PLUGINS_CAMERA_PIPEWIRE_CAMERASTREAM_H_

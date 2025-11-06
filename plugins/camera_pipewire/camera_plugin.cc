@@ -396,17 +396,20 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
   using flutter::EncodableValue;
 
   // size math as size_t
-  const auto y_size = static_cast<std::size_t>(y_stride) * static_cast<std::size_t>(height);
-  const auto u_size = static_cast<std::size_t>(u_stride) * static_cast<std::size_t>(height / 2);
-  const auto v_size = static_cast<std::size_t>(v_stride) * static_cast<std::size_t>(height / 2);
+  const auto y_size =
+      static_cast<std::size_t>(y_stride) * static_cast<std::size_t>(height);
+  const auto u_size =
+      static_cast<std::size_t>(u_stride) * static_cast<std::size_t>(height / 2);
+  const auto v_size =
+      static_cast<std::size_t>(v_stride) * static_cast<std::size_t>(height / 2);
 
-  auto yv  = std::vector<std::uint8_t>(y, y + y_size);
+  auto yv = std::vector<std::uint8_t>(y, y + y_size);
   auto uvv = std::vector<std::uint8_t>(u, u + u_size);
-  auto vv  = std::vector<std::uint8_t>(v, v + v_size);
+  auto vv = std::vector<std::uint8_t>(v, v + v_size);
 
   // EncodableValue number arm often expects 32- or 64-bit; use int32_t here.
-  const auto w32  = static_cast<std::int32_t>(width);
-  const auto h32  = static_cast<std::int32_t>(height);
+  const auto w32 = static_cast<std::int32_t>(width);
+  const auto h32 = static_cast<std::int32_t>(height);
   const auto ys32 = static_cast<std::int32_t>(y_stride);
   const auto us32 = static_cast<std::int32_t>(u_stride);
   const auto vs32 = static_cast<std::int32_t>(v_stride);
@@ -418,7 +421,8 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
   {
     EncodableMap m;
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytes"),
-              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>, std::move(yv)));
+              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>,
+                             std::move(yv)));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerRow"),
               EncodableValue(std::in_place_type<std::int32_t>, ys32));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerPixel"),
@@ -430,7 +434,8 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
   {
     EncodableMap m;
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytes"),
-              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>, std::move(uvv)));
+              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>,
+                             std::move(uvv)));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerRow"),
               EncodableValue(std::in_place_type<std::int32_t>, us32));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerPixel"),
@@ -442,7 +447,8 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
   {
     EncodableMap m;
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytes"),
-              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>, std::move(vv)));
+              EncodableValue(std::in_place_type<std::vector<std::uint8_t>>,
+                             std::move(vv)));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerRow"),
               EncodableValue(std::in_place_type<std::int32_t>, vs32));
     m.emplace(EncodableValue(std::in_place_type<std::string>, "bytesPerPixel"),
@@ -459,10 +465,12 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
                 EncodableValue(std::in_place_type<std::string>, "yuv420"));
   event.emplace(EncodableValue(std::in_place_type<std::string>, "raw"),
                 EncodableValue(std::in_place_type<std::string>, "I420"));
-  event.emplace(EncodableValue(std::in_place_type<std::string>, "planes"),
-                EncodableValue(std::in_place_type<EncodableList>, std::move(planes)));
+  event.emplace(
+      EncodableValue(std::in_place_type<std::string>, "planes"),
+      EncodableValue(std::in_place_type<EncodableList>, std::move(planes)));
 
-  image_sink_->Success(EncodableValue(std::in_place_type<EncodableMap>, std::move(event)));
+  image_sink_->Success(
+      EncodableValue(std::in_place_type<EncodableMap>, std::move(event)));
 }
 
 }  // namespace camera_plugin
