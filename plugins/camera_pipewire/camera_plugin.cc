@@ -24,10 +24,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "plugins/common/common.h"
 #include "PipewireGraph.h"
+#include "plugins/common/common.h"
 
-#include <jpeglib.h>
 extern "C" {
 #include <pipewire/pipewire.h>
 }
@@ -149,32 +148,37 @@ void CameraPlugin::Create(
             int ys, us, vs, w, h;
             std::string raw;
           };
-          auto p =
-              new Payload{this,
-                          std::vector<uint8_t>(y, y + ys * h),
-                          std::vector<uint8_t>(u_or_uv, u_or_uv + us * (h / 2)),
-                          (v ? std::vector<uint8_t>(v, v + vs * (h / 2))
-                             : std::vector<uint8_t>()),
-                          ys,
-                          us,
-                          vs,
-                          w,
-                          h,
-                          raw ? std::string(raw) : std::string("I420")};
+          auto up = std::make_unique<Payload>(Payload{
+              this,
+              std::vector<uint8_t>(y, y + ys * h),
+              std::vector<uint8_t>(u_or_uv, u_or_uv + us * ((h + 1) / 2)),
+              (v ? std::vector<uint8_t>(v, v + vs * ((h + 1) / 2))
+                 : std::vector<uint8_t>()),
+              ys,
+              us,
+              vs,
+              w,
+              h,
+              raw ? std::string(raw) : std::string("I420"),
+          });
 
-          g_main_context_invoke(
-              nullptr,
-              [](gpointer data) -> gboolean {
-                std::unique_ptr<Payload> P(static_cast<Payload*>(data));
-                if (!P->self->image_sink_)
-                  return G_SOURCE_REMOVE;
-                if (P->raw == "I420") {
+          // hand off to GLib; after release(), up no longer owns it
+          Payload* p = up.release();
+
+          g_main_context_invoke_full(
+              nullptr, G_PRIORITY_DEFAULT,
+              +[](gpointer data) -> gboolean {  // '+' forces C-function pointer
+                auto* P = static_cast<Payload*>(data);
+                if (P->self->image_sink_ && P->raw == "I420") {
                   P->self->SendI420Frame(P->y.data(), P->ys, P->u.data(), P->us,
                                          P->v.data(), P->vs, P->w, P->h);
                 }
                 return G_SOURCE_REMOVE;
               },
-              p);
+              p,
+              +[](gpointer data) {  // exact GDestroyNotify
+                delete static_cast<Payload*>(data);
+              });
         };
 
     CameraId_CameraStream.insert({camera_id, new_camera});
@@ -382,7 +386,7 @@ void CameraPlugin::SendI420Frame(const uint8_t* y,
                                  const uint8_t* v,
                                  int v_stride,
                                  int width,
-                                 int height) {
+                                 int height) const {
   if (!image_sink_)
     return;
 
