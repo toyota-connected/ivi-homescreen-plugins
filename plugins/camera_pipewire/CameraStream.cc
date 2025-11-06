@@ -601,9 +601,7 @@ void CameraStream::PauseStream() const {
   }
 
   pw_thread_loop_lock(loop);
-  {
-    pw_stream_set_active(pw_stream_, false);
-  }
+  { pw_stream_set_active(pw_stream_, false); }
   pw_thread_loop_unlock(loop);
 }
 
@@ -624,9 +622,7 @@ void CameraStream::ResumeStream() const {
   }
 
   pw_thread_loop_lock(loop);
-  {
-    pw_stream_set_active(pw_stream_, true);
-  }
+  { pw_stream_set_active(pw_stream_, true); }
   pw_thread_loop_unlock(loop);
 }
 std::optional<std::string> CameraStream::GetFilePathForPicture() {
