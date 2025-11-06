@@ -125,10 +125,7 @@ class CameraStream {
                                    pw_stream_state old_state,
                                    pw_stream_state new_state,
                                    const char* error);
-  static void OnStreamParamChanged(void* data,
-                                   uint32_t id,
-                                   const spa_pod* param);
   static void OnStreamProcess(void* data);
 };
 
-#endif  // PLUGINS_CAMERA_PIPEWIRE_CAMERASTREAM_H_
+#endif  PLUGINS_CAMERA_PIPEWIRE_CAMERASTREAM_H_

@@ -480,7 +480,7 @@ void CameraStream::HandleProcess() {
     pw_stream_queue_buffer(pw_stream_, buf);
     return;
   }
-  const uint8_t* in_ptr = static_cast<const uint8_t*>(spa_buf->datas[0].data);
+  const auto* in_ptr = static_cast<const uint8_t*>(spa_buf->datas[0].data);
   const int in_stride =
       (spa_buf->datas[0].chunk && spa_buf->datas[0].chunk->stride)
           ? spa_buf->datas[0].chunk->stride
