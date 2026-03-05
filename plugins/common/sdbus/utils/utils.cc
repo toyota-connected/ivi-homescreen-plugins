@@ -21,7 +21,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "plugins/common/logging.h"
+#include "tools/logging.h"
 
 namespace plugin_common_sdbus {
 

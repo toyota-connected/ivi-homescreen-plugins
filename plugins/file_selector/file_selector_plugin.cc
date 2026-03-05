@@ -24,6 +24,7 @@
 #include "messages.g.h"
 #include "plugins/common/common.h"
 #include "tools/command.h"
+#include "tools/logging.h"
 
 namespace plugin_file_selector {
 // static

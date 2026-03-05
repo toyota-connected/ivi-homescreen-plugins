@@ -19,6 +19,7 @@
 #include "messages.h"
 
 #include "plugins/common/common.h"
+#include "tools/logging.h"
 
 namespace desktop_window_linux_plugin {
 

@@ -28,7 +28,7 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 
-#include "../logging.h"
+#include "tools/logging.h"
 
 namespace plugin_common_curl {
 

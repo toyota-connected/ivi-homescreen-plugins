@@ -18,7 +18,6 @@
 #define FLUTTER_PLUGIN_COMMON_COMMON_H_
 
 #include "json/json_utils.h"
-#include "logging.h"
 #include "sdbus/sdbus.h"
 #include "shared_library/shared_library.h"
 #include "string/string_tools.h"

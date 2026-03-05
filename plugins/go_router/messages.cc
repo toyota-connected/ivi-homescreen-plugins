@@ -28,6 +28,7 @@
 
 #include "plugins/common/common.h"
 #include "rapidjson/writer.h"
+#include "tools/logging.h"
 
 namespace go_router_plugin {
 

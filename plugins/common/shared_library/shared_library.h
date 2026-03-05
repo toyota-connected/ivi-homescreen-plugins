@@ -19,7 +19,7 @@
 #include <dlfcn.h>
 #include <iostream>
 
-#include "../logging.h"
+#include "tools/logging.h"
 
 /**
  * @brief Dynamic Symbol Resolver

@@ -23,7 +23,7 @@
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/prettywriter.h"
 
-#include "../logging.h"
+#include "tools/logging.h"
 
 namespace plugin_common::JsonUtils {
 
