@@ -4,7 +4,6 @@ add_library(plugin_common STATIC
         time/time_tools.cc
         string/string_tools.cc
         tools/encodable.cc
-        tools/command.cc
         uuid/uuidxx.cc
 )
 add_subdirectory(sdbus)
