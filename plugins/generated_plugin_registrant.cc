@@ -17,6 +17,7 @@
 #include "generated_plugin_registrant.h"
 
 #include "config/plugins.h"
+#include "tools/encodable.h"
 #include "tools/logging.h"
 
 static constexpr char kKeyId[] = "id";

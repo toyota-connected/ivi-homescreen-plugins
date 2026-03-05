@@ -17,7 +17,7 @@
 #undef _HAS_EXCEPTIONS
 
 #include "messages.h"
-#include "plugins/common/tools/encodable.h"
+#include "tools/encodable.h"
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/binary_messenger.h>

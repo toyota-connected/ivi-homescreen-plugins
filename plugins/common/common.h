@@ -21,7 +21,6 @@
 #include "sdbus/sdbus.h"
 #include "string/string_tools.h"
 #include "time/time_tools.h"
-#include "tools/encodable.h"
 #include "uuid/uuidxx.h"
 
 #endif  // FLUTTER_PLUGIN_COMMON_COMMON_H_

@@ -3,7 +3,6 @@ add_library(plugin_common STATIC
         json/json_utils.cc
         time/time_tools.cc
         string/string_tools.cc
-        tools/encodable.cc
         uuid/uuidxx.cc
 )
 add_subdirectory(sdbus)
