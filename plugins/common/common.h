@@ -25,7 +25,6 @@
 #include "time/time_tools.h"
 #include "tools/command.h"
 #include "tools/encodable.h"
-#include "tools/hexdump.h"
 #include "uuid/uuidxx.h"
 
 #endif  // FLUTTER_PLUGIN_COMMON_COMMON_H_
