@@ -18,7 +18,7 @@
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/event_channel.h>
-#include <shell/platform/embedder/embedder.h>
+#include <flutter/shell/platform/embedder/embedder.h>
 
 #include <libcamera/libcamera.h>
 
