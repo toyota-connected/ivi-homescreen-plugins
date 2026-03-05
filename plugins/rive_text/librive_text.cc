@@ -21,7 +21,7 @@
 #include <dlfcn.h>
 #include <shared_library/shared_library.h>
 
-#include "shared_library.h"
+#include "tools/shared_library.h"
 
 namespace plugin_rive_text {
 

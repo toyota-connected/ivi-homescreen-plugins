@@ -19,7 +19,6 @@
 
 #include "json/json_utils.h"
 #include "sdbus/sdbus.h"
-#include "shared_library/shared_library.h"
 #include "string/string_tools.h"
 #include "time/time_tools.h"
 #include "tools/encodable.h"
