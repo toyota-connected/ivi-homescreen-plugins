@@ -23,8 +23,9 @@
 #include <flutter/standard_method_codec.h>
 
 #include <backend/backend.h>
-#include <plugins/common/common.h>
 #include <utility>
+
+#include "tools/logging.h"
 
 #define GSTREAMER_DEBUG 0
 

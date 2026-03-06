@@ -31,7 +31,11 @@
 #include <spa/pod/builder.h>
 
 #include "pipewire_graph.h"
-#include "plugins/common/common.h"
+
+#include "plugins/common/string/string_tools.h"
+#include "plugins/common/time/time_tools.h"
+#include "tools/command.h"
+#include "tools/logging.h"
 
 static constexpr char kPictureCaptureExtension[] = "jpeg";
 

@@ -18,9 +18,10 @@
 
 #include "flutter/plugin_registrar.h"
 
-#include "common/common.h"
 #include "libpdfium.h"
 #include "pdf_plugin.h"
+
+#include "tools/logging.h"
 
 void PrintingPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

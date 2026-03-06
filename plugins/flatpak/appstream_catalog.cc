@@ -23,7 +23,7 @@
 #include <libxml/xmlstring.h>
 #include <zlib.h>
 
-#include "plugins/common/common.h"
+#include "tools/logging.h"
 
 AppstreamCatalog::AppstreamCatalog(const std::string& filePath,
                                    std::string language)

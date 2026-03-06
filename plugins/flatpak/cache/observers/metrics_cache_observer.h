@@ -20,7 +20,8 @@
 
 #include "flatpak/cache/cache_config.h"
 #include "flatpak/cache/interfaces/cache_observer.h"
-#include "plugins/common/common.h"
+
+#include "tools/logging.h"
 
 class MetricsCacheObserver final : public ICacheObserver {
  public:

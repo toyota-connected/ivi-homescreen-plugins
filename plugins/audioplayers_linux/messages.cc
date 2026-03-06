@@ -30,7 +30,8 @@
 
 #include "audioplayers_linux_plugin.h"
 
-#include "plugins/common/common.h"
+#include "tools/encodable.h"
+#include "tools/logging.h"
 
 namespace audioplayers_linux_plugin {
 

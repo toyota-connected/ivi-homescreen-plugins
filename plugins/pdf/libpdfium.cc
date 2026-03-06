@@ -21,7 +21,6 @@
 
 #include <dlfcn.h>
 #include <link.h>
-#include <shared_library/shared_library.h>
 
 #include "tools/shared_library.h"
 

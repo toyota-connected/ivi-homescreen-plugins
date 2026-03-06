@@ -15,8 +15,6 @@
 #include <optional>
 #include <string>
 
-#include "plugins/common/common.h"
-
 typedef flutter::EncodableValue EncodableValue;
 typedef flutter::EncodableMap EncodableMap;
 typedef flutter::EncodableList EncodableList;

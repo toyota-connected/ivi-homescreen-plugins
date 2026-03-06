@@ -19,7 +19,7 @@
 
 #include <flutter_plugin_registrar.h>
 #include "flutter_homescreen.h"
-#include "platform_views/platform_view_listener.h"
+#include "plugin/platform_view_listener.h "
 
 #include <string>
 #include <vector>

@@ -2,7 +2,8 @@
 #include "nav_render_surface.h"
 
 #include <flutter/standard_message_codec.h>
-#include <plugins/common/common.h>
+
+#include "tools/logging.h"
 
 #include <utility>
 

@@ -20,7 +20,8 @@
 
 #include "messages.g.h"
 
-#include "config/plugins.h"
+#include "tools/encodable.h"
+#include "tools/logging.h"
 
 namespace google_sign_in_plugin {
 

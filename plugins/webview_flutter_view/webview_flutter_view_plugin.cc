@@ -23,7 +23,8 @@
 #include <memory>
 #include <thread>
 
-#include "plugins/common/common.h"
+#include "tools/encodable.h"
+#include "tools/logging.h"
 
 #include "wrapper/cef_library_loader.h"
 

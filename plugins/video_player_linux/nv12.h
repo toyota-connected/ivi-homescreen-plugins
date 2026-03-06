@@ -21,7 +21,7 @@
 #include <GLES3/gl3.h>
 #include <glib.h>
 
-#include <plugins/common/common.h>
+#include "tools/logging.h"
 
 namespace video_player_linux::nv12 {
 

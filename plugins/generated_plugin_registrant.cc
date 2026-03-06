@@ -111,7 +111,7 @@ void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
 #endif
 }
 
-void PluginsAoiPlatformViewCreate(
+void PluginsApiPlatformViewCreate(
     FlutterDesktopEngineRef engine,
     const std::string& flutter_asset_directory,
     const flutter::EncodableValue* const arguments,
@@ -129,7 +129,7 @@ void PluginsAoiPlatformViewCreate(
   std::vector<uint8_t> params{};
   if (kPlatformViewDebug) {
     plugin_common::Encodable::PrintFlutterEncodableValue(
-        "PluginsAoiPlatformViewCreate", *arguments);
+        "PluginsApiPlatformViewCreate", *arguments);
   }
 
   const auto args = std::get_if<flutter::EncodableMap>(arguments);
@@ -156,7 +156,7 @@ void PluginsAoiPlatformViewCreate(
       left = std::get<double>(snd);
     } else {
       plugin_common::Encodable::PrintFlutterEncodableValue(
-          "PluginsAoiPlatformViewCreate unknown", *arguments);
+          "PluginsApiPlatformViewCreate unknown", *arguments);
     }
   }
 

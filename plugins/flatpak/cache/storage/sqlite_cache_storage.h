@@ -27,8 +27,8 @@
 #include <sqlite3.h>
 
 #include "flatpak/cache/interfaces/cache_storage.h"
-#include "plugins/common/common.h"
 
+#include "tools/logging.h"
 /**
  * @brief Implements a cache storage backend using SQLite as the underlying
  * database.

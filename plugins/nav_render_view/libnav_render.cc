@@ -16,7 +16,7 @@
 
 #include "libnav_render.h"
 
-#include <plugins/common/common.h>
+#include <tools/shared_library.h>
 
 #include <dlfcn.h>
 

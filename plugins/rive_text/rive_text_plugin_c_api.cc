@@ -18,7 +18,8 @@
 
 #include "flutter/plugin_registrar.h"
 
-#include "common/common.h"
+#include "tools/logging.h"
+
 #include "librive_text.h"
 #include "rive_text_plugin.h"
 

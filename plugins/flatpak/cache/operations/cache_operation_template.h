@@ -22,7 +22,8 @@
 #include <exception>
 #include <optional>
 #include <string>
-#include "plugins/common/common.h"
+
+#include "tools/logging.h"
 
 #include "flatpak/cache/interfaces/cache_storage.h"
 

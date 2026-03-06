@@ -26,7 +26,6 @@
 #include "camera_stream.h"
 #include "event_channel.h"
 #include "messages.g.h"
-#include "plugins/common/common.h"
 
 namespace camera_plugin {
 

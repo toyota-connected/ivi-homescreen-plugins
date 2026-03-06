@@ -22,7 +22,8 @@
 #include <thread>
 
 #include "curl_network_fetcher.h"
-#include "plugins/common/common.h"
+
+#include "tools/logging.h"
 
 CurlNetworkFetcher::CurlNetworkFetcher(std::chrono::seconds /* timeout */,
                                        const int max_retries)

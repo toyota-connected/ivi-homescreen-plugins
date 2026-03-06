@@ -26,7 +26,6 @@
 #include "rapidjson/writer.h"
 
 #include "hash_table.h"
-#include "plugins/common/common.h"
 
 namespace plugin_secure_storage {
 

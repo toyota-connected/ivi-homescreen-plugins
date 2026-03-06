@@ -30,7 +30,9 @@ extern "C" {
 #include <flutter/standard_method_codec.h>
 
 #include "pipewire_graph.h"
-#include "plugins/common/common.h"
+
+#include "tools/encodable.h"
+#include "tools/logging.h"
 
 extern "C" {
 #include <pipewire/pipewire.h>

@@ -25,7 +25,8 @@
 
 #include "libpdfium.h"
 #include "messages.h"
-#include "plugins/common/common.h"
+
+#include "tools/logging.h"
 
 namespace plugin_pdf {
 

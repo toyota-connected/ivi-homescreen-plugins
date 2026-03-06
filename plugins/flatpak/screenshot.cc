@@ -3,7 +3,8 @@
 #include <libxml/xmlstring.h>
 
 #include "flatpak_shim.h"
-#include "plugins/common/common.h"
+#include "plugins/common/string/string_tools.h"
+#include "tools/logging.h"
 
 using flatpak_plugin::FlatpakShim;
 

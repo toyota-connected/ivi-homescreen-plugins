@@ -18,11 +18,12 @@
 
 #include <filesystem>
 #include <memory>
+#include <sstream>
 
 #include <flutter/plugin_registrar.h>
 
 #include "messages.g.h"
-#include "plugins/common/common.h"
+#include "plugins/common/string/string_tools.h"
 #include "tools/command.h"
 #include "tools/logging.h"
 

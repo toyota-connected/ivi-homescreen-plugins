@@ -30,7 +30,8 @@
 
 #include <fstream>
 
-#include "plugins/common/common.h"
+#include "plugins/common/string/string_tools.h"
+#include "tools/logging.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler.h>

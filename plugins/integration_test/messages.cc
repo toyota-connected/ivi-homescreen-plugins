@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "plugins/common/common.h"
+#include "tools/logging.h"
 
 namespace integration_test_plugin {
 

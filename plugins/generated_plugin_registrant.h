@@ -18,7 +18,7 @@
 #define GENERATED_PLUGIN_REGISTRANT_H_
 #include <encodable_value.h>
 
-#include "platform_view_listener.h"
+#include "plugin/platform_view_listener.h"
 
 #include <method_result.h>
 #include <memory>
@@ -27,7 +27,7 @@ typedef struct FlutterDesktopEngineState* FlutterDesktopEngineRef;
 
 void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine);
 
-void PluginsAoiPlatformViewCreate(
+void PluginsApiPlatformViewCreate(
     FlutterDesktopEngineRef engine,
     const std::string& flutter_asset_directory,
     const flutter::EncodableValue* arguments,

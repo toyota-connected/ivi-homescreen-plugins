@@ -15,11 +15,11 @@
  */
 
 #include "integration_test_plugin.h"
+#include "messages.h"
 
 #include <memory>
 
-#include "../common/logging.h"
-#include "messages.h"
+#include "tools/logging.h"
 
 namespace integration_test_plugin {
 

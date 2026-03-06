@@ -27,7 +27,11 @@
 
 #include <utility>
 
-#include <plugins/common/common.h>
+#include <plugins/common/string/string_tools.h>
+#include <plugins/common/time/time_tools.h>
+
+#include "tools/command.h"
+#include "tools/logging.h"
 
 namespace camera_plugin {
 

@@ -22,7 +22,8 @@
 
 #include "camera_context.h"
 
-#include "plugins/common/common.h"
+#include "tools/encodable.h"
+#include "tools/logging.h"
 
 using namespace plugin_common;
 
