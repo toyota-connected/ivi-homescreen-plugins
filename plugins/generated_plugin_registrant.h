@@ -27,13 +27,4 @@ typedef struct FlutterDesktopEngineState* FlutterDesktopEngineRef;
 
 void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine);
 
-void PluginsApiPlatformViewCreate(
-    FlutterDesktopEngineRef engine,
-    const std::string& flutter_asset_directory,
-    const flutter::EncodableValue* arguments,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
-    void* platform_view_context,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-
 #endif  // GENERATED_PLUGIN_REGISTRANT_H_

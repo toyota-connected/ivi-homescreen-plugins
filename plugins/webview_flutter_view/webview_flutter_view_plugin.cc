@@ -60,29 +60,33 @@ GLuint LoadShader(const GLchar* shaderSrc, const GLenum type) {
 
 // static
 void WebviewFlutterPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar* registrar) {
+    FlutterDesktopPluginRegistrarRef registrar) {
+  flutter::PluginRegistrar* flutter_registrar =
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar);
+
   auto plugin = std::make_unique<WebviewFlutterPlugin>();
 
-  plugin->m_InstanceManagerHostApi.SetUp(registrar->messenger(),
+  plugin->m_InstanceManagerHostApi.SetUp(flutter_registrar->messenger(),
                                          &plugin->m_InstanceManagerHostApi);
-  plugin->m_WebStorageHostApi.SetUp(registrar->messenger(),
+  plugin->m_WebStorageHostApi.SetUp(flutter_registrar->messenger(),
                                     &plugin->m_WebStorageHostApi);
-  plugin->m_WebViewHostApi.SetUp(registrar->messenger(),
+  plugin->m_WebViewHostApi.SetUp(flutter_registrar->messenger(),
                                  &plugin->m_WebViewHostApi);
-  plugin->m_WebSettingsHostApi.SetUp(registrar->messenger(),
+  plugin->m_WebSettingsHostApi.SetUp(flutter_registrar->messenger(),
                                      &plugin->m_WebSettingsHostApi);
-  plugin->m_WebChromeClientHostApi.SetUp(registrar->messenger(),
+  plugin->m_WebChromeClientHostApi.SetUp(flutter_registrar->messenger(),
                                          &plugin->m_WebChromeClientHostApi);
-  plugin->m_WebViewClientHostApi.SetUp(registrar->messenger(),
+  plugin->m_WebViewClientHostApi.SetUp(flutter_registrar->messenger(),
                                        &plugin->m_WebViewClientHostApi);
-  plugin->m_DownloadListenerHostApi.SetUp(registrar->messenger(),
+  plugin->m_DownloadListenerHostApi.SetUp(flutter_registrar->messenger(),
                                           &plugin->m_DownloadListenerHostApi);
-  plugin->m_JavaScriptChannelHostApi.SetUp(registrar->messenger(),
+  plugin->m_JavaScriptChannelHostApi.SetUp(flutter_registrar->messenger(),
                                            &plugin->m_JavaScriptChannelHostApi);
-  plugin->m_CookieManagerHostApi.SetUp(registrar->messenger(),
+  plugin->m_CookieManagerHostApi.SetUp(flutter_registrar->messenger(),
                                        &plugin->m_CookieManagerHostApi);
 
-  registrar->AddPlugin(std::move(plugin));
+  flutter_registrar->AddPlugin(std::move(plugin));
 }
 
 void WebviewPlatformView::GetViewRect(CefRefPtr<CefBrowser> /* browser */,
@@ -162,6 +166,11 @@ void WebviewFlutterPlugin::PlatformViewCreate(
 
   m_WebViews.emplace_back(std::move(webview));
 }
+
+static_assert((*WebviewFlutterPlugin::PlatformViewCreate) ==
+                  FlutterPluginPlatformViewCreateCallback,
+              "PlatformViewCreate must match "
+              "FlutterPluginPlatformViewCreateCallback signature");
 
 WebviewPlatformView::WebviewPlatformView(
     const int32_t id,

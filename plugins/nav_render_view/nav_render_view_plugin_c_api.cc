@@ -22,31 +22,12 @@
 #include "nav_render_texture.h"
 
 void NavRenderViewPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar,
-    const int32_t id,
-    std::string viewType,
-    const int32_t direction,
-    const double top,
-    const double left,
-    const double width,
-    const double height,
-    const std::vector<uint8_t>& params,
-    std::string assetDirectory,
-    FlutterDesktopEngineRef engine,
-    const PlatformViewAddListener add_listener,
-    const PlatformViewRemoveListener remove_listener,
-    void* platform_views_context) {
-  nav_render_view_plugin::NavRenderSurface::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar),
-      id, std::move(viewType), direction, top, left, width, height, params,
-      std::move(assetDirectory), engine, add_listener, remove_listener,
-      platform_views_context);
-}
+    FlutterDesktopPluginRegistrarRef registrar) {
+  // Method channel setup
+  //  (none)
 
-void NavRenderViewPluginTextureCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrar* registrar) {
-  nav_render_view_plugin::NavRenderTexture::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar));
+  // Platform view setup
+  registrar->engine->platform_views_handler->RegisterPlatformView(
+      "views/nav-render-view",
+      nav_render_view_plugin::NavRenderSurface::RegisterWithRegistrar);
 }

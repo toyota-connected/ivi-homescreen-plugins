@@ -37,8 +37,7 @@ namespace plugin_layer_playground_view {
 
 class LayerPlaygroundViewPlugin : public flutter::Plugin, PlatformView {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar,
-                                    int32_t id,
+  static void RegisterWithRegistrar(int32_t id,
                                     std::string viewType,
                                     int32_t direction,
                                     double top,

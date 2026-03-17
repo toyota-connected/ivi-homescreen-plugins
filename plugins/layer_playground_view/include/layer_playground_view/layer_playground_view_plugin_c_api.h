@@ -35,20 +35,7 @@ extern "C" {
 #endif
 
 FLUTTER_PLUGIN_EXPORT void LayerPlaygroundPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrar* registrar,
-    int32_t id,
-    std::string viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
-    const std::vector<uint8_t>& params,
-    std::string assetDirectory,
-    FlutterDesktopEngineRef engine,
-    PlatformViewAddListener add_listener,
-    PlatformViewRemoveListener remove_listener,
-    void* platform_views_context);
+    FlutterDesktopPluginRegistrar* registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"

@@ -20,17 +20,6 @@
 #include "tools/encodable.h"
 #include "tools/logging.h"
 
-static constexpr char kKeyId[] = "id";
-static constexpr char kKeyViewType[] = "viewType";
-static constexpr char kKeyDirection[] = "direction";
-static constexpr char kKeyWidth[] = "width";
-static constexpr char kKeyHeight[] = "height";
-static constexpr char kKeyParams[] = "params";
-static constexpr char kKeyTop[] = "top";
-static constexpr char kKeyLeft[] = "left";
-
-static constexpr bool kPlatformViewDebug = false;
-
 void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
   (void)engine;
 #if ENABLE_PLUGIN_AUDIOPLAYERS_LINUX
@@ -109,107 +98,12 @@ void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
   WebrtcPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
-}
-
-void PluginsApiPlatformViewCreate(
-    FlutterDesktopEngineRef engine,
-    const std::string& flutter_asset_directory,
-    const flutter::EncodableValue* const arguments,
-    const PlatformViewAddListener addListener,
-    const PlatformViewRemoveListener removeListener,
-    void* platform_view_context,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  int32_t id = 0;
-  std::string viewType;
-  int32_t direction = 0;
-  double top = 0;
-  double left = 0;
-  double width = 0;
-  double height = 0;
-  std::vector<uint8_t> params{};
-  if (kPlatformViewDebug) {
-    plugin_common::Encodable::PrintFlutterEncodableValue(
-        "PluginsApiPlatformViewCreate", *arguments);
-  }
-
-  const auto args = std::get_if<flutter::EncodableMap>(arguments);
-
-  for (const auto& [fst, snd] : *args) {
-    if (const auto key = std::get<std::string>(fst);
-        key == kKeyDirection && std::holds_alternative<int32_t>(snd)) {
-      direction = std::get<int32_t>(snd);
-    } else if (key == kKeyHeight && std::holds_alternative<double>(snd)) {
-      height = std::get<double>(snd);
-    } else if (key == kKeyId && std::holds_alternative<int32_t>(snd)) {
-      id = std::get<int32_t>(snd);
-    } else if (key == kKeyParams &&
-               std::holds_alternative<std::vector<uint8_t>>(snd)) {
-      params = std::get<std::vector<uint8_t>>(snd);
-    } else if (key == kKeyViewType &&
-               std::holds_alternative<std::string>(snd)) {
-      viewType.assign(std::get<std::string>(snd));
-    } else if (key == kKeyWidth && std::holds_alternative<double>(snd)) {
-      width = std::get<double>(snd);
-    } else if (key == kKeyTop && std::holds_alternative<double>(snd)) {
-      top = std::get<double>(snd);
-    } else if (key == kKeyLeft && std::holds_alternative<double>(snd)) {
-      left = std::get<double>(snd);
-    } else {
-      plugin_common::Encodable::PrintFlutterEncodableValue(
-          "PluginsApiPlatformViewCreate unknown", *arguments);
-    }
-  }
-
-  if (width == 0 || height == 0) {
-    spdlog::critical(
-        "[platform_views_handler] UiKitView is not supported.  Change to "
-        "AndroidView or PlatformView");
-    exit(EXIT_FAILURE);
-  }
-
-  auto registrar = FlutterDesktopGetPluginRegistrar(engine, viewType.c_str());
-
-#if ENABLE_PLUGIN_WEBVIEW_FLUTTER_VIEW
-  if (viewType == "plugins.flutter.io/webview") {
-    WebviewFlutterPluginCApiPlatformViewCreate(
-        registrar, id, viewType, direction, top, left, width, height, params,
-        flutter_asset_directory, engine, addListener, removeListener,
-        platform_view_context);
-    result->Success(flutter::EncodableValue(id));
-  } else
-#endif
 #if ENABLE_PLUGIN_LAYER_PLAYGROUND_VIEW
-      if (viewType == "@views/simple-box-view-type") {
-    LayerPlaygroundPluginCApiRegisterWithRegistrar(
-        registrar, id, viewType, direction, top, left, width, height, params,
-        flutter_asset_directory, engine, addListener, removeListener,
-        platform_view_context);
-    result->Success(flutter::EncodableValue(id));
-  } else
+  LayerPlaygroundPluginCApiRegisterWithRegistrar(
+      FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
 #if ENABLE_PLUGIN_NAV_RENDER_VIEW
-      if (viewType == "views/nav-render-view") {
-    NavRenderViewPluginCApiRegisterWithRegistrar(
-        registrar, id, viewType, direction, top, left, width, height, params,
-        flutter_asset_directory, engine, addListener, removeListener,
-        platform_view_context);
-    result->Success(flutter::EncodableValue(id));
-  } else
+  NavRenderViewPluginCApiRegisterWithRegistrar(
+      FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
-  {
-    (void)flutter_asset_directory;
-    (void)addListener;
-    (void)removeListener;
-    (void)platform_view_context;
-    (void)registrar;
-    (void)id;
-    (void)direction;
-    (void)top;
-    (void)left;
-    (void)width;
-    (void)height;
-    (void)params;
-    spdlog::error("Platform View type not registered: {}", viewType);
-    result->NotImplemented();
-  }
 }

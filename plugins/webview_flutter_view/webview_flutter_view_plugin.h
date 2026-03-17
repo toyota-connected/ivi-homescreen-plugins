@@ -378,7 +378,7 @@ class WebviewFlutterCookieManagerHostApi : public CookieManagerHostApi {
 
 class WebviewFlutterPlugin final : public flutter::Plugin {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar);
+  static void RegisterWithRegistrar(FlutterDesktopPluginRegistrarRef registrar);
 
   static void PlatformViewCreate(int32_t id,
                                  std::string viewType,

@@ -16,8 +16,7 @@ class FlutterView;
 namespace nav_render_view_plugin {
 class NavRenderSurface final : public PlatformView, public flutter::Plugin {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar,
-                                    int32_t id,
+  static void RegisterWithRegistrar(int32_t id,
                                     std::string viewType,
                                     int32_t direction,
                                     double top,

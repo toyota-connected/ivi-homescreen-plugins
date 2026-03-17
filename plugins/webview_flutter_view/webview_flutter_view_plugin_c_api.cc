@@ -22,28 +22,13 @@
 
 void WebviewFlutterPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrar* registrar) {
+  // Method channel setup
   plugin_webview_flutter::WebviewFlutterPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
-}
 
-void WebviewFlutterPluginCApiPlatformViewCreate(
-    FlutterDesktopPluginRegistrar* /* registrar */,
-    const int32_t id,
-    std::string viewType,
-    const int32_t direction,
-    const double top,
-    const double left,
-    const double width,
-    const double height,
-    const std::vector<uint8_t>& params,
-    std::string assetDirectory,
-    FlutterDesktopEngineRef engine,
-    const PlatformViewAddListener add_listener,
-    const PlatformViewRemoveListener remove_listener,
-    void* platform_views_context) {
-  plugin_webview_flutter::WebviewFlutterPlugin::PlatformViewCreate(
-      id, std::move(viewType), direction, top, left, width, height, params,
-      std::move(assetDirectory), engine, add_listener, remove_listener,
-      platform_views_context);
+  // Platform view setup
+  registrar->engine->platform_views_handler->RegisterPlatformView(
+      "plugins.flutter.io/webview",
+      plugin_webview_flutter::WebviewFlutterPlugin::PlatformViewCreate);
 }

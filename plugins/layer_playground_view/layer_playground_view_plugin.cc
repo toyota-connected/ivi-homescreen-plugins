@@ -27,7 +27,6 @@ class Display;
 namespace plugin_layer_playground_view {
 
 void LayerPlaygroundViewPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar* registrar,
     int32_t id,
     std::string viewType,
     int32_t direction,
@@ -41,12 +40,15 @@ void LayerPlaygroundViewPlugin::RegisterWithRegistrar(
     PlatformViewAddListener addListener,
     PlatformViewRemoveListener removeListener,
     void* platform_view_context) {
+  flutter::PluginRegistrar* flutterRegistrar =
+      engine->internal_plugin_registrar.get();
+
   auto plugin = std::make_unique<LayerPlaygroundViewPlugin>(
       id, std::move(viewType), direction, top, left, width, height, params,
       std::move(assetDirectory), engine, addListener, removeListener,
       platform_view_context);
 
-  registrar->AddPlugin(std::move(plugin));
+  flutterRegistrar->AddPlugin(std::move(plugin));
 }
 
 LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
