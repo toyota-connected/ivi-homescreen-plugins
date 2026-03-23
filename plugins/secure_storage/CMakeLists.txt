@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+find_package(PkgConfig REQUIRED)
+
 pkg_check_modules(SECRET IMPORTED_TARGET REQUIRED libsecret-1)
 
 add_library(plugin_secure_storage STATIC

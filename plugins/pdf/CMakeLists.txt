@@ -16,6 +16,11 @@
 
 include_guard()
 
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 add_library(plugin_pdf STATIC
         pdf_plugin_c_api.cc
         pdf_plugin.cc

@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+find_package(PkgConfig REQUIRED)
+
 pkg_check_modules(WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
 
 add_library(plugin_nav_render_view STATIC

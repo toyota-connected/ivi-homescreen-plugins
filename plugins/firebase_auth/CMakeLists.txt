@@ -14,6 +14,11 @@
 # limitations under the License.
 #
 
+if(NOT TARGET plugin_firebase_core)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../firebase_core
+                     ${CMAKE_CURRENT_BINARY_DIR}/_firebase_core)
+endif()
+
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
 

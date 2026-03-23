@@ -1,5 +1,7 @@
 include_guard()
 
+find_package(PkgConfig REQUIRED)
+
 pkg_check_modules(WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
 
 add_library(plugin_layer_playground_view STATIC

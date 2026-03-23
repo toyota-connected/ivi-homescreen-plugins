@@ -14,6 +14,11 @@
 # limitations under the License.
 #
 
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 add_library(plugin_google_sign_in STATIC
         google_sign_in_plugin_c_api.cc
         google_sign_in_plugin.cc

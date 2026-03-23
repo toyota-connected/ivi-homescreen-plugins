@@ -14,6 +14,13 @@
 # limitations under the License.
 #
 
+find_package(PkgConfig REQUIRED)
+
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 pkg_check_modules(FLATPAK_DEPS IMPORTED_TARGET REQUIRED flatpak libxml-2.0 zlib)
 
 add_subdirectory(cache)

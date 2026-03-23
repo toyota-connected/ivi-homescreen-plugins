@@ -1,4 +1,6 @@
 
+find_package(PkgConfig REQUIRED)
+
 add_library(plugin_common STATIC
         json/json_utils.cc
         time/time_tools.cc

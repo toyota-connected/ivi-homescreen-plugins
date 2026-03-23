@@ -14,6 +14,11 @@
 # limitations under the License.
 #
 
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 add_library(plugin_integration_test STATIC
         integration_test_plugin_c_api.cc
         integration_test_plugin.cc

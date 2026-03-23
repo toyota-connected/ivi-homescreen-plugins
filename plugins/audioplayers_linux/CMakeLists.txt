@@ -20,6 +20,11 @@ set(PROJECT_NAME "audioplayers_linux")
 # not be changed
 set(PLUGIN_NAME "plugin_${PROJECT_NAME}")
 
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 add_library(${PLUGIN_NAME} STATIC
         audioplayers_linux_plugin_c_api.cc
         audioplayers_linux_plugin.cc

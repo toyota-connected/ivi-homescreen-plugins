@@ -28,6 +28,10 @@ inputs:
     description: "Additional apt packages to install (space-separated)"
     required: false
     default: ""
+  cmake-args:
+    description: "Additional CMake arguments to pass when configuring the build"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -221,17 +225,7 @@ runs:
     run: |
       mkdir -p ${{github.workspace}}/build
 
-      # If is ivi-homescreen-plugins, set PLUGINS_DIR to plugins_source, else set to ivi-homescreen-plugins/plugins + EXT_PLUGINS_DIRS to plugins_source
-      if [ "${{ github.event.repository.name }}" = "ivi-homescreen-plugins" ]; then
-        PLUGINS_DIR=${{github.workspace}}/plugins_source/plugins
-        EXT_PLUGINS_DIRS=""
-      else
-        PLUGINS_DIR=${{github.workspace}}/ivi-homescreen-plugins/plugins
-        EXT_PLUGINS_DIRS=${{github.workspace}}/plugins_source/plugins
-      fi
-
-      PLUGIN_NAME_UPPERCASE=$(echo "${{ inputs.name }}" | tr '[:lower:]_' '[:upper:]_')
-      PLUGIN_FLAGS="-D BUILD_PLUGIN_${PLUGIN_NAME_UPPERCASE}=ON"
+      STATIC_PLUGIN_DIRS=${{github.workspace}}/plugins_source/plugins/${{ inputs.name }}
 
       PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
       CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \
@@ -247,12 +241,10 @@ runs:
         -D ENABLE_DLT=OFF \
         -D BUILD_CRASH_HANDLER=OFF \
         \
-        -D PLUGINS_DIR=${PLUGINS_DIR} \
-        -D EXT_PLUGINS_DIRS=${EXT_PLUGINS_DIRS} \
+        -D STATIC_PLUGIN_DIRS=${STATIC_PLUGIN_DIRS} \
+        ${{ inputs.cmake-args }} \
         \
         -D DEBUG_PLATFORM_MESSAGES=OFF \
-        \
-        ${PLUGIN_FLAGS} \
         \
         -D BUILD_WATCHDOG=OFF \
         -D BUILD_SYSTEMD_WATCHDOG=OFF \
