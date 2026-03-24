@@ -26,7 +26,7 @@
 
 #include <sqlite3.h>
 
-#include "flatpak/cache/interfaces/cache_storage.h"
+#include "../interfaces/cache_storage.h"
 
 #include "tools/logging.h"
 /**

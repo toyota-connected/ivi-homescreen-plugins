@@ -25,8 +25,8 @@
 #include "flatpak_shim.h"
 #include "messages.g.h"
 #include "method_channel.h"
-#include "plugins/flatpak/cache/cache_manager.h"
-#include "plugins/flatpak/portals/portal_manager.h"
+#include "cache/cache_manager.h"
+#include "portals/portal_manager.h"
 
 namespace flatpak_plugin {
 class FlatpakPlugin final : public flutter::Plugin, public FlatpakApi {

@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "plugins/common/sdbus/sdbus.h"
+#include "common/sdbus/sdbus.h"
 #include "portal_interface.h"
 
 /**

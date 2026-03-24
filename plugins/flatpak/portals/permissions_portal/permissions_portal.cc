@@ -18,8 +18,8 @@
 #include "permissions_portal.h"
 
 #include <iomanip>
+#include "../../flatpak_shim.h"
 #include "asio/post.hpp"
-#include "flatpak/flatpak_shim.h"
 #include "spdlog/spdlog.h"
 
 namespace flatpak_plugin {

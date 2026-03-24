@@ -21,9 +21,9 @@
 #include <string>
 
 #include <flutter/event_channel.h>
-#include "flatpak/messages.g.h"
-#include "flatpak/portals/portal_manager.h"
-#include "plugins/common/sdbus/sdbus.h"
+#include "../../messages.g.h"
+#include "../portal_manager.h"
+#include "common/sdbus/sdbus.h"
 
 namespace flatpak_plugin {
 enum PermissionStatus {

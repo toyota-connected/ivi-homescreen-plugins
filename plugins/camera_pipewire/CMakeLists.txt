@@ -25,7 +25,7 @@ pkg_check_modules(PIPEWIRE IMPORTED_TARGET REQUIRED libpipewire-0.3)
 pkg_check_modules(JPEG IMPORTED_TARGET REQUIRED libjpeg)
 
 add_library(plugin_camera_pipewire STATIC
-        camera_plugin_c_api.cc
+        camera_pipewire_plugin_c_api.cc
         camera_plugin.cc
         messages.g.cc
         camera_stream.cc

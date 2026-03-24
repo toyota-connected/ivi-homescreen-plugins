@@ -20,7 +20,7 @@
 
 #include "audioplayers_linux_plugin.h"
 
-void AudioPlayersLinuxPluginCApiRegisterWithRegistrar(
+void AudioplayersLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   audioplayers_linux_plugin::AudioplayersLinuxPlugin::RegisterWithRegistrar(
       PluginRegistrarManager::GetInstance()->GetRegistrar<PluginRegistrar>(

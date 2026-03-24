@@ -18,8 +18,8 @@
 #ifndef PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 #define PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 
-#include "flatpak/cache/cache_config.h"
-#include "flatpak/cache/interfaces/cache_observer.h"
+#include "../cache_config.h"
+#include "../interfaces/cache_observer.h"
 
 #include "tools/logging.h"
 

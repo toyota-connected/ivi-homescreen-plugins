@@ -16,7 +16,7 @@
 
 #include "icon.h"
 
-#include "plugins/flatpak/flatpak_shim.h"
+#include "flatpak_shim.h"
 #include "tools/logging.h"
 
 using flatpak_plugin::FlatpakShim;

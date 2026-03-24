@@ -44,8 +44,8 @@
 #include "component.h"
 #include "cxxopts/include/cxxopts.hpp"
 #include "messages.g.h"
-#include "plugins/flatpak/flatpak_plugin.h"
-#include "plugins/flatpak/operation_tracker.h"
+#include "flatpak_plugin.h"
+#include "operation_tracker.h"
 #include "portals/portal_manager.h"
 #include "screenshot.h"
 

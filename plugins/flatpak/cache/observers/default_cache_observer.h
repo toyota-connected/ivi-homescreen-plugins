@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "flatpak/cache/interfaces/cache_observer.h"
+#include "../interfaces/cache_observer.h"
 
 class DefaultCacheObserver final : public ICacheObserver {
  public:

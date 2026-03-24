@@ -20,9 +20,15 @@ add_library(plugin_file_selector STATIC
         messages.g.cc
 )
 
+if(NOT TARGET plugin_common)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common
+                     ${CMAKE_CURRENT_BINARY_DIR}/_common)
+endif()
+
 target_include_directories(plugin_file_selector PRIVATE include)
 
 target_link_libraries(plugin_file_selector PUBLIC
         flutter
         platform_homescreen
+        plugin_common
 )

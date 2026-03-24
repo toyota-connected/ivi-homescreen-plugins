@@ -36,7 +36,7 @@
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
 #include "network/curl_network_fetcher.h"
-#include "plugins/flatpak/flatpak_shim.h"
+#include "../flatpak_shim.h"
 #include "storage/sqlite_cache_storage.h"
 
 namespace flatpak_plugin {

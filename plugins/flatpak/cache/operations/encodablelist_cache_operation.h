@@ -23,9 +23,9 @@
 
 #include <flutter/encodable_value.h>
 
+#include "../../messages.g.h"
+#include "../cache_manager.h"
 #include "cache_operation_template.h"
-#include "flatpak/cache/cache_manager.h"
-#include "flatpak/messages.g.h"
 #include "tomlplusplus/toml.hpp"
 
 namespace flatpak_plugin {

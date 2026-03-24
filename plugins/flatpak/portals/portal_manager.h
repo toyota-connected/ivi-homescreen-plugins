@@ -19,7 +19,7 @@
 #define PORTAL_MANAGER_H
 
 #include "asio/io_context.hpp"
-#include "plugins/common/sdbus/sdbus.h"
+#include "common/sdbus/sdbus.h"
 #include "portal_context.h"
 #include "portal_proxy.h"
 

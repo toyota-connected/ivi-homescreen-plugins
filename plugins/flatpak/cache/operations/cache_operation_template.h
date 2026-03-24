@@ -25,7 +25,7 @@
 
 #include "tools/logging.h"
 
-#include "flatpak/cache/interfaces/cache_storage.h"
+#include "../interfaces/cache_storage.h"
 
 /**
  * @brief Template class for cache operations providing a framework for data

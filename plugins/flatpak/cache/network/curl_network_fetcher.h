@@ -27,9 +27,9 @@
 
 #include <encodable_value.h>
 
-#include <flatpak/flatpak_plugin.h>
+#include "../../flatpak_plugin.h"
+#include "../interfaces/network_fetcher.h"
 #include "common/curl_client/curl_client.h"
-#include "flatpak/cache/interfaces/network_fetcher.h"
 
 /**
  * @brief Curl-based network fetcher implementation

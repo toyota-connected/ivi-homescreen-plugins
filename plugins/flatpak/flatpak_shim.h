@@ -23,7 +23,8 @@
 #include <string>
 
 #define FLATPAK_EXTERN extern "C"
-#include <flatpak/flatpak.h>
+#include "flatpak.h"
+
 #include <glib/garray.h>
 #include <asio/io_context_strand.hpp>
 #include <utility>
@@ -34,7 +35,7 @@
 #include "component.h"
 #include "messages.g.h"
 #include "operation_tracker.h"
-#include "plugins/flatpak/portals/portal_manager.h"
+#include "portals/portal_manager.h"
 #include "portals/permissions_portal/permissions_portal.h"
 
 namespace flatpak_plugin {

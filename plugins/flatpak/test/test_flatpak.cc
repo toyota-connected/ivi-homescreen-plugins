@@ -8,8 +8,8 @@
 
 #include <flutter/encodable_value.h>
 
-#include "flatpak/component.h"
-#include "flatpak/flatpak_shim.h"
+#include "../component.h"
+#include "../flatpak_shim.h"
 #include "spdlog/spdlog.h"
 
 using namespace flatpak_plugin;

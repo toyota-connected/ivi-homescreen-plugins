@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void AudioPlayersLinuxPluginCApiRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void AudioplayersLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)

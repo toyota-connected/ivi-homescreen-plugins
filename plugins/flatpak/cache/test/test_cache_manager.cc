@@ -7,11 +7,11 @@
 
 #include <flutter/encodable_value.h>
 
-#include "flatpak/cache/cache_config.h"
-#include "flatpak/cache/cache_manager.h"
-#include "flatpak/cache/interfaces/cache_observer.h"
-#include "flatpak/cache/interfaces/cache_storage.h"
-#include "flatpak/cache/interfaces/network_fetcher.h"
+#include "../cache_config.h"
+#include "../cache_manager.h"
+#include "../interfaces/cache_observer.h"
+#include "../interfaces/cache_storage.h"
+#include "../interfaces/network_fetcher.h"
 
 using namespace flatpak_plugin;
 

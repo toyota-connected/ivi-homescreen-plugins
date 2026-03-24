@@ -20,10 +20,10 @@
 
 #include <chrono>
 
+#include "../../messages.g.h"
+#include "../cache_manager.h"
 #include "cache_operation_template.h"
 #include "encodablelist_cache_operation.h"
-#include "flatpak/cache/cache_manager.h"
-#include "flatpak/messages.g.h"
 #include "spdlog/spdlog.h"
 
 namespace flatpak_plugin {

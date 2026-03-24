@@ -36,7 +36,7 @@
 #include "interfaces/cache_storage.h"
 #include "interfaces/network_fetcher.h"
 #include "operations/cache_operation_template.h"
-#include "plugins/flatpak/messages.g.h"
+#include "../messages.g.h"
 
 namespace flatpak_plugin {
 
