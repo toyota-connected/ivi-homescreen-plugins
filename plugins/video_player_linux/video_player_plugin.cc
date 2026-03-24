@@ -25,8 +25,8 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
+#include "common/glib/main_loop.h"
 #include "messages.g.h"
-#include "plugins/common/glib/main_loop.h"
 #include "video_player.h"
 
 namespace video_player_linux {

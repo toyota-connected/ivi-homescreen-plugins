@@ -21,7 +21,7 @@
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 
-#include "plugins/common/string/string_tools.h"
+#include "common/string/string_tools.h"
 #include "plugins/flatpak/flatpak_shim.h"
 #include "tools/logging.h"
 

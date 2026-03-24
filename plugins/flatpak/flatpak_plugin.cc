@@ -25,8 +25,8 @@
 #include <asio/post.hpp>
 
 #include <flutter/plugin_registrar_homescreen.h>
+#include "common/glib/main_loop.h"
 #include "messages.g.h"
-#include "plugins/common/glib/main_loop.h"
 #include "standard_method_codec.h"
 #include "tools/logging.h"
 

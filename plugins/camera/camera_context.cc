@@ -27,8 +27,8 @@
 
 #include <utility>
 
-#include <plugins/common/string/string_tools.h>
-#include <plugins/common/time/time_tools.h>
+#include <common/string/string_tools.h>
+#include <common/time/time_tools.h>
 
 #include "tools/command.h"
 #include "tools/logging.h"

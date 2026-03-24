@@ -1,3 +1,3 @@
-[submodule "plugins/common/sdbus/third_party/sdbus-cpp"]
-	path = plugins/common/sdbus/third_party/sdbus-cpp
+[submodule "plugins/common/src/sdbus/third_party/sdbus-cpp"]
+	path = plugins/common/src/sdbus/third_party/sdbus-cpp
 	url = https://github.com/Kistler-Group/sdbus-cpp.git

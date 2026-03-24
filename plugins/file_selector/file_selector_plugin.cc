@@ -22,8 +22,8 @@
 
 #include <flutter/plugin_registrar.h>
 
+#include "common/string/string_tools.h"
 #include "messages.g.h"
-#include "plugins/common/string/string_tools.h"
 #include "tools/command.h"
 #include "tools/logging.h"
 

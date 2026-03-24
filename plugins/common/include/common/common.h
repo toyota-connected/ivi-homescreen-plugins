@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef FLUTTER_PLUGIN_COMMON_COMMON_H_
-#define FLUTTER_PLUGIN_COMMON_COMMON_H_
+#pragma once
 
 #include "json/json_utils.h"
 #include "sdbus/sdbus.h"
 #include "string/string_tools.h"
 #include "time/time_tools.h"
 #include "uuid/uuidxx.h"
-
-#endif  // FLUTTER_PLUGIN_COMMON_COMMON_H_

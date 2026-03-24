@@ -23,8 +23,8 @@
 #include <flutter/basic_message_channel.h>
 #include <flutter/plugin_registrar.h>
 
+#include "common/glib/main_loop.h"
 #include "messages.h"
-#include "plugins/common/glib/main_loop.h"
 
 namespace audioplayers_linux_plugin {
 
