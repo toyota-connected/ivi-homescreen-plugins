@@ -35,8 +35,8 @@
 #include "component.h"
 #include "messages.g.h"
 #include "operation_tracker.h"
-#include "portals/portal_manager.h"
 #include "portals/permissions_portal/permissions_portal.h"
+#include "portals/portal_manager.h"
 
 namespace flatpak_plugin {
 class FlatpakPlugin;

@@ -22,10 +22,10 @@
 #include <flutter/plugin_registrar.h>
 #include <asio/io_context_strand.hpp>
 
+#include "cache/cache_manager.h"
 #include "flatpak_shim.h"
 #include "messages.g.h"
 #include "method_channel.h"
-#include "cache/cache_manager.h"
 #include "portals/portal_manager.h"
 
 namespace flatpak_plugin {

@@ -29,6 +29,7 @@
 
 #include <flutter/encodable_value.h>
 
+#include "../flatpak_shim.h"
 #include "cache_config.h"
 #include "cache_manager.h"
 #include "encodablelist_cache_operation.h"
@@ -36,7 +37,6 @@
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
 #include "network/curl_network_fetcher.h"
-#include "../flatpak_shim.h"
 #include "storage/sqlite_cache_storage.h"
 
 namespace flatpak_plugin {

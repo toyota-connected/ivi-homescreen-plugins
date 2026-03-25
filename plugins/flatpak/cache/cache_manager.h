@@ -31,12 +31,12 @@
 
 #include <flutter/encodable_value.h>
 
+#include "../messages.g.h"
 #include "cache_config.h"
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
 #include "interfaces/network_fetcher.h"
 #include "operations/cache_operation_template.h"
-#include "../messages.g.h"
 
 namespace flatpak_plugin {
 

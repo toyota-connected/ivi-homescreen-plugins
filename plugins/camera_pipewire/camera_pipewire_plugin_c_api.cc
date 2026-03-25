@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "include/camera_pipewire/camera_pipewire_plugin_c_api.h"
 #include "camera_plugin.h"
 #include "flutter/plugin_registrar_homescreen.h"
-#include "include/camera_pipewire/camera_pipewire_plugin_c_api.h"
 
 void CameraPipewirePluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
