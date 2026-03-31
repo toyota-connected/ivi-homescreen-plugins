@@ -35,6 +35,7 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
+    # none
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

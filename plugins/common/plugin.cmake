@@ -12,3 +12,11 @@ string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 set(PLUGIN_NAME "${lcase_name}")
 unset(PLUGIN_REGISTER_ENDPOINT) # This plugin does not have a registration endpoint since it is not meant to be used as a static plugin.
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/${PLUGIN_NAME}.h")
+
+
+
+#
+#   NOTE: this isn't a standalone plugin.
+#       It is not meant to be built/linked as a Flutter plugin
+#       using `STATIC_PLUGIN_DIRS` or as a shared plugin. Instead, it is meant to be used as a common library that other plugins can link against to share code and utilities.
+#

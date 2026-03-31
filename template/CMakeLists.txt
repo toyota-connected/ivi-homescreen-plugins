@@ -16,7 +16,7 @@
 
 option(BUILD_SHARED_PLUGIN "Build as a standalone shared (.so) library" OFF)
 if(BUILD_SHARED_PLUGIN)
-    set(_LIB_TYPE SHARED)
+    set(_lib_type SHARED)
     # MODE: Shared plugin
     #   The plugin is built as a shared library (.so) that can be loaded at runtime by the host process.
     #   In this mode, the plugin must not link directly against any host libraries (like flutter or platform_homescreen)
@@ -37,7 +37,7 @@ if(BUILD_SHARED_PLUGIN)
             "the shared plugin outside of the ivi-homescreen CMake tree.")
     endif()
 else()
-    set(_LIB_TYPE STATIC)
+    set(_lib_type STATIC)
     # MODE: Static plugin
     #   The plugin is included as part of the `ivi-homescreen` compilation.
     #   The plugin will be linked directly into the homescreen binary,
@@ -80,13 +80,11 @@ foreach(define IN LISTS plugin_cmake_defines)
     endif()
 endforeach()
 
-target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
-
-
 #
 # STEP 1: Setup static/dynamic plugin resolution
 #
 if(BUILD_SHARED_PLUGIN)
+    # Configure homescreen library
     add_library(platform_homescreen INTERFACE)
     target_include_directories(platform_homescreen INTERFACE
         ${IVI_HOMESCREEN_INCLUDE_DIR}
@@ -94,8 +92,13 @@ if(BUILD_SHARED_PLUGIN)
         ${IVI_HOMESCREEN_INCLUDE_DIR}/shell/platform/homescreen/client_wrapper/include
         ${IVI_HOMESCREEN_INCLUDE_DIR}/shell/platform/homescreen/public
     )
+
+    # Rename PLUGIN_REGISTER_ENDPOINT to standard `FlutterPluginRegister` for shared plugins
+    set(PLUGIN_REGISTER_ENDPOINT "FlutterPluginRegister")
+    target_compile_definitions(${PLUGIN_NAME} PRIVATE BUILD_SHARED_PLUGIN=1)
 endif()
 
+target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 
 
 #
@@ -109,7 +112,7 @@ PLUGIN_STEP_DEPENDENCIES()
 #
 # STEP 3: Declare plugin libraries
 #
-add_library(${PLUGIN_NAME} ${_LIB_TYPE}
+add_library(${PLUGIN_NAME} ${_lib_type}
         ${PLUGIN_DATA_SOURCES}
 )
 
@@ -141,3 +144,23 @@ else()
 endif()
 
 target_link_libraries(${PLUGIN_NAME} ${_link_type} ${_plugin_libraries})
+
+
+
+#
+# STEP 5: Validate
+#
+
+# Make sure that the output target has a FlutterPluginRegister symbol exposed
+
+if(BUILD_SHARED_PLUGIN)
+    add_custom_command(TARGET ${PLUGIN_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "Validating plugin ${PLUGIN_NAME} for symbol: ${PLUGIN_REGISTER_ENDPOINT}"
+            COMMAND ${CMAKE_COMMAND} -E sh -c "nm -D \$<TARGET_FILE:${PLUGIN_NAME}> | grep ${PLUGIN_REGISTER_ENDPOINT} || (echo 'Error: Symbol ${PLUGIN_REGISTER_ENDPOINT} not found in plugin ${PLUGIN_NAME}' && exit 1)"
+    )
+else()
+    add_custom_command(TARGET ${PLUGIN_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "Validating plugin ${PLUGIN_NAME} for symbol: ${PLUGIN_REGISTER_ENDPOINT}"
+            COMMAND ${CMAKE_COMMAND} -E sh -c "

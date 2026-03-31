@@ -36,7 +36,9 @@ set(PLUGIN_DATA_SOURCES
     camera_plugin.cc
     messages.g.cc
     camera_stream.cc
+    camera_stream.h
     pipewire_graph.cc
+    pipewire_graph.h
 )
 
 macro(PLUGIN_STEP_TARGETS)
