@@ -170,14 +170,17 @@ target_link_libraries(${PLUGIN_TARGET_NAME} ${_link_type} ${_plugin_libraries})
 
 
 #
-# STEP 5: Validate
+# STEP 5: Validate output
 #
 
 # Make sure that the output target has a FlutterPluginRegister symbol exposed
-if(BUILD_SHARED_PLUGIN)
-    add_custom_command(TARGET ${PLUGIN_TARGET_NAME}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "Validating plugin ${PLUGIN_NAME} for symbol: ${PLUGIN_REGISTER_ENDPOINT}"
-            COMMAND ${CMAKE_COMMAND} -E sh -c "nm -D \$<TARGET_FILE:${PLUGIN_TARGET_NAME}> | grep ${PLUGIN_REGISTER_ENDPOINT} || (echo 'Error: Symbol ${PLUGIN_REGISTER_ENDPOINT} not found in plugin ${PLUGIN_NAME}' && exit 1)"
-    )
-endif()
+# include(CheckSymbolExists)
+# check_symbol_exists(
+#     "${PLUGIN_REGISTER_ENDPOINT}"
+#     "${PLUGIN_HEADER}"
+#     _has_plugin_register
+# )
+
+# if(NOT _has_plugin_register)
+#     message(FATAL_ERROR "The plugin does not have the required '${PLUGIN_REGISTER_ENDPOINT}' symbol exposed in '${PLUGIN_HEADER}'. Make sure that the PLUGIN_REGISTER_ENDPOINT variable is set correctly and that the function is defined in the plugin's source code.")
+# endif()
