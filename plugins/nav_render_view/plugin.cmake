@@ -12,3 +12,31 @@ string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 set(PLUGIN_NAME "${lcase_name}")
 set(PLUGIN_REGISTER_ENDPOINT "${camelcase_fname}PluginCApiRegisterWithRegistrar")
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/${PLUGIN_NAME}_plugin_c_api.h")
+
+
+#
+#  Step defines
+#
+
+# PLUGIN_STEP_DEPENDENCIES
+#   Declare any dependencies that must be resolved before the plugin library is built.
+#
+macro(PLUGIN_STEP_DEPENDENCIES)
+    pkg_check_modules(WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
+endmacro()
+
+set(PLUGIN_DATA_SOURCES
+    nav_render_view_plugin_c_api.cc
+    nav_render_surface.cc
+    nav_render_texture.cc
+    libnav_render.cc
+)
+
+macro(PLUGIN_STEP_TARGETS)
+    target_include_directories(${PLUGIN_NAME} PRIVATE ${PROJECT_BINARY_DIR})
+endmacro()
+
+set(PLUGIN_DATA_LIBRARIES
+    PkgConfig::WAYLAND_EGL
+    EGL
+)

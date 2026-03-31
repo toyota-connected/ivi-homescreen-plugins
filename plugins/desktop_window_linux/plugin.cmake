@@ -12,3 +12,26 @@ string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 set(PLUGIN_NAME "${lcase_name}")
 set(PLUGIN_REGISTER_ENDPOINT "${camelcase_fname}PluginCApiRegisterWithRegistrar")
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/${PLUGIN_NAME}_plugin_c_api.h")
+
+
+#
+#  Step defines
+#
+
+# PLUGIN_STEP_DEPENDENCIES
+#   Declare any dependencies that must be resolved before the plugin library is built.
+#
+macro(PLUGIN_STEP_DEPENDENCIES)
+endmacro()
+
+set(PLUGIN_DATA_SOURCES
+    desktop_window_plugin_c_api.cc
+    desktop_window_plugin.cc
+    messages.cc
+)
+
+macro(PLUGIN_STEP_TARGETS)
+endmacro()
+
+set(PLUGIN_DATA_LIBRARIES
+)
