@@ -19,4 +19,17 @@
 FLUTTER_PLUGIN_EXPORT void FirebaseCorePluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrar* registrar);
 
+#ifdef BUILD_SHARED_PLUGIN
+#if defined(__cplusplus)
+extern "C" {
+#endif
+FLUTTER_PLUGIN_EXPORT void FlutterPluginRegister(
+    FlutterDesktopPluginRegistrar* registrar) {
+  FirebaseCorePluginCApiRegisterWithRegistrar(registrar);
+}
+#if defined(__cplusplus)
+}  // extern "C"
+#endif
+#endif
+
 #endif  // FLUTTER_PLUGIN_FIREBASE_CORE_PLUGIN_C_API_H_

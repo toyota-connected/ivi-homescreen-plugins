@@ -21,7 +21,14 @@ extern "C" {
 #endif
 
 FLUTTER_PLUGIN_EXPORT void FirebaseAuthPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar);
+    FlutterDesktopPluginRegistrar* registrar);
+
+#ifdef BUILD_SHARED_PLUGIN
+FLUTTER_PLUGIN_EXPORT void FlutterPluginRegister(
+    FlutterDesktopPluginRegistrar* registrar) {
+  FirebaseAuthPluginCApiRegisterWithRegistrar(registrar);
+}
+#endif
 
 #if defined(__cplusplus)
 }  // extern "C"

@@ -40,6 +40,13 @@ FLUTTER_PLUGIN_EXPORT void NavRenderViewPluginCApiRegisterWithRegistrar(
 FLUTTER_PLUGIN_EXPORT void NavRenderViewPluginTextureCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrar* registrar);
 
+#ifdef BUILD_SHARED_PLUGIN
+FLUTTER_PLUGIN_EXPORT void FlutterPluginRegister(
+    FlutterDesktopPluginRegistrar* registrar) {
+  NavRenderViewPluginCApiRegisterWithRegistrar(registrar);
+}
+#endif
+
 #if defined(__cplusplus)
 }  // extern "C"
 #endif

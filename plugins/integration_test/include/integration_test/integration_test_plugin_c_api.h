@@ -33,6 +33,13 @@ extern "C" {
 FLUTTER_PLUGIN_EXPORT void IntegrationTestPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrar* registrar);
 
+#ifdef BUILD_SHARED_PLUGIN
+FLUTTER_PLUGIN_EXPORT void FlutterPluginRegister(
+    FlutterDesktopPluginRegistrar* registrar) {
+  IntegrationTestPluginCApiRegisterWithRegistrar(registrar);
+}
+#endif
+
 #if defined(__cplusplus)
 }  // extern "C"
 #endif
