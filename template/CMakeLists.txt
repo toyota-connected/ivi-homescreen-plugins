@@ -66,12 +66,14 @@ endif()
 #
 include(plugin.cmake)
 
-set(PLUGIN_TARGET_NAME "plugin_${PLUGIN_NAME}")
-
 # Validate the plugin.cmake file. Make sure it has the following defines:
 set(_plugin_cmake_defines
         PLUGIN_DATA_SOURCES
         PLUGIN_DATA_LIBRARIES
+        PLUGIN_NAME
+        PLUGIN_TARGET_NAME
+        PLUGIN_REGISTER_ENDPOINT
+        PLUGIN_HEADER
 )
 
 set(_plugin_cmake_macros

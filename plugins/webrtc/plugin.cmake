@@ -10,6 +10,7 @@ string(TOLOWER "${underscore_fname}" lcase_name)
 string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 
 set(PLUGIN_NAME "${lcase_name}")
+set(PLUGIN_TARGET_NAME "plugin_${PLUGIN_NAME}")
 set(PLUGIN_REGISTER_ENDPOINT "${camelcase_fname}PluginCApiRegisterWithRegistrar")
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/${PLUGIN_NAME}_plugin_c_api.h")
 
@@ -25,7 +26,7 @@ macro(PLUGIN_STEP_DEPENDENCIES)
     if (NOT EXISTS ${LIBWEBRTC_INC_DIR})
         message(FATAL_ERROR "LIBWEBRTC_INC_DIR: \"${LIBWEBRTC_INC_DIR}\" does not exist")
     endif ()
-    
+
     if (NOT EXISTS ${LIBWEBRTC_LIB})
         message(FATAL_ERROR "LIBWEBRTC_LIB: \"${LIBWEBRTC_LIB}\" does not exist")
     endif ()

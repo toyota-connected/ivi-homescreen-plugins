@@ -10,6 +10,7 @@ string(TOLOWER "${underscore_fname}" lcase_name)
 string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 
 set(PLUGIN_NAME "${lcase_name}")
+set(PLUGIN_TARGET_NAME "plugin_${PLUGIN_NAME}")
 unset(PLUGIN_REGISTER_ENDPOINT) # This plugin does not have a registration endpoint since it is not meant to be used as a static plugin.
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/${PLUGIN_NAME}.h")
 

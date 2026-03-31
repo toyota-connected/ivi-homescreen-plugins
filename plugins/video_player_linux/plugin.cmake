@@ -10,6 +10,7 @@ string(TOLOWER "${underscore_fname}" lcase_name)
 string(REPLACE " " "" camelcase_fname "${PLUGIN_FULL_NAME}")
 
 set(PLUGIN_NAME "${lcase_name}")
+set(PLUGIN_TARGET_NAME "plugin_${PLUGIN_NAME}")
 set(PLUGIN_REGISTER_ENDPOINT "${camelcase_fname}PluginCApiRegisterWithRegistrar")
 set(PLUGIN_HEADER "${CMAKE_CURRENT_LIST_DIR}/include/${PLUGIN_NAME}/video_player_plugin_c_api.h")
 
