@@ -65,7 +65,7 @@ endif()
 include(plugin.cmake)
 
 # Validate the plugin.cmake file. Make sure it has the following defines:
-list(INSERT plugin_cmake_defines 0
+set(plugin_cmake_defines
         PLUGIN_STEP_DEPENDENCIES
         PLUGIN_DATA_SOURCES
         PLUGIN_STEP_TARGETS
@@ -80,12 +80,12 @@ foreach(define IN LISTS plugin_cmake_defines)
     endif()
 endforeach()
 
+target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
+
 
 #
 # STEP 1: Setup static/dynamic plugin resolution
 #
-
-
 if(BUILD_SHARED_PLUGIN)
     add_library(platform_homescreen INTERFACE)
     target_include_directories(platform_homescreen INTERFACE
@@ -96,11 +96,14 @@ if(BUILD_SHARED_PLUGIN)
     )
 endif()
 
+
+
 #
 # STEP 2: Declare plugin dependencies
 #
 find_package(PkgConfig REQUIRED)
 PLUGIN_STEP_DEPENDENCIES()
+
 
 
 #
@@ -121,18 +124,20 @@ PLUGIN_STEP_TARGETS()
 #
 # STEP 4: Link dependencies
 #
-
-list(INSERT _plugin_libraries 0
+set(_plugin_libraries
         flutter
         platform_homescreen
         ${PLUGIN_NAME}
         ${PLUGIN_DATA_LIBRARIES}
 )
 
+# Link libraries
 if(BUILD_SHARED_PLUGIN)
-    # For a shared plugin:
-    # - libraries are linked as PRIVATE
+    # For a shared plugin libraries are linked as PRIVATE
+    set(_link_type PRIVATE)
+else()
+    # For a static plugin libraries are linked as PUBLIC to ensure they are propagated to the final homescreen binary
+    set(_link_type PUBLIC)
+endif()
 
-    add_library(${PLUGIN_NAME} PRIVATE
-        ${_plugin_libraries}
-    )
+target_link_libraries(${PLUGIN_NAME} ${_link_type} ${_plugin_libraries})
