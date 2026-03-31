@@ -34,4 +34,5 @@ macro(PLUGIN_STEP_TARGETS)
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES
+    ""
 )

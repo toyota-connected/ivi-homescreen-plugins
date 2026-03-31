@@ -43,13 +43,19 @@ set(PLUGIN_DATA_SOURCES
     portals/portal_manager.cc
     portals/portal_proxy.cc
     portals/permissions_portal/permissions_portal.cc
+    portals/permissions_portal/permissions_portal.h
     operation_tracker.cc
+    operation_tracker.h
 )
 
 macro(PLUGIN_STEP_TARGETS)
     target_compile_options(${PLUGIN_NAME} PRIVATE
         -Wno-deprecated-declarations
     )
+
+    if (BUILD_UNIT_TESTS)
+        add_subdirectory(test)
+    endif ()
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

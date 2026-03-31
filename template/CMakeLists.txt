@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+include_guard()
+
 option(BUILD_SHARED_PLUGIN "Build as a standalone shared (.so) library" OFF)
 if(BUILD_SHARED_PLUGIN)
     set(_lib_type SHARED)
@@ -64,19 +66,30 @@ endif()
 #
 include(plugin.cmake)
 
+set(PLUGIN_TARGET_NAME "plugin_${PLUGIN_NAME}")
+
 # Validate the plugin.cmake file. Make sure it has the following defines:
-set(plugin_cmake_defines
-        PLUGIN_STEP_DEPENDENCIES
+set(_plugin_cmake_defines
         PLUGIN_DATA_SOURCES
-        PLUGIN_STEP_TARGETS
         PLUGIN_DATA_LIBRARIES
+)
+
+set(_plugin_cmake_macros
+        PLUGIN_STEP_DEPENDENCIES
+        PLUGIN_STEP_TARGETS
 )
 
 # If any of these are missing, the plugin.cmake file is not valid and the build
 # should fail.
-foreach(define IN LISTS plugin_cmake_defines)
+foreach(define IN LISTS _plugin_cmake_defines)
     if(NOT DEFINED ${define})
         message(FATAL_ERROR "The plugin.cmake file is missing the required define: ${define}")
+    endif()
+endforeach()
+
+foreach(macro IN LISTS _plugin_cmake_macros)
+    if(NOT COMMAND ${macro})
+        message(FATAL_ERROR "The plugin.cmake file is missing the required macro: ${macro}")
     endif()
 endforeach()
 
@@ -95,16 +108,17 @@ if(BUILD_SHARED_PLUGIN)
 
     # Rename PLUGIN_REGISTER_ENDPOINT to standard `FlutterPluginRegister` for shared plugins
     set(PLUGIN_REGISTER_ENDPOINT "FlutterPluginRegister")
-    target_compile_definitions(${PLUGIN_NAME} PRIVATE BUILD_SHARED_PLUGIN=1)
 endif()
-
-target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 
 
 #
 # STEP 2: Declare plugin dependencies
 #
-find_package(PkgConfig REQUIRED)
+if(BUILD_SHARED_PLUGIN) 
+    find_package(PkgConfig REQUIRED)
+    # NOTE: in static mode, homescreen is expected to do this
+endif()
+# TODO: gather all modules required when building in bulk (static plugins)
 PLUGIN_STEP_DEPENDENCIES()
 
 
@@ -112,13 +126,20 @@ PLUGIN_STEP_DEPENDENCIES()
 #
 # STEP 3: Declare plugin libraries
 #
-add_library(${PLUGIN_NAME} ${_lib_type}
+add_library(${PLUGIN_TARGET_NAME} ${_lib_type}
         ${PLUGIN_DATA_SOURCES}
 )
 
-target_include_directories(${PLUGIN_NAME} PRIVATE
+target_include_directories(${PLUGIN_TARGET_NAME} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+
+if(BUILD_SHARED_PLUGIN)
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PRIVATE BUILD_SHARED_PLUGIN=1)
+endif()
+
+
+target_compile_definitions(${PLUGIN_TARGET_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 
 PLUGIN_STEP_TARGETS()
 
@@ -130,7 +151,6 @@ PLUGIN_STEP_TARGETS()
 set(_plugin_libraries
         flutter
         platform_homescreen
-        ${PLUGIN_NAME}
         ${PLUGIN_DATA_LIBRARIES}
 )
 
@@ -143,7 +163,7 @@ else()
     set(_link_type PUBLIC)
 endif()
 
-target_link_libraries(${PLUGIN_NAME} ${_link_type} ${_plugin_libraries})
+target_link_libraries(${PLUGIN_TARGET_NAME} ${_link_type} ${_plugin_libraries})
 
 
 
@@ -152,15 +172,10 @@ target_link_libraries(${PLUGIN_NAME} ${_link_type} ${_plugin_libraries})
 #
 
 # Make sure that the output target has a FlutterPluginRegister symbol exposed
-
 if(BUILD_SHARED_PLUGIN)
-    add_custom_command(TARGET ${PLUGIN_NAME}
+    add_custom_command(TARGET ${PLUGIN_TARGET_NAME}
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E echo "Validating plugin ${PLUGIN_NAME} for symbol: ${PLUGIN_REGISTER_ENDPOINT}"
-            COMMAND ${CMAKE_COMMAND} -E sh -c "nm -D \$<TARGET_FILE:${PLUGIN_NAME}> | grep ${PLUGIN_REGISTER_ENDPOINT} || (echo 'Error: Symbol ${PLUGIN_REGISTER_ENDPOINT} not found in plugin ${PLUGIN_NAME}' && exit 1)"
+            COMMAND ${CMAKE_COMMAND} -E sh -c "nm -D \$<TARGET_FILE:${PLUGIN_TARGET_NAME}> | grep ${PLUGIN_REGISTER_ENDPOINT} || (echo 'Error: Symbol ${PLUGIN_REGISTER_ENDPOINT} not found in plugin ${PLUGIN_NAME}' && exit 1)"
     )
-else()
-    add_custom_command(TARGET ${PLUGIN_NAME}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "Validating plugin ${PLUGIN_NAME} for symbol: ${PLUGIN_REGISTER_ENDPOINT}"
-            COMMAND ${CMAKE_COMMAND} -E sh -c "
+endif()

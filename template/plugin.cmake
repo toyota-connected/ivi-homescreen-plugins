@@ -71,5 +71,5 @@ endmacro()
 #   These are automatically included in the final link step based on the BUILD_SHARED_PLUGIN option.
 #
 set(PLUGIN_DATA_LIBRARIES
-
+    ""
 )

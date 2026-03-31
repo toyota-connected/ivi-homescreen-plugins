@@ -26,12 +26,15 @@ macro(PLUGIN_STEP_DEPENDENCIES)
         message(FATAL_ERROR "CEF_ROOT: \"${CEF_ROOT}\" does not exist")
     endif ()
     message(STATUS "  CEF_ROOT: ${CEF_ROOT}")
+    
     if (NOT CEF_BUILD_TYPE)
         set(CEF_BUILD_TYPE "Release")
     endif ()
     message("CEF_BUILD_TYPE: ${CEF_BUILD_TYPE}")
     add_compile_definitions(CEF_ROOT=\"${CEF_ROOT}\")
+
     set(WEBVIEW_SUBPROCESS_PROJECT_NAME "webview_flutter_subprocess")
+
     add_subdirectory(${CEF_ROOT})
 endmacro()
 
@@ -47,13 +50,16 @@ macro(PLUGIN_STEP_TARGETS)
         WL_EGL_PLATFORM
         EGL_NO_X11
     )
+
     target_compile_options(${PLUGIN_NAME} PRIVATE
         -isystem${CEF_ROOT}
         -isystem${CEF_ROOT}/include
     )
+
     target_link_directories(${PLUGIN_NAME} PUBLIC
         ${CEF_ROOT}/${CEF_BUILD_TYPE}
     )
+    
     add_dependencies(${PLUGIN_NAME} libcef_dll_wrapper)
 endmacro()
 
