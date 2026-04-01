@@ -41,6 +41,7 @@ jobs:
         uses: ./plugins_source/.github/actions/homescreen-build
         with:
           name: ${{ inputs.name }}
+          homescreen-ref: "feature/dynamic-plugins"
           plugins-ref: ${{ github.sha }}
           clang-version: ${{ inputs.clang-version }}
           libcamera-enable: ${{ inputs.libcamera-enable }}
@@ -114,6 +115,7 @@ jobs:
         uses: ./plugins_source/.github/actions/homescreen-build
         with:
           name: ${{ inputs.name }}
+          homescreen-ref: "feature/dynamic-plugins"
           plugins-ref: ${{ github.sha }}
           clang-version: ${{ inputs.clang-version }}
           libcamera-enable: ${{ inputs.libcamera-enable }}
@@ -175,6 +177,7 @@ jobs:
         uses: ./plugins_source/.github/actions/homescreen-build
         with:
           name: ${{ inputs.name }}
+          homescreen-ref: "feature/dynamic-plugins"
           plugins-ref: ${{ github.sha }}
           clang-version: ${{ inputs.clang-version }}
           libcamera-enable: ${{ inputs.libcamera-enable }}
@@ -239,6 +242,7 @@ jobs:
         uses: ./plugins_source/.github/actions/homescreen-build
         with:
           name: ${{ inputs.name }}
+          homescreen-ref: "feature/dynamic-plugins"
           plugins-ref: ${{ github.sha }}
           clang-version: ${{ inputs.clang-version }}
           libcamera-enable: ${{ inputs.libcamera-enable }}
