@@ -51,16 +51,16 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_compile_definitions(${PLUGIN_NAME} PRIVATE -DRTC_DESKTOP_DEVICE)
-    target_compile_options(${PLUGIN_NAME} PRIVATE
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PRIVATE -DRTC_DESKTOP_DEVICE)
+    target_compile_options(${PLUGIN_TARGET_NAME} PRIVATE
         -isystem${CMAKE_CURRENT_SOURCE_DIR}/third_party/svpng
     )
-    target_include_directories(${PLUGIN_NAME} PRIVATE
+    target_include_directories(${PLUGIN_TARGET_NAME} PRIVATE
         third_party/flutter-webrtc/common/cpp/include
     )
 
     # mask third party header warnings
-    target_compile_options(${PLUGIN_NAME} PRIVATE
+    target_compile_options(${PLUGIN_TARGET_NAME} PRIVATE
         -isystem${LIBWEBRTC_INC_DIR}
     )
 endmacro()

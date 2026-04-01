@@ -40,8 +40,11 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    target_compile_features(${PLUGIN_NAME} PRIVATE cxx_std_17)
+    set_target_properties(${PLUGIN_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    target_compile_features(${PLUGIN_TARGET_NAME} PRIVATE cxx_std_17)
+    
+    # List of absolute paths to libraries that should be bundled with the plugin
+    set(audioplayers_linux_bundled_libraries "" PARENT_SCOPE)
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES
@@ -49,6 +52,3 @@ set(PLUGIN_DATA_LIBRARIES
     plugin_common_glib
     PkgConfig::GST
 )
-
-# List of absolute paths to libraries that should be bundled with the plugin
-set(audioplayers_linux_bundled_libraries "" PARENT_SCOPE)

@@ -39,12 +39,12 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    target_compile_features(${PLUGIN_NAME} PRIVATE cxx_std_17)
+    set_target_properties(${PLUGIN_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    target_compile_features(${PLUGIN_TARGET_NAME} PRIVATE cxx_std_17)
    
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-    target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

@@ -39,11 +39,11 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_include_directories(${PLUGIN_NAME} PUBLIC
+    target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC
         ${JPEG_INCLUDE_DIRS}
     )
     if(JPEG_FOUND)
-        target_compile_definitions(${PLUGIN_NAME} PUBLIC ENABLE_JPEG)
+        target_compile_definitions(${PLUGIN_TARGET_NAME} PUBLIC ENABLE_JPEG)
     endif()
 endmacro()
 

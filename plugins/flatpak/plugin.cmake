@@ -50,7 +50,7 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_compile_options(${PLUGIN_NAME} PRIVATE
+    target_compile_options(${PLUGIN_TARGET_NAME} PRIVATE
         -Wno-deprecated-declarations
     )
 

@@ -34,7 +34,7 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_include_directories(${PLUGIN_NAME} PRIVATE ${PROJECT_BINARY_DIR})
+    target_include_directories(${PLUGIN_TARGET_NAME} PRIVATE ${PROJECT_BINARY_DIR})
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

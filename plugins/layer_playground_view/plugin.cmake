@@ -32,12 +32,12 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_compile_definitions(${PLUGIN_NAME} PUBLIC
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PUBLIC
         MESA_EGL_NO_X11_HEADERS
         WL_EGL_PLATFORM
         EGL_NO_X11
     )
-    target_include_directories(${PLUGIN_NAME} PUBLIC .)
+    target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC .)
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

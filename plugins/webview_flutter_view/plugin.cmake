@@ -46,22 +46,22 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_compile_definitions(${PLUGIN_NAME} PUBLIC
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PUBLIC
         MESA_EGL_NO_X11_HEADERS
         WL_EGL_PLATFORM
         EGL_NO_X11
     )
 
-    target_compile_options(${PLUGIN_NAME} PRIVATE
+    target_compile_options(${PLUGIN_TARGET_NAME} PRIVATE
         -isystem${CEF_ROOT}
         -isystem${CEF_ROOT}/include
     )
 
-    target_link_directories(${PLUGIN_NAME} PUBLIC
+    target_link_directories(${PLUGIN_TARGET_NAME} PUBLIC
         ${CEF_ROOT}/${CEF_BUILD_TYPE}
     )
 
-    add_dependencies(${PLUGIN_NAME} libcef_dll_wrapper)
+    add_dependencies(${PLUGIN_TARGET_NAME} libcef_dll_wrapper)
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES

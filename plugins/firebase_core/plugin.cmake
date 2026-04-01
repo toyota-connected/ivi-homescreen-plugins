@@ -148,9 +148,9 @@ set(PLUGIN_DATA_SOURCES
 )
 
 macro(PLUGIN_STEP_TARGETS)
-    target_compile_definitions(${PLUGIN_NAME} PRIVATE INTERNAL_EXPERIMENTAL)
-    target_include_directories(${PLUGIN_NAME} PUBLIC .)
-    target_link_directories(${PLUGIN_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    target_compile_definitions(${PLUGIN_TARGET_NAME} PRIVATE INTERNAL_EXPERIMENTAL)
+    target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC .)
+    target_link_directories(${PLUGIN_TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 endmacro()
 
 set(PLUGIN_DATA_LIBRARIES
