@@ -223,6 +223,13 @@ class VideoPlayer {
   std::atomic<bool> is_initialized_{false};
   std::atomic<bool> sent_initialized_{false};
 
+  // Latches true the first time the pipeline reaches PLAYING. The
+  // GST_MESSAGE_BUFFERING handler uses this to tell a cold-start
+  // buffering fill (force PAUSED/resume PLAYING) apart from an expected
+  // post-EOS queue2 drain on finite HTTP sources (let playbin handle it
+  // internally, just surface bufferingStart/End to Dart).
+  std::atomic<bool> ever_played_{false};
+
   VideoPlayerStats stats_;
   void SetBuffering(bool buffering);
 

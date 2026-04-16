@@ -348,7 +348,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
     }
     g_object_set(sink_, "sync", TRUE, nullptr);
     g_object_set(sink_, "signal-handoffs", TRUE, nullptr);
-    g_object_set(sink_, "can-activate-pull", TRUE, nullptr);
+    // Explicit push mode. Pull mode changes upstream delivery and was
+    // observed to stop buffer flow to the sink after ~5 frames; see
+    // Phase 0.x follow-up.
+    g_object_set(sink_, "can-activate-pull", FALSE, nullptr);
     handoff_handler_id_ = g_signal_connect(
         sink_, "handoff", reinterpret_cast<GCallback>(handoff_handler), this);
 
@@ -816,11 +819,13 @@ void VideoPlayer::OnDeepElementAdded(GstBin* /* bin */,
   if (!factory) {
     return;
   }
-  // Restrict to video decoders. "Codec/Decoder/Video" is the standard klass
-  // string for both software decoders (avdec_*) and stateless/stateful V4L2
-  // decoders (v4l2h264dec, v4l2slh264dec), VA-API decoders, and vendor
-  // elements (vpudec, omxh264dec, mppvideodec). Classification lets us
-  // ignore sinks, demuxers and parsers that also hit this callback.
+
+  // Restrict decoder detection to video decoders. "Codec/Decoder/Video" is
+  // the standard klass string for both software decoders (avdec_*) and
+  // stateless/stateful V4L2 decoders (v4l2h264dec, v4l2slh264dec), VA-API
+  // decoders, and vendor elements (vpudec, omxh264dec, mppvideodec).
+  // Classification lets us ignore sinks, demuxers and parsers that also
+  // hit this callback.
   const gchar* klass =
       gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS);
   if (!klass || !g_strrstr(klass, "Decoder") || !g_strrstr(klass, "Video")) {
@@ -1111,6 +1116,7 @@ void VideoPlayer::OnMediaStateChange(const GstState state) {
         prepare(this);
       }
       is_initialized_ = true;
+      ever_played_ = true;
       ApplyPlaybackSpeed();
 
       // For audio-only there are no video frames, so the handoff path will
@@ -1446,7 +1452,7 @@ gboolean VideoPlayer::OnBusMessage(GstBus* /* bus */,
       break;
     }
     case GST_MESSAGE_BUFFERING: {
-      // no state management needed for live pipelines
+      // Live pipelines never buffer.
       if (obj->is_live_)
         break;
 
@@ -1457,25 +1463,45 @@ gboolean VideoPlayer::OnBusMessage(GstBus* /* bus */,
 
       obj->SendBufferingUpdate();
 
+      // Always surface the bufferingStart/End edge to Dart via the
+      // is_buffering_ flag so UI can reflect it. Use atomic::exchange
+      // for a single-shot edge under concurrent bus dispatch.
       if (percent == 100) {
-        // a 100% message means buffering is done
-        if (obj->is_buffering_) {
-          obj->is_buffering_ = false;
+        if (obj->is_buffering_.exchange(false)) {
           obj->SetBuffering(false);
         }
-        // if the desired state is playing, resume
+      } else {
+        if (!obj->is_buffering_.exchange(true)) {
+          obj->SetBuffering(true);
+        }
+      }
+
+      // Force pipeline state transitions ONLY during the cold-start
+      // buffering ramp, before the pipeline has ever reached PLAYING.
+      //
+      // After first-play, playbin manages mid-stream buffering
+      // internally — fakesink with sync=TRUE naturally stalls on PTS
+      // when the decoder runs dry, so an extra forced PAUSED from us
+      // is redundant. It also actively breaks short HTTP streams:
+      // playbin's queue2 drops below low-percent immediately after EOS
+      // as the decoder drains it, which would thrash us back to PAUSED
+      // every frame. Gating on ever_played_ contains our state
+      // interference to the initial fill where it actually matters.
+      if (obj->ever_played_) {
+        break;
+      }
+      if (percent == 100) {
         if (obj->target_state_ == GST_STATE_PLAYING) {
           gst_element_set_state(obj->playbin_, GST_STATE_PLAYING);
         }
-      } else {
-        // buffering busy
-        if (!obj->is_buffering_ && obj->target_state_ == GST_STATE_PLAYING) {
-          // pause the pipeline while buffering
+      } else if (obj->target_state_ == GST_STATE_PLAYING) {
+        // Pause only on the first sub-100% of the cold-start fill, not
+        // on every subsequent oscillation message from multiple
+        // internal queue2 instances.
+        GstState cur = GST_STATE_VOID_PENDING;
+        gst_element_get_state(obj->playbin_, &cur, nullptr, 0);
+        if (cur == GST_STATE_PLAYING) {
           gst_element_set_state(obj->playbin_, GST_STATE_PAUSED);
-        }
-        if (!obj->is_buffering_) {
-          obj->is_buffering_ = true;
-          obj->SetBuffering(true);
         }
       }
       break;
