@@ -869,28 +869,40 @@ void VideoPlayer::ApplyPlaybackSpeed() {
     return;
   }
 
+  // First-time rate application uses a NON-flushing seek. A flush-seek at
+  // the first PLAYING transition resets souphttpsrc, forcing it to
+  // re-fetch the entire stream from the start — which stalls cold HTTP
+  // playback at frame #1 until the re-download catches up. The -2.0
+  // sentinel still exists to ensure rate is explicitly established (to
+  // defeat stray inherited segment rates), but the NONE flag lets
+  // in-flight buffers continue flowing while the new rate propagates.
+  // Mid-stream rate changes after the first call keep the FLUSH+ACCURATE
+  // flags so the pipeline immediately snaps to the new rate.
+  const bool first_time = (rate_.load() == -2.0);
   const auto playbackSpeed = pending;
   gint64 pos = 0;
   if (!gst_element_query_position(playbin_, GST_FORMAT_TIME, &pos)) {
     pos = position_.load();
   }
-  // Canonical rate-only seek: SET start at the current position, NONE for
-  // the stop. Earlier we passed END/0 for the stop which on some sinks
-  // collapses the segment to zero length and silently squashes the rate
-  // change.
+  const GstSeekFlags flush_flags =
+      first_time ? GST_SEEK_FLAG_NONE
+                 : static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH |
+                                             GST_SEEK_FLAG_ACCURATE);
   GstEvent* seek_event = nullptr;
   if (playbackSpeed > 0) {
-    seek_event = gst_event_new_seek(
-        playbackSpeed, GST_FORMAT_TIME,
-        static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
-        GST_SEEK_TYPE_SET, pos, GST_SEEK_TYPE_NONE,
-        static_cast<gint64>(GST_CLOCK_TIME_NONE));
+    // Canonical rate-only seek: SET start at the current position, NONE
+    // for the stop. Earlier we passed END/0 for the stop which on some
+    // sinks collapses the segment to zero length and silently squashes
+    // the rate change.
+    seek_event = gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME,
+                                    flush_flags, GST_SEEK_TYPE_SET, pos,
+                                    GST_SEEK_TYPE_NONE,
+                                    static_cast<gint64>(GST_CLOCK_TIME_NONE));
   } else {
     // Reverse playback: walk from start to the current position.
-    seek_event = gst_event_new_seek(
-        playbackSpeed, GST_FORMAT_TIME,
-        static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
-        GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, pos);
+    seek_event = gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME,
+                                    flush_flags, GST_SEEK_TYPE_SET, 0,
+                                    GST_SEEK_TYPE_SET, pos);
   }
 
   if (!gst_element_send_event(playbin_, seek_event)) {
