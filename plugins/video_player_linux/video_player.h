@@ -168,6 +168,20 @@ class VideoPlayer {
   void DestroySharedGlContext();
   void MakeContextCurrent();  // idempotent, cheap when already current
 
+  // Phase 1.5 — render-path selection. At ctor time we probe whether the
+  // zero-copy dmabuf → EGLImage path can run on this platform and pick
+  // one of two mutually exclusive sinks + renderers. PboShaderUpload is
+  // the existing fakesink + NV12 shader path. DmabufZeroCopy replaces the
+  // sink with appsink + dmabuf caps and binds EGLImages (implemented in
+  // tasks 1.1–1.4). The probe is conservative: if anything looks wrong
+  // we fall back to PboShaderUpload.
+  enum class RenderPath {
+    PboShaderUpload,
+    DmabufZeroCopy,
+  };
+  RenderPath render_path_{RenderPath::PboShaderUpload};
+  RenderPath ProbeRenderPath() const;
+
   GMainContext* context_;
 
   // Gst members
@@ -328,6 +342,12 @@ class VideoPlayer {
                               GstBuffer* buffer,
                               GstPad* pad,
                               void* user_data);
+
+  // appsink new-sample callback used on the DmabufZeroCopy render path.
+  // Pulls the GstSample and dispatches based on memory type (dmabuf →
+  // Phase 1.2/1.3 EGLImage import; raw → fall through to the NV12
+  // shader upload path so non-dmabuf-capable decoders still work).
+  static GstFlowReturn OnNewSample(void* appsink, void* user_data);
 
   static gboolean OnBusMessage(GstBus* bus, GstMessage* msg, void* user_data);
 

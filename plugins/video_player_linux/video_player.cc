@@ -27,6 +27,8 @@
 #include <climits>
 #include <cstring>
 
+#include <gst/allocators/gstdmabuf.h>
+#include <gst/app/gstappsink.h>
 #include <gst/audio/audio.h>
 #include <gst/tag/tag.h>
 
@@ -133,6 +135,69 @@ void VideoPlayer::MakeContextCurrent() {
   }
 }
 
+namespace {
+bool has_egl_extension(EGLDisplay dpy, const char* name) {
+  if (dpy == EGL_NO_DISPLAY || !name) {
+    return false;
+  }
+  const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
+  if (!exts) {
+    return false;
+  }
+  // Extensions are space-separated; match whole tokens so "EGL_KHR_image"
+  // doesn't false-match "EGL_KHR_image_base".
+  const size_t len = std::strlen(name);
+  const char* p = exts;
+  while ((p = std::strstr(p, name)) != nullptr) {
+    const bool left_ok = (p == exts) || p[-1] == ' ';
+    const bool right_ok = p[len] == ' ' || p[len] == '\0';
+    if (left_ok && right_ok) {
+      return true;
+    }
+    p += len;
+  }
+  return false;
+}
+}  // namespace
+
+VideoPlayer::RenderPath VideoPlayer::ProbeRenderPath() const {
+  // Env-var kill switch. Useful for A/B'ing in the field and for
+  // bypassing the zero-copy path on drivers where EGLImage import from
+  // dmabuf is advertised but broken.
+  if (std::getenv("VIDEO_PLAYER_DISABLE_DMABUF")) {
+    SPDLOG_DEBUG("[VideoPlayer] Dmabuf path disabled via env var");
+    return RenderPath::PboShaderUpload;
+  }
+
+  // The dmabuf path relies on our per-player shared EGL context owning the
+  // EGLImage → GL_TEXTURE_2D binding. On the legacy TextureMakeCurrent
+  // fallback we don't have a context of our own to bind the image into.
+  if (use_legacy_context_) {
+    SPDLOG_DEBUG(
+        "[VideoPlayer] Dmabuf path unavailable: legacy context in use");
+    return RenderPath::PboShaderUpload;
+  }
+
+  // Core EGL extension for dmabuf import. Modifier support
+  // (EGL_EXT_image_dma_buf_import_modifiers) is checked where relevant
+  // in the tiled-format code paths; absence only disables tiled support,
+  // not linear NV12.
+  if (!has_egl_extension(egl_display_, "EGL_EXT_image_dma_buf_import")) {
+    SPDLOG_DEBUG(
+        "[VideoPlayer] Dmabuf path unavailable: EGL_EXT_image_dma_buf_import "
+        "missing");
+    return RenderPath::PboShaderUpload;
+  }
+
+  // GL_OES_EGL_image (for glEGLImageTargetTexture2DOES) is checked at
+  // bind time in Phase 1.3 once a context is current; probing it here
+  // would require making our context current just for the query, which
+  // we haven't done yet at ctor time. The runtime-downgrade path handles
+  // the "advertised but unusable" case.
+
+  return RenderPath::DmabufZeroCopy;
+}
+
 VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
                          FlutterDesktopPluginRegistrarRef raw_registrar,
                          std::string uri,
@@ -204,6 +269,16 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
     }
     stats_.uses_shared_gl_context.store(!use_legacy_context_,
                                         std::memory_order_relaxed);
+
+    // Decide which render path this player will use for the rest of its
+    // lifetime. PboShaderUpload is the existing path; DmabufZeroCopy
+    // swaps fakesink for appsink with dmabuf caps (Phase 1.1+).
+    render_path_ = ProbeRenderPath();
+    stats_.uses_dmabuf.store(render_path_ == RenderPath::DmabufZeroCopy,
+                             std::memory_order_relaxed);
+    SPDLOG_DEBUG("[VideoPlayer] render path: {}",
+                 render_path_ == RenderPath::DmabufZeroCopy ? "dmabuf-zerocopy"
+                                                            : "pbo-shader");
 
     /// Setup GL Texture 2D
     m_descriptor.struct_size = sizeof(FlutterDesktopGpuSurfaceDescriptor);
@@ -340,20 +415,46 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
   }
 
   if (has_video_) {
-    sink_ = gst_element_factory_make("fakesink", nullptr);
-    if (!sink_) {
-      SPDLOG_ERROR("[VideoPlayer] Failed to create fakesink element");
-      m_valid = false;
-      return;
+    if (render_path_ == RenderPath::DmabufZeroCopy) {
+      // Phase 1.1 — appsink replaces fakesink on the zero-copy path.
+      // Caps accept dmabuf *or* raw NV12 so non-dmabuf-capable decoders
+      // (openh264dec, avdec_*) still negotiate. The OnNewSample handler
+      // routes dmabuf buffers through the EGLImage path (Phase 1.2/1.3)
+      // and raw buffers through the existing NV12 shader upload.
+      sink_ = gst_element_factory_make("appsink", nullptr);
+      if (!sink_) {
+        SPDLOG_ERROR("[VideoPlayer] Failed to create appsink element");
+        m_valid = false;
+        return;
+      }
+      // `video/x-raw(memory:DMABuf)` first so upstream picks it when
+      // possible; fall back to plain raw NV12 otherwise. Accept the
+      // same NV12 format on both features so the downstream shader
+      // preset stays valid.
+      GstCaps* sink_caps = gst_caps_from_string(
+          "video/x-raw(memory:DMABuf), format=(string)NV12; "
+          "video/x-raw, format=(string)NV12");
+      g_object_set(sink_, "caps", sink_caps, "emit-signals", TRUE,
+                   "max-buffers", 2, "drop", TRUE, "sync", TRUE, nullptr);
+      gst_caps_unref(sink_caps);
+      handoff_handler_id_ = g_signal_connect(
+          sink_, "new-sample", reinterpret_cast<GCallback>(OnNewSample), this);
+    } else {
+      sink_ = gst_element_factory_make("fakesink", nullptr);
+      if (!sink_) {
+        SPDLOG_ERROR("[VideoPlayer] Failed to create fakesink element");
+        m_valid = false;
+        return;
+      }
+      g_object_set(sink_, "sync", TRUE, nullptr);
+      g_object_set(sink_, "signal-handoffs", TRUE, nullptr);
+      // Explicit push mode. Pull mode changes upstream delivery and was
+      // observed to stop buffer flow to the sink after ~5 frames; see
+      // Phase 0.x follow-up.
+      g_object_set(sink_, "can-activate-pull", FALSE, nullptr);
+      handoff_handler_id_ = g_signal_connect(
+          sink_, "handoff", reinterpret_cast<GCallback>(handoff_handler), this);
     }
-    g_object_set(sink_, "sync", TRUE, nullptr);
-    g_object_set(sink_, "signal-handoffs", TRUE, nullptr);
-    // Explicit push mode. Pull mode changes upstream delivery and was
-    // observed to stop buffer flow to the sink after ~5 frames; see
-    // Phase 0.x follow-up.
-    g_object_set(sink_, "can-activate-pull", FALSE, nullptr);
-    handoff_handler_id_ = g_signal_connect(
-        sink_, "handoff", reinterpret_cast<GCallback>(handoff_handler), this);
 
     video_convert_ = gst_element_factory_make("videoconvert", nullptr);
     if (!video_convert_) {
@@ -894,15 +995,14 @@ void VideoPlayer::ApplyPlaybackSpeed() {
     // for the stop. Earlier we passed END/0 for the stop which on some
     // sinks collapses the segment to zero length and silently squashes
     // the rate change.
-    seek_event = gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME,
-                                    flush_flags, GST_SEEK_TYPE_SET, pos,
-                                    GST_SEEK_TYPE_NONE,
+    seek_event = gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME, flush_flags,
+                                    GST_SEEK_TYPE_SET, pos, GST_SEEK_TYPE_NONE,
                                     static_cast<gint64>(GST_CLOCK_TIME_NONE));
   } else {
     // Reverse playback: walk from start to the current position.
-    seek_event = gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME,
-                                    flush_flags, GST_SEEK_TYPE_SET, 0,
-                                    GST_SEEK_TYPE_SET, pos);
+    seek_event =
+        gst_event_new_seek(playbackSpeed, GST_FORMAT_TIME, flush_flags,
+                           GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, pos);
   }
 
   if (!gst_element_send_event(playbin_, seek_event)) {
@@ -1242,6 +1342,54 @@ void VideoPlayer::OnTag(const GstTagList* list,
       spdlog::debug("[VideoPlayer] bitrate: {}", value);
     }
   }
+}
+
+GstFlowReturn VideoPlayer::OnNewSample(void* appsink_ptr, void* user_data) {
+  auto* self = static_cast<VideoPlayer*>(user_data);
+  auto* appsink = static_cast<GstAppSink*>(appsink_ptr);
+
+  GstSample* sample = gst_app_sink_pull_sample(appsink);
+  if (!sample) {
+    // Either EOS or shutdown. Let playbin handle it via the bus.
+    return GST_FLOW_EOS;
+  }
+
+  GstBuffer* buf = gst_sample_get_buffer(sample);
+  if (!buf) {
+    gst_sample_unref(sample);
+    return GST_FLOW_ERROR;
+  }
+
+  // Phase 1.1: detect dmabuf memory so the stats channel can reflect
+  // which path actually ran. Phase 1.2/1.3 will branch here to do the
+  // EGLImage import instead of falling through to CPU upload. For now
+  // every sample — dmabuf or raw — gets handled by the existing
+  // handoff_handler code path, which maps the buffer read-only and
+  // uploads via PBO. That's correct (just not zero-copy) for both
+  // software decoders today and dmabuf decoders until 1.3 lands.
+  const bool is_dmabuf = gst_buffer_n_memory(buf) > 0 &&
+                         gst_is_dmabuf_memory(gst_buffer_peek_memory(buf, 0));
+  if (is_dmabuf && !self->stats_.uses_dmabuf.load(std::memory_order_relaxed)) {
+    // Upgrade the stat flag the first time we actually see dmabuf; the
+    // ctor-time flag reflected capability, this reflects reality.
+    self->stats_.uses_dmabuf.store(true, std::memory_order_relaxed);
+    SPDLOG_DEBUG("[VideoPlayer] First dmabuf sample observed on appsink");
+  } else if (!is_dmabuf &&
+             self->stats_.uses_dmabuf.load(std::memory_order_relaxed)) {
+    // Downgrade: capability was advertised but the negotiated pipeline
+    // landed on system-memory samples. Common on software decoders.
+    self->stats_.uses_dmabuf.store(false, std::memory_order_relaxed);
+    SPDLOG_DEBUG(
+        "[VideoPlayer] Appsink delivering raw (non-dmabuf) NV12; staying on "
+        "CPU upload path");
+  }
+
+  // handoff_handler's first arg is unused; passing the appsink as the
+  // element is fine (appsink is a GstElement).
+  handoff_handler(reinterpret_cast<GstElement*>(appsink), buf, nullptr, self);
+
+  gst_sample_unref(sample);
+  return GST_FLOW_OK;
 }
 
 void VideoPlayer::handoff_handler(GstElement* /* fakesink */,

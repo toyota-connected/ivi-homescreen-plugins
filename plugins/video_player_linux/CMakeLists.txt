@@ -36,7 +36,9 @@ pkg_check_modules(GST IMPORTED_TARGET REQUIRED
         gstreamer-video-1.0
         gstreamer-audio-1.0
         gstreamer-tag-1.0
-        gstreamer-pbutils-1.0)
+        gstreamer-pbutils-1.0
+        gstreamer-app-1.0
+        gstreamer-allocators-1.0)
 pkg_check_modules(UDEV IMPORTED_TARGET REQUIRED libudev)
 # GLESv2 + EGL must be linked from this static lib so the symbols are
 # resolved after libplugin_video_player_linux.a in the final executable
