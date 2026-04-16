@@ -389,11 +389,12 @@ bool ColorspaceHintsForCaps(const std::string& caps,
 }
 }  // namespace
 
-bool VideoPlayer::ImportDmabufFrame(const DmabufFrame& frame) {
+bool VideoPlayer::ImportDmabufFrame(const DmabufFrame& frame,
+                                    GstSample* sample) {
   if (!ResolveEglImageEntrypoints()) {
     return false;
   }
-  if (egl_display_ == EGL_NO_DISPLAY || !shader_) {
+  if (egl_display_ == EGL_NO_DISPLAY || !shader_ || !sample) {
     return false;
   }
 
@@ -487,39 +488,63 @@ bool VideoPlayer::ImportDmabufFrame(const DmabufFrame& frame) {
     return false;
   }
 
-  // Destroy the previous image AFTER creating the new one — if
-  // creation fails we keep the previous frame visible. Phase 1.4 will
-  // replace this with a bounded in-flight deque so the compositor can
-  // still sample the old image while we prepare the next one.
-  if (egl_image_current_ != EGL_NO_IMAGE_KHR) {
-    g_eglDestroyImageKHR(egl_display_, egl_image_current_);
-  }
-  egl_image_current_ = new_image;
-
-  // Re-specify the shader's textureId storage as the EGL image.
-  // shader_->textureId remains the same GL name that Flutter's
-  // compositor samples, but its backing storage is now the dmabuf
-  // rather than the RGBA FBO attachment the shader class set up.
+  // Re-specify shader_->textureId's storage as the new EGL image.
+  // shader_->textureId keeps the same GL name Flutter samples; the
+  // underlying dmabuf replaces the RGBA FBO attachment the Shader
+  // class set up.
   glBindTexture(GL_TEXTURE_2D, shader_->textureId);
-  g_glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, egl_image_current_);
+  g_glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, new_image);
   const GLenum gl_err = glGetError();
   if (gl_err != GL_NO_ERROR) {
     spdlog::error(
         "[VideoPlayer] glEGLImageTargetTexture2DOES failed: GL error 0x{:x}",
         gl_err);
-    // Leave egl_image_current_ set; the texture binding may be
-    // partial but destroying the image now would leave the texture
-    // undefined. The next frame's Import() will retry.
+    // Bail before taking ownership of the sample — caller still
+    // owns its reference and can fall back / unref.
+    g_eglDestroyImageKHR(egl_display_, new_image);
     return false;
+  }
+
+  // Bind succeeded. Push the new frame onto the in-flight deque,
+  // taking ownership of the sample ref. Evict the oldest entry if
+  // we're over the cap — that frame is no longer what the compositor
+  // is sampling (the just-bound image is) so it's safe to reclaim.
+  InFlightFrame popped{};
+  {
+    std::lock_guard<std::mutex> lock(in_flight_mutex_);
+    in_flight_frames_.push_back(
+        InFlightFrame{new_image, gst_sample_ref(sample)});
+    if (in_flight_frames_.size() > kMaxInFlight) {
+      popped = in_flight_frames_.front();
+      in_flight_frames_.pop_front();
+    }
+  }
+  if (popped.image != EGL_NO_IMAGE_KHR) {
+    g_eglDestroyImageKHR(egl_display_, popped.image);
+  }
+  if (popped.sample) {
+    gst_sample_unref(popped.sample);
   }
   return true;
 }
 
-void VideoPlayer::DestroyDmabufImage() {
-  if (egl_image_current_ != EGL_NO_IMAGE_KHR && g_eglDestroyImageKHR &&
-      egl_display_ != EGL_NO_DISPLAY) {
-    g_eglDestroyImageKHR(egl_display_, egl_image_current_);
-    egl_image_current_ = EGL_NO_IMAGE_KHR;
+void VideoPlayer::DrainInFlightFrames() {
+  std::deque<InFlightFrame> drained;
+  {
+    std::lock_guard<std::mutex> lock(in_flight_mutex_);
+    drained.swap(in_flight_frames_);
+  }
+  // Drop EGL images under the player's context (caller's contract).
+  // Samples can be unref'd from any thread — gst_sample_unref is
+  // thread-safe — so we do both in the same loop for simplicity.
+  for (auto& frame : drained) {
+    if (frame.image != EGL_NO_IMAGE_KHR && g_eglDestroyImageKHR &&
+        egl_display_ != EGL_NO_DISPLAY) {
+      g_eglDestroyImageKHR(egl_display_, frame.image);
+    }
+    if (frame.sample) {
+      gst_sample_unref(frame.sample);
+    }
   }
 }
 
@@ -904,7 +929,7 @@ void VideoPlayer::Dispose() {
     if (shader_) {
       if (!use_legacy_context_) {
         MakeContextCurrent();
-        DestroyDmabufImage();
+        DrainInFlightFrames();
         shader_.reset();
         eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
                        EGL_NO_CONTEXT);
@@ -1729,14 +1754,16 @@ GstFlowReturn VideoPlayer::OnNewSample(void* appsink_ptr, void* user_data) {
   }
 
   if (dmabuf.has_value() && self->render_path_ == RenderPath::DmabufZeroCopy) {
-    // Phase 1.3 — zero-copy path. Make our EGL context current on
-    // this thread, build/bind an EGLImage for the frame, then tell
-    // Flutter a new frame is available. Skip handoff_handler because
-    // we're not going through the PBO/shader at all.
+    // Zero-copy path — Phases 1.3/1.4. Make our EGL context current
+    // on this thread, import the dmabuf as an EGLImage, bind to the
+    // shader's texture name, and tell Flutter a new frame is
+    // available. The sample pointer is handed off to ImportDmabufFrame
+    // which ref's it into the in-flight deque; on success it owns the
+    // ref and we must NOT unref it here.
     std::lock_guard lock(self->gst_mutex_);
     if (self->m_valid && self->is_initialized_ && self->has_video_) {
       self->MakeContextCurrent();
-      const bool ok = self->ImportDmabufFrame(*dmabuf);
+      const bool ok = self->ImportDmabufFrame(*dmabuf, sample);
       glFlush();
       eglMakeCurrent(self->egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
                      EGL_NO_CONTEXT);
@@ -1748,7 +1775,7 @@ GstFlowReturn VideoPlayer::OnNewSample(void* appsink_ptr, void* user_data) {
         }
         self->m_registrar->texture_registrar()->MarkTextureFrameAvailable(
             self->m_texture_id);
-        gst_sample_unref(sample);
+        // Sample ref is owned by the in-flight deque now.
         return GST_FLOW_OK;
       }
       // Import failed — fall through to CPU upload so the user still

@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <future>
 #include <map>
@@ -184,18 +185,38 @@ class VideoPlayer {
   RenderPath render_path_{RenderPath::PboShaderUpload};
   RenderPath ProbeRenderPath() const;
 
-  // Phase 1.3 — dmabuf → EGLImage import state. At most one EGLImage
-  // is kept live at a time; ImportDmabufFrame destroys the previous
-  // image before creating the new one. Phase 1.4 will upgrade to a
-  // small in-flight deque so the compositor can still sample the
-  // previous frame while we prepare the next.
-  EGLImageKHR egl_image_current_{EGL_NO_IMAGE_KHR};
-  // Cached at ctor time: whether the display advertises
-  // EGL_EXT_image_dma_buf_import_modifiers. Linear buffers don't need
-  // it; tiled/compressed (AFBC, UBWC, Amphion) require it for import.
-  bool egl_dmabuf_modifiers_ok_{false};
-  bool ImportDmabufFrame(const DmabufFrame& frame);
-  void DestroyDmabufImage();
+  // Phase 1.3/1.4 — dmabuf → EGLImage import state with a bounded
+  // in-flight deque. Each InFlightFrame holds the EGLImage we bound
+  // into the shader's texture name plus the GstSample the image was
+  // created from (gst_sample_ref'd). Keeping the sample alive is
+  // belt-and-suspenders: eglCreateImageKHR is documented to dup() the
+  // FDs internally, but some drivers keep a backing reference to the
+  // original GstBuffer memory and unref'ing the sample mid-compositor-
+  // sample has been observed to show tearing on hardware-decoded
+  // content. Deque is capped at kMaxInFlight — a new import pops the
+  // oldest entry to make room, ensuring the frame the compositor most
+  // recently saw is still live when the next import arrives.
+  struct InFlightFrame {
+    EGLImageKHR image{EGL_NO_IMAGE_KHR};
+    GstSample* sample{nullptr};
+  };
+  static constexpr size_t kMaxInFlight = 2;
+  std::deque<InFlightFrame> in_flight_frames_;
+  std::mutex in_flight_mutex_;
+  bool egl_dmabuf_modifiers_ok_{false};  // cached EGL modifier extension
+
+  // Imports `frame` as a new EGLImage, pushes it onto the deque
+  // (taking ownership of the passed-in GstSample reference), binds
+  // the image to shader_->textureId, and evicts the oldest deque
+  // entry when the bound is exceeded. On success returns true and
+  // the caller must NOT unref `sample` — the deque owns it now. On
+  // failure returns false and `sample` is left untouched for the
+  // caller to decide (typically: fall through to CPU upload, unref).
+  bool ImportDmabufFrame(const DmabufFrame& frame, GstSample* sample);
+
+  // Destroy every pending EGLImage + unref every retained GstSample.
+  // Caller must hold the player's EGL context current.
+  void DrainInFlightFrames();
 
   GMainContext* context_;
 
