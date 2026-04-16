@@ -16,6 +16,8 @@
 
 #include "video_player.h"
 
+#include "dmabuf_frame.h"
+
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -26,6 +28,7 @@
 #include <chrono>
 #include <climits>
 #include <cstring>
+#include <optional>
 
 #include <gst/allocators/gstdmabuf.h>
 #include <gst/app/gstappsink.h>
@@ -157,6 +160,120 @@ bool has_egl_extension(EGLDisplay dpy, const char* name) {
     p += len;
   }
   return false;
+}
+
+// Map GstVideoFormat to a DRM FourCC. Only formats we can plausibly
+// import via EGL_LINUX_DMA_BUF_EXT are listed; anything else forces
+// the fallback to the CPU NV12 upload path.
+guint32 GstVideoFormatToDrmFourcc(GstVideoFormat fmt) {
+  switch (fmt) {
+    case GST_VIDEO_FORMAT_NV12:
+      return Fourcc('N', 'V', '1', '2');
+    case GST_VIDEO_FORMAT_NV21:
+      return Fourcc('N', 'V', '2', '1');
+    case GST_VIDEO_FORMAT_I420:
+      return Fourcc('Y', 'U', '1', '2');
+    case GST_VIDEO_FORMAT_YV12:
+      return Fourcc('Y', 'V', '1', '2');
+    case GST_VIDEO_FORMAT_BGRA:
+      return Fourcc('B', 'G', 'R', 'A');
+    case GST_VIDEO_FORMAT_BGRx:
+      return Fourcc('B', 'G', 'R', 'X');
+    default:
+      return 0;
+  }
+}
+
+// Build a DmabufFrame from a GstSample. Returns nullopt when the
+// sample isn't backed by dmabuf, when its caps describe a format we
+// don't know how to map to DRM FourCC, or when its memory layout
+// doesn't make sense (too many planes, non-dmabuf memory mixed in).
+// The returned frame borrows FDs from the sample's GstMemory — the
+// caller must keep the sample alive until the FDs are consumed
+// (EGLImage creation dup()s them in Phase 1.3).
+std::optional<DmabufFrame> ExtractDmabufFrame(GstSample* sample) {
+  if (!sample) {
+    return std::nullopt;
+  }
+  GstBuffer* buf = gst_sample_get_buffer(sample);
+  GstCaps* caps = gst_sample_get_caps(sample);
+  if (!buf || !caps) {
+    return std::nullopt;
+  }
+
+  GstVideoInfo vi;
+  gst_video_info_init(&vi);
+  if (!gst_video_info_from_caps(&vi, caps)) {
+    return std::nullopt;
+  }
+
+  DmabufFrame frame;
+  frame.width = GST_VIDEO_INFO_WIDTH(&vi);
+  frame.height = GST_VIDEO_INFO_HEIGHT(&vi);
+  frame.n_planes = GST_VIDEO_INFO_N_PLANES(&vi);
+  if (frame.n_planes == 0 || frame.n_planes > frame.planes.size()) {
+    return std::nullopt;
+  }
+  frame.drm_fourcc = GstVideoFormatToDrmFourcc(GST_VIDEO_INFO_FORMAT(&vi));
+  if (frame.drm_fourcc == 0) {
+    return std::nullopt;
+  }
+
+  // Modifier extraction: GStreamer 1.24 encodes modifiers in a
+  // `drm-format` caps field as "NV12:0x200000000b". We don't hard-
+  // require 1.24 yet, so absence of the field just means linear.
+  // Tiled/compressed formats tracked by Phase 3 will plumb the real
+  // modifier through here.
+  frame.drm_modifier = kDrmFormatModLinear;
+  const GstStructure* s = gst_caps_get_structure(caps, 0);
+  if (s) {
+    const gchar* drm_format = gst_structure_get_string(s, "drm-format");
+    if (drm_format) {
+      const gchar* colon = std::strchr(drm_format, ':');
+      if (colon) {
+        const guint64 mod = g_ascii_strtoull(colon + 1, nullptr, 0);
+        if (mod != 0) {
+          frame.drm_modifier = mod;
+        }
+      }
+    }
+  }
+
+  const guint n_mem = gst_buffer_n_memory(buf);
+  if (n_mem == 0) {
+    return std::nullopt;
+  }
+  const bool single_fd_layout = (n_mem == 1 && frame.n_planes > 1);
+
+  for (unsigned i = 0; i < frame.n_planes; ++i) {
+    GstMemory* mem = nullptr;
+    gsize plane_offset_in_mem = 0;
+    if (single_fd_layout) {
+      // All planes packed into one GstMemory; per-plane offsets come
+      // from GstVideoInfo.
+      mem = gst_buffer_peek_memory(buf, 0);
+      plane_offset_in_mem = GST_VIDEO_INFO_PLANE_OFFSET(&vi, i);
+    } else if (i < n_mem) {
+      // Each plane has its own GstMemory / FD. plane_offset_in_mem
+      // stays 0 because the plane starts at the beginning of its
+      // own memory block.
+      mem = gst_buffer_peek_memory(buf, i);
+    } else {
+      return std::nullopt;  // fewer mem chunks than declared planes
+    }
+    if (!mem || !gst_is_dmabuf_memory(mem)) {
+      return std::nullopt;
+    }
+    frame.planes[i].fd = gst_dmabuf_memory_get_fd(mem);
+    // GstMemory's offset is the offset of this memory block into its
+    // underlying FD; the plane's offset within the block adds on top.
+    frame.planes[i].offset =
+        static_cast<guint32>(mem->offset + plane_offset_in_mem);
+    frame.planes[i].stride =
+        static_cast<guint32>(GST_VIDEO_INFO_PLANE_STRIDE(&vi, i));
+  }
+
+  return frame;
 }
 }  // namespace
 
@@ -1360,29 +1477,48 @@ GstFlowReturn VideoPlayer::OnNewSample(void* appsink_ptr, void* user_data) {
     return GST_FLOW_ERROR;
   }
 
-  // Phase 1.1: detect dmabuf memory so the stats channel can reflect
-  // which path actually ran. Phase 1.2/1.3 will branch here to do the
-  // EGLImage import instead of falling through to CPU upload. For now
-  // every sample — dmabuf or raw — gets handled by the existing
-  // handoff_handler code path, which maps the buffer read-only and
-  // uploads via PBO. That's correct (just not zero-copy) for both
-  // software decoders today and dmabuf decoders until 1.3 lands.
-  const bool is_dmabuf = gst_buffer_n_memory(buf) > 0 &&
-                         gst_is_dmabuf_memory(gst_buffer_peek_memory(buf, 0));
-  if (is_dmabuf && !self->stats_.uses_dmabuf.load(std::memory_order_relaxed)) {
-    // Upgrade the stat flag the first time we actually see dmabuf; the
-    // ctor-time flag reflected capability, this reflects reality.
-    self->stats_.uses_dmabuf.store(true, std::memory_order_relaxed);
-    SPDLOG_DEBUG("[VideoPlayer] First dmabuf sample observed on appsink");
-  } else if (!is_dmabuf &&
-             self->stats_.uses_dmabuf.load(std::memory_order_relaxed)) {
-    // Downgrade: capability was advertised but the negotiated pipeline
-    // landed on system-memory samples. Common on software decoders.
-    self->stats_.uses_dmabuf.store(false, std::memory_order_relaxed);
-    SPDLOG_DEBUG(
-        "[VideoPlayer] Appsink delivering raw (non-dmabuf) NV12; staying on "
-        "CPU upload path");
+  // Phase 1.2 — try to extract dmabuf frame metadata. On success we log
+  // the import-shape for visibility (Phase 1.3 will replace the fall-
+  // through with an EGLImage import); on failure (software decoder,
+  // unsupported format, weird memory layout) we leave stats_.uses_dmabuf
+  // cleared and route the buffer through the existing CPU upload path.
+  const bool n_mem_ok = gst_buffer_n_memory(buf) > 0;
+  const bool mem0_is_dmabuf =
+      n_mem_ok && gst_is_dmabuf_memory(gst_buffer_peek_memory(buf, 0));
+  std::optional<DmabufFrame> dmabuf;
+  if (mem0_is_dmabuf) {
+    dmabuf = ExtractDmabufFrame(sample);
   }
+
+  const bool uses_dmabuf_now = dmabuf.has_value();
+  const bool uses_dmabuf_prev =
+      self->stats_.uses_dmabuf.load(std::memory_order_relaxed);
+  if (uses_dmabuf_now != uses_dmabuf_prev) {
+    self->stats_.uses_dmabuf.store(uses_dmabuf_now, std::memory_order_relaxed);
+    if (uses_dmabuf_now) {
+      const auto fourcc = dmabuf->drm_fourcc;
+      SPDLOG_DEBUG(
+          "[VideoPlayer] dmabuf sample: {}x{} fourcc={:c}{:c}{:c}{:c} "
+          "modifier=0x{:x} planes={} fd0={} off0={} stride0={}",
+          dmabuf->width, dmabuf->height, fourcc & 0xff, (fourcc >> 8) & 0xff,
+          (fourcc >> 16) & 0xff, (fourcc >> 24) & 0xff, dmabuf->drm_modifier,
+          dmabuf->n_planes, dmabuf->planes[0].fd, dmabuf->planes[0].offset,
+          dmabuf->planes[0].stride);
+    } else if (mem0_is_dmabuf) {
+      SPDLOG_DEBUG(
+          "[VideoPlayer] Appsink sample is dmabuf but extraction failed "
+          "(unsupported format or memory layout); CPU upload fallback");
+    } else {
+      SPDLOG_DEBUG(
+          "[VideoPlayer] Appsink delivering raw (non-dmabuf) NV12; staying "
+          "on CPU upload path");
+    }
+  }
+
+  // TODO Phase 1.3: if `dmabuf` has value, call the EGLImage import
+  // path instead of handoff_handler. Until then both branches fall
+  // through to the CPU NV12 shader upload.
+  (void)dmabuf;
 
   // handoff_handler's first arg is unused; passing the appsink as the
   // element is fine (appsink is a GstElement).
