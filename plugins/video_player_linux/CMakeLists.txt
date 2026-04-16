@@ -25,6 +25,7 @@ add_library(${PLUGIN_NAME} STATIC
         video_player_plugin.cc
         video_player.cc
         messages.g.cc
+        backend_registry.cc
 )
 set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(${PLUGIN_NAME} PRIVATE cxx_std_17)
