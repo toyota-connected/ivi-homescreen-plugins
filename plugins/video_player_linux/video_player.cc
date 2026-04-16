@@ -23,6 +23,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <atomic>
+#include <chrono>
 #include <climits>
 #include <cstring>
 
@@ -30,6 +31,7 @@
 #include <gst/tag/tag.h>
 
 #include <backend/backend.h>
+#include <flutter_homescreen.h>
 #include <plugins/common/common.h>
 #include <utility>
 
@@ -51,11 +53,93 @@ typedef enum {
 // with GL texture IDs (which are small positive integers).
 static std::atomic<int64_t> g_audio_player_id_counter{0x7F000000};
 
+void VideoPlayer::CreateSharedGlContext() {
+  FlutterDesktopEglContext engine_ctx{};
+  if (!FlutterDesktopPluginRegistrarGetEglContext(m_raw_registrar,
+                                                  &engine_ctx)) {
+    SPDLOG_DEBUG(
+        "[VideoPlayer] Embedder refused EGL share handles (non-EGL backend?); "
+        "falling back to legacy context path");
+    return;
+  }
+  auto display = static_cast<EGLDisplay>(engine_ctx.display);
+  auto config = static_cast<EGLConfig>(engine_ctx.config);
+  auto share = static_cast<EGLContext>(engine_ctx.share_context);
+  if (display == EGL_NO_DISPLAY || share == EGL_NO_CONTEXT) {
+    spdlog::warn("[VideoPlayer] Embedder returned incomplete EGL handles");
+    return;
+  }
+
+  // Request ES 3.0 — matches the GLES3 headers we build against and what
+  // the shader program needs.
+  const EGLint ctx_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+  EGLContext ctx = eglCreateContext(display, config, share, ctx_attrs);
+  if (ctx == EGL_NO_CONTEXT) {
+    spdlog::warn(
+        "[VideoPlayer] eglCreateContext failed (0x{:X}); using legacy path",
+        eglGetError());
+    return;
+  }
+
+  // 1x1 pbuffer because some drivers refuse eglMakeCurrent with
+  // EGL_NO_SURFACE even when EGL_KHR_surfaceless_context is present. We
+  // never draw into this surface — all output is to FBOs.
+  const EGLint pbuf_attrs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+  EGLSurface surf = eglCreatePbufferSurface(display, config, pbuf_attrs);
+  if (surf == EGL_NO_SURFACE) {
+    spdlog::warn(
+        "[VideoPlayer] eglCreatePbufferSurface failed (0x{:X}); using legacy "
+        "path",
+        eglGetError());
+    eglDestroyContext(display, ctx);
+    return;
+  }
+
+  egl_display_ = display;
+  egl_context_ = ctx;
+  egl_surface_ = surf;
+  use_legacy_context_ = false;
+  SPDLOG_DEBUG("[VideoPlayer] Shared EGL context created (share=0x{:x})",
+               reinterpret_cast<uintptr_t>(share));
+}
+
+void VideoPlayer::DestroySharedGlContext() {
+  if (egl_display_ == EGL_NO_DISPLAY) {
+    return;
+  }
+  if (egl_surface_ != EGL_NO_SURFACE) {
+    eglDestroySurface(egl_display_, egl_surface_);
+    egl_surface_ = EGL_NO_SURFACE;
+  }
+  if (egl_context_ != EGL_NO_CONTEXT) {
+    eglDestroyContext(egl_display_, egl_context_);
+    egl_context_ = EGL_NO_CONTEXT;
+  }
+  egl_display_ = EGL_NO_DISPLAY;
+  use_legacy_context_ = true;
+}
+
+void VideoPlayer::MakeContextCurrent() {
+  // handoff_handler releases our context at the end of each frame so the
+  // next frame — potentially on a different streaming thread — can bind
+  // cleanly without EGL_BAD_ACCESS. The early-return when already current
+  // still helps the ctor/Dispose paths that make multiple GL calls in a
+  // row on the same thread.
+  if (eglGetCurrentContext() == egl_context_) {
+    return;
+  }
+  if (!eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_)) {
+    spdlog::error("[VideoPlayer] eglMakeCurrent failed: 0x{:X}", eglGetError());
+  }
+}
+
 VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
+                         FlutterDesktopPluginRegistrarRef raw_registrar,
                          std::string uri,
                          std::map<std::string, std::string> http_headers,
                          const MediaInfo& info)
     : m_registrar(registrar),
+      m_raw_registrar(raw_registrar),
       uri_(std::move(uri)),
       http_headers_(std::move(http_headers)),
       width_(info.width),
@@ -91,17 +175,35 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
   std::lock_guard buffer_lock(buffer_mutex_);
 
   if (has_video_) {
-    /// Setup OpenGL
-    {
+    // Double-buffer can be enabled via env var for flicker-sensitive cases.
+    const bool double_buf =
+        std::getenv("VIDEO_PLAYER_DOUBLE_BUFFER") != nullptr;
+
+    // Prefer a dedicated shared EGL context so this player's GL work can
+    // run in parallel with other players and without the per-frame
+    // context-switch cost. Non-EGL backends (Vulkan, headless) fail the
+    // embedder call — fall back to the legacy global-mutex path there.
+    CreateSharedGlContext();
+
+    if (!use_legacy_context_) {
+      MakeContextCurrent();
+      shader_ = std::make_unique<nv12::Shader>(width_, height_, double_buf);
+      m_texture_id = shader_->textureId;
+      // Bind the VAO for the rest of this context's life — no other code
+      // touches this context, so the VAO state is stable and we can skip
+      // the defensive per-frame rebind in handoff_handler.
+      glBindVertexArray(shader_->vertex_arr_id_);
+      eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                     EGL_NO_CONTEXT);
+    } else {
       std::lock_guard ctx_lock(g_texture_context_mutex);
       m_registrar->texture_registrar()->TextureMakeCurrent();
-      // Double-buffer can be enabled via env var for flicker-sensitive cases.
-      const bool double_buf =
-          std::getenv("VIDEO_PLAYER_DOUBLE_BUFFER") != nullptr;
       shader_ = std::make_unique<nv12::Shader>(width_, height_, double_buf);
       m_texture_id = shader_->textureId;
       m_registrar->texture_registrar()->TextureClearCurrent();
     }
+    stats_.uses_shared_gl_context.store(!use_legacy_context_,
+                                        std::memory_order_relaxed);
 
     /// Setup GL Texture 2D
     m_descriptor.struct_size = sizeof(FlutterDesktopGpuSurfaceDescriptor);
@@ -159,6 +261,14 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
   source_setup_id_ =
       g_signal_connect(playbin_, "source-setup",
                        reinterpret_cast<GCallback>(OnSourceSetup), this);
+
+  // deep-element-added fires for every element auto-plugged into playbin's
+  // nested uridecodebin. Used to discover which decoder was actually
+  // selected so the stats channel can surface it. Harmless if nobody
+  // subscribes to stats.
+  deep_element_added_id_ =
+      g_signal_connect(playbin_, "deep-element-added",
+                       reinterpret_cast<GCallback>(OnDeepElementAdded), this);
 
   // Custom audio sink bin: audioconvert → audioresample → capsfilter → sink.
   // Even without app-level controls this improves codec/sample-rate
@@ -339,20 +449,39 @@ void VideoPlayer::Dispose() {
     g_signal_handler_disconnect(G_OBJECT(playbin_), source_setup_id_);
     source_setup_id_ = 0;
   }
+  if (playbin_ && deep_element_added_id_) {
+    g_signal_handler_disconnect(G_OBJECT(playbin_), deep_element_added_id_);
+    deep_element_added_id_ = 0;
+  }
+
+  if (stats_tick_source_id_) {
+    g_source_remove(stats_tick_source_id_);
+    stats_tick_source_id_ = 0;
+  }
 
   if (playbin_) {
     gst_element_set_state(playbin_, GST_STATE_NULL);
   }
 
   if (has_video_) {
-    // Ensure no in-flight handoff callback is using the shader
+    // Ensure no in-flight handoff callback is using the shader. set_state
+    // NULL above has already joined the streaming thread, so this lock is
+    // just paranoia against late signal dispatch.
     std::lock_guard gst_lock(gst_mutex_);
     if (shader_) {
-      std::lock_guard ctx_lock(g_texture_context_mutex);
-      m_registrar->texture_registrar()->TextureMakeCurrent();
-      shader_.reset();
-      m_registrar->texture_registrar()->TextureClearCurrent();
+      if (!use_legacy_context_) {
+        MakeContextCurrent();
+        shader_.reset();
+        eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                       EGL_NO_CONTEXT);
+      } else {
+        std::lock_guard ctx_lock(g_texture_context_mutex);
+        m_registrar->texture_registrar()->TextureMakeCurrent();
+        shader_.reset();
+        m_registrar->texture_registrar()->TextureClearCurrent();
+      }
     }
+    DestroySharedGlContext();
   }
 
   if (has_video_ && m_texture_id != 0) {
@@ -371,6 +500,12 @@ void VideoPlayer::Dispose() {
     event_sink_ = nullptr;
   }
   event_channel_ = nullptr;
+
+  {
+    std::lock_guard stats_lock(stats_event_mutex_);
+    stats_event_sink_ = nullptr;
+  }
+  stats_event_channel_ = nullptr;
 }
 
 void VideoPlayer::SetLooping(const bool isLooping) {
@@ -527,22 +662,25 @@ void VideoPlayer::Init(flutter::BinaryMessenger* messenger) {
               std::lock_guard event_lock(event_mutex_);
               event_sink_ = std::move(events);
             }
-            // The Dart-side `play()` and the EventChannel `listen` arrive
-            // on different platform-channel transports and may be
-            // processed in either order. If `play()` ran first the
-            // pipeline already fired `SendInitialized` while
-            // `event_sink_` was null and the event was dropped. Replay
-            // the current state to the freshly-attached sink so the
-            // Dart MiniController's `initialize()` future doesn't hang
-            // forever.
-            if (is_initialized_) {
+            // Send `initialized` as soon as the event sink attaches, using
+            // the GstDiscoverer metadata already captured at construction.
+            // Waiting for PLAYING deadlocks the MiniController — Dart awaits
+            // the `initialized` event inside `initialize()`, and only then
+            // calls `play()` which is what transitions the pipeline to
+            // PLAYING. Upstream video_player on Android/iOS emits
+            // `initialized` off the source metadata, not a rendered frame,
+            // for the same reason. `sent_initialized_` guards against the
+            // handoff path (or the PLAYING state-change handler for
+            // audio-only) re-emitting after the first frame lands.
+            if (!sent_initialized_) {
+              sent_initialized_ = true;
               SendInitialized();
-              SendMediaMetadata();
-              if (!initial_album_art_.empty()) {
-                SendAlbumArt(initial_album_art_, initial_album_art_mime_);
-              }
-              SendAudioInfo();
             }
+            SendMediaMetadata();
+            if (!initial_album_art_.empty()) {
+              SendAlbumArt(initial_album_art_, initial_album_art_mime_);
+            }
+            SendAudioInfo();
             return nullptr;
           },
           [this](const flutter::EncodableValue* /* arguments */)
@@ -551,6 +689,160 @@ void VideoPlayer::Init(flutter::BinaryMessenger* messenger) {
             event_sink_ = nullptr;
             return nullptr;
           }));
+
+  // Phase 0.2 — stats event channel. One per-player channel keyed by
+  // texture_id. Starts a 1Hz push only when someone listens; silent and
+  // zero-cost otherwise.
+  stats_event_channel_ = std::make_unique<flutter::EventChannel<>>(
+      messenger,
+      std::string("video_player_linux/stats/") + std::to_string(m_texture_id),
+      &flutter::StandardMethodCodec::GetInstance());
+
+  stats_event_channel_->SetStreamHandler(
+      std::make_unique<flutter::StreamHandlerFunctions<>>(
+          [this](const flutter::EncodableValue* /* arguments */,
+                 std::unique_ptr<flutter::EventSink<>>&& events)
+              -> std::unique_ptr<flutter::StreamHandlerError<>> {
+            {
+              std::lock_guard stats_lock(stats_event_mutex_);
+              stats_event_sink_ = std::move(events);
+            }
+            // Emit the current snapshot immediately so a subscriber doesn't
+            // have to wait a full second for the first reading.
+            EmitStats();
+            if (!stats_tick_source_id_) {
+              stats_tick_source_id_ =
+                  g_timeout_add_seconds(1, &VideoPlayer::OnStatsTick, this);
+            }
+            return nullptr;
+          },
+          [this](const flutter::EncodableValue* /* arguments */)
+              -> std::unique_ptr<flutter::StreamHandlerError<>> {
+            if (stats_tick_source_id_) {
+              g_source_remove(stats_tick_source_id_);
+              stats_tick_source_id_ = 0;
+            }
+            std::lock_guard stats_lock(stats_event_mutex_);
+            stats_event_sink_ = nullptr;
+            return nullptr;
+          }));
+}
+
+gboolean VideoPlayer::OnStatsTick(gpointer user_data) {
+  auto* self = static_cast<VideoPlayer*>(user_data);
+  if (!self->m_valid) {
+    return G_SOURCE_REMOVE;
+  }
+  self->EmitStats();
+  return G_SOURCE_CONTINUE;
+}
+
+void VideoPlayer::EmitStats() {
+  std::lock_guard stats_lock(stats_event_mutex_);
+  if (!stats_event_sink_) {
+    return;
+  }
+
+  // Snapshot integer counters (atomics). The string metadata has its own
+  // mutex because std::string assignments aren't atomic.
+  const uint64_t recv = stats_.frames_received.load(std::memory_order_relaxed);
+  const uint64_t rend = stats_.frames_rendered.load(std::memory_order_relaxed);
+  const uint64_t drop = stats_.frames_dropped.load(std::memory_order_relaxed);
+  const uint64_t late = stats_.frames_late.load(std::memory_order_relaxed);
+  const uint64_t upload_ns =
+      stats_.upload_ns_total.load(std::memory_order_relaxed);
+  const uint64_t render_ns =
+      stats_.render_ns_total.load(std::memory_order_relaxed);
+  const int64_t last_pts =
+      stats_.last_frame_pts_ns.load(std::memory_order_relaxed);
+  const int64_t last_wall =
+      stats_.last_wallclock_ns.load(std::memory_order_relaxed);
+
+  std::string fmt, colorspace, decoder;
+  {
+    std::lock_guard meta_lock(stats_.meta_mutex);
+    fmt = stats_.negotiated_format;
+    colorspace = stats_.negotiated_colorspace;
+    decoder = stats_.decoder_name;
+  }
+
+  // EncodableValue stores ints as int64; the load values can exceed int64
+  // only after decades of 4K60, so the reinterpret is safe in practice.
+  auto map = flutter::EncodableMap{
+      {flutter::EncodableValue("frames_received"),
+       flutter::EncodableValue(static_cast<int64_t>(recv))},
+      {flutter::EncodableValue("frames_rendered"),
+       flutter::EncodableValue(static_cast<int64_t>(rend))},
+      {flutter::EncodableValue("frames_dropped"),
+       flutter::EncodableValue(static_cast<int64_t>(drop))},
+      {flutter::EncodableValue("frames_late"),
+       flutter::EncodableValue(static_cast<int64_t>(late))},
+      {flutter::EncodableValue("upload_ns_total"),
+       flutter::EncodableValue(static_cast<int64_t>(upload_ns))},
+      {flutter::EncodableValue("render_ns_total"),
+       flutter::EncodableValue(static_cast<int64_t>(render_ns))},
+      {flutter::EncodableValue("last_frame_pts_ns"),
+       flutter::EncodableValue(last_pts)},
+      {flutter::EncodableValue("last_wallclock_ns"),
+       flutter::EncodableValue(last_wall)},
+      {flutter::EncodableValue("negotiated_format"),
+       flutter::EncodableValue(fmt)},
+      {flutter::EncodableValue("negotiated_colorspace"),
+       flutter::EncodableValue(colorspace)},
+      {flutter::EncodableValue("decoder_name"),
+       flutter::EncodableValue(decoder)},
+      {flutter::EncodableValue("uses_dmabuf"),
+       flutter::EncodableValue(
+           stats_.uses_dmabuf.load(std::memory_order_relaxed))},
+      {flutter::EncodableValue("uses_hw_decoder"),
+       flutter::EncodableValue(
+           stats_.uses_hw_decoder.load(std::memory_order_relaxed))},
+      {flutter::EncodableValue("uses_shared_gl_context"),
+       flutter::EncodableValue(
+           stats_.uses_shared_gl_context.load(std::memory_order_relaxed))},
+  };
+  stats_event_sink_->Success(flutter::EncodableValue(
+      std::in_place_type<flutter::EncodableMap>, std::move(map)));
+}
+
+void VideoPlayer::OnDeepElementAdded(GstBin* /* bin */,
+                                     GstBin* /* sub_bin */,
+                                     GstElement* element,
+                                     gpointer user_data) {
+  if (!element) {
+    return;
+  }
+  GstElementFactory* factory = gst_element_get_factory(element);
+  if (!factory) {
+    return;
+  }
+  // Restrict to video decoders. "Codec/Decoder/Video" is the standard klass
+  // string for both software decoders (avdec_*) and stateless/stateful V4L2
+  // decoders (v4l2h264dec, v4l2slh264dec), VA-API decoders, and vendor
+  // elements (vpudec, omxh264dec, mppvideodec). Classification lets us
+  // ignore sinks, demuxers and parsers that also hit this callback.
+  const gchar* klass =
+      gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS);
+  if (!klass || !g_strrstr(klass, "Decoder") || !g_strrstr(klass, "Video")) {
+    return;
+  }
+  const gchar* name = GST_OBJECT_NAME(factory);
+  auto* self = static_cast<VideoPlayer*>(user_data);
+  {
+    std::lock_guard meta_lock(self->stats_.meta_mutex);
+    self->stats_.decoder_name = name ? name : "";
+  }
+  // Heuristic: decoder names starting with "v4l2", "omx", "mpp", "vpu",
+  // "vaapi", "nvh264" are hardware-backed. Cheap and good enough for the
+  // stats channel; precise hardware flag comes from Phase 2+ backends.
+  const bool hw =
+      name &&
+      (g_str_has_prefix(name, "v4l2") || g_str_has_prefix(name, "omx") ||
+       g_str_has_prefix(name, "mpp") || g_str_has_prefix(name, "vpu") ||
+       g_str_has_prefix(name, "vaapi") || g_str_has_prefix(name, "nvh264") ||
+       g_str_has_prefix(name, "msdk"));
+  self->stats_.uses_hw_decoder.store(hw, std::memory_order_relaxed);
+  SPDLOG_DEBUG("[VideoPlayer] Decoder: {} (hw={})", name ? name : "?", hw);
 }
 
 void VideoPlayer::SetBuffering(const bool buffering) {
@@ -943,30 +1235,72 @@ void VideoPlayer::handoff_handler(GstElement* /* fakesink */,
     return;
   }
 
+  obj->stats_.frames_received.fetch_add(1, std::memory_order_relaxed);
+
   std::lock_guard lock(obj->gst_mutex_);
   if (obj->info_.finfo == nullptr || !obj->shader_) {
+    obj->stats_.frames_dropped.fetch_add(1, std::memory_order_relaxed);
     return;
   }
+
+  // The target caps on the fakesink pin NV12 at the player's configured
+  // width/height. If something renegotiated behind our back (stream switch,
+  // resolution change), the shader's textures/FBO are sized for the wrong
+  // geometry and we'd either sample garbage or crash in glTexImage2D. Fail
+  // loud instead — the caller is expected to tear down and rebuild the
+  // player on resolution change, not patch it mid-frame.
+  if (GST_VIDEO_INFO_FORMAT(&obj->info_) != GST_VIDEO_FORMAT_NV12 ||
+      GST_VIDEO_INFO_N_PLANES(&obj->info_) != 2 ||
+      GST_VIDEO_INFO_WIDTH(&obj->info_) != obj->width_ ||
+      GST_VIDEO_INFO_HEIGHT(&obj->info_) != obj->height_) {
+    spdlog::error(
+        "[VideoPlayer] Unexpected frame geometry: format={} planes={} "
+        "{}x{} (expected NV12 {}x{}); dropping frame",
+        gst_video_format_to_string(GST_VIDEO_INFO_FORMAT(&obj->info_)),
+        static_cast<unsigned>(GST_VIDEO_INFO_N_PLANES(&obj->info_)),
+        static_cast<int>(GST_VIDEO_INFO_WIDTH(&obj->info_)),
+        static_cast<int>(GST_VIDEO_INFO_HEIGHT(&obj->info_)), obj->width_,
+        obj->height_);
+    obj->stats_.frames_dropped.fetch_add(1, std::memory_order_relaxed);
+    return;
+  }
+
   GstVideoFrame frame;
   if (gst_video_frame_map(&frame, &obj->info_, buffer, GST_MAP_READ)) {
-    {
-      std::lock_guard ctx_lock(g_texture_context_mutex);
-      obj->m_registrar->texture_registrar()->TextureMakeCurrent();
-      glBindVertexArray(obj->shader_->vertex_arr_id_);
+    using clock = std::chrono::steady_clock;
+    const auto now = clock::now();
 
-      if (const guint n_planes = GST_VIDEO_INFO_N_PLANES(&obj->info_);
-          n_planes == 2) {
-        // Assume NV12
-        obj->shader_->load_pixels(GST_VIDEO_FRAME_PLANE_DATA(&frame, 0),
-                                  GST_VIDEO_FRAME_PLANE_DATA(&frame, 1),
-                                  GST_VIDEO_FRAME_COMP_PSTRIDE(&frame, 0),
-                                  GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 0),
-                                  GST_VIDEO_FRAME_COMP_PSTRIDE(&frame, 1),
-                                  GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 1));
-      } else {
-        // Assume RGB
-        obj->shader_->load_rgb_pixels(GST_VIDEO_FRAME_PLANE_DATA(&frame, 0));
+    // Late-frame heuristic: compare inter-frame wallclock delta against the
+    // inter-frame PTS delta; if wallclock outran PTS by > 33ms this frame
+    // got here later than the pipeline clock wanted. First frame (last_pts=0)
+    // has nothing to compare against and is never marked late.
+    const auto buf_pts = static_cast<int64_t>(GST_BUFFER_PTS(buffer));
+    const int64_t now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                               now.time_since_epoch())
+                               .count();
+    const int64_t prev_pts =
+        obj->stats_.last_frame_pts_ns.load(std::memory_order_relaxed);
+    const int64_t prev_wall =
+        obj->stats_.last_wallclock_ns.load(std::memory_order_relaxed);
+    if (prev_pts > 0 && buf_pts > prev_pts && prev_wall > 0) {
+      const int64_t wall_delta = now_ns - prev_wall;
+      const int64_t pts_delta = buf_pts - prev_pts;
+      if (wall_delta - pts_delta > 33'000'000) {
+        obj->stats_.frames_late.fetch_add(1, std::memory_order_relaxed);
       }
+    }
+    obj->stats_.last_frame_pts_ns.store(buf_pts, std::memory_order_relaxed);
+    obj->stats_.last_wallclock_ns.store(now_ns, std::memory_order_relaxed);
+
+    const auto gl_work = [&]() {
+      const auto upload_start = clock::now();
+      obj->shader_->load_pixels(GST_VIDEO_FRAME_PLANE_DATA(&frame, 0),
+                                GST_VIDEO_FRAME_PLANE_DATA(&frame, 1),
+                                GST_VIDEO_FRAME_COMP_PSTRIDE(&frame, 0),
+                                GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 0),
+                                GST_VIDEO_FRAME_COMP_PSTRIDE(&frame, 1),
+                                GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 1));
+      const auto upload_end = clock::now();
       gst_video_frame_unmap(&frame);
 
       // Render NV12→RGBA into the render target
@@ -977,9 +1311,51 @@ void VideoPlayer::handoff_handler(GstElement* /* fakesink */,
       if (obj->shader_->double_buffer) {
         obj->shader_->blit_to_front();
       }
+      const auto render_end = clock::now();
 
+      obj->stats_.upload_ns_total.fetch_add(
+          static_cast<uint64_t>(
+              std::chrono::duration_cast<std::chrono::nanoseconds>(upload_end -
+                                                                   upload_start)
+                  .count()),
+          std::memory_order_relaxed);
+      obj->stats_.render_ns_total.fetch_add(
+          static_cast<uint64_t>(
+              std::chrono::duration_cast<std::chrono::nanoseconds>(render_end -
+                                                                   upload_end)
+                  .count()),
+          std::memory_order_relaxed);
+    };
+
+    if (obj->use_legacy_context_) {
+      // Legacy: serialize all players through the global mutex and round-trip
+      // the engine's texture context on every frame. Other plugins share
+      // this context, so the VAO rebind is load-bearing.
+      std::lock_guard ctx_lock(g_texture_context_mutex);
+      obj->m_registrar->texture_registrar()->TextureMakeCurrent();
+      glBindVertexArray(obj->shader_->vertex_arr_id_);
+      gl_work();
       obj->m_registrar->texture_registrar()->TextureClearCurrent();
+    } else {
+      // New: bind our shared context on this streaming thread for the
+      // duration of the frame's GL work, then release it before returning.
+      //
+      // The "keep-current-across-frames" optimization the plan describes
+      // only works when the handoff thread never changes. In practice the
+      // GStreamer pipeline recycles streaming threads on state transitions
+      // (PAUSED→PLAYING preroll, flush-seek, buffering), and an EGL
+      // context can only be current on one thread at a time — calling
+      // eglMakeCurrent on thread B while it's still current on thread A
+      // returns EGL_BAD_ACCESS (0x3002). Releasing after each frame lets
+      // the next frame bind cleanly on whichever thread shows up.
+      obj->MakeContextCurrent();
+      gl_work();
+      glFlush();
+      eglMakeCurrent(obj->egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                     EGL_NO_CONTEXT);
     }
+
+    obj->stats_.frames_rendered.fetch_add(1, std::memory_order_relaxed);
 
     // Send initialized event after first frame so the Dart Texture widget
     // doesn't display stale GL content before real video arrives.
@@ -992,6 +1368,7 @@ void VideoPlayer::handoff_handler(GstElement* /* fakesink */,
         obj->m_texture_id);
     SPDLOG_TRACE("[VideoPlayer] frame");
   } else {
+    obj->stats_.frames_dropped.fetch_add(1, std::memory_order_relaxed);
     SPDLOG_ERROR("[VideoPlayer] Cannot read video frame out from buffer");
   }
 }
@@ -1266,6 +1643,50 @@ void VideoPlayer::prepare(VideoPlayer* user_data) {
   gst_caps_unref(caps);
   SPDLOG_DEBUG("[VideoPlayer] original video width: {}, height: {}",
                user_data->info_.width, user_data->info_.height);
+
+  // Capture the source colorimetry before set_format clobbers it with the
+  // generic NV12 default (BT.601 limited). HD is typically BT.709 limited,
+  // UHD/HDR is BT.2020. Picking the right matrix stops R/B from being
+  // subtly wrong on modern content.
+  const GstVideoColorimetry src_colorimetry = user_data->info_.colorimetry;
+  if (user_data->shader_) {
+    nv12::ColorSpace cs = nv12::ColorSpace::kBt709Limited;
+    const bool full = src_colorimetry.range == GST_VIDEO_COLOR_RANGE_0_255;
+    switch (src_colorimetry.matrix) {
+      case GST_VIDEO_COLOR_MATRIX_BT601:
+        cs = full ? nv12::ColorSpace::kBt601Full
+                  : nv12::ColorSpace::kBt601Limited;
+        break;
+      case GST_VIDEO_COLOR_MATRIX_BT2020:
+        cs = full ? nv12::ColorSpace::kBt2020Full
+                  : nv12::ColorSpace::kBt2020Limited;
+        break;
+      case GST_VIDEO_COLOR_MATRIX_BT709:
+      default:
+        cs = full ? nv12::ColorSpace::kBt709Full
+                  : nv12::ColorSpace::kBt709Limited;
+        break;
+    }
+    user_data->shader_->SetColorSpace(cs);
+    SPDLOG_DEBUG("[VideoPlayer] Colorimetry: matrix={} range={} -> preset={}",
+                 static_cast<int>(src_colorimetry.matrix),
+                 static_cast<int>(src_colorimetry.range), static_cast<int>(cs));
+  }
+
+  // Snapshot format + colorspace strings for the stats channel. The source
+  // caps tell us what the decoder produced, not what we render in — after
+  // set_format() info_ always reports NV12 so we capture this now.
+  {
+    std::lock_guard meta_lock(user_data->stats_.meta_mutex);
+    const auto* finfo = user_data->info_.finfo;
+    user_data->stats_.negotiated_format =
+        finfo ? GST_VIDEO_FORMAT_INFO_NAME(finfo) : "unknown";
+    gchar* colorimetry_str = gst_video_colorimetry_to_string(&src_colorimetry);
+    user_data->stats_.negotiated_colorspace =
+        colorimetry_str ? colorimetry_str : "unknown";
+    g_free(colorimetry_str);
+  }
+
   // set to the target
   if (!gst_video_info_set_format(&user_data->info_, GST_VIDEO_FORMAT_NV12,
                                  static_cast<guint>(user_data->width_),

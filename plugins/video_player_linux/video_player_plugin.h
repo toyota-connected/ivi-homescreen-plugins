@@ -31,9 +31,11 @@ namespace video_player_linux {
 class VideoPlayerPlugin final : public flutter::Plugin,
                                 public LinuxVideoPlayerApi {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrarDesktop* registrar);
+  static void RegisterWithRegistrar(flutter::PluginRegistrarDesktop* registrar,
+                                    FlutterDesktopPluginRegistrarRef raw);
 
-  explicit VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar);
+  VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
+                    FlutterDesktopPluginRegistrarRef raw);
 
   ~VideoPlayerPlugin() override;
 
@@ -109,6 +111,7 @@ class VideoPlayerPlugin final : public flutter::Plugin,
   std::map<int64_t, std::unique_ptr<VideoPlayer>> videoPlayers;
 
   flutter::PluginRegistrarDesktop* registrar_{};
+  FlutterDesktopPluginRegistrarRef raw_registrar_{};
 
   // Probes the media at [url] for video, audio, embedded album art and
   // text metadata. Returns false only when neither audio nor video streams

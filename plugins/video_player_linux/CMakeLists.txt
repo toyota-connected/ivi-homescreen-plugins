@@ -50,6 +50,21 @@ target_include_directories(${PLUGIN_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/i
 target_link_libraries(${PLUGIN_NAME} PUBLIC platform_homescreen flutter PkgConfig::GST PkgConfig::UDEV PkgConfig::GLES plugin_common_glib)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Phase 0.3 — Optional test media corpus + test harness.
+#
+# Off by default. When ON, adds `fetch_video_player_test_media` (and a
+# `_learn` variant) custom targets plus ctest entries under test/. Media
+# files themselves are NOT committed — see test/media/manifest.json for
+# source URLs and test/.gitignore for the exclusion rules.
+# ─────────────────────────────────────────────────────────────────────────────
+option(BUILD_VIDEO_PLAYER_LINUX_TESTS
+        "Enable fetch target + ctest harness for video_player_linux" OFF)
+
+if (BUILD_VIDEO_PLAYER_LINUX_TESTS)
+    add_subdirectory(test)
+endif ()
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Optional Pigeon regeneration target.
 #
 # The Pigeon-generated messages.g.{h,cc} files in this directory are owned

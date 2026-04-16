@@ -17,6 +17,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cstring>
 
 #include <GLES3/gl3.h>
@@ -40,24 +41,62 @@ static const GLchar* kVertexSource = R"glsl(#version 300 es
   }
 )glsl";
 
+// YUV→RGB matrix and offset live in uniforms so the same program can render
+// BT.601, BT.709, and BT.2020 content; the host picks the right coefficients
+// from the stream's colorimetry metadata via SetColorSpace().
 static const GLchar* kFragmentSource = R"glsl(#version 300 es
   precision highp float;
   in vec2 Texcoord;
   uniform sampler2D textureY;
   uniform sampler2D textureUV;
+  uniform mat3 yuv_to_rgb;
+  uniform vec3 yuv_offset;
   layout(location = 0) out vec4 fragColor;
   void main() {
-    float r, g, b, y, u, v;
     vec2 coord = vec2(Texcoord.x, 1.0 - Texcoord.y);
-    y = texture(textureY, coord).r - 0.0625;
-    u = texture(textureUV, coord).r - 0.5;
-    v = texture(textureUV, coord).g - 0.5;
-    r = clamp(y + 1.370705 * v, 0.0, 1.0);
-    g = clamp(y - 0.337633 * u - 0.698001 * v, 0.0, 1.0);
-    b = clamp(y + 1.732446 * u, 0.0, 1.0);
-    fragColor = vec4(r, g, b, 1.0);
+    vec3 yuv;
+    yuv.x = texture(textureY, coord).r;
+    yuv.yz = texture(textureUV, coord).rg;
+    yuv -= yuv_offset;
+    vec3 rgb = clamp(yuv_to_rgb * yuv, 0.0, 1.0);
+    fragColor = vec4(rgb, 1.0);
   }
 )glsl";
+
+// Colorimetry presets. Values match GStreamer's GstVideoColorMatrix +
+// GstVideoColorRange combinations relevant to decoded NV12 content. Indexed
+// into kColorPresets below.
+enum class ColorSpace {
+  kBt709Limited = 0,   // default — modern HD content
+  kBt601Limited = 1,   // SD / legacy
+  kBt2020Limited = 2,  // UHD
+  kBt709Full = 3,
+  kBt601Full = 4,
+  kBt2020Full = 5,
+};
+
+// Packed mat3 (9 floats, column-major) + vec3 offset (3 floats) per preset.
+// Matrices are derived for texel inputs in [0,1] and produce RGB in [0,1].
+static constexpr GLfloat kColorPresets[6][12] = {
+    // BT.709 limited range (Y:16–235, UV:16–240)
+    {1.16438f, 1.16438f, 1.16438f, 0.00000f, -0.21325f, 2.11240f, 1.79274f,
+     -0.53291f, 0.00000f, 0.06275f, 0.50196f, 0.50196f},
+    // BT.601 limited range
+    {1.16438f, 1.16438f, 1.16438f, 0.00000f, -0.39176f, 2.01723f, 1.59602f,
+     -0.81297f, 0.00000f, 0.06275f, 0.50196f, 0.50196f},
+    // BT.2020 non-constant-luminance limited range
+    {1.16438f, 1.16438f, 1.16438f, 0.00000f, -0.18728f, 2.14177f, 1.67867f,
+     -0.65042f, 0.00000f, 0.06275f, 0.50196f, 0.50196f},
+    // BT.709 full range (Y:0–255, UV:0–255)
+    {1.00000f, 1.00000f, 1.00000f, 0.00000f, -0.18732f, 1.85560f, 1.57480f,
+     -0.46812f, 0.00000f, 0.00000f, 0.50196f, 0.50196f},
+    // BT.601 full range
+    {1.00000f, 1.00000f, 1.00000f, 0.00000f, -0.34414f, 1.77200f, 1.40200f,
+     -0.71414f, 0.00000f, 0.00000f, 0.50196f, 0.50196f},
+    // BT.2020 non-constant-luminance full range
+    {1.00000f, 1.00000f, 1.00000f, 0.00000f, -0.16455f, 1.88140f, 1.47460f,
+     -0.57135f, 0.00000f, 0.00000f, 0.50196f, 0.50196f},
+};
 
 class Shader {
  public:
@@ -81,6 +120,8 @@ class Shader {
     program = load_shaders();
     texY = glGetUniformLocation(program, "textureY");
     texUV = glGetUniformLocation(program, "textureUV");
+    yuv_matrix_loc_ = glGetUniformLocation(program, "yuv_to_rgb");
+    yuv_offset_loc_ = glGetUniformLocation(program, "yuv_offset");
     glUseProgram(program);
 
     glGenTextures(2, &innerTexture[0]);
@@ -258,7 +299,6 @@ class Shader {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, innerTexture[0]);
-    glUniform1i(texY, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, y_s);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -286,7 +326,6 @@ class Shader {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, innerTexture[1]);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glUniform1i(texUV, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, uv_s / 2);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -360,6 +399,14 @@ class Shader {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(program);
 
+    // Sampler bindings and colorimetry travel with the draw — they depend on
+    // which texture units load_pixels used and which stream is playing.
+    glUniform1i(texY, 0);
+    glUniform1i(texUV, 1);
+    const auto preset = static_cast<size_t>(color_space_.load());
+    glUniformMatrix3fv(yuv_matrix_loc_, 1, GL_FALSE, &kColorPresets[preset][0]);
+    glUniform3fv(yuv_offset_loc_, 1, &kColorPresets[preset][9]);
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -378,25 +425,14 @@ class Shader {
     glFlush();
   }
 
-  void load_rgb_pixels(gpointer data) const {
-    SPDLOG_DEBUG("[VideoPlayer] load_rgb_pixels");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
+  void SetColorSpace(const ColorSpace cs) { color_space_.store(cs); }
 
  private:
   GLint texY{};
   GLint texUV{};
+  GLint yuv_matrix_loc_{-1};
+  GLint yuv_offset_loc_{-1};
+  std::atomic<ColorSpace> color_space_{ColorSpace::kBt709Limited};
   GLuint innerTexture[2]{};
 
   GLuint vertex_shader_{};

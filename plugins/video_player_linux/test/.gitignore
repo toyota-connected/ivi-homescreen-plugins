@@ -1,0 +1,5 @@
+# Fetched test media is not committed — see media/manifest.json for the
+# source URLs and the fetch_video_player_test_media CMake target.
+media/*
+!media/manifest.json
+!media/.gitkeep

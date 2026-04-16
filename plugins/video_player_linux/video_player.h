@@ -30,7 +30,10 @@
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/plugin_registrar_homescreen.h>
 
+#include <EGL/egl.h>
+
 #include "nv12.h"
+#include "stats.h"
 
 extern "C" {
 #include <gst/gst.h>
@@ -74,6 +77,7 @@ struct MediaInfo {
 class VideoPlayer {
  public:
   VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
+              FlutterDesktopPluginRegistrarRef raw_registrar,
               std::string uri,
               std::map<std::string, std::string> http_headers,
               const MediaInfo& info);
@@ -124,6 +128,7 @@ class VideoPlayer {
 
  private:
   flutter::PluginRegistrarDesktop* m_registrar;
+  FlutterDesktopPluginRegistrarRef m_raw_registrar;
   std::string uri_;
   std::map<std::string, std::string> http_headers_;
   GLsizei width_{};
@@ -148,6 +153,20 @@ class VideoPlayer {
   int64_t m_texture_id{};
   std::atomic<bool> m_valid = true;
   std::unique_ptr<flutter::GpuSurfaceTexture> gpu_surface_texture_;
+
+  // Phase 0.4 — dedicated shared EGL context per player. When available, the
+  // GStreamer streaming thread keeps |egl_context_| current for its whole
+  // lifetime, eliminating the global texture-context mutex and the
+  // TextureMakeCurrent/Clear round-trip per frame. |use_legacy_context_|
+  // true means the embedder did not expose an EGL share context (Vulkan
+  // backend, headless, older embedder) and we fall back to the old path.
+  EGLDisplay egl_display_{EGL_NO_DISPLAY};
+  EGLContext egl_context_{EGL_NO_CONTEXT};
+  EGLSurface egl_surface_{EGL_NO_SURFACE};
+  bool use_legacy_context_{true};
+  void CreateSharedGlContext();
+  void DestroySharedGlContext();
+  void MakeContextCurrent();  // idempotent, cheap when already current
 
   GMainContext* context_;
 
@@ -184,6 +203,7 @@ class VideoPlayer {
   gulong handoff_handler_id_{};
   gulong on_bus_msg_id_{};
   gulong source_setup_id_{};
+  gulong deep_element_added_id_{};
 
   std::atomic<GstState> target_state_{GST_STATE_PAUSED};
 
@@ -202,6 +222,8 @@ class VideoPlayer {
   std::atomic<bool> audio_upgraded_{false};
   std::atomic<bool> is_initialized_{false};
   std::atomic<bool> sent_initialized_{false};
+
+  VideoPlayerStats stats_;
   void SetBuffering(bool buffering);
 
   // udev monitor for audio device hotplug
@@ -263,6 +285,27 @@ class VideoPlayer {
   // The internal Flutter event sink instance, used to send events to the Dart
   // side.
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+
+  // Phase 0.2 — debug stats channel. Emits one EncodableMap per second while
+  // a listener is subscribed; silent otherwise. Guarded by stats_event_mutex_
+  // because the sink is attached on the platform thread and read from a GLib
+  // timer on the main loop thread.
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      stats_event_channel_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+      stats_event_sink_;
+  std::mutex stats_event_mutex_;
+  guint stats_tick_source_id_{};
+  static gboolean OnStatsTick(gpointer user_data);
+  void EmitStats();
+
+  // deep-element-added on playbin — populates stats_.decoder_name when the
+  // uridecodebin auto-plugs a real decoder element (e.g. avdec_h264,
+  // v4l2h264dec, vpudec). Safe to attach even when no listener is active.
+  static void OnDeepElementAdded(GstBin* bin,
+                                 GstBin* sub_bin,
+                                 GstElement* element,
+                                 gpointer user_data);
 
   /**
    * @brief Callback called when fakesink receives new frame data

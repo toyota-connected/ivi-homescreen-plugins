@@ -22,7 +22,12 @@
 
 void VideoPlayerLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
+  // Pass the raw ref alongside the wrapper so VideoPlayer can call the
+  // homescreen-specific FlutterDesktopPluginRegistrarGetEglContext API
+  // that requires the C registrar handle. The client-wrapper base class
+  // keeps the raw ref protected.
   video_player_linux::VideoPlayerPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarDesktop>(registrar));
+          ->GetRegistrar<flutter::PluginRegistrarDesktop>(registrar),
+      registrar);
 }

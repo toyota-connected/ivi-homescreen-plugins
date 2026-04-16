@@ -34,16 +34,18 @@ namespace video_player_linux {
 
 // static
 void VideoPlayerPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrarDesktop* registrar) {
-  auto plugin = std::make_unique<VideoPlayerPlugin>(registrar);
+    flutter::PluginRegistrarDesktop* registrar,
+    FlutterDesktopPluginRegistrarRef raw) {
+  auto plugin = std::make_unique<VideoPlayerPlugin>(registrar, raw);
   SetUp(registrar->messenger(), plugin.get());
   registrar->AddPlugin(std::move(plugin));
 }
 
 VideoPlayerPlugin::~VideoPlayerPlugin() = default;
 
-VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar)
-    : registrar_(registrar) {
+VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
+                                     FlutterDesktopPluginRegistrarRef raw)
+    : registrar_(registrar), raw_registrar_(raw) {
   // GStreamer lib only needs to be initialized once.  Calling it multiple times
   // is fine.
   gst_init(nullptr, nullptr);
@@ -140,8 +142,9 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
       return FlutterError("video_info_failed", "Invalid video dimensions");
     }
 
-    player = std::make_unique<VideoPlayer>(registrar_, asset_to_load,
-                                           std::move(http_headers_), info);
+    player =
+        std::make_unique<VideoPlayer>(registrar_, raw_registrar_, asset_to_load,
+                                      std::move(http_headers_), info);
 
   } catch (std::exception& e) {
     return FlutterError("uri_load_failed", e.what());
