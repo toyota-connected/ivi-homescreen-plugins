@@ -31,7 +31,9 @@
 #include <flutter/plugin_registrar_homescreen.h>
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 
+#include "dmabuf_frame.h"
 #include "nv12.h"
 #include "stats.h"
 
@@ -181,6 +183,19 @@ class VideoPlayer {
   };
   RenderPath render_path_{RenderPath::PboShaderUpload};
   RenderPath ProbeRenderPath() const;
+
+  // Phase 1.3 — dmabuf → EGLImage import state. At most one EGLImage
+  // is kept live at a time; ImportDmabufFrame destroys the previous
+  // image before creating the new one. Phase 1.4 will upgrade to a
+  // small in-flight deque so the compositor can still sample the
+  // previous frame while we prepare the next.
+  EGLImageKHR egl_image_current_{EGL_NO_IMAGE_KHR};
+  // Cached at ctor time: whether the display advertises
+  // EGL_EXT_image_dma_buf_import_modifiers. Linear buffers don't need
+  // it; tiled/compressed (AFBC, UBWC, Amphion) require it for import.
+  bool egl_dmabuf_modifiers_ok_{false};
+  bool ImportDmabufFrame(const DmabufFrame& frame);
+  void DestroyDmabufImage();
 
   GMainContext* context_;
 

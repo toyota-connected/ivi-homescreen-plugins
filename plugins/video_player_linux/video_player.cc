@@ -30,6 +30,7 @@
 #include <cstring>
 #include <optional>
 
+#include <GLES2/gl2ext.h>
 #include <gst/allocators/gstdmabuf.h>
 #include <gst/app/gstappsink.h>
 #include <gst/audio/audio.h>
@@ -315,6 +316,213 @@ VideoPlayer::RenderPath VideoPlayer::ProbeRenderPath() const {
   return RenderPath::DmabufZeroCopy;
 }
 
+namespace {
+// Entrypoints for the zero-copy path. Resolved lazily via
+// eglGetProcAddress the first time a dmabuf frame needs to land; the
+// static function pointers are thread-safe under the typical
+// initialize-once-from-one-thread pattern we actually hit (the
+// streaming thread is the sole caller).
+using EglCreateImageKHRFn = EGLImageKHR (*)(EGLDisplay,
+                                            EGLContext,
+                                            EGLenum,
+                                            EGLClientBuffer,
+                                            const EGLint*);
+using EglDestroyImageKHRFn = EGLBoolean (*)(EGLDisplay, EGLImageKHR);
+using GlEGLImageTargetTexture2DOESFn = void (*)(GLenum target,
+                                                GLeglImageOES image);
+
+EglCreateImageKHRFn g_eglCreateImageKHR = nullptr;
+EglDestroyImageKHRFn g_eglDestroyImageKHR = nullptr;
+GlEGLImageTargetTexture2DOESFn g_glEGLImageTargetTexture2DOES = nullptr;
+
+bool ResolveEglImageEntrypoints() {
+  if (g_eglCreateImageKHR && g_eglDestroyImageKHR &&
+      g_glEGLImageTargetTexture2DOES) {
+    return true;
+  }
+  g_eglCreateImageKHR = reinterpret_cast<EglCreateImageKHRFn>(
+      eglGetProcAddress("eglCreateImageKHR"));
+  g_eglDestroyImageKHR = reinterpret_cast<EglDestroyImageKHRFn>(
+      eglGetProcAddress("eglDestroyImageKHR"));
+  g_glEGLImageTargetTexture2DOES =
+      reinterpret_cast<GlEGLImageTargetTexture2DOESFn>(
+          eglGetProcAddress("glEGLImageTargetTexture2DOES"));
+  if (!g_eglCreateImageKHR || !g_eglDestroyImageKHR ||
+      !g_glEGLImageTargetTexture2DOES) {
+    spdlog::warn(
+        "[VideoPlayer] Missing EGL/GL entrypoints for dmabuf import: "
+        "eglCreateImageKHR={} eglDestroyImageKHR={} "
+        "glEGLImageTargetTexture2DOES={}",
+        g_eglCreateImageKHR ? "ok" : "missing",
+        g_eglDestroyImageKHR ? "ok" : "missing",
+        g_glEGLImageTargetTexture2DOES ? "ok" : "missing");
+    return false;
+  }
+  return true;
+}
+
+// Map a GStreamer colorimetry string (e.g. "bt709:16-235",
+// "bt2020-10:16-235") to the EGL_*_HINT_EXT attribute pair. Returns
+// true when both hints were populated; false when the string is
+// unknown and callers should skip the hint attrs entirely.
+bool ColorspaceHintsForCaps(const std::string& caps,
+                            EGLint* out_matrix,
+                            EGLint* out_range) {
+  if (caps.empty() || caps == "unknown") {
+    return false;
+  }
+  if (caps.find("bt2020") != std::string::npos) {
+    *out_matrix = EGL_ITU_REC2020_EXT;
+  } else if (caps.find("bt601") != std::string::npos) {
+    *out_matrix = EGL_ITU_REC601_EXT;
+  } else {
+    // Default everything else (bt709, unknown-modern) to 709.
+    *out_matrix = EGL_ITU_REC709_EXT;
+  }
+  if (caps.find("0-255") != std::string::npos ||
+      caps.find(":full") != std::string::npos) {
+    *out_range = EGL_YUV_FULL_RANGE_EXT;
+  } else {
+    *out_range = EGL_YUV_NARROW_RANGE_EXT;
+  }
+  return true;
+}
+}  // namespace
+
+bool VideoPlayer::ImportDmabufFrame(const DmabufFrame& frame) {
+  if (!ResolveEglImageEntrypoints()) {
+    return false;
+  }
+  if (egl_display_ == EGL_NO_DISPLAY || !shader_) {
+    return false;
+  }
+
+  // Build the attribute list. Reserve enough room for the worst case —
+  // 4 planes with modifier attrs plus YUV hints + NONE terminator.
+  constexpr size_t kMaxAttrs = 4 + 2         // width + height
+                               + 2           // fourcc
+                               + 4 * 3 * 2   // fd/off/pitch * 4 plane
+                               + 4 * 2 * 2   // modifier lo/hi * 4 plane
+                               + 2 * 2 + 1;  // colour + range + NONE
+  EGLint attrs[kMaxAttrs];
+  size_t i = 0;
+
+  attrs[i++] = EGL_WIDTH;
+  attrs[i++] = frame.width;
+  attrs[i++] = EGL_HEIGHT;
+  attrs[i++] = frame.height;
+  attrs[i++] = EGL_LINUX_DRM_FOURCC_EXT;
+  attrs[i++] = static_cast<EGLint>(frame.drm_fourcc);
+
+  // Per-plane FD/offset/pitch. EGL defines the PLANE0/1/2/3 attribute
+  // triplets with adjacent values (0x3272..0x327a), so we can derive
+  // each plane's attribute constants from PLANE0 + plane_index * 3.
+  const EGLint kPlane0Attrs[] = {
+      EGL_DMA_BUF_PLANE0_FD_EXT,     EGL_DMA_BUF_PLANE0_OFFSET_EXT,
+      EGL_DMA_BUF_PLANE0_PITCH_EXT,  EGL_DMA_BUF_PLANE1_FD_EXT,
+      EGL_DMA_BUF_PLANE1_OFFSET_EXT, EGL_DMA_BUF_PLANE1_PITCH_EXT,
+  };
+  for (unsigned p = 0; p < frame.n_planes; ++p) {
+    attrs[i++] = kPlane0Attrs[p * 3 + 0];
+    attrs[i++] = frame.planes[p].fd;
+    attrs[i++] = kPlane0Attrs[p * 3 + 1];
+    attrs[i++] = static_cast<EGLint>(frame.planes[p].offset);
+    attrs[i++] = kPlane0Attrs[p * 3 + 2];
+    attrs[i++] = static_cast<EGLint>(frame.planes[p].stride);
+  }
+
+  // Non-linear modifier requires the modifier extension. If the
+  // driver doesn't advertise it, we can still import LINEAR buffers
+  // by omitting the modifier attrs entirely.
+  const bool has_modifier = frame.drm_modifier != kDrmFormatModLinear &&
+                            frame.drm_modifier != kDrmFormatModInvalid;
+  if (has_modifier) {
+    if (!egl_dmabuf_modifiers_ok_) {
+      spdlog::warn(
+          "[VideoPlayer] dmabuf frame has non-linear modifier 0x{:x} but "
+          "EGL_EXT_image_dma_buf_import_modifiers is not available; import "
+          "will fail",
+          frame.drm_modifier);
+      return false;
+    }
+    const EGLint kMod0Attrs[] = {
+        EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT,
+        EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT,
+        EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT,
+        EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT,
+    };
+    for (unsigned p = 0; p < frame.n_planes; ++p) {
+      attrs[i++] = kMod0Attrs[p * 2 + 0];
+      attrs[i++] = static_cast<EGLint>(frame.drm_modifier & 0xFFFFFFFFu);
+      attrs[i++] = kMod0Attrs[p * 2 + 1];
+      attrs[i++] =
+          static_cast<EGLint>((frame.drm_modifier >> 32) & 0xFFFFFFFFu);
+    }
+  }
+
+  // YUV color-space + range hints let the driver perform correct
+  // YUV→RGB on sample. Derived from the GstVideoColorimetry we stored
+  // at prepare() time.
+  std::string cs;
+  {
+    std::lock_guard meta_lock(stats_.meta_mutex);
+    cs = stats_.negotiated_colorspace;
+  }
+  EGLint matrix_hint = EGL_ITU_REC709_EXT;
+  EGLint range_hint = EGL_YUV_NARROW_RANGE_EXT;
+  if (ColorspaceHintsForCaps(cs, &matrix_hint, &range_hint)) {
+    attrs[i++] = EGL_YUV_COLOR_SPACE_HINT_EXT;
+    attrs[i++] = matrix_hint;
+    attrs[i++] = EGL_SAMPLE_RANGE_HINT_EXT;
+    attrs[i++] = range_hint;
+  }
+  attrs[i++] = EGL_NONE;
+
+  EGLImageKHR new_image =
+      g_eglCreateImageKHR(egl_display_, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT,
+                          /*clientbuffer=*/nullptr, attrs);
+  if (new_image == EGL_NO_IMAGE_KHR) {
+    spdlog::error("[VideoPlayer] eglCreateImageKHR failed: 0x{:x}",
+                  eglGetError());
+    return false;
+  }
+
+  // Destroy the previous image AFTER creating the new one — if
+  // creation fails we keep the previous frame visible. Phase 1.4 will
+  // replace this with a bounded in-flight deque so the compositor can
+  // still sample the old image while we prepare the next one.
+  if (egl_image_current_ != EGL_NO_IMAGE_KHR) {
+    g_eglDestroyImageKHR(egl_display_, egl_image_current_);
+  }
+  egl_image_current_ = new_image;
+
+  // Re-specify the shader's textureId storage as the EGL image.
+  // shader_->textureId remains the same GL name that Flutter's
+  // compositor samples, but its backing storage is now the dmabuf
+  // rather than the RGBA FBO attachment the shader class set up.
+  glBindTexture(GL_TEXTURE_2D, shader_->textureId);
+  g_glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, egl_image_current_);
+  const GLenum gl_err = glGetError();
+  if (gl_err != GL_NO_ERROR) {
+    spdlog::error(
+        "[VideoPlayer] glEGLImageTargetTexture2DOES failed: GL error 0x{:x}",
+        gl_err);
+    // Leave egl_image_current_ set; the texture binding may be
+    // partial but destroying the image now would leave the texture
+    // undefined. The next frame's Import() will retry.
+    return false;
+  }
+  return true;
+}
+
+void VideoPlayer::DestroyDmabufImage() {
+  if (egl_image_current_ != EGL_NO_IMAGE_KHR && g_eglDestroyImageKHR &&
+      egl_display_ != EGL_NO_DISPLAY) {
+    g_eglDestroyImageKHR(egl_display_, egl_image_current_);
+    egl_image_current_ = EGL_NO_IMAGE_KHR;
+  }
+}
+
 VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
                          FlutterDesktopPluginRegistrarRef raw_registrar,
                          std::string uri,
@@ -396,6 +604,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
     SPDLOG_DEBUG("[VideoPlayer] render path: {}",
                  render_path_ == RenderPath::DmabufZeroCopy ? "dmabuf-zerocopy"
                                                             : "pbo-shader");
+    // Cache the modifier-extension state now so the hot path in
+    // ImportDmabufFrame doesn't need to query eglQueryString per frame.
+    egl_dmabuf_modifiers_ok_ = has_egl_extension(
+        egl_display_, "EGL_EXT_image_dma_buf_import_modifiers");
 
     /// Setup GL Texture 2D
     m_descriptor.struct_size = sizeof(FlutterDesktopGpuSurfaceDescriptor);
@@ -692,6 +904,7 @@ void VideoPlayer::Dispose() {
     if (shader_) {
       if (!use_legacy_context_) {
         MakeContextCurrent();
+        DestroyDmabufImage();
         shader_.reset();
         eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
                        EGL_NO_CONTEXT);
@@ -1515,13 +1728,40 @@ GstFlowReturn VideoPlayer::OnNewSample(void* appsink_ptr, void* user_data) {
     }
   }
 
-  // TODO Phase 1.3: if `dmabuf` has value, call the EGLImage import
-  // path instead of handoff_handler. Until then both branches fall
-  // through to the CPU NV12 shader upload.
-  (void)dmabuf;
+  if (dmabuf.has_value() && self->render_path_ == RenderPath::DmabufZeroCopy) {
+    // Phase 1.3 — zero-copy path. Make our EGL context current on
+    // this thread, build/bind an EGLImage for the frame, then tell
+    // Flutter a new frame is available. Skip handoff_handler because
+    // we're not going through the PBO/shader at all.
+    std::lock_guard lock(self->gst_mutex_);
+    if (self->m_valid && self->is_initialized_ && self->has_video_) {
+      self->MakeContextCurrent();
+      const bool ok = self->ImportDmabufFrame(*dmabuf);
+      glFlush();
+      eglMakeCurrent(self->egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                     EGL_NO_CONTEXT);
+      if (ok) {
+        self->stats_.frames_rendered.fetch_add(1, std::memory_order_relaxed);
+        if (!self->sent_initialized_) {
+          self->sent_initialized_ = true;
+          self->SendInitialized();
+        }
+        self->m_registrar->texture_registrar()->MarkTextureFrameAvailable(
+            self->m_texture_id);
+        gst_sample_unref(sample);
+        return GST_FLOW_OK;
+      }
+      // Import failed — fall through to CPU upload so the user still
+      // sees something. Next frame will try again; if the failure is
+      // systemic we're effectively downgraded without tearing down.
+      self->stats_.frames_dropped.fetch_add(1, std::memory_order_relaxed);
+    }
+  }
 
-  // handoff_handler's first arg is unused; passing the appsink as the
-  // element is fine (appsink is a GstElement).
+  // CPU fall-through: either the sample isn't dmabuf (software
+  // decoder), extraction failed (unsupported format / weird layout),
+  // or EGLImage import failed (driver quirk). handoff_handler's first
+  // arg is unused; passing the appsink as the element is fine.
   handoff_handler(reinterpret_cast<GstElement*>(appsink), buf, nullptr, self);
 
   gst_sample_unref(sample);
