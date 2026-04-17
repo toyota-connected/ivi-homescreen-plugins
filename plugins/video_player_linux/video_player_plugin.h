@@ -20,6 +20,8 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_homescreen.h>
 
+#include "backend_interface.h"
+#include "config.h"
 #include "flutter_desktop_plugin_registrar.h"
 #include "messages.g.h"
 #include "video_player.h"
@@ -112,6 +114,15 @@ class VideoPlayerPlugin final : public flutter::Plugin,
 
   flutter::PluginRegistrarDesktop* registrar_{};
   FlutterDesktopPluginRegistrarRef raw_registrar_{};
+
+  // Phase 2.6 — process-wide config + detected platform. Loaded once
+  // in the plugin ctor and handed by const-ref to every VideoPlayer.
+  // VideoPlayer copies what it needs; the plugin-owned values remain
+  // authoritative for subsequent Create() calls. Platform detection
+  // is cheap (reads /sys/firmware/devicetree/base/compatible) and the
+  // result is stable for the process lifetime.
+  Config config_{};
+  PlatformProfile platform_profile_{PlatformProfile::Auto};
 
   // Probes the media at [url] for video, audio, embedded album art and
   // text metadata. Returns false only when neither audio nor video streams

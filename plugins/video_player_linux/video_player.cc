@@ -16,7 +16,9 @@
 
 #include "video_player.h"
 
+#include "backend_registry.h"
 #include "dmabuf_frame.h"
+#include "platform_detection.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler.h>
@@ -552,7 +554,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
                          FlutterDesktopPluginRegistrarRef raw_registrar,
                          std::string uri,
                          std::map<std::string, std::string> http_headers,
-                         const MediaInfo& info)
+                         const MediaInfo& info,
+                         Config config,
+                         PlatformProfile platform_profile)
     : m_registrar(registrar),
       m_raw_registrar(raw_registrar),
       uri_(std::move(uri)),
@@ -561,6 +565,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
       height_(info.height),
       duration_(info.duration),
       has_video_(info.has_video),
+      config_(std::move(config)),
+      platform_profile_(platform_profile),
+      video_codec_(info.video_codec),
       initial_album_art_(info.album_art),
       initial_album_art_mime_(info.album_art_mime),
       title_(info.title),
@@ -577,6 +584,64 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
       "has_video: {}",
       uri_.c_str(), http_headers_.size(), width_, height_, duration_,
       has_video_);
+
+  // Phase 2.6 — ask the registry for a backend for this stream's codec.
+  // An explicit per-codec override in Config wins over the auto-select.
+  // The codec key (info.video_codec) may be empty for audio-only or for
+  // caps shapes we don't recognize; Select() then returns nullptr and
+  // we fall back to playbin auto-plug without any backend involvement.
+  decoder_config_.low_latency = config_.decoder_low_latency;
+  decoder_config_.buffer_count = config_.decoder_buffer_count;
+
+  auto picked_override_for_codec =
+      [&](const std::string& codec) -> const std::string* {
+    if (codec == "h264")
+      return &config_.h264_backend;
+    if (codec == "h265" || codec == "hevc")
+      return &config_.h265_backend;
+    if (codec == "vp9")
+      return &config_.vp9_backend;
+    if (codec == "av1")
+      return &config_.av1_backend;
+    return nullptr;
+  };
+
+  if (has_video_ && !video_codec_.empty()) {
+    auto& registry = BackendRegistry::Instance();
+    // Per-codec override takes precedence; a literal "auto" falls back
+    // to the generic decoder_backend override; "auto" there delegates
+    // to priority-based selection.
+    const std::string* per_codec = picked_override_for_codec(video_codec_);
+    const std::string override_name =
+        per_codec && *per_codec != "auto"   ? *per_codec
+        : config_.decoder_backend != "auto" ? config_.decoder_backend
+                                            : std::string{};
+    if (!override_name.empty()) {
+      selected_backend_ = registry.FindByName(override_name);
+      if (!selected_backend_) {
+        spdlog::warn(
+            "[VideoPlayer] Configured backend '{}' not registered; "
+            "falling back to auto-select",
+            override_name);
+      }
+    }
+    if (!selected_backend_) {
+      selected_backend_ = registry.Select(video_codec_, platform_profile_);
+    }
+    if (selected_backend_) {
+      spdlog::info(
+          "[VideoPlayer] Backend selected for '{}' on {}: {} (priority={})",
+          video_codec_, PlatformProfileName(platform_profile_),
+          selected_backend_->name(), selected_backend_->priority());
+      std::lock_guard meta_lock(stats_.meta_mutex);
+      stats_.selected_backend = selected_backend_->name();
+    } else {
+      SPDLOG_DEBUG(
+          "[VideoPlayer] No backend claims codec '{}' on {}; using "
+          "playbin auto-plug",
+          video_codec_, PlatformProfileName(platform_profile_));
+    }
+  }
 
   gst_video_info_init(&info_);
 
@@ -1217,12 +1282,13 @@ void VideoPlayer::EmitStats() {
   const int64_t last_wall =
       stats_.last_wallclock_ns.load(std::memory_order_relaxed);
 
-  std::string fmt, colorspace, decoder;
+  std::string fmt, colorspace, decoder, selected_backend;
   {
     std::lock_guard meta_lock(stats_.meta_mutex);
     fmt = stats_.negotiated_format;
     colorspace = stats_.negotiated_colorspace;
     decoder = stats_.decoder_name;
+    selected_backend = stats_.selected_backend;
   }
 
   // EncodableValue stores ints as int64; the load values can exceed int64
@@ -1250,6 +1316,8 @@ void VideoPlayer::EmitStats() {
        flutter::EncodableValue(colorspace)},
       {flutter::EncodableValue("decoder_name"),
        flutter::EncodableValue(decoder)},
+      {flutter::EncodableValue("selected_backend"),
+       flutter::EncodableValue(selected_backend)},
       {flutter::EncodableValue("uses_dmabuf"),
        flutter::EncodableValue(
            stats_.uses_dmabuf.load(std::memory_order_relaxed))},
@@ -1304,6 +1372,17 @@ void VideoPlayer::OnDeepElementAdded(GstBin* /* bin */,
        g_str_has_prefix(name, "msdk"));
   self->stats_.uses_hw_decoder.store(hw, std::memory_order_relaxed);
   SPDLOG_DEBUG("[VideoPlayer] Decoder: {} (hw={})", name ? name : "?", hw);
+
+  // Phase 2.6 — give the selected backend a chance to tune properties
+  // on the auto-plugged decoder (output-io-mode, buffer pool size, …).
+  // No-op when no backend was selected or when the auto-plugged factory
+  // isn't one the backend owns. Called here because deep-element-added
+  // fires with the decoder still in GST_STATE_NULL, which is when v4l2
+  // io-mode properties are safe to set.
+  if (self->selected_backend_ && !self->video_codec_.empty()) {
+    self->selected_backend_->ConfigureAutoPluggedDecoder(
+        element, self->video_codec_, self->decoder_config_);
+  }
 }
 
 void VideoPlayer::SetBuffering(const bool buffering) {

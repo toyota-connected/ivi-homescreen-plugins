@@ -26,7 +26,13 @@
 #include <gst/pbutils/pbutils.h>
 #include <gst/tag/tag.h>
 
+#include <plugins/common/common.h>
+
+#include "backend_generic_v4l2.h"
+#include "backend_registry.h"
+#include "config.h"
 #include "messages.g.h"
+#include "platform_detection.h"
 #include "plugins/common/glib/main_loop.h"
 #include "video_player.h"
 
@@ -49,6 +55,31 @@ VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
   // GStreamer lib only needs to be initialized once.  Calling it multiple times
   // is fine.
   gst_init(nullptr, nullptr);
+
+  // Phase 2.6 — decoder backend registration. Must precede config load +
+  // per-player Select() calls. The function is idempotent, so multiple
+  // plugin instances in the same process all hit the same registry
+  // entries.
+  RegisterGenericV4L2Backend();
+
+  // Detect platform first so Config::Load can materialize the matching
+  // [platform.<name>] overlay. The detected profile is used as the
+  // default when the TOML config leaves platform_profile as "auto".
+  platform_profile_ = DetectPlatform();
+  config_ =
+      Config::Load([this]() { return PlatformProfileName(platform_profile_); });
+  // Explicit override in the config file wins over autodetect.
+  if (config_.platform_profile != "auto") {
+    platform_profile_ = PlatformProfileFromName(config_.platform_profile);
+  }
+
+  spdlog::info("[VideoPlayer] Platform: {} (log_level={})",
+               PlatformProfileName(platform_profile_), config_.log_level);
+  for (auto* b : BackendRegistry::Instance().All()) {
+    spdlog::info(
+        "[VideoPlayer] Backend registered: {} (priority={}, available={})",
+        b->name(), b->priority(), b->is_available());
+  }
 
   // start the main loop if not already running
   plugin_common_glib::MainLoop::GetInstance();
@@ -142,9 +173,9 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
       return FlutterError("video_info_failed", "Invalid video dimensions");
     }
 
-    player =
-        std::make_unique<VideoPlayer>(registrar_, raw_registrar_, asset_to_load,
-                                      std::move(http_headers_), info);
+    player = std::make_unique<VideoPlayer>(
+        registrar_, raw_registrar_, asset_to_load, std::move(http_headers_),
+        info, config_, platform_profile_);
 
   } catch (std::exception& e) {
     return FlutterError("uri_load_failed", e.what());
@@ -300,6 +331,26 @@ bool VideoPlayerPlugin::discover_media_info(const char* url, MediaInfo& info) {
       info.height =
           static_cast<int>(gst_discoverer_video_info_get_height(vinfo));
       info.has_video = true;
+      // Derive the short codec key from the stream caps. GStreamer
+      // spells these "video/x-h264", "video/x-h265", "video/x-vp9",
+      // "video/x-vp8", "video/x-av1", and "image/jpeg" for MJPEG.
+      // Anything we don't recognize leaves info.video_codec empty, which
+      // makes BackendRegistry::Select() return nullptr and lets playbin
+      // auto-plug fall through unchanged.
+      if (GstCaps* caps = gst_discoverer_stream_info_get_caps(stream_info)) {
+        if (gst_caps_get_size(caps) > 0) {
+          const GstStructure* s = gst_caps_get_structure(caps, 0);
+          if (const gchar* cname = gst_structure_get_name(s)) {
+            const std::string n = cname;
+            if (n.rfind("video/x-", 0) == 0) {
+              info.video_codec = n.substr(8);
+            } else if (n == "image/jpeg") {
+              info.video_codec = "mjpeg";
+            }
+          }
+        }
+        gst_caps_unref(caps);
+      }
     }
     gst_discoverer_stream_info_list_free(video_streams);
   }
@@ -382,9 +433,9 @@ bool VideoPlayerPlugin::discover_media_info(const char* url, MediaInfo& info) {
   }
 
   SPDLOG_DEBUG(
-      "[VideoPlayer] Discovered: video={} ({}x{}), audio={} ({}ch/{}Hz), "
-      "duration={}ns, art={}B",
-      info.has_video, info.width, info.height, info.has_audio,
+      "[VideoPlayer] Discovered: video={} ({}x{}, codec='{}'), audio={} "
+      "({}ch/{}Hz), duration={}ns, art={}B",
+      info.has_video, info.width, info.height, info.video_codec, info.has_audio,
       info.audio_channels, info.audio_sample_rate, info.duration,
       info.album_art.size());
 

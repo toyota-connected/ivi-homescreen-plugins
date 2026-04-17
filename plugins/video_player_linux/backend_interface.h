@@ -154,6 +154,19 @@ class VideoDecoderBackend {
   // falling back to GStreamer's generic videoconvert.
   virtual GstElement* build_converter_bin(uint64_t src_modifier,
                                           uint64_t dst_modifier) = 0;
+
+  // Apply backend-specific tuning to a decoder element that was
+  // auto-plugged by playbin / uridecodebin rather than built via
+  // build_decoder_bin(). Lets the backend share its property setup
+  // (dmabuf-export toggles, output pool sizes, low-latency flags) with
+  // the playbin path so Phase 2.6's observe-and-tune model matches the
+  // fully-constructed path. Called from deep-element-added after the
+  // element has been classified as a video decoder; the element is
+  // still in GST_STATE_NULL. Default no-op — backends opt in by
+  // overriding when they have knobs worth applying.
+  virtual void ConfigureAutoPluggedDecoder(GstElement* /*dec*/,
+                                           const std::string& /*codec*/,
+                                           const DecoderConfig& /*cfg*/) {}
 };
 
 }  // namespace video_player_linux

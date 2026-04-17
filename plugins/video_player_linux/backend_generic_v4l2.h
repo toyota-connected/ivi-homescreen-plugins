@@ -28,14 +28,17 @@ namespace video_player_linux {
 // factory availability via GstElementFactory at construction time.
 class GenericV4L2Backend final : public VideoDecoderBackend {
  public:
-  std::string name() const override;
-  int priority() const override;
-  bool is_available() const override;
-  BackendCapabilities query_capabilities() const override;
+  [[nodiscard]] std::string name() const override;
+  [[nodiscard]] int priority() const override;
+  [[nodiscard]] bool is_available() const override;
+  [[nodiscard]] BackendCapabilities query_capabilities() const override;
   GstElement* build_decoder_bin(const std::string& codec,
                                 const DecoderConfig& cfg) override;
   GstElement* build_converter_bin(uint64_t src_modifier,
                                   uint64_t dst_modifier) override;
+  void ConfigureAutoPluggedDecoder(GstElement* dec,
+                                   const std::string& codec,
+                                   const DecoderConfig& cfg) override;
 };
 
 // Static initializers in a statically-linked library can get stripped

@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cstring>
 #include <memory>
 #include <string>
 
@@ -41,12 +42,12 @@ struct FactoryChoice {
 };
 
 const FactoryChoice& FactoriesForCodec(const std::string& codec) {
-  static const FactoryChoice h264{"v4l2h264dec", "v4l2slh264dec"};
-  static const FactoryChoice h265{"v4l2h265dec", "v4l2slh265dec"};
-  static const FactoryChoice vp8{"v4l2vp8dec", "v4l2slvp8dec"};
-  static const FactoryChoice vp9{"v4l2vp9dec", "v4l2slvp9dec"};
-  static const FactoryChoice av1{"v4l2av1dec", "v4l2slav1dec"};
-  static const FactoryChoice none{nullptr, nullptr};
+  static constexpr FactoryChoice h264{"v4l2h264dec", "v4l2slh264dec"};
+  static constexpr FactoryChoice h265{"v4l2h265dec", "v4l2slh265dec"};
+  static constexpr FactoryChoice vp8{"v4l2vp8dec", "v4l2slvp8dec"};
+  static constexpr FactoryChoice vp9{"v4l2vp9dec", "v4l2slvp9dec"};
+  static constexpr FactoryChoice av1{"v4l2av1dec", "v4l2slav1dec"};
+  static constexpr FactoryChoice none{nullptr, nullptr};
 
   if (codec == "h264")
     return h264;
@@ -105,6 +106,34 @@ void ApplyDmabufExport(GstElement* decoder) {
   }
 }
 
+// Apply DecoderConfig-driven knobs that some v4l2 decoders expose
+// (buffer pool sizing). Gated on property presence so the call is
+// safe on factories that don't expose a given property.
+void ApplyDecoderConfig(GstElement* decoder, const DecoderConfig& cfg) {
+  if (!decoder || cfg.buffer_count == 0) {
+    return;
+  }
+  if (g_object_class_find_property(G_OBJECT_GET_CLASS(decoder),
+                                   "num-output-buffers")) {
+    g_object_set(decoder, "num-output-buffers",
+                 static_cast<int>(cfg.buffer_count), nullptr);
+  }
+}
+
+// Does `factory_name` belong to the primary/fallback pair for `codec`?
+// Used so ConfigureAutoPluggedDecoder only tunes decoders this backend
+// actually claims — touching a foreign element (avdec_h264, vaapih264dec)
+// with v4l2-specific properties would be a property-not-found silent
+// no-op at best and a tuning mismatch at worst.
+bool FactoryBelongsToCodec(const char* factory_name, const std::string& codec) {
+  if (!factory_name) {
+    return false;
+  }
+  const auto& choice = FactoriesForCodec(codec);
+  return (choice.primary && std::strcmp(factory_name, choice.primary) == 0) ||
+         (choice.fallback && std::strcmp(factory_name, choice.fallback) == 0);
+}
+
 }  // namespace
 
 std::string GenericV4L2Backend::name() const {
@@ -157,24 +186,35 @@ GstElement* GenericV4L2Backend::build_decoder_bin(const std::string& codec,
     return nullptr;
   }
   ApplyDmabufExport(dec);
-
-  // `num-buffers` style tuning — some v4l2 decoders expose a
-  // "min-capture-buffers" / "num-output-buffers" property. Apply
-  // buffer_count when the property is present and the caller asked
-  // for a non-default value.
-  if (cfg.buffer_count > 0) {
-    if (g_object_class_find_property(G_OBJECT_GET_CLASS(dec),
-                                     "num-output-buffers")) {
-      g_object_set(dec, "num-output-buffers",
-                   static_cast<int>(cfg.buffer_count), nullptr);
-    }
-  }
+  ApplyDecoderConfig(dec, cfg);
   (void)cfg.low_latency;  // no generic v4l2 property for this; honored
                           // per-platform in later backends.
 
   SPDLOG_DEBUG("[VideoPlayer] v4l2_stateless: built {} decoder for '{}'",
                GST_OBJECT_NAME(gst_element_get_factory(dec)), codec);
   return dec;
+}
+
+void GenericV4L2Backend::ConfigureAutoPluggedDecoder(GstElement* dec,
+                                                     const std::string& codec,
+                                                     const DecoderConfig& cfg) {
+  if (!dec) {
+    return;
+  }
+  GstElementFactory* factory = gst_element_get_factory(dec);
+  if (!factory) {
+    return;
+  }
+  const gchar* factory_name = GST_OBJECT_NAME(factory);
+  if (!FactoryBelongsToCodec(factory_name, codec)) {
+    // Some other decoder (avdec_h264, vaapih264dec, …) got auto-plugged.
+    // Leave it alone — v4l2 property names don't apply.
+    return;
+  }
+  ApplyDmabufExport(dec);
+  ApplyDecoderConfig(dec, cfg);
+  SPDLOG_DEBUG("[VideoPlayer] v4l2_stateless: tuned auto-plugged {} for '{}'",
+               factory_name, codec);
 }
 
 GstElement* GenericV4L2Backend::build_converter_bin(uint64_t src_modifier,

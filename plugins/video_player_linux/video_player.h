@@ -34,6 +34,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include "backend_interface.h"
+#include "config.h"
 #include "dmabuf_frame.h"
 #include "nv12.h"
 #include "stats.h"
@@ -60,6 +62,12 @@ struct MediaInfo {
   bool has_video = false;
   bool has_audio = false;
   gint n_audio_streams = 0;
+  // Short codec name derived from the video stream's caps:
+  // "h264", "h265", "vp8", "vp9", "av1", "mjpeg". Used as the key
+  // for BackendRegistry::Select(). Empty when no video stream or an
+  // unrecognized caps name — callers must then fall back to playbin
+  // auto-plug.
+  std::string video_codec;
   std::string audio_codec;
   int audio_channels = 0;
   int audio_sample_rate = 0;
@@ -83,7 +91,9 @@ class VideoPlayer {
               FlutterDesktopPluginRegistrarRef raw_registrar,
               std::string uri,
               std::map<std::string, std::string> http_headers,
-              const MediaInfo& info);
+              const MediaInfo& info,
+              Config config,
+              PlatformProfile platform_profile);
   ~VideoPlayer();
 
   void Dispose();
@@ -138,6 +148,18 @@ class VideoPlayer {
   GLsizei height_{};
   gint64 duration_{};
   bool has_video_{true};
+
+  // Phase 2.6 — runtime configuration + chosen backend. Copy of the
+  // Config because VideoPlayer outlives the plugin-owned Config if
+  // the plugin is torn down mid-stream. `selected_backend_` is a
+  // non-owning pointer into BackendRegistry (process-wide singleton,
+  // so lifetime is safe). nullptr means "no backend claimed this
+  // codec — fall back to playbin auto-plug".
+  Config config_;
+  PlatformProfile platform_profile_{PlatformProfile::Auto};
+  VideoDecoderBackend* selected_backend_{nullptr};
+  std::string video_codec_;  // short codec key, e.g. "h264"
+  DecoderConfig decoder_config_{};
 
   // Initial album art / metadata captured at discovery time. Forwarded to
   // Dart via the event channel as soon as the event sink is attached.

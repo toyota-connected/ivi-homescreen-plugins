@@ -43,6 +43,12 @@ struct VideoPlayerStats {
   std::string negotiated_format;      // "NV12", "NV12_4L4", …
   std::string negotiated_colorspace;  // "bt709:limited", …
   std::string decoder_name;           // "avdec_h264", "v4l2h264dec", …
+  // VideoDecoderBackend::name() of the backend chosen for this stream
+  // (or empty when falling back to playbin auto-plug because no
+  // backend claimed the codec). Decoupled from decoder_name because
+  // a backend may observe an auto-plugged factory without owning its
+  // construction.
+  std::string selected_backend;
 
   std::atomic<bool> uses_dmabuf{false};
   std::atomic<bool> uses_hw_decoder{false};
