@@ -28,6 +28,7 @@ add_library(${PLUGIN_NAME} STATIC
         backend_registry.cc
         backend_generic_v4l2.cc
         backend_imx8m.cc
+        backend_imx8qm.cc
         config.cc
         platform_detection.cc
 )
