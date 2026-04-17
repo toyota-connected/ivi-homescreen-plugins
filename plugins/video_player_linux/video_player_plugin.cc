@@ -31,6 +31,7 @@
 #include "backend_generic_v4l2.h"
 #include "backend_imx8m.h"
 #include "backend_imx8qm.h"
+#include "backend_imx95.h"
 #include "backend_registry.h"
 #include "config.h"
 #include "messages.g.h"
@@ -65,6 +66,7 @@ VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
   RegisterGenericV4L2Backend();
   RegisterImx8mVpuBackend();
   RegisterImx8QmBackend();
+  RegisterImx95Backend();
 
   // Detect platform first so Config::Load can materialize the matching
   // [platform.<name>] overlay. The detected profile is used as the
