@@ -26,6 +26,7 @@ add_library(${PLUGIN_NAME} STATIC
         video_player.cc
         messages.g.cc
         backend_registry.cc
+        backend_generic_v4l2.cc
         config.cc
         platform_detection.cc
 )
