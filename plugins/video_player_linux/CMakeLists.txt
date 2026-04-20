@@ -24,12 +24,14 @@ add_library(${PLUGIN_NAME} STATIC
         video_player_plugin_c_api.cc
         video_player_plugin.cc
         video_player.cc
+        video_player_view.cc
         messages.g.cc
         backend_registry.cc
         backend_generic_v4l2.cc
         backend_imx8m.cc
         backend_imx8qm.cc
         backend_imx95.cc
+        backend_rockchip.cc
         config.cc
         platform_detection.cc
 )

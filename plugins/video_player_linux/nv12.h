@@ -27,7 +27,7 @@
 
 namespace video_player_linux::nv12 {
 
-static const GLchar* kVertexSource = R"glsl(#version 300 es
+static auto kVertexSource = R"glsl(#version 300 es
   precision highp float;
 
   layout(location = 0) in vec3 vertexPosition_modelspace;
@@ -44,7 +44,7 @@ static const GLchar* kVertexSource = R"glsl(#version 300 es
 // YUV→RGB matrix and offset live in uniforms so the same program can render
 // BT.601, BT.709, and BT.2020 content; the host picks the right coefficients
 // from the stream's colorimetry metadata via SetColorSpace().
-static const GLchar* kFragmentSource = R"glsl(#version 300 es
+static auto kFragmentSource = R"glsl(#version 300 es
   precision highp float;
   in vec2 Texcoord;
   uniform sampler2D textureY;

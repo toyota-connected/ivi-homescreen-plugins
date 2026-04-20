@@ -30,7 +30,7 @@ namespace video_player_linux {
 // Platform profile the plugin detected / was asked to behave as. Used
 // as a selection hint by the registry and by backend implementations
 // that want to branch on SoC family (tiled format choices, VPU bring-up
-// quirks, etc). Kept out of backend_interface's implementation surface
+// quirks, etc.). Kept out of backend_interface's implementation surface,
 // so backends don't need to #include the detection header.
 enum class PlatformProfile {
   Auto,
@@ -62,7 +62,7 @@ enum class PlatformProfile {
 
 // Per-decoder knobs the backend may want to honor. Extended over time
 // as config.toml grows new settings. All fields have conservative
-// defaults so a backend that ignores the struct behaves sanely.
+// defaults, so a backend that ignores the struct behaves sanely.
 struct DecoderConfig {
   // Disable frame reordering and emit in decode order. Good for
   // latency-sensitive ADAS/camera use cases, bad for B-frame heavy
@@ -74,6 +74,15 @@ struct DecoderConfig {
   // smoother playback under load; tuning down is useful on
   // memory-constrained targets.
   unsigned buffer_count{0};
+
+  // Prefer AFBC (ARM Frame Buffer Compression) output when the
+  // decoder can emit it. Only Rockchip MPP and some Mali-paired
+  // platforms honor this today; other backends gate on property
+  // presence and silently ignore it. Driven from Config's
+  // texture_enable_afbc — the compressed buffer is only useful when
+  // the display path can sample it, so the gate lives in the
+  // texture section of the TOML rather than in [decoder].
+  bool enable_afbc{false};
 };
 
 // What a backend can do. Filled in by query_capabilities() so the
@@ -160,7 +169,7 @@ class VideoDecoderBackend {
   // build_decoder_bin(). Lets the backend share its property setup
   // (dmabuf-export toggles, output pool sizes, low-latency flags) with
   // the playbin path so Phase 2.6's observe-and-tune model matches the
-  // fully-constructed path. Called from deep-element-added after the
+  // fully constructed path. Called from deep-element-added after the
   // element has been classified as a video decoder; the element is
   // still in GST_STATE_NULL. Default no-op — backends opt in by
   // overriding when they have knobs worth applying.

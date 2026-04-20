@@ -33,6 +33,7 @@
 #include "backend_imx8qm.h"
 #include "backend_imx95.h"
 #include "backend_registry.h"
+#include "backend_rockchip.h"
 #include "config.h"
 #include "messages.g.h"
 #include "platform_detection.h"
@@ -40,6 +41,19 @@
 #include "video_player.h"
 
 namespace video_player_linux {
+
+// Process-wide most-recent-plugin pointer. Updated in the ctor/dtor; used
+// by the platform-view entry point to reach the plugin-owned config,
+// platform profile, and registrar without plumbing them through the
+// platform-views dispatch.
+namespace {
+VideoPlayerPlugin* g_instance{nullptr};
+}  // namespace
+
+// static
+VideoPlayerPlugin* VideoPlayerPlugin::Instance() {
+  return g_instance;
+}
 
 // static
 void VideoPlayerPlugin::RegisterWithRegistrar(
@@ -50,7 +64,30 @@ void VideoPlayerPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-VideoPlayerPlugin::~VideoPlayerPlugin() = default;
+VideoPlayerPlugin::~VideoPlayerPlugin() {
+  if (g_instance == this) {
+    g_instance = nullptr;
+  }
+}
+
+VideoPlayer* VideoPlayerPlugin::FindPlayer(int64_t player_id) const {
+  const auto it = videoPlayers.find(player_id);
+  return it == videoPlayers.end() ? nullptr : it->second.get();
+}
+
+VideoPlayer* VideoPlayerPlugin::AdoptPlayer(int64_t player_id,
+                                            std::unique_ptr<VideoPlayer> p) {
+  if (!p) {
+    return nullptr;
+  }
+  VideoPlayer* raw = p.get();
+  // insert_or_assign disposes any prior entry under the same key through
+  // unique_ptr's destructor — which runs `~VideoPlayer` and tears down
+  // the pipeline. Safe for the PV attach path where `player_id` equals
+  // the platform-view id and no Pigeon `create` ran for that id.
+  videoPlayers.insert_or_assign(player_id, std::move(p));
+  return raw;
+}
 
 VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
                                      FlutterDesktopPluginRegistrarRef raw)
@@ -67,6 +104,7 @@ VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
   RegisterImx8mVpuBackend();
   RegisterImx8QmBackend();
   RegisterImx95Backend();
+  RegisterRockchipBackends();
 
   // Detect platform first so Config::Load can materialize the matching
   // [platform.<name>] overlay. The detected profile is used as the
@@ -89,6 +127,8 @@ VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
 
   // start the main loop if not already running
   plugin_common_glib::MainLoop::GetInstance();
+
+  g_instance = this;
 }
 
 std::optional<FlutterError> VideoPlayerPlugin::Initialize() {
@@ -114,14 +154,21 @@ static bool has_header_injection(const std::string& value) {
          value.find('\0') != std::string::npos;
 }
 
-ErrorOr<int64_t> VideoPlayerPlugin::Create(
+std::unique_ptr<VideoPlayer> VideoPlayerPlugin::BuildPlayer(
     const std::string* asset,
     const std::string* uri,
-    const flutter::EncodableMap& http_headers) {
+    const flutter::EncodableMap& http_headers,
+    FlutterError* error_out) {
   std::string asset_to_load;
   std::map<std::string, std::string> http_headers_;
 
-  std::unique_ptr<VideoPlayer> player;
+  auto fail = [error_out](std::string code, std::string msg) {
+    if (error_out) {
+      *error_out = FlutterError(std::move(code), std::move(msg));
+    }
+    return std::unique_ptr<VideoPlayer>{};
+  };
+
   if (asset && !asset->empty()) {
     asset_to_load = "file://";
     std::filesystem::path path;
@@ -132,20 +179,19 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
       SPDLOG_DEBUG("path: [{}]", path.c_str());
       path /= asset->c_str();
     }
-    // Ensure the path is absolute so the file:// URI is valid.
     path = std::filesystem::absolute(path);
     if (!exists(path)) {
       spdlog::error("[VideoPlayer] Asset Path does not exist. {}",
                     path.c_str());
-      return FlutterError("asset_load_failed", "Asset Path does not exist.");
+      return fail("asset_load_failed", "Asset Path does not exist.");
     }
     asset_to_load += path.c_str();
   } else if (uri && !uri->empty()) {
     if (!is_allowed_uri_scheme(*uri)) {
       spdlog::error("[VideoPlayer] Unsupported URI scheme: {}", *uri);
-      return FlutterError("uri_load_failed",
-                          "URI scheme not allowed. "
-                          "Supported: file, http, https, rtsp");
+      return fail("uri_load_failed",
+                  "URI scheme not allowed. "
+                  "Supported: file, http, https, rtsp");
     }
     asset_to_load = *uri;
 
@@ -157,26 +203,27 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
         if (has_header_injection(k) || has_header_injection(v)) {
           spdlog::error(
               "[VideoPlayer] Rejected HTTP header with control characters");
-          return FlutterError("invalid_headers",
-                              "HTTP header contains invalid characters");
+          return fail("invalid_headers",
+                      "HTTP header contains invalid characters");
         }
         http_headers_[k] = v;
       }
     }
   } else {
-    return FlutterError("not_implemented", "Set either an asset or a uri");
+    return fail("not_implemented", "Set either an asset or a uri");
   }
 
   SPDLOG_DEBUG("[VideoPlayer] asset: {}", asset_to_load);
 
+  std::unique_ptr<VideoPlayer> player;
   try {
     MediaInfo info;
     if (!discover_media_info(asset_to_load.c_str(), info)) {
-      return FlutterError("media_info_failed", "No playable streams found");
+      return fail("media_info_failed", "No playable streams found");
     }
     if (info.has_video && (info.width <= 0 || info.height <= 0 ||
                            info.width > 16384 || info.height > 16384)) {
-      return FlutterError("video_info_failed", "Invalid video dimensions");
+      return fail("video_info_failed", "Invalid video dimensions");
     }
 
     player = std::make_unique<VideoPlayer>(
@@ -184,15 +231,25 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
         info, config_, platform_profile_);
 
   } catch (std::exception& e) {
-    return FlutterError("uri_load_failed", e.what());
+    return fail("uri_load_failed", e.what());
   }
 
   player->Init(registrar_->messenger());
+  return player;
+}
+
+ErrorOr<int64_t> VideoPlayerPlugin::Create(
+    const std::string* asset,
+    const std::string* uri,
+    const flutter::EncodableMap& http_headers) {
+  FlutterError error("", "");
+  auto player = BuildPlayer(asset, uri, http_headers, &error);
+  if (!player) {
+    return error;
+  }
 
   auto texture_id = player->GetTextureId();
-
   videoPlayers.insert(std::make_pair(texture_id, std::move(player)));
-
   return texture_id;
 }
 

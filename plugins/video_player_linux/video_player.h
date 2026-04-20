@@ -109,6 +109,15 @@ class VideoPlayer {
   bool IsValid();
   bool IsAudioOnly() const { return !has_video_; }
 
+  // GL texture accessors used by the compositor-surface path (platform-view
+  // presentation). `GetGlTextureName()` returns the GL_TEXTURE_2D name the
+  // GStreamer pipeline is writing into this frame; 0 until the first frame
+  // has been uploaded. `GetGlTextureWidth/Height()` report the decoded
+  // frame dimensions, which may differ from the widget's layout size.
+  [[nodiscard]] uint32_t GetGlTextureName() const;
+  [[nodiscard]] int32_t GetGlTextureWidth() const { return width_; }
+  [[nodiscard]] int32_t GetGlTextureHeight() const { return height_; }
+
   // Phase 1 — audio control surface
   int GetAudioTrackCount();
   void SetAudioTrack(int index);

@@ -108,6 +108,45 @@ class VideoPlayerPlugin final : public flutter::Plugin,
       int64_t out_channels,
       const flutter::EncodableList& matrix) override;
 
+  // Process-wide accessor used by the platform-view entry point
+  // (VideoPlayerView::RegisterWithRegistrar). Returns the most recently
+  // constructed VideoPlayerPlugin — typical embedders host a single
+  // engine and a single plugin instance, so the "most recent" and "the
+  // only one" coincide. Null until the Pigeon `registerWith` fires.
+  static VideoPlayerPlugin* Instance();
+
+  // Shared builder used by both Pigeon `Create` and the platform-view
+  // path to turn a Dart-supplied asset / uri / http_headers triple into
+  // a ready-to-`Init` VideoPlayer. Performs URI-scheme whitelisting,
+  // header-injection rejection, media discovery, and player
+  // construction. Returns nullptr on any failure; error details are
+  // surfaced via spdlog and, for the Pigeon path, `error_out`.
+  std::unique_ptr<VideoPlayer> BuildPlayer(
+      const std::string* asset,
+      const std::string* uri,
+      const flutter::EncodableMap& http_headers,
+      FlutterError* error_out);
+
+  [[nodiscard]] flutter::PluginRegistrarDesktop* registrar() const {
+    return registrar_;
+  }
+  [[nodiscard]] FlutterDesktopPluginRegistrarRef raw_registrar() const {
+    return raw_registrar_;
+  }
+
+  // Look up a previously-Pigeon-created player by its texture/player id.
+  // Returns a non-owning pointer that's valid until the matching
+  // `Dispose(id)` is received. Null when the id isn't known.
+  [[nodiscard]] VideoPlayer* FindPlayer(int64_t player_id) const;
+
+  // Adopt an externally-built (e.g. by VideoPlayerView via creation
+  // params) player into the owning map under `player_id`, returning a
+  // non-owning pointer for the caller to keep using. If an entry
+  // already exists under that id it is replaced and the old one is
+  // disposed.
+  VideoPlayer* AdoptPlayer(int64_t player_id,
+                           std::unique_ptr<VideoPlayer> player);
+
  private:
   // A list of all the video players instantiated by this plugin.
   std::map<int64_t, std::unique_ptr<VideoPlayer>> videoPlayers;

@@ -61,6 +61,31 @@ typedef enum {
 // with GL texture IDs (which are small positive integers).
 static std::atomic<int64_t> g_audio_player_id_counter{0x7F000000};
 
+namespace {
+// Token-match an EGL extension string. Forward-declared out of the
+// anonymous namespace below so CreateSharedGlContext can call it.
+bool has_egl_extension_token(EGLDisplay dpy, const char* name) {
+  if (dpy == EGL_NO_DISPLAY || !name) {
+    return false;
+  }
+  const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
+  if (!exts) {
+    return false;
+  }
+  const size_t len = std::strlen(name);
+  const char* p = exts;
+  while ((p = std::strstr(p, name)) != nullptr) {
+    const bool left_ok = (p == exts) || p[-1] == ' ';
+    const bool right_ok = p[len] == ' ' || p[len] == '\0';
+    if (left_ok && right_ok) {
+      return true;
+    }
+    p += len;
+  }
+  return false;
+}
+}  // namespace
+
 void VideoPlayer::CreateSharedGlContext() {
   FlutterDesktopEglContext engine_ctx{};
   if (!FlutterDesktopPluginRegistrarGetEglContext(m_raw_registrar,
@@ -89,26 +114,36 @@ void VideoPlayer::CreateSharedGlContext() {
     return;
   }
 
-  // 1x1 pbuffer because some drivers refuse eglMakeCurrent with
-  // EGL_NO_SURFACE even when EGL_KHR_surfaceless_context is present. We
-  // never draw into this surface — all output is to FBOs.
-  const EGLint pbuf_attrs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
-  EGLSurface surf = eglCreatePbufferSurface(display, config, pbuf_attrs);
-  if (surf == EGL_NO_SURFACE) {
-    spdlog::warn(
-        "[VideoPlayer] eglCreatePbufferSurface failed (0x{:X}); using legacy "
-        "path",
-        eglGetError());
-    eglDestroyContext(display, ctx);
-    return;
+  // Prefer EGL_KHR_surfaceless_context — the embedder's EGLConfig is a
+  // window config, and some drivers (notably the ARM Mali binary blob)
+  // reject eglCreatePbufferSurface on window-only configs with 0x3009
+  // (EGL_BAD_MATCH). A surfaceless MakeCurrent works regardless. On
+  // drivers without the extension (rare on desktop Mesa, common on old
+  // embedded stacks) fall back to a 1×1 pbuffer.
+  EGLSurface surf = EGL_NO_SURFACE;
+  const bool surfaceless =
+      has_egl_extension_token(display, "EGL_KHR_surfaceless_context");
+  if (!surfaceless) {
+    const EGLint pbuf_attrs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+    surf = eglCreatePbufferSurface(display, config, pbuf_attrs);
+    if (surf == EGL_NO_SURFACE) {
+      spdlog::warn(
+          "[VideoPlayer] eglCreatePbufferSurface failed (0x{:X}) and "
+          "EGL_KHR_surfaceless_context unavailable; using legacy path",
+          eglGetError());
+      eglDestroyContext(display, ctx);
+      return;
+    }
   }
 
   egl_display_ = display;
   egl_context_ = ctx;
   egl_surface_ = surf;
   use_legacy_context_ = false;
-  SPDLOG_DEBUG("[VideoPlayer] Shared EGL context created (share=0x{:x})",
-               reinterpret_cast<uintptr_t>(share));
+  SPDLOG_DEBUG(
+      "[VideoPlayer] Shared EGL context created (share=0x{:x} {})",
+      reinterpret_cast<uintptr_t>(share),
+      surfaceless ? "surfaceless" : "pbuffer");
 }
 
 void VideoPlayer::DestroySharedGlContext() {
@@ -592,6 +627,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrarDesktop* registrar,
   // we fall back to playbin auto-plug without any backend involvement.
   decoder_config_.low_latency = config_.decoder_low_latency;
   decoder_config_.buffer_count = config_.decoder_buffer_count;
+  decoder_config_.enable_afbc = config_.texture_enable_afbc;
 
   auto picked_override_for_codec =
       [&](const std::string& codec) -> const std::string* {
@@ -1165,6 +1201,18 @@ bool VideoPlayer::IsValid() {
   return m_valid;
 }
 
+uint32_t VideoPlayer::GetGlTextureName() const {
+  // shader_ is created on the decoder setup path (VideoPlayer ctor) for
+  // video-bearing streams; audio-only players never allocate one. The
+  // GL name is stable for the player's lifetime — both the PBO-shader
+  // and dmabuf-EGLImage paths re-specify its storage in place rather
+  // than generating a new name per frame.
+  if (!shader_) {
+    return 0;
+  }
+  return static_cast<uint32_t>(shader_->textureId);
+}
+
 void VideoPlayer::Init(flutter::BinaryMessenger* messenger) {
   if (is_initialized_) {
     return;
@@ -1450,12 +1498,34 @@ void VideoPlayer::ApplyPlaybackSpeed() {
 
 gboolean VideoPlayer::OnAudioRecovery(gpointer user_data) {
   auto* self = static_cast<VideoPlayer*>(user_data);
+  if (!self->m_valid || !self->playbin_) {
+    return G_SOURCE_REMOVE;
+  }
   SPDLOG_DEBUG("[VideoPlayer] Audio recovery: restarting without audio");
 
   gint flags = 0;
   g_object_get(self->playbin_, "flags", &flags, nullptr);
   flags &= ~GST_PLAY_FLAG_AUDIO;
   g_object_set(self->playbin_, "flags", flags, nullptr);
+
+  // Swap the failed audio-sink bin for a fakesink. The original real
+  // sink is in an unrecoverable error state; leaving it attached risks
+  // re-triggering the same failure on the next state change. Playbin
+  // releases its ref on the old audio-sink when we set the new one, so
+  // null out cached members that pointed into it — SetEqualizer's null
+  // guard will then no-op instead of dereferencing freed memory.
+  GstElement* fake =
+      gst_element_factory_make("fakesink", "fake-audio-recovery");
+  if (fake) {
+    g_object_set(fake, "sync", TRUE, nullptr);
+    g_object_set(self->playbin_, "audio-sink", fake, nullptr);
+  }
+  self->audio_bin_ = nullptr;
+  self->audio_convert_ = nullptr;
+  self->audio_resample_ = nullptr;
+  self->audio_scaletempo_ = nullptr;
+  self->audio_capsfilter_ = nullptr;
+  self->equalizer_ = nullptr;
 
   self->is_buffering_ = false;
   self->is_initialized_ = false;
@@ -1691,10 +1761,11 @@ void VideoPlayer::OnMediaStateChange(const GstState state) {
 }
 
 void VideoPlayer::OnMediaError(GstMessage* msg) {
-  GError* err;
-  gchar* debug_info;
+  GError* err = nullptr;
+  gchar* debug_info = nullptr;
   gst_message_parse_error(msg, &err, &debug_info);
-  const std::string error_msg = err->message ? err->message : "Unknown error";
+  const std::string error_msg =
+      (err && err->message) ? err->message : "Unknown error";
   spdlog::error("[VideoPlayer] Error: {}:{}", GST_OBJECT_NAME(msg->src),
                 error_msg);
   if (debug_info) {
@@ -1702,6 +1773,33 @@ void VideoPlayer::OnMediaError(GstMessage* msg) {
     g_free(debug_info);
   }
   g_clear_error(&err);
+
+  // Is the error source inside our audio-sink bin? If so, the audio
+  // path failed (e.g. pipewiresink reporting "no target node available"
+  // on a seat with no PipeWire session). Swallow the event and kick
+  // OnAudioRecovery to restart playbin with GST_PLAY_FLAG_AUDIO cleared
+  // — video should still play.
+  bool from_audio_bin = false;
+  if (audio_bin_) {
+    GstObject* audio_root = GST_OBJECT_CAST(audio_bin_);
+    for (GstObject* o = msg->src; o; o = GST_OBJECT_PARENT(o)) {
+      if (o == audio_root) {
+        from_audio_bin = true;
+        break;
+      }
+    }
+  }
+
+  if (from_audio_bin && !audio_recovery_.exchange(true)) {
+    spdlog::warn(
+        "[VideoPlayer] Audio sink failed ({}); retrying without audio",
+        error_msg);
+    GSource* idle = g_idle_source_new();
+    g_source_set_callback(idle, OnAudioRecovery, this, nullptr);
+    g_source_attach(idle, context_);
+    g_source_unref(idle);
+    return;
+  }
 
   std::lock_guard event_lock(event_mutex_);
   if (event_sink_) {

@@ -17,7 +17,14 @@
 #ifndef PLUGINS_VIDEO_PLAYER_LINUX_INCLUDE_VIDEO_PLAYER_LINUX_VIDEO_PLAYER_PLUGIN_C_API_H_
 #define PLUGINS_VIDEO_PLAYER_LINUX_INCLUDE_VIDEO_PLAYER_LINUX_VIDEO_PLAYER_PLUGIN_C_API_H_
 
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include <flutter_plugin_registrar.h>
+
 #include "flutter_homescreen.h"
+#include "platform_view_listener.h"
 
 #ifdef FLUTTER_PLUGIN_IMPL
 #define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))
@@ -31,6 +38,28 @@ extern "C" {
 
 FLUTTER_PLUGIN_EXPORT void VideoPlayerLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrar* registrar);
+
+// Platform-view entry point. Called by the embedder's platform-views
+// dispatcher when Dart instantiates a PlatformViewLink with
+// viewType == "@views/video-player". Constructs a VideoPlayerView that
+// multi-inherits PlatformView + ICompositorSurface, decodes asset/uri
+// from the standard-codec `params` blob, and builds its underlying
+// VideoPlayer through the process-wide VideoPlayerPlugin instance.
+FLUTTER_PLUGIN_EXPORT void VideoPlayerLinuxPluginCApiPlatformViewCreate(
+    FlutterDesktopPluginRegistrar* registrar,
+    int32_t id,
+    std::string viewType,
+    int32_t direction,
+    double top,
+    double left,
+    double width,
+    double height,
+    const std::vector<uint8_t>& params,
+    const std::string& assetDirectory,
+    FlutterDesktopEngineRef engine,
+    PlatformViewAddListener add_listener,
+    PlatformViewRemoveListener remove_listener,
+    void* platform_views_context);
 
 #if defined(__cplusplus)
 }  // extern "C"
