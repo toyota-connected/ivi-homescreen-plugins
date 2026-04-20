@@ -140,10 +140,9 @@ void VideoPlayer::CreateSharedGlContext() {
   egl_context_ = ctx;
   egl_surface_ = surf;
   use_legacy_context_ = false;
-  SPDLOG_DEBUG(
-      "[VideoPlayer] Shared EGL context created (share=0x{:x} {})",
-      reinterpret_cast<uintptr_t>(share),
-      surfaceless ? "surfaceless" : "pbuffer");
+  SPDLOG_DEBUG("[VideoPlayer] Shared EGL context created (share=0x{:x} {})",
+               reinterpret_cast<uintptr_t>(share),
+               surfaceless ? "surfaceless" : "pbuffer");
 }
 
 void VideoPlayer::DestroySharedGlContext() {
@@ -1791,9 +1790,8 @@ void VideoPlayer::OnMediaError(GstMessage* msg) {
   }
 
   if (from_audio_bin && !audio_recovery_.exchange(true)) {
-    spdlog::warn(
-        "[VideoPlayer] Audio sink failed ({}); retrying without audio",
-        error_msg);
+    spdlog::warn("[VideoPlayer] Audio sink failed ({}); retrying without audio",
+                 error_msg);
     GSource* idle = g_idle_source_new();
     g_source_set_callback(idle, OnAudioRecovery, this, nullptr);
     g_source_attach(idle, context_);

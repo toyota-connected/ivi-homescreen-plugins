@@ -162,9 +162,9 @@ std::unique_ptr<VideoPlayer> VideoPlayerPlugin::BuildPlayer(
   std::string asset_to_load;
   std::map<std::string, std::string> http_headers_;
 
-  auto fail = [error_out](std::string code, std::string msg) {
+  auto fail = [error_out](const std::string& code, const std::string& msg) {
     if (error_out) {
-      *error_out = FlutterError(std::move(code), std::move(msg));
+      *error_out = FlutterError(code, msg);
     }
     return std::unique_ptr<VideoPlayer>{};
   };

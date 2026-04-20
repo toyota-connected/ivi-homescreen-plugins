@@ -133,14 +133,12 @@ VideoPlayerView::VideoPlayerView(int32_t id,
 #if BUILD_COMPOSITOR
   if (state && state->view_controller && state->view_controller->view) {
     state->view_controller->view->RegisterCompositorSurface(
-        id_,
-        std::shared_ptr<ICompositorSurface>(this, [](ICompositorSurface*) {
+        id_, std::shared_ptr<ICompositorSurface>(this, [](ICompositorSurface*) {
           // Aliasing deleter — PluginRegistrar owns the plugin; the
           // compositor-side shared_ptr drops on UnregisterCompositorSurface.
         }));
-    SPDLOG_TRACE(
-        "[pv-trace] VideoPlayerView registered: id={} size={}x{}", id_,
-        static_cast<int32_t>(width), static_cast<int32_t>(height));
+    SPDLOG_TRACE("[pv-trace] VideoPlayerView registered: id={} size={}x{}", id_,
+                 static_cast<int32_t>(width), static_cast<int32_t>(height));
   } else {
     SPDLOG_TRACE(
         "[pv-trace] VideoPlayerView could NOT register (state/view null): "
