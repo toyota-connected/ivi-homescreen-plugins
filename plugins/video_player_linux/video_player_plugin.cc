@@ -26,30 +26,109 @@
 #include <gst/pbutils/pbutils.h>
 #include <gst/tag/tag.h>
 
+#include <plugins/common/common.h>
+
+#include "backend_generic_v4l2.h"
+#include "backend_imx8m.h"
+#include "backend_imx8qm.h"
+#include "backend_imx95.h"
+#include "backend_registry.h"
+#include "backend_rockchip.h"
+#include "config.h"
 #include "messages.g.h"
+#include "platform_detection.h"
 #include "plugins/common/glib/main_loop.h"
 #include "video_player.h"
 
 namespace video_player_linux {
 
+// Process-wide most-recent-plugin pointer. Updated in the ctor/dtor; used
+// by the platform-view entry point to reach the plugin-owned config,
+// platform profile, and registrar without plumbing them through the
+// platform-views dispatch.
+namespace {
+VideoPlayerPlugin* g_instance{nullptr};
+}  // namespace
+
+// static
+VideoPlayerPlugin* VideoPlayerPlugin::Instance() {
+  return g_instance;
+}
+
 // static
 void VideoPlayerPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrarDesktop* registrar) {
-  auto plugin = std::make_unique<VideoPlayerPlugin>(registrar);
+    flutter::PluginRegistrarDesktop* registrar,
+    FlutterDesktopPluginRegistrarRef raw) {
+  auto plugin = std::make_unique<VideoPlayerPlugin>(registrar, raw);
   SetUp(registrar->messenger(), plugin.get());
   registrar->AddPlugin(std::move(plugin));
 }
 
-VideoPlayerPlugin::~VideoPlayerPlugin() = default;
+VideoPlayerPlugin::~VideoPlayerPlugin() {
+  if (g_instance == this) {
+    g_instance = nullptr;
+  }
+}
 
-VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar)
-    : registrar_(registrar) {
+VideoPlayer* VideoPlayerPlugin::FindPlayer(int64_t player_id) const {
+  const auto it = videoPlayers.find(player_id);
+  return it == videoPlayers.end() ? nullptr : it->second.get();
+}
+
+VideoPlayer* VideoPlayerPlugin::AdoptPlayer(int64_t player_id,
+                                            std::unique_ptr<VideoPlayer> p) {
+  if (!p) {
+    return nullptr;
+  }
+  VideoPlayer* raw = p.get();
+  // insert_or_assign disposes any prior entry under the same key through
+  // unique_ptr's destructor — which runs `~VideoPlayer` and tears down
+  // the pipeline. Safe for the PV attach path where `player_id` equals
+  // the platform-view id and no Pigeon `create` ran for that id.
+  videoPlayers.insert_or_assign(player_id, std::move(p));
+  return raw;
+}
+
+VideoPlayerPlugin::VideoPlayerPlugin(flutter::PluginRegistrarDesktop* registrar,
+                                     FlutterDesktopPluginRegistrarRef raw)
+    : registrar_(registrar), raw_registrar_(raw) {
   // GStreamer lib only needs to be initialized once.  Calling it multiple times
   // is fine.
   gst_init(nullptr, nullptr);
 
+  // Phase 2.6 — decoder backend registration. Must precede config load +
+  // per-player Select() calls. The function is idempotent, so multiple
+  // plugin instances in the same process all hit the same registry
+  // entries.
+  RegisterGenericV4L2Backend();
+  RegisterImx8mVpuBackend();
+  RegisterImx8QmBackend();
+  RegisterImx95Backend();
+  RegisterRockchipBackends();
+
+  // Detect platform first so Config::Load can materialize the matching
+  // [platform.<name>] overlay. The detected profile is used as the
+  // default when the TOML config leaves platform_profile as "auto".
+  platform_profile_ = DetectPlatform();
+  config_ =
+      Config::Load([this]() { return PlatformProfileName(platform_profile_); });
+  // Explicit override in the config file wins over autodetect.
+  if (config_.platform_profile != "auto") {
+    platform_profile_ = PlatformProfileFromName(config_.platform_profile);
+  }
+
+  spdlog::info("[VideoPlayer] Platform: {} (log_level={})",
+               PlatformProfileName(platform_profile_), config_.log_level);
+  for (auto* b : BackendRegistry::Instance().All()) {
+    spdlog::info(
+        "[VideoPlayer] Backend registered: {} (priority={}, available={})",
+        b->name(), b->priority(), b->is_available());
+  }
+
   // start the main loop if not already running
   plugin_common_glib::MainLoop::GetInstance();
+
+  g_instance = this;
 }
 
 std::optional<FlutterError> VideoPlayerPlugin::Initialize() {
@@ -75,14 +154,21 @@ static bool has_header_injection(const std::string& value) {
          value.find('\0') != std::string::npos;
 }
 
-ErrorOr<int64_t> VideoPlayerPlugin::Create(
+std::unique_ptr<VideoPlayer> VideoPlayerPlugin::BuildPlayer(
     const std::string* asset,
     const std::string* uri,
-    const flutter::EncodableMap& http_headers) {
+    const flutter::EncodableMap& http_headers,
+    FlutterError* error_out) {
   std::string asset_to_load;
   std::map<std::string, std::string> http_headers_;
 
-  std::unique_ptr<VideoPlayer> player;
+  auto fail = [error_out](const std::string& code, const std::string& msg) {
+    if (error_out) {
+      *error_out = FlutterError(code, msg);
+    }
+    return std::unique_ptr<VideoPlayer>{};
+  };
+
   if (asset && !asset->empty()) {
     asset_to_load = "file://";
     std::filesystem::path path;
@@ -93,20 +179,19 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
       SPDLOG_DEBUG("path: [{}]", path.c_str());
       path /= asset->c_str();
     }
-    // Ensure the path is absolute so the file:// URI is valid.
     path = std::filesystem::absolute(path);
     if (!exists(path)) {
       spdlog::error("[VideoPlayer] Asset Path does not exist. {}",
                     path.c_str());
-      return FlutterError("asset_load_failed", "Asset Path does not exist.");
+      return fail("asset_load_failed", "Asset Path does not exist.");
     }
     asset_to_load += path.c_str();
   } else if (uri && !uri->empty()) {
     if (!is_allowed_uri_scheme(*uri)) {
       spdlog::error("[VideoPlayer] Unsupported URI scheme: {}", *uri);
-      return FlutterError("uri_load_failed",
-                          "URI scheme not allowed. "
-                          "Supported: file, http, https, rtsp");
+      return fail("uri_load_failed",
+                  "URI scheme not allowed. "
+                  "Supported: file, http, https, rtsp");
     }
     asset_to_load = *uri;
 
@@ -118,41 +203,53 @@ ErrorOr<int64_t> VideoPlayerPlugin::Create(
         if (has_header_injection(k) || has_header_injection(v)) {
           spdlog::error(
               "[VideoPlayer] Rejected HTTP header with control characters");
-          return FlutterError("invalid_headers",
-                              "HTTP header contains invalid characters");
+          return fail("invalid_headers",
+                      "HTTP header contains invalid characters");
         }
         http_headers_[k] = v;
       }
     }
   } else {
-    return FlutterError("not_implemented", "Set either an asset or a uri");
+    return fail("not_implemented", "Set either an asset or a uri");
   }
 
   SPDLOG_DEBUG("[VideoPlayer] asset: {}", asset_to_load);
 
+  std::unique_ptr<VideoPlayer> player;
   try {
     MediaInfo info;
     if (!discover_media_info(asset_to_load.c_str(), info)) {
-      return FlutterError("media_info_failed", "No playable streams found");
+      return fail("media_info_failed", "No playable streams found");
     }
     if (info.has_video && (info.width <= 0 || info.height <= 0 ||
                            info.width > 16384 || info.height > 16384)) {
-      return FlutterError("video_info_failed", "Invalid video dimensions");
+      return fail("video_info_failed", "Invalid video dimensions");
     }
 
-    player = std::make_unique<VideoPlayer>(registrar_, asset_to_load,
-                                           std::move(http_headers_), info);
+    player = std::make_unique<VideoPlayer>(
+        registrar_, raw_registrar_, asset_to_load, std::move(http_headers_),
+        info, config_, platform_profile_);
 
   } catch (std::exception& e) {
-    return FlutterError("uri_load_failed", e.what());
+    return fail("uri_load_failed", e.what());
   }
 
   player->Init(registrar_->messenger());
+  return player;
+}
+
+ErrorOr<int64_t> VideoPlayerPlugin::Create(
+    const std::string* asset,
+    const std::string* uri,
+    const flutter::EncodableMap& http_headers) {
+  FlutterError error("", "");
+  auto player = BuildPlayer(asset, uri, http_headers, &error);
+  if (!player) {
+    return error;
+  }
 
   auto texture_id = player->GetTextureId();
-
   videoPlayers.insert(std::make_pair(texture_id, std::move(player)));
-
   return texture_id;
 }
 
@@ -297,6 +394,26 @@ bool VideoPlayerPlugin::discover_media_info(const char* url, MediaInfo& info) {
       info.height =
           static_cast<int>(gst_discoverer_video_info_get_height(vinfo));
       info.has_video = true;
+      // Derive the short codec key from the stream caps. GStreamer
+      // spells these "video/x-h264", "video/x-h265", "video/x-vp9",
+      // "video/x-vp8", "video/x-av1", and "image/jpeg" for MJPEG.
+      // Anything we don't recognize leaves info.video_codec empty, which
+      // makes BackendRegistry::Select() return nullptr and lets playbin
+      // auto-plug fall through unchanged.
+      if (GstCaps* caps = gst_discoverer_stream_info_get_caps(stream_info)) {
+        if (gst_caps_get_size(caps) > 0) {
+          const GstStructure* s = gst_caps_get_structure(caps, 0);
+          if (const gchar* cname = gst_structure_get_name(s)) {
+            const std::string n = cname;
+            if (n.rfind("video/x-", 0) == 0) {
+              info.video_codec = n.substr(8);
+            } else if (n == "image/jpeg") {
+              info.video_codec = "mjpeg";
+            }
+          }
+        }
+        gst_caps_unref(caps);
+      }
     }
     gst_discoverer_stream_info_list_free(video_streams);
   }
@@ -379,9 +496,9 @@ bool VideoPlayerPlugin::discover_media_info(const char* url, MediaInfo& info) {
   }
 
   SPDLOG_DEBUG(
-      "[VideoPlayer] Discovered: video={} ({}x{}), audio={} ({}ch/{}Hz), "
-      "duration={}ns, art={}B",
-      info.has_video, info.width, info.height, info.has_audio,
+      "[VideoPlayer] Discovered: video={} ({}x{}, codec='{}'), audio={} "
+      "({}ch/{}Hz), duration={}ns, art={}B",
+      info.has_video, info.width, info.height, info.video_codec, info.has_audio,
       info.audio_channels, info.audio_sample_rate, info.duration,
       info.album_art.size());
 

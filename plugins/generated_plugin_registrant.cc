@@ -185,6 +185,15 @@ void PluginsAoiPlatformViewCreate(
     result->Success(flutter::EncodableValue(id));
   } else
 #endif
+#if ENABLE_PLUGIN_VIDEO_PLAYER_LINUX
+      if (viewType == "@views/video-player") {
+    VideoPlayerLinuxPluginCApiPlatformViewCreate(
+        registrar, id, viewType, direction, top, left, width, height, params,
+        flutter_asset_directory, engine, addListener, removeListener,
+        platform_view_context);
+    result->Success(flutter::EncodableValue(id));
+  } else
+#endif
 #if ENABLE_PLUGIN_NAV_RENDER_VIEW
       if (viewType == "views/nav-render-view") {
     NavRenderViewPluginCApiRegisterWithRegistrar(

@@ -24,7 +24,16 @@ add_library(${PLUGIN_NAME} STATIC
         video_player_plugin_c_api.cc
         video_player_plugin.cc
         video_player.cc
+        video_player_view.cc
         messages.g.cc
+        backend_registry.cc
+        backend_generic_v4l2.cc
+        backend_imx8m.cc
+        backend_imx8qm.cc
+        backend_imx95.cc
+        backend_rockchip.cc
+        config.cc
+        platform_detection.cc
 )
 set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(${PLUGIN_NAME} PRIVATE cxx_std_17)
@@ -36,7 +45,9 @@ pkg_check_modules(GST IMPORTED_TARGET REQUIRED
         gstreamer-video-1.0
         gstreamer-audio-1.0
         gstreamer-tag-1.0
-        gstreamer-pbutils-1.0)
+        gstreamer-pbutils-1.0
+        gstreamer-app-1.0
+        gstreamer-allocators-1.0)
 pkg_check_modules(UDEV IMPORTED_TARGET REQUIRED libudev)
 # GLESv2 + EGL must be linked from this static lib so the symbols are
 # resolved after libplugin_video_player_linux.a in the final executable
@@ -48,6 +59,21 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 target_include_directories(${PLUGIN_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(${PLUGIN_NAME} PUBLIC platform_homescreen flutter PkgConfig::GST PkgConfig::UDEV PkgConfig::GLES plugin_common_glib)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 0.3 — Optional test media corpus + test harness.
+#
+# Off by default. When ON, adds `fetch_video_player_test_media` (and a
+# `_learn` variant) custom targets plus ctest entries under test/. Media
+# files themselves are NOT committed — see test/media/manifest.json for
+# source URLs and test/.gitignore for the exclusion rules.
+# ─────────────────────────────────────────────────────────────────────────────
+option(BUILD_VIDEO_PLAYER_LINUX_TESTS
+        "Enable fetch target + ctest harness for video_player_linux" OFF)
+
+if (BUILD_VIDEO_PLAYER_LINUX_TESTS)
+    add_subdirectory(test)
+endif ()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Optional Pigeon regeneration target.

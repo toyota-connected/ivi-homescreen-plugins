@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "_comment": [
+    "Test media corpus for video_player_linux. Files are NOT committed to the",
+    "repository. Fetch via scripts/fetch_media.py or the",
+    "fetch_video_player_test_media CMake target (enabled with",
+    "-DBUILD_VIDEO_PLAYER_LINUX_TESTS=ON).",
+    "",
+    "Entries with sha256=\"TBD\" have not been pinned yet. First fetch will",
+    "succeed but not verify; re-run with --learn to write the actual hash",
+    "back into this manifest, then commit the updated manifest so CI can",
+    "verify against it.",
+    "",
+    "Entries with url=null are placeholders for streams listed in plan.md",
+    "§0.3 that don't yet have a public source URL selected. Fill in url +",
+    "expected properties before enabling the corresponding tests."
+  ],
+  "streams": [
+    {
+      "name": "h264_720p_bt709",
+      "file": "h264_720p_bt709.mp4",
+      "url": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4",
+      "sha256": "91d703354b3bb77b42dc49152f82548668e981525c89464654cb4ca9f802fffc",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h264",
+        "container": "mp4",
+        "width": 1280,
+        "height": 720,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": "CC-BY-3.0 (Blender Foundation / Flutter samples)"
+    },
+    {
+      "name": "h264_1080p_bt709",
+      "file": "h264_1080p_bt709.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h264",
+        "container": "mp4",
+        "width": 1920,
+        "height": 1080,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "h264_4k_bt709",
+      "file": "h264_4k_bt709.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h264",
+        "container": "mp4",
+        "width": 3840,
+        "height": 2160,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "h265_4k_bt2020",
+      "file": "h265_4k_bt2020.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h265",
+        "container": "mp4",
+        "width": 3840,
+        "height": 2160,
+        "duration_ms": null,
+        "colorspace": "bt2020:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "h265_4k_hdr10",
+      "file": "h265_4k_hdr10.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h265",
+        "container": "mp4",
+        "width": 3840,
+        "height": 2160,
+        "duration_ms": null,
+        "colorspace": "bt2020:16-235",
+        "hdr": "hdr10",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "vp9_1080p",
+      "file": "vp9_1080p.webm",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "vp9",
+        "container": "webm",
+        "width": 1920,
+        "height": 1080,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "av1_1080p",
+      "file": "av1_1080p.mkv",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "av1",
+        "container": "matroska",
+        "width": 1920,
+        "height": 1080,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "mjpeg_camera",
+      "file": "mjpeg_camera.avi",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "mjpeg",
+        "container": "avi",
+        "width": 1280,
+        "height": 720,
+        "duration_ms": null,
+        "colorspace": "bt601:16-235",
+        "interlaced": false,
+        "has_audio": false
+      },
+      "license": null
+    },
+    {
+      "name": "interlaced_1080i",
+      "file": "interlaced_1080i.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h264",
+        "container": "mp4",
+        "width": 1920,
+        "height": 1080,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": true,
+        "has_audio": true
+      },
+      "license": null
+    },
+    {
+      "name": "rotated_portrait",
+      "file": "rotated_portrait.mp4",
+      "url": null,
+      "sha256": "TBD",
+      "size_bytes": null,
+      "properties": {
+        "codec": "h264",
+        "container": "mp4",
+        "width": 1080,
+        "height": 1920,
+        "duration_ms": null,
+        "colorspace": "bt709:16-235",
+        "interlaced": false,
+        "has_audio": true,
+        "rotation_deg": 90
+      },
+      "license": null
+    }
+  ]
+}

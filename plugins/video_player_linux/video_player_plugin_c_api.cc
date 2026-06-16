@@ -16,13 +16,44 @@
 
 #include "include/video_player_linux/video_player_plugin_c_api.h"
 
+#include <utility>
+
 #include "flutter/plugin_registrar_homescreen.h"
 
 #include "video_player_plugin.h"
+#include "video_player_view.h"
 
 void VideoPlayerLinuxPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
+  // Pass the raw ref alongside the wrapper so VideoPlayer can call the
+  // homescreen-specific FlutterDesktopPluginRegistrarGetEglContext API
+  // that requires the C registrar handle. The client-wrapper base class
+  // keeps the raw ref protected.
   video_player_linux::VideoPlayerPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarDesktop>(registrar));
+          ->GetRegistrar<flutter::PluginRegistrarDesktop>(registrar),
+      registrar);
+}
+
+void VideoPlayerLinuxPluginCApiPlatformViewCreate(
+    FlutterDesktopPluginRegistrar* registrar,
+    int32_t id,
+    std::string viewType,
+    int32_t direction,
+    double top,
+    double left,
+    double width,
+    double height,
+    const std::vector<uint8_t>& params,
+    const std::string& assetDirectory,
+    FlutterDesktopEngineRef engine,
+    PlatformViewAddListener add_listener,
+    PlatformViewRemoveListener remove_listener,
+    void* platform_views_context) {
+  video_player_linux::VideoPlayerView::RegisterWithRegistrar(
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar),
+      id, std::move(viewType), direction, top, left, width, height, params,
+      assetDirectory, engine, add_listener, remove_listener,
+      platform_views_context);
 }

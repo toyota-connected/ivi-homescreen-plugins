@@ -114,6 +114,7 @@ class LayerPlaygroundViewPlugin : public flutter::Plugin,
   [[nodiscard]] int32_t GetGlTextureHeight() const override {
     return tex_height_;
   }
+  [[nodiscard]] bool TextureIsTopFirst() const override { return true; }
 #endif
 
  private:
