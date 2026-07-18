@@ -21,15 +21,26 @@
 #include <cstdint>
 #include <cstdlib>
 
-// vulkan.hpp with the process-shared dynamic dispatcher: the wayland-vulkan
-// backend owns the loader storage (vk::detail::defaultDispatchLoaderDynamic)
-// and initializes it with the instance + device. This plugin is another
-// consumer of that same dispatcher — it must NOT define the storage. Headers
-// come from ivi-homescreen's vendored third_party/Vulkan-Headers (matching the
-// backend's version) via the plugin's include path.
+#include "config/common.h"  // BUILD_BACKEND_*_VULKAN
+
+// vulkan.hpp with the process-shared dynamic dispatcher. A Vulkan backend
+// (wayland-vulkan / drm-kms-vulkan) normally owns the loader storage
+// (vk::detail::defaultDispatchLoaderDynamic) and initializes it with the
+// instance + device; this plugin is just another consumer of that same
+// dispatcher. But on a build with NO Vulkan backend (e.g. drm-kms-egl only,
+// where this plugin still renders via GL/dma-buf), nothing else defines the
+// storage, so the plugin must — otherwise the link fails with an undefined
+// reference to defaultDispatchLoaderDynamic. The guard keeps exactly one
+// definition: the plugin provides it only when no backend does. Headers come
+// from ivi-homescreen's vendored third_party/Vulkan-Headers via the plugin's
+// include path.
 #define VULKAN_HPP_NO_EXCEPTIONS 1
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
+
+#if !BUILD_BACKEND_WAYLAND_VULKAN && !BUILD_BACKEND_DRM_KMS_VULKAN
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+#endif
 
 #include "logging/logging.h"
 
