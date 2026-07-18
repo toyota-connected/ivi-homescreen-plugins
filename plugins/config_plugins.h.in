@@ -129,5 +129,10 @@
 #include "webview_flutter_view/include/webview_flutter_view/webview_flutter_view_plugin_c_api.h"
 #endif
 
+#cmakedefine01 ENABLE_PLUGIN_MAPLIBRE_VIEW
+#if ENABLE_PLUGIN_MAPLIBRE_VIEW
+#include "maplibre_view/include/maplibre_view/maplibre_view_plugin_c_api.h"
+#endif
+
 
 #endif //CONFIG_PLUGINS_H_

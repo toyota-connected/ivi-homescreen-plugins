@@ -108,6 +108,11 @@ void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
   WebrtcPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
+#if ENABLE_PLUGIN_MAPLIBRE_VIEW
+  // Platform-view factory (registry path), not a channel plugin: installs the
+  // "views/maplibre-view" factory into the engine's PlatformViewRegistry.
+  MapLibreViewPluginRegisterFactory(engine);
+#endif
 }
 
 void PluginsAoiPlatformViewCreate(
