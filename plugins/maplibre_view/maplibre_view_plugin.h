@@ -18,6 +18,7 @@
 #define FLUTTER_PLUGIN_MAPLIBRE_VIEW_PLUGIN_H_
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 
 #include "config/common.h"
@@ -36,6 +37,10 @@
 #include "platform_views/platform_view.h"
 #include "platform_views/platform_view_registry.h"
 #include "view/compositor_surface_interface.h"
+
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+#include "mbgl/maplibre_map_renderer.h"  // Vulkan-free boundary (isolated sub-lib)
+#endif
 
 namespace plugin_maplibre_view {
 
@@ -96,6 +101,21 @@ class MapLibreViewPlugin final : public PlatformView,
   // backend is not Vulkan (GetVulkanContext failed) — the placeholder needs
   // Vulkan today; a GL/dma-buf path is future work.
   std::unique_ptr<MapLibreVulkanRenderer> vulkan_renderer_;
+
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+  // Real MapLibre map renderer (Mode A). mbgl is affine to a RunLoop created on
+  // the rasterizer thread, so it is lazily constructed in OnPresent; the device
+  // context captured on the platform-thread ctor is stored here until then.
+  // When the map renders, it supersedes the placeholder.
+  MapLibreDeviceContext map_ctx_{};
+  bool map_ctx_valid_{false};
+  bool map_init_attempted_{false};
+  uint64_t map_image_{0};
+  std::unique_ptr<MapLibreMapRenderer> map_renderer_;
+  // For requesting the next frame while the map streams tiles (the Flutter UI
+  // is otherwise static). Owned by the engine, which outlives this view.
+  FlutterDesktopEngineState* engine_state_{nullptr};
+#endif
 
   std::atomic<int32_t> pending_width_{0};
   std::atomic<int32_t> pending_height_{0};

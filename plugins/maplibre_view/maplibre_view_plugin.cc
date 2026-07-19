@@ -90,6 +90,20 @@ MapLibreViewPlugin::MapLibreViewPlugin(
               "device) id={}",
               id_);
         }
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+        // Capture the device handles for the real mbgl map, built lazily on the
+        // rasterizer thread (OnPresent). get_instance_proc_addr stays null:
+        // MapLibre self-loads via its own dynamic loader. VMA null: MapLibre
+        // creates its own allocator on this device (central VMA is future
+        // work).
+        map_ctx_.instance = vk.instance;
+        map_ctx_.physical_device = vk.physical_device;
+        map_ctx_.device = vk.device;
+        map_ctx_.graphics_queue_index = vk.queue_family_index;
+        map_ctx_.queue = vk.queue;
+        map_ctx_valid_ = true;
+        engine_state_ = state;
+#endif
       } else {
         ihs::log::warn(
             "[maplibre] backend has no Vulkan context; id={} will not render "
@@ -134,6 +148,40 @@ bool MapLibreViewPlugin::OnPresent(const FlutterLayer* layer) {
     return true;
   }
 
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+  // Build the mbgl map on THIS (rasterizer) thread the first time — mbgl's
+  // RunLoop is thread-affine, so it cannot be created in the platform-thread
+  // ctor. Once the map renders, it supersedes the placeholder.
+  if (map_ctx_valid_ && !map_init_attempted_) {
+    map_init_attempted_ = true;
+    auto renderer = std::make_unique<MapLibreMapRenderer>();
+    if (renderer->Init(map_ctx_, target_w, target_h,
+                       "https://demotiles.maplibre.org/style.json", "", "",
+                       "")) {
+      map_renderer_ = std::move(renderer);
+      ihs::log::debug("[maplibre] mbgl map renderer active {}x{}", target_w,
+                      target_h);
+    } else {
+      ihs::log::warn(
+          "[maplibre] mbgl init failed; falling back to placeholder");
+    }
+  }
+  if (map_renderer_ && map_renderer_->ok()) {
+    map_image_ = map_renderer_->Render(target_w, target_h);
+    if (map_image_ != 0) {
+      // The map streams tiles over frames, but the Flutter UI is otherwise
+      // static and would present only once. Request the next frame so the map
+      // keeps loading/animating. (Follow-up: stop once the map is idle — via a
+      // MapObserver — to avoid a permanent 60fps wake.)
+      if (engine_state_ != nullptr &&
+          engine_state_->flutter_engine != nullptr) {
+        LibFlutterEngine->ScheduleFrame(engine_state_->flutter_engine);
+      }
+      return true;
+    }
+  }
+#endif
+
   if (vulkan_renderer_) {
     return vulkan_renderer_->Render(target_w, target_h);
   }
@@ -147,6 +195,17 @@ void MapLibreViewPlugin::OnResize(int32_t w, int32_t h) {
 
 void* MapLibreViewPlugin::GetVulkanImage(int32_t* width,
                                          int32_t* height) const {
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+  if (map_renderer_ && map_image_ != 0) {
+    if (width) {
+      *width = map_renderer_->width();
+    }
+    if (height) {
+      *height = map_renderer_->height();
+    }
+    return reinterpret_cast<void*>(map_image_);
+  }
+#endif
   if (!vulkan_renderer_ || vulkan_renderer_->image() == VK_NULL_HANDLE) {
     return nullptr;
   }
@@ -160,10 +219,24 @@ void* MapLibreViewPlugin::GetVulkanImage(int32_t* width,
 }
 
 uint32_t MapLibreViewPlugin::GetVulkanImageLayout() const {
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+  if (map_renderer_ && map_image_ != 0) {
+    // MapLibre's surfaceless render pass leaves the color image in
+    // transfer-src.
+    return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  }
+#endif
   return vulkan_renderer_ ? vulkan_renderer_->layout() : 0;
 }
 
 void MapLibreViewPlugin::SetVulkanImageLayout(uint32_t layout) {
+#if defined(MAPLIBRE_VIEW_HAVE_MBGL) && MAPLIBRE_VIEW_HAVE_MBGL
+  if (map_renderer_ && map_image_ != 0) {
+    // The map re-renders each frame back to transfer-src; ignore the
+    // compositor's post-sample layout write.
+    return;
+  }
+#endif
   if (vulkan_renderer_) {
     vulkan_renderer_->set_layout(layout);
   }
