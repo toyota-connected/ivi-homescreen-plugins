@@ -29,16 +29,12 @@
 
 // This is a platform-view plugin: every piece of its rendering path
 // (ICompositorSurface, RegisterCompositorSurface, GetGlTextureName /
-// GetDmabuf) is gated on BUILD_COMPOSITOR. Built without it, the plugin
-// compiles to an inert stub — it registers, but produces no native content
-// and the compositor has nothing to place — which fails silently at runtime
-// as empty/transparent platform views. Fail loudly at build time instead so
-// a "view plugin ON, BUILD_COMPOSITOR OFF" misconfiguration can't ship.
-// (BUILD_COMPOSITOR is defined by the generated config/common.h above; an
-// undefined macro also trips this, catching a missing include.)
-#if !BUILD_COMPOSITOR
-#error "layer_playground_view requires BUILD_COMPOSITOR=1 (build with -DBUILD_COMPOSITOR=ON); a platform-view plugin does nothing without the compositor."
-#endif
+// GetDmabuf) is gated on BUILD_COMPOSITOR (defined by the generated
+// config/common.h above). Built without it, the plugin compiles to an inert
+// stub — it registers but produces no native content — matching the other
+// compositor plugins (comp_surf, comp_region). A hard #error here would break
+// the CI static-analysis build (clang-tidy / CodeQL configure the compositor
+// off), so the graceful #if BUILD_COMPOSITOR gating below is the convention.
 
 #include "flutter_desktop_engine_state.h"
 #include "flutter_homescreen.h"
@@ -47,6 +43,9 @@
 #if BUILD_COMPOSITOR
 #include "view/compositor_surface_interface.h"
 #endif
+
+struct gbm_device;
+struct gbm_bo;
 
 namespace plugin_layer_playground_view {
 
@@ -137,6 +136,11 @@ class LayerPlaygroundViewPlugin : public flutter::Plugin,
                                      int32_t* height) const override;
   [[nodiscard]] uint32_t GetVulkanImageLayout() const override;
   void SetVulkanImageLayout(uint32_t layout) override;
+
+  // Direct-scanout stub: when IVI_PV_DMABUF is set, expose a solid-color
+  // dma-buf so the DRM compositor routes this view onto a KMS overlay plane
+  // instead of GL-compositing it. Returns false (GL path) otherwise.
+  [[nodiscard]] bool GetDmabuf(Dmabuf* out) const override;
 #endif
 
  private:
@@ -170,6 +174,25 @@ class LayerPlaygroundViewPlugin : public flutter::Plugin,
   // (no engine GL context). Reuses Flutter's device to write the gradient into
   // a VkImage instead of the GL FBO. See layer_playground_vulkan.h.
   std::unique_ptr<LayerPlaygroundVulkanRenderer> vulkan_renderer_;
+
+  // Direct-scanout stub state (IVI_PV_DMABUF). A single solid-color scanout
+  // buffer, lazily allocated from the backend's gbm_device on first GetDmabuf
+  // and exported once as a stable dma-buf fd (so the compositor's per-fd KMS
+  // framebuffer cache stays hot). Mutable: GetDmabuf is const but memoizes.
+  mutable gbm_device* pv_gbm_device_{nullptr};
+  mutable gbm_bo* pv_dmabuf_bo_{nullptr};
+  mutable int pv_dmabuf_fd_{-1};
+  mutable uint32_t pv_dmabuf_fourcc_{0};
+  mutable uint64_t pv_dmabuf_modifier_{0};
+  // Per-plane layout (one bo; NV12/P010 carry 2 planes at distinct offsets).
+  mutable uint32_t pv_dmabuf_planes_{1};
+  mutable uint32_t pv_dmabuf_stride_[4]{};
+  mutable uint32_t pv_dmabuf_offset_[4]{};
+  mutable uint8_t pv_dmabuf_color_space_{0};  // IhsColorSpace (YUV only)
+  mutable uint8_t pv_dmabuf_color_range_{0};  // IhsColorRange
+  mutable int32_t pv_dmabuf_w_{0};
+  mutable int32_t pv_dmabuf_h_{0};
+  mutable int pv_dmabuf_enabled_{-1};  // -1 unknown, 0 off, 1 on
 
   void EnsureGlState(int32_t w, int32_t h);
   void DestroyGlState();
