@@ -29,17 +29,12 @@
 
 // This is a platform-view plugin: every piece of its rendering path
 // (ICompositorSurface, RegisterCompositorSurface, GetGlTextureName /
-// GetDmabuf) is gated on BUILD_COMPOSITOR. Built without it, the plugin
-// compiles to an inert stub — it registers, but produces no native content
-// and the compositor has nothing to place — which fails silently at runtime
-// as empty/transparent platform views. Fail loudly at build time instead so
-// a "view plugin ON, BUILD_COMPOSITOR OFF" misconfiguration can't ship.
-// (BUILD_COMPOSITOR is defined by the generated config/common.h above; an
-// undefined macro also trips this, catching a missing include.)
-#if !BUILD_COMPOSITOR
-#error \
-    "layer_playground_view requires BUILD_COMPOSITOR=1 (build with -DBUILD_COMPOSITOR=ON); a platform-view plugin does nothing without the compositor."
-#endif
+// GetDmabuf) is gated on BUILD_COMPOSITOR (defined by the generated
+// config/common.h above). Built without it, the plugin compiles to an inert
+// stub — it registers but produces no native content — matching the other
+// compositor plugins (comp_surf, comp_region). A hard #error here would break
+// the CI static-analysis build (clang-tidy / CodeQL configure the compositor
+// off), so the graceful #if BUILD_COMPOSITOR gating below is the convention.
 
 #include "flutter_desktop_engine_state.h"
 #include "flutter_homescreen.h"
