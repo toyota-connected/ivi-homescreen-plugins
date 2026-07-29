@@ -25,6 +25,18 @@
 #if BUILD_COMPOSITOR
 #include "backend/backend.h"
 #include "layer_playground_vulkan.h"
+
+#if BUILD_COMPOSITOR
+#include <cstdlib>
+#include <cstring>
+#include <string_view>
+
+#include <gbm.h>
+#include <linux/dma-buf.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 #endif
 
 class FlutterView;
@@ -102,6 +114,12 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
     // path would fail. Reuse the backend's Vulkan device to render into a
     // VkImage instead. GL stays the path on EGL backends.
     if (auto* backend = view->GetBackend()) {
+      // Capture the backend's gbm_device (DRM/KMS EGL backend only) so the
+      // direct-scanout stub can allocate a scanout buffer without reaching
+      // back through the view from the const GetDmabuf accessor.
+      if (BackendEglContext egl{}; backend->GetEglContext(&egl)) {
+        pv_gbm_device_ = static_cast<gbm_device*>(egl.gbm_device);
+      }
       BackendVulkanContext vk{};
       if (backend->GetVulkanContext(&vk)) {
         auto renderer = std::make_unique<LayerPlaygroundVulkanRenderer>();
@@ -134,6 +152,16 @@ LayerPlaygroundViewPlugin::LayerPlaygroundViewPlugin(
 
 LayerPlaygroundViewPlugin::~LayerPlaygroundViewPlugin() {
   removeListener_(platformViewsContext_, id_);
+#if BUILD_COMPOSITOR
+  if (pv_dmabuf_fd_ >= 0) {
+    ::close(pv_dmabuf_fd_);
+    pv_dmabuf_fd_ = -1;
+  }
+  if (pv_dmabuf_bo_) {
+    gbm_bo_destroy(pv_dmabuf_bo_);
+    pv_dmabuf_bo_ = nullptr;
+  }
+#endif
 }
 
 void LayerPlaygroundViewPlugin::on_resize(double width,
@@ -479,6 +507,198 @@ void LayerPlaygroundViewPlugin::SetVulkanImageLayout(uint32_t layout) {
   if (vulkan_renderer_) {
     vulkan_renderer_->set_layout(layout);
   }
+}
+
+bool LayerPlaygroundViewPlugin::GetDmabuf(Dmabuf* out) const {
+  if (!out) {
+    return false;
+  }
+  // Opt-in gate so the default GL-composite path is unchanged. Evaluated once.
+  if (pv_dmabuf_enabled_ < 0) {
+    const char* env = std::getenv("IVI_PV_DMABUF");
+    pv_dmabuf_enabled_ = (env && env[0] == '1') ? 1 : 0;
+    IHS_TRACE("[pv-trace] GetDmabuf gate id={} enabled={} gbm_device={}", id_,
+              pv_dmabuf_enabled_, static_cast<const void*>(pv_gbm_device_));
+  }
+  if (pv_dmabuf_enabled_ == 0 || !pv_gbm_device_) {
+    return false;
+  }
+
+  // Target the view's current extent. Flutter registers platform views at
+  // 1x1 and resizes them once laid out; a 1x1 scanout buffer is rejected by
+  // AddFB2, so skip (GL-composite this frame) until the real size arrives,
+  // and rebuild if the view later resizes.
+  const int32_t w = pending_width_.load();
+  const int32_t h = pending_height_.load();
+  if (w <= 1 || h <= 1) {
+    return false;
+  }
+  if (pv_dmabuf_bo_ && (pv_dmabuf_w_ != w || pv_dmabuf_h_ != h)) {
+    if (pv_dmabuf_fd_ >= 0) {
+      ::close(pv_dmabuf_fd_);
+      pv_dmabuf_fd_ = -1;
+    }
+    gbm_bo_destroy(pv_dmabuf_bo_);
+    pv_dmabuf_bo_ = nullptr;
+  }
+
+  // Lazily (re)allocate one solid-color scanout buffer and export a stable
+  // dma-buf fd. LINEAR + SCANOUT keeps it plane-scannable everywhere (incl.
+  // vkms) and CPU-mappable so we can fill it without a GPU.
+  if (!pv_dmabuf_bo_) {
+    // Format select: LP_PV_DMABUF_FOURCC=nv12 exercises the YUV plane path
+    // (ContentType::Video + plane CSC); default XRGB8888 is the RGB path.
+    // GBM_FORMAT_* == DRM_FORMAT_* (same fourcc), so the KMS AddFB2 in the
+    // compositor sees exactly this format.
+    const char* fmt_env = std::getenv("LP_PV_DMABUF_FOURCC");
+    const bool want_nv12 =
+        fmt_env != nullptr && (std::string_view(fmt_env) == "nv12" ||
+                               std::string_view(fmt_env) == "NV12");
+    uint32_t gbm_fmt = want_nv12 ? GBM_FORMAT_NV12 : GBM_FORMAT_XRGB8888;
+    gbm_bo* bo = gbm_bo_create(pv_gbm_device_, static_cast<uint32_t>(w),
+                               static_cast<uint32_t>(h), gbm_fmt,
+                               GBM_BO_USE_SCANOUT | GBM_BO_USE_LINEAR);
+    bool is_nv12 = want_nv12;
+    if (!bo && want_nv12) {
+      IHS_TRACE(
+          "[pv-trace] GetDmabuf NV12 unsupported by gbm id={}; XRGB fallback",
+          id_);
+      is_nv12 = false;
+      bo = gbm_bo_create(pv_gbm_device_, static_cast<uint32_t>(w),
+                         static_cast<uint32_t>(h), GBM_FORMAT_XRGB8888,
+                         GBM_BO_USE_SCANOUT | GBM_BO_USE_LINEAR);
+    }
+    if (!bo) {
+      IHS_TRACE("[pv-trace] GetDmabuf gbm_bo_create failed id={} {}x{}", id_, w,
+                h);
+      pv_dmabuf_enabled_ = 0;  // don't retry every present
+      return false;
+    }
+
+    // A distinct opaque color per view id, so each native box is visually
+    // identifiable and the on-screen z-order is legible. 0xXX_RR_GG_BB.
+    static constexpr uint32_t kPalette[] = {
+        0xFFFF0000u,  // 0 red
+        0xFF00C000u,  // 1 green
+        0xFF0000FFu,  // 2 blue
+        0xFFFFC000u,  // 3 amber
+        0xFFFF00FFu,  // 4 magenta
+        0xFF00E0E0u,  // 5 cyan
+        0xFFFF8000u,  // 6 orange
+        0xFF8000FFu,  // 7 violet
+        0xFFFFFFFFu,  // 8 white
+        0xFF808080u,  // 9 gray
+    };
+    const uint32_t palette_n =
+        static_cast<uint32_t>(sizeof(kPalette) / sizeof(kPalette[0]));
+    const uint32_t rgb = kPalette[static_cast<uint32_t>(id_) % palette_n];
+
+    // Per-plane layout from gbm (XRGB: 1 plane; NV12: Y + interleaved UV).
+    const uint32_t planes = static_cast<uint32_t>(gbm_bo_get_plane_count(bo));
+    pv_dmabuf_planes_ = planes < 4 ? planes : 4;
+    for (uint32_t p = 0; p < pv_dmabuf_planes_; ++p) {
+      pv_dmabuf_stride_[p] = gbm_bo_get_stride_for_plane(bo, p);
+      pv_dmabuf_offset_[p] = gbm_bo_get_offset(bo, p);
+    }
+    pv_dmabuf_bo_ = bo;
+    pv_dmabuf_fd_ = gbm_bo_get_fd(bo);  // persistent exported fd
+
+    if (!is_nv12) {
+      const uint32_t border = 0xFF202020u;  // ~1px darker frame, edge-legible
+      uint32_t map_stride = 0;
+      void* map_data = nullptr;
+      if (void* px = gbm_bo_map(bo, 0, 0, static_cast<uint32_t>(w),
+                                static_cast<uint32_t>(h), GBM_BO_TRANSFER_WRITE,
+                                &map_stride, &map_data)) {
+        auto* base = static_cast<uint8_t*>(px);
+        for (int32_t y = 0; y < h; ++y) {
+          auto* row = reinterpret_cast<uint32_t*>(base + y * map_stride);
+          const bool edge_row = (y < 2 || y >= h - 2);
+          for (int32_t x = 0; x < w; ++x) {
+            const bool edge = edge_row || x < 2 || x >= w - 2;
+            row[x] = edge ? border : rgb;
+          }
+        }
+        gbm_bo_unmap(bo, map_data);
+      }
+      pv_dmabuf_color_space_ = 0;  // IHS_COLOR_SPACE_DEFAULT (RGB)
+      pv_dmabuf_color_range_ = 0;
+    } else {
+      // Solid-color NV12: fill Y + interleaved UV by mmap'ing the LINEAR
+      // dma-buf directly (gbm_bo_map's plane-0 window can't reach the UV
+      // plane). Convert the palette RGB -> BT.709 limited Y'CbCr so the plane
+      // CSC decodes it back to that color — validating the CSC, not just
+      // placement.
+      const double r = static_cast<double>((rgb >> 16) & 0xFF);
+      const double g = static_cast<double>((rgb >> 8) & 0xFF);
+      const double b = static_cast<double>(rgb & 0xFF);
+      auto clamp8 = [](double v) {
+        return static_cast<uint8_t>(v < 0 ? 0 : (v > 255 ? 255 : v));
+      };
+      const uint8_t yv = clamp8(16.0 + 0.1826 * r + 0.6142 * g + 0.0620 * b);
+      const uint8_t uv_u = clamp8(128.0 - 0.1006 * r - 0.3386 * g + 0.4392 * b);
+      const uint8_t uv_v = clamp8(128.0 + 0.4392 * r - 0.3989 * g - 0.0403 * b);
+      const uint32_t sy = pv_dmabuf_stride_[0];
+      const uint32_t suv = pv_dmabuf_stride_[1];
+      const uint32_t oy = pv_dmabuf_offset_[0];
+      const uint32_t ouv = pv_dmabuf_offset_[1];
+      const size_t size = ouv + static_cast<size_t>(suv) * (h / 2);
+      void* m = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED,
+                       pv_dmabuf_fd_, 0);
+      if (m != MAP_FAILED) {
+        dma_buf_sync sync{};
+        sync.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_WRITE;
+        ::ioctl(pv_dmabuf_fd_, DMA_BUF_IOCTL_SYNC, &sync);
+        auto* base = static_cast<uint8_t*>(m);
+        for (int32_t y = 0; y < h; ++y) {
+          std::memset(base + oy + static_cast<size_t>(y) * sy, yv,
+                      static_cast<size_t>(w));
+        }
+        for (int32_t y = 0; y < h / 2; ++y) {
+          uint8_t* uvrow = base + ouv + static_cast<size_t>(y) * suv;
+          for (int32_t x = 0; x < w / 2; ++x) {
+            uvrow[2 * x] = uv_u;
+            uvrow[2 * x + 1] = uv_v;
+          }
+        }
+        sync.flags = DMA_BUF_SYNC_END | DMA_BUF_SYNC_WRITE;
+        ::ioctl(pv_dmabuf_fd_, DMA_BUF_IOCTL_SYNC, &sync);
+        ::munmap(m, size);
+      } else {
+        IHS_TRACE("[pv-trace] GetDmabuf NV12 mmap failed id={}", id_);
+      }
+      pv_dmabuf_color_space_ = 2;  // IHS_COLOR_SPACE_BT709
+      pv_dmabuf_color_range_ = 2;  // IHS_COLOR_RANGE_LIMITED
+    }
+
+    pv_dmabuf_fourcc_ = gbm_bo_get_format(bo);
+    pv_dmabuf_modifier_ = gbm_bo_get_modifier(bo);
+    pv_dmabuf_w_ = w;
+    pv_dmabuf_h_ = h;
+    IHS_TRACE(
+        "[pv-trace] GetDmabuf allocated {} scanout buffer id={} {}x{} fd={} "
+        "fourcc=0x{:08x} mod=0x{:016x} planes={} cs={}",
+        is_nv12 ? "NV12" : "XRGB", id_, w, h, pv_dmabuf_fd_, pv_dmabuf_fourcc_,
+        pv_dmabuf_modifier_, pv_dmabuf_planes_, pv_dmabuf_color_space_);
+  }
+
+  if (pv_dmabuf_fd_ < 0) {
+    return false;
+  }
+  for (uint32_t i = 0; i < pv_dmabuf_planes_; ++i) {
+    out->fd[i] = pv_dmabuf_fd_;  // one bo; planes differ by offset/stride
+    out->offset[i] = pv_dmabuf_offset_[i];
+    out->stride[i] = pv_dmabuf_stride_[i];
+  }
+  out->fourcc = pv_dmabuf_fourcc_;
+  out->modifier = pv_dmabuf_modifier_;
+  out->width = static_cast<uint32_t>(pv_dmabuf_w_);
+  out->height = static_cast<uint32_t>(pv_dmabuf_h_);
+  out->plane_count = pv_dmabuf_planes_;
+  out->color_space = pv_dmabuf_color_space_;  // 0 (DEFAULT) for RGB
+  out->color_range = pv_dmabuf_color_range_;
+  out->acquire_fence_fd = -1;  // CPU-filled, already visible
+  return true;
 }
 
 void LayerPlaygroundViewPlugin::OnResize(int32_t w, int32_t h) {
