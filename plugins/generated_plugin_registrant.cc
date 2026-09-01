@@ -72,22 +72,6 @@ void PluginsApiRegisterPlugins(FlutterDesktopEngineRef engine) {
   GoogleSignInPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));
 #endif
-#if ENABLE_PLUGIN_FIREBASE_CORE
-  FirebaseCorePluginCApiRegisterWithRegistrar(
-      FlutterDesktopGetPluginRegistrar(engine, ""));
-#endif
-#if ENABLE_PLUGIN_FIREBASE_STORAGE
-  FirebaseStoragePluginCApiRegisterWithRegistrar(
-      FlutterDesktopGetPluginRegistrar(engine, ""));
-#endif
-#if ENABLE_PLUGIN_FIREBASE_AUTH
-  FirebaseAuthPluginCApiRegisterWithRegistrar(
-      FlutterDesktopGetPluginRegistrar(engine, ""));
-#endif
-#if ENABLE_PLUGIN_CLOUD_FIRESTORE
-  CloudFirestorePluginCApiRegisterWithRegistrar(
-      FlutterDesktopGetPluginRegistrar(engine, ""));
-#endif
 #if ENABLE_PLUGIN_VIDEO_PLAYER_LINUX
   VideoPlayerLinuxPluginCApiRegisterWithRegistrar(
       FlutterDesktopGetPluginRegistrar(engine, ""));

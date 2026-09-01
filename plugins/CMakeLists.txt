@@ -90,15 +90,9 @@ PLUGIN_OPTION(camera "Include Camera plugin" OFF)
 
 PLUGIN_OPTION(camera_pipewire "Include Camera Pipewire plugin" OFF)
 
-PLUGIN_OPTION(cloud_firestore "Plugin Cloud Firestore" OFF)
-
 PLUGIN_OPTION(desktop_window_linux "Includes Desktop Window Linux Plugin" OFF)
 
 PLUGIN_OPTION(file_selector "Include File Selector plugin" OFF)
-
-PLUGIN_OPTION(firebase_auth "Plugin Firebase Auth" OFF)
-
-PLUGIN_OPTION(firebase_storage "Plugin Firebase Storage" OFF)
 
 # Gamepad input over the `gamepads` package's channel, backed by SDL3. Needed
 # because libinput -- the shell's own input path -- deliberately ignores
@@ -118,11 +112,6 @@ PLUGIN_OPTION(secure_storage "Includes Flutter Secure Storage" OFF)
 PLUGIN_OPTION(url_launcher "Includes URL Launcher Plugin" OFF)
 
 PLUGIN_OPTION(video_player_linux "Include Video Player plugin" OFF)
-
-if (BUILD_PLUGIN_CLOUD_FIRESTORE OR BUILD_PLUGIN_FIREBASE_AUTH OR BUILD_PLUGIN_FIREBASE_STORAGE)
-    PLUGIN_OPTION(firebase_core "Plugin Firebase Core" ON)
-    include(firebase)
-endif ()
 
 PLUGIN_OPTION(rive_text "Include Rive Text plugin" OFF)
 

@@ -1,1 +1,0 @@
-../../plugins/firebase_storage/README.md

@@ -37,10 +37,6 @@
 #include "camera_pipewire/include/camera_pipewire/camera_plugin_c_api.h"
 #endif
 
-#cmakedefine01 ENABLE_PLUGIN_CLOUD_FIRESTORE
-#if ENABLE_PLUGIN_CLOUD_FIRESTORE
-#include "cloud_firestore/include/cloud_firestore/cloud_firestore_plugin_c_api.h"
-#endif
 
 #cmakedefine01 ENABLE_PLUGIN_DESKTOP_WINDOW_LINUX
 #if ENABLE_PLUGIN_DESKTOP_WINDOW_LINUX
@@ -52,25 +48,13 @@
 #include "file_selector/include/file_selector/file_selector_plugin_c_api.h"
 #endif
 
-#cmakedefine01 ENABLE_PLUGIN_FIREBASE_AUTH
-#if ENABLE_PLUGIN_FIREBASE_AUTH
-#include "firebase_auth/include/firebase_auth/firebase_auth_plugin_c_api.h"
-#endif
 
-#cmakedefine01 ENABLE_PLUGIN_FIREBASE_STORAGE
-#if ENABLE_PLUGIN_FIREBASE_STORAGE
-#include "firebase_storage/include/firebase_storage/firebase_storage_plugin_c_api.h"
-#endif
 
 #cmakedefine01 ENABLE_PLUGIN_GAMEPADS_LINUX
 #if ENABLE_PLUGIN_GAMEPADS_LINUX
 #include "gamepads_linux/include/gamepads_linux/gamepads_linux_plugin_c_api.h"
 #endif
 
-#cmakedefine01 ENABLE_PLUGIN_FIREBASE_CORE
-#if ENABLE_PLUGIN_FIREBASE_CORE
-#include "firebase_core/include/firebase_core/firebase_core_plugin_c_api.h"
-#endif
 
 #cmakedefine01 ENABLE_PLUGIN_GO_ROUTER
 #if ENABLE_PLUGIN_GO_ROUTER
