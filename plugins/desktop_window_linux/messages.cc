@@ -63,6 +63,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                   EncodableValue(width), EncodableValue(height)}));
             } else if (call.method_name() == "setWindowSize") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               double width = 0;
               double height = 0;
               for (const auto& [fst, snd] : *args) {
@@ -82,6 +86,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(true));
             } else if (call.method_name() == "setMinWindowSize") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               double width = 0;
               double height = 0;
               for (const auto& [fst, snd] : *args) {
@@ -101,6 +109,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(true));
             } else if (call.method_name() == "setMaxWindowSize") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               double width = 0;
               double height = 0;
               for (const auto& [fst, snd] : *args) {
@@ -120,6 +132,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(true));
             } else if (call.method_name() == "resetMaxWindowSize") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               double width = 0;
               double height = 0;
               for (const auto& [fst, snd] : *args) {
@@ -144,6 +160,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(true));
             } else if (call.method_name() == "setFullScreen") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               bool fullscreen{};
               for (const auto& [fst, snd] : *args) {
                 if ("fullscreen" == std::get<std::string>(fst) &&
@@ -159,6 +179,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(api->hasBorders()));
             } else if (call.method_name() == "setBorders") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               bool border{};
               for (const auto& [fst, snd] : *args) {
                 if ("border" == std::get<std::string>(fst) &&
@@ -176,6 +200,10 @@ void DesktopWindowLinuxApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(EncodableValue(true));
             } else if (call.method_name() == "stayOnTop") {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return std::nullopt;
+              }
               bool stayOnTop{};
               for (const auto& [fst, snd] : *args) {
                 if ("stayOnTop" == std::get<std::string>(fst) &&

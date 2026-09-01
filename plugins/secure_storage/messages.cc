@@ -47,6 +47,10 @@ void SecureStorageApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 const std::unique_ptr<flutter::MethodResult<>>& result) {
             IHS_DEBUG("[secure_storage] {}", call.method_name());
             auto args = std::get_if<EncodableMap>(call.arguments());
+            if (!args) {
+              result->Error("argument_error", "Expected map arguments");
+              return;
+            }
 
             std::string key;
             std::string value;

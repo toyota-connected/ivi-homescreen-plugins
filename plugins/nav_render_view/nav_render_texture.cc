@@ -50,6 +50,10 @@ void NavRenderTexture::HandleMethodCall(
 
     const auto& args =
         std::get_if<flutter::EncodableMap>(method_call.arguments());
+    if (!args) {
+      result->Error("argument_error", "Expected map arguments");
+      return;
+    }
 
     for (const auto& [fst, snd] : *args) {
       if (const auto& key = std::get<std::string>(fst); key == "access_token") {

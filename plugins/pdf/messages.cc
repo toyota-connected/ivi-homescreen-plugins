@@ -56,6 +56,10 @@ void PrintingApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(flutter::EncodableValue(map));
             } else if ("sharePdf" == call.method_name()) {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return;
+              }
               std::string name = "document.pdf";
               std::vector<uint8_t> doc;
               for (const auto& [fst, snd] : *args) {
@@ -72,6 +76,10 @@ void PrintingApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               result->Success(flutter::EncodableValue(res ? 1 : 0));
             } else if ("rasterPdf" == call.method_name()) {
               const auto& args = std::get_if<EncodableMap>(call.arguments());
+              if (!args) {
+                result->Error("argument_error", "Expected map arguments");
+                return;
+              }
               std::vector<uint8_t> doc;
               std::vector<int32_t> pages;
               int32_t job_id = 0;

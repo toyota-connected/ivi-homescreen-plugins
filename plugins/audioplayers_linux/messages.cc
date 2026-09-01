@@ -50,6 +50,10 @@ void SetupMethodChannel(flutter::BinaryMessenger* messenger) {
                                     const MethodCall<>& methodCall,
                                     std::unique_ptr<MethodResult<>> result) {
     const auto& args = std::get_if<EncodableMap>(methodCall.arguments());
+    if (!args) {
+      result->Error("argument_error", "Expected map arguments");
+      return;
+    }
     std::string playerId;
     for (const auto& [fst, snd] : *args) {
       if ("playerId" == std::get<std::string>(fst) &&
