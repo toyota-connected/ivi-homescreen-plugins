@@ -9,12 +9,8 @@ Welcome to ivi-homescreen-plugin's documentation!
    readme
    audioplayers_linux
    camera
-   cloud_firestore
    desktop_window_linux
    file_selector
-   firebase_auth
-   firebase_core
-   firebase_storage
    flatpak
    go_router
    google_sign_in
