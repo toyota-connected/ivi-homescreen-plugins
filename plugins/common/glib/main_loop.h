@@ -20,9 +20,7 @@
 #include <memory>
 #include <thread>
 
-extern "C" {
 #include <glib-2.0/glib.h>
-};
 
 namespace plugin_common_glib {
 
