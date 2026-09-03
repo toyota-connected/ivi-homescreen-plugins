@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include <libsecret/secret.h>
 
 #include "rapidjson/rapidjson.h"
@@ -78,8 +76,7 @@ class Keyring {
   }
 
   bool storeToKeyring(rapidjson::Document& d) {
-    std::unique_ptr<GError> err = nullptr;
-    GError* errPtr = err.get();
+    GError* err = nullptr;
 
     rapidjson::StringBuffer buffer;
     buffer.Clear();
@@ -88,12 +85,14 @@ class Keyring {
 
     auto res = (bool)secret_password_storev_sync(
         &schema_, attributes_.getGHashTable(), nullptr, label_.c_str(),
-        buffer.GetString(), nullptr, &errPtr);
+        buffer.GetString(), nullptr, &err);
 
     auto result = static_cast<bool>(res);
 
     if (err) {
-      throw std::runtime_error(err->message);
+      std::string msg = err->message;
+      g_clear_error(&err);
+      throw std::runtime_error(msg);
     }
 
     return result;
@@ -101,14 +100,15 @@ class Keyring {
 
   rapidjson::Document readFromKeyring() {
     rapidjson::Document d;
-    std::unique_ptr<GError> err = nullptr;
-    GError* errPtr = err.get();
+    GError* err = nullptr;
 
     const gchar* result = secret_password_lookupv_sync(
-        &schema_, attributes_.getGHashTable(), nullptr, &errPtr);
+        &schema_, attributes_.getGHashTable(), nullptr, &err);
 
     if (err) {
-      throw std::runtime_error(err->message);
+      std::string msg = err->message;
+      g_clear_error(&err);
+      throw std::runtime_error(msg);
     }
 
     if (result != nullptr && strcmp(result, "") != 0 &&
