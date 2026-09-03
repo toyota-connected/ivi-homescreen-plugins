@@ -20,6 +20,8 @@
 
 #include <flutter/plugin_registrar.h>
 
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 #include <thread>
 

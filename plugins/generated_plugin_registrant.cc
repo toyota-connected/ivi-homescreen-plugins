@@ -15,6 +15,7 @@
  */
 
 #include "generated_plugin_registrant.h"
+#include <cstdlib>
 #include <memory>
 
 #include "config/plugins.h"

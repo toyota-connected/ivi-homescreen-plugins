@@ -16,6 +16,7 @@
 
 #include "pipewire_graph.h"
 
+#include <cstring>
 #include "logging/logging.h"
 
 pipewire_graph& pipewire_graph::instance() {

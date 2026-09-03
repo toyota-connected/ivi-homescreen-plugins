@@ -16,6 +16,7 @@
 
 #include "json_utils.h"
 
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <memory>

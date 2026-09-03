@@ -26,6 +26,7 @@
 
 #include <sys/wait.h>
 #include <unistd.h>
+#include <cstdlib>
 
 namespace url_launcher_linux {
 

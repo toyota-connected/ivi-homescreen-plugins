@@ -19,7 +19,9 @@
 #include <filesystem>
 #include <memory>
 
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>

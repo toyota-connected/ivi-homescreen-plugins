@@ -17,6 +17,8 @@
 #include "camera_stream.h"
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <future>
 #include <memory>
