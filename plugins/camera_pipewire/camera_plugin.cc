@@ -20,9 +20,7 @@
 #include <string>
 #include <vector>
 
-extern "C" {
 #include <glib-2.0/glib.h>
-};
 #include <jpeglib.h>
 
 #include <flutter/event_stream_handler_functions.h>
