@@ -13,9 +13,7 @@
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 
-extern "C" {
 #include <gst/gst.h>
-}
 
 using namespace flutter;
 
