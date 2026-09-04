@@ -16,6 +16,7 @@
 
 #include "camera_plugin.h"
 
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,10 +31,7 @@
 #include "pipewire_graph.h"
 #include "plugins/common/common.h"
 
-extern "C" {
 #include <pipewire/pipewire.h>
-#include <cstdio>
-}
 
 struct CameraInfo {
   uint32_t id;

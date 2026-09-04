@@ -32,11 +32,9 @@
 
 #include "nv12.h"
 
-extern "C" {
 #include <gst/gst.h>
 #include <gst/video/video.h>
 #include <libudev.h>
-}
 
 #include "messages.g.h"
 

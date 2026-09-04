@@ -6,9 +6,7 @@
 #include <memory>
 #include "logging/logging.h"
 
-extern "C" {
 #include <gst/pbutils/gstdiscoverer.h>
-}
 
 #include <unistd.h>
 #include <algorithm>
