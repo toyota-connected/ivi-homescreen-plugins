@@ -25,6 +25,7 @@
 
 #include <gst/pbutils/pbutils.h>
 #include <gst/tag/tag.h>
+#include <cstring>
 
 #include "messages.g.h"
 #include "plugins/common/glib/main_loop.h"

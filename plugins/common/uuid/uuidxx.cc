@@ -7,6 +7,7 @@
 #include "uuidxx.h"
 #include <cinttypes>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <random>
 

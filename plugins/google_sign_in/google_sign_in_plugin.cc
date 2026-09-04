@@ -16,6 +16,7 @@
 
 #include "google_sign_in_plugin.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <memory>
 

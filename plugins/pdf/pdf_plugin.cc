@@ -22,6 +22,7 @@
 #include <numeric>
 
 #include <flutter/plugin_registrar.h>
+#include <cstdio>
 
 #include "libpdfium.h"
 #include "messages.h"

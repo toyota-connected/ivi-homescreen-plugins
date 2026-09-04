@@ -19,6 +19,7 @@
 #include <memory>
 
 #include <libsecret/secret.h>
+#include <cstring>
 
 #include "rapidjson/rapidjson.h"
 

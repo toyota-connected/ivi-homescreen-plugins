@@ -25,6 +25,8 @@
 
 #include <atomic>
 #include <climits>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include <gst/audio/audio.h>

@@ -32,6 +32,7 @@
 
 extern "C" {
 #include <pipewire/pipewire.h>
+#include <cstdio>
 }
 
 struct CameraInfo {
