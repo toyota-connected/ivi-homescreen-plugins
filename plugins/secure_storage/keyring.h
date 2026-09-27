@@ -91,9 +91,8 @@ class Keyring {
     auto result = static_cast<bool>(res);
 
     if (err) {
-      std::string msg = err->message;
+      ihs::log::error("[Keyring] storeToKeyring failed: {}", err->message);
       g_clear_error(&err);
-      throw std::runtime_error(msg);
     }
 
     return result;
@@ -107,9 +106,8 @@ class Keyring {
         &schema_, attributes_.getGHashTable(), nullptr, &err);
 
     if (err) {
-      std::string msg = err->message;
+      ihs::log::error("[Keyring] readFromKeyring failed: {}", err->message);
       g_clear_error(&err);
-      throw std::runtime_error(msg);
     }
 
     if (result != nullptr && strcmp(result, "") != 0 &&
