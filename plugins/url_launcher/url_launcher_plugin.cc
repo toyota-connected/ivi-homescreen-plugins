@@ -44,7 +44,11 @@ UrlLauncherPlugin::UrlLauncherPlugin() = default;
 
 UrlLauncherPlugin::~UrlLauncherPlugin() = default;
 
-ErrorOr<bool> UrlLauncherPlugin::CanLaunchUrl(const std::string& url) {
+namespace {
+
+// Schemes that may be handed to xdg-open. Shared by CanLaunchUrl and
+// LaunchUrl so the launch path cannot bypass the check.
+bool HasAllowedScheme(const std::string& url) {
   if (url.find(':') == std::string::npos) {
     return false;
   }
@@ -54,8 +58,18 @@ ErrorOr<bool> UrlLauncherPlugin::CanLaunchUrl(const std::string& url) {
          url.rfind("mailto:", 0) == 0 || url.rfind("tel:", 0) == 0;
 }
 
+}  // namespace
+
+ErrorOr<bool> UrlLauncherPlugin::CanLaunchUrl(const std::string& url) {
+  return HasAllowedScheme(url);
+}
+
 ErrorOr<std::optional<std::string>> UrlLauncherPlugin::LaunchUrl(
     const std::string& url) {
+  if (!HasAllowedScheme(url)) {
+    return FlutterError("invalid_url", "URL scheme is not permitted: " + url);
+  }
+
   const pid_t pid = fork();
   if (pid == 0) {
     execl("/usr/bin/xdg-open", "xdg-open", url.c_str(), nullptr);
