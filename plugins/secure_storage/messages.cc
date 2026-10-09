@@ -67,8 +67,7 @@ void SecureStorageApi::SetUp(flutter::BinaryMessenger* binary_messenger,
             }
 
             if (call.method_name() == "write") {
-              IHS_DEBUG("secure_storage: [Write] key: {}, value: {}", key,
-                        value);
+              IHS_DEBUG("secure_storage: [Write] key: {}", key);
               api->write(key.c_str(), value.c_str());
               result->Success(flutter::EncodableValue(true));
             } else if (call.method_name() == "read") {
